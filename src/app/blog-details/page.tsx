@@ -1,8 +1,12 @@
 import SharePost from "@/components/Blog/SharePost";
 import TagButton from "@/components/Blog/TagButton";
 import Image from "next/image";
+import ModelOne from "@/components/View-Models/modelOne";
 
 import { Metadata } from "next";
+import RelatedPost from "@/components/Blog/RelatedPost";
+import ModelTwo from "@/components/View-Models/modelTwo";
+
 
 export const metadata: Metadata = {
   title: "Blog Details Page | Free Next.js Template for Startup and SaaS",
@@ -16,8 +20,10 @@ const BlogDetailsPage = () => {
       <section className="pb-[120px] pt-[150px]">
         <div className="container">
           <div className="-mx-4 flex flex-wrap justify-center">
-            <div className="w-full px-4 lg:w-8/12">
-              <div>
+
+            
+            <div className="w-full lg:w-2/3">
+              <div className="p-8">
                 <h2 className="mb-8 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
                   10 amazing sites to download stock photos & digital assets for
                   free
@@ -96,9 +102,9 @@ const BlogDetailsPage = () => {
                   <div className="mb-5">
                     <a
                       href="#0"
-                      className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
+                      className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
                     >
-                      Design
+                      Get In Touch
                     </a>
                   </div>
                 </div>
@@ -108,6 +114,7 @@ const BlogDetailsPage = () => {
                     esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
                     occaecat cupidatat.
                   </p>
+                  
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <div className="relative aspect-[97/60] w-full sm:aspect-[97/44]">
                       <Image
@@ -118,6 +125,27 @@ const BlogDetailsPage = () => {
                       />
                     </div>
                   </div>
+                  <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. Quis enim lobortis scelerisque fermentum. Neque
+                    sodales ut etiam sit amet. Ligula ullamcorper
+                    <strong className="text-primary dark:text-white">
+                      malesuada
+                    </strong>
+                    proin libero nunc consequat interdum varius. Quam
+                    pellentesque nec nam aliquam sem et tortor consequat.
+                    Pellentesque adipiscing commodo elit at imperdiet.
+                  </p>
+                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
+                    Semper auctor neque vitae tempus quam pellentesque nec.
+                    <span className="text-primary underline dark:text-white">
+                      Amet dictum sit amet justo
+                    </span>
+                    donec enim diam. Varius sit amet mattis vulputate enim nulla
+                    aliquet porttitor. Odio pellentesque diam volutpat commodo
+                    sed.
+                  </p>
                   <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
                     do eiusmod tempor incididunt ut labore et dolore magna
@@ -337,7 +365,56 @@ const BlogDetailsPage = () => {
                 </div>
               </div>
             </div>
+
+            <div className="p-3 mt-12 w-full lg:mt-0 lg:w-1/3">
+            <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
+                <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
+                  Most Read Blog
+                </h3>
+                <ul className="p-8">
+                  <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
+                    <RelatedPost
+                      title="Best way to boost your online sales."
+                      image="/images/blog/post-01.jpg"
+                      slug="#"
+                      date="12 Feb 2025"
+                    />
+                  </li>
+                  <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
+                    <RelatedPost
+                      title="Best way to boost your online sales."
+                      image="/images/blog/post-01.jpg"
+                      slug="#"
+                      date="12 Feb 2025"
+                    />
+                  </li>
+                  <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
+                    <RelatedPost
+                      title="50 Best web design tips & tricks that will help you."
+                      image="/images/blog/post-02.jpg"
+                      slug="#"
+                      date="15 Feb, 2024"
+                    />
+                  </li>
+                  <li>
+                    <RelatedPost
+                      title="The 8 best landing page builders, reviewed"
+                      image="/images/blog/post-03.jpg"
+                      slug="#"
+                      date="05 Jun, 2024"
+                    />
+                  </li>
+                </ul>
+              </div>
+           <ModelOne/>
+           <ModelTwo/>
+           
+            </div>
+            
           </div>
+        
+
+          
         </div>
       </section>
     </>

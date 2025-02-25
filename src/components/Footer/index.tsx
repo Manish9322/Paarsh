@@ -160,7 +160,7 @@ const Footer = () => {
                       href="/about"
                       className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
-                      Services
+                      Blogs
                     </Link>
                   </li>
                   <li>
@@ -325,6 +325,12 @@ const Footer = () => {
   
   {/* Right Side - Terms & Privacy Policy */}
   <div className="flex space-x-4 mr-5">
+  <a
+      href="/termscondition"
+      className="text-base text-body-color dark:text-white hover:text-primary"
+    >
+     Refund Policy
+    </a>
     <a
       href="/termscondition"
       className="text-base text-body-color dark:text-white hover:text-primary"
