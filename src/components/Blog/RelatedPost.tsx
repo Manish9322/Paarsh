@@ -5,12 +5,14 @@ const RelatedPost = ({
   image,
   slug,
   title,
-  date,
+  level,
+  duration,
 }: {
   image: string;
   slug: string;
   title: string;
-  date: string;
+  level: string;
+  duration:string;
 }) => {
   return (
     <div className="flex items-center lg:block xl:flex">
@@ -28,7 +30,11 @@ const RelatedPost = ({
             {title}
           </Link>
         </h5>
-        <p className="text-xs font-medium text-body-color">{date}</p>
+        <div className="flex">
+        <p className="text-xs font-medium text-body-color mr-4"> {level} </p>
+        <p className="text-xs font-medium text-body-color"> {duration}</p>  
+        </div>
+        
       </div>
     </div>
   );
