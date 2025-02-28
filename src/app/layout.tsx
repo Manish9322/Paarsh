@@ -7,6 +7,7 @@ import { Inter } from "next/font/google";
 import "node_modules/react-modal-video/css/modal-video.css";
 import "../styles/index.css";
 import AutoModal from "@/components/AutoModal/AutoModal";
+import {makeStore} from "../lib/store";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,6 +16,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  const isAdminPage = pathname.startsWith("/admin");
   return (
     <html suppressHydrationWarning lang="en">
       {/*
@@ -24,14 +28,17 @@ export default function RootLayout({
       <head />
 
       <body className={`bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
+      <Provider store={makeStore}>
         <Providers>
-          <Header />
+        {!isAdminPage && <Header />} {/* Hide header on admin pages */}
           {children}
-          <Footer />
+          {!isAdminPage && <Footer />} {/* Hide footer on admin pages */}
           <ScrollToTop />
           <AutoModal/>
+          <Toaster richColors />
           <PurchaseModal />
         </Providers>
+        </Provider>
       </body>
     </html>
   );
@@ -39,4 +46,8 @@ export default function RootLayout({
 
 import { Providers } from "./providers";
 import PurchaseModal from "@/components/PurchaseModal";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
+import { Provider } from "react-redux";
+import { Toaster } from "sonner";
 
