@@ -1,22 +1,45 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+ import { signUpValidationSchema } from '../../lib/validationSchema';
+ import { useFormik } from 'formik';
+import { Eye, EyeOff } from "lucide-react";
 
-import { Metadata } from "next";
-
-
-export const metadata: Metadata = {
-  title: "Sign Up Page | Free Next.js Template for Startup and SaaS",
-  description: "This is Sign Up Page for Startup Nextjs Template",
-  // other metadata
-};
+// export const metadata: Metadata = {
+//   title: "Sign Up Page | Free Next.js Template for Startup and SaaS",
+//   description: "This is Sign Up Page for Startup Nextjs Template",
+//   // other metadata
+// };
 
 const SignupPage = () => {
+
+  
+    const formik = useFormik({
+      initialValues: {
+        name: '',
+        email: '',
+        password: '',
+        confirmpassword: '',
+        mobile: '',
+        referralCode: '',
+
+        acceptTerms: false,
+      },
+      validationSchema: signUpValidationSchema,
+      onSubmit: (values) => {
+        console.log('Form Data:', values);
+      },
+    });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   return (
     <>
       <section className="relative z-10 overflow-hidden pb-16 pt-36 md:pb-20 lg:pb-28 lg:pt-[180px]">
         <div className="container">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4">
-              <div className="shadow-three mx-auto max-w-[500px] rounded bg-white px-6 py-10 dark:bg-dark sm:p-[60px]">
+              <div className="mx-auto max-w-[700px] rounded bg-white px-6 py-10 shadow-three dark:bg-dark sm:p-[60px]">
                 <h3 className="mb-3 text-center text-2xl font-bold text-black dark:text-white sm:text-3xl">
                   Create your account
                 </h3>
@@ -81,151 +104,128 @@ const SignupPage = () => {
                   </p>
                   <span className="hidden h-[1px] w-full max-w-[60px] bg-body-color/50 sm:block"></span>
                 </div> */}
-                <form>
-                  <div className="mb-8">
-                    <label
-                      htmlFor="name"
-                      className="mb-3 block text-sm text-dark dark:text-white"
-                    >
-                      {" "}
-                      Full Name{" "}
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      placeholder="Enter your full name"
-                      className="border-stroke dark:text-body-color-dark dark:shadow-two w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
-                    />
-                  </div>
-                  <div className="mb-8">
-                    <label
-                      htmlFor="email"
-                      className="mb-3 block text-sm text-dark dark:text-white"
-                    >
-                      {" "}
-                      Work Email{" "}
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Enter your Email"
-                      className="border-stroke dark:text-body-color-dark dark:shadow-two w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
-                    />
-                  </div>
-                  <div className="mb-8">
-                    <label
-                      htmlFor="referral code"
-                      className="mb-3 block text-sm text-dark dark:text-white"
-                    >
-                      {" "}
-                      referral code{" "}
-                    </label>
-                    <input
-                      type="text"
-                      name="Referal id"
-                      placeholder="Enter 10 Digits number"
-                      className="border-stroke dark:text-body-color-dark dark:shadow-two w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
-                    />
-                  </div>
-                  <div className="mb-8">
-                    <label
-                      htmlFor="name"
-                      className="mb-3 block text-sm text-dark dark:text-white"
-                    >
-                      {" "}
-                      Mobile Number{" "}
-                    </label>
-                    <input
-                      type="text"
-                      name="mobilenumber"
-                      placeholder="Enter 10 Digits number"
-                      className="border-stroke dark:text-body-color-dark dark:shadow-two w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
-                    />
-                  </div>
-                  <div className="mb-8">
-                    <label
-                      htmlFor="password"
-                      className="mb-3 block text-sm text-dark dark:text-white"
-                    >
-                      {" "}
-                      Your Password{" "}
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Enter your Password"
-                      className="border-stroke dark:text-body-color-dark dark:shadow-two w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
-                    />
-                  </div>
-                  <div className="mb-8">
-                    <label
-                      htmlFor="password"
-                      className="mb-3 block text-sm text-dark dark:text-white"
-                    >
-                      {" "}
-                      confirm Password{" "}
-                    </label>
-                    <input
-                      type="password"
-                      name="confirmpassword"
-                      placeholder="Enter your Password"
-                      className="border-stroke dark:text-body-color-dark dark:shadow-two w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
-                    />
-                  </div>
-                  <div className="mb-8 flex">
-                    <label
-                      htmlFor="checkboxLabel"
-                      className="flex cursor-pointer select-none text-sm font-medium text-body-color"
-                    >
-                      <div className="relative">
-                        <input
-                          type="checkbox"
-                          id="checkboxLabel"
-                          className="sr-only"
-                        />
-                        <div className="box mr-4 mt-1 flex h-5 w-5 items-center justify-center rounded border border-body-color border-opacity-20 dark:border-white dark:border-opacity-10">
-                          <span className="opacity-0">
-                            <svg
-                              width="11"
-                              height="8"
-                              viewBox="0 0 11 8"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M10.0915 0.951972L10.0867 0.946075L10.0813 0.940568C9.90076 0.753564 9.61034 0.753146 9.42927 0.939309L4.16201 6.22962L1.58507 3.63469C1.40401 3.44841 1.11351 3.44879 0.932892 3.63584C0.755703 3.81933 0.755703 4.10875 0.932892 4.29224L0.932878 4.29225L0.934851 4.29424L3.58046 6.95832C3.73676 7.11955 3.94983 7.2 4.1473 7.2C4.36196 7.2 4.55963 7.11773 4.71406 6.9584L10.0468 1.60234C10.2436 1.4199 10.2421 1.1339 10.0915 0.951972ZM4.2327 6.30081L4.2317 6.2998C4.23206 6.30015 4.23237 6.30049 4.23269 6.30082L4.2327 6.30081Z"
-                                fill="#3056D3"
-                                stroke="#3056D3"
-                                strokeWidth="0.4"
-                              />
-                            </svg>
-                          </span>
-                        </div>
-                      </div>
-                      <span>
-                        By creating account means you agree to the
-                        <a href="#0" className="text-primary hover:underline">
-                          {" "}
-                          Terms and Conditions{" "}
+               
+    <form onSubmit={formik.handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Left Section */}
+      <div>
+        {/* Full Name */}
+        <div className="mb-6">
+          <label className="block text-lg text-dark dark:text-white">Full Name</label>
+          <input
+            type="text"
+            name="name"
+            placeholder="Enter your full name"
+            onChange={formik.handleChange}
+            value={formik.values.name}
+            className="w-full px-6 text-sm py-3 rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
+          />
+          {formik.errors.name && <p className="text-red-500 text-sm">{formik.errors.name}</p>}
+        </div>
+        
+        {/* Work Email */}
+        <div className="mb-6">
+          <label className="block text-lg text-dark dark:text-white">Work Email</label>
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter your Email"
+            onChange={formik.handleChange}
+            value={formik.values.email}
+            className="w-full px-6  text-sm py-3 rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
+          />
+          {formik.errors.email && <p className="text-red-500 text-sm">{formik.errors.email}</p>}
+        </div>
+
+        {/* Referral Code */}
+        <div className="mb-6">
+          <label className="block text-lg text-dark dark:text-white">Referral Code</label>
+          <input
+            type="text"
+            name="referralCode"
+            placeholder="Enter Referral Code (optional)"
+            className="w-full px-6 py-3  text-sm rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
+          />
+        </div>
+      </div>
+
+      {/* Right Section */}
+      <div>
+        {/* Mobile Number */}
+        <div className="mb-6">
+          <label className="block text-lg text-dark dark:text-white">Mobile Number</label>
+          <input
+            type="text"
+            name="mobile"
+            placeholder="Enter 10-digit number"
+            onChange={formik.handleChange}
+            value={formik.values.mobile}
+            className="w-full px-6 py-3  text-sm rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
+          />
+          {formik.errors.mobile && <p className="text-red-500 text-sm">{formik.errors.mobile}</p>}
+        </div>
+
+        {/* Password */}
+        <div className="relative mb-6">
+          <label className="block text-lg text-dark dark:text-white">Password</label>
+          <input
+            type={showPassword ? "text" : "password"}
+            name="password"
+            placeholder="Enter your password"
+            onChange={formik.handleChange}
+            value={formik.values.password}
+            className="w-full px-6 py-3  text-sm rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
+          />
+          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-10 text-gray-500 hover:text-gray-700">
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+          {formik.errors.password && <p className="text-red-500 text-sm">{formik.errors.password}</p>}
+        </div>
+
+        {/* Confirm Password */}
+        <div className="relative mb-6">
+          <label className="block text-lg text-dark dark:text-white">Confirm Password</label>
+          <input
+            type={showConfirmPassword ? "text" : "password"}
+            name="confirmpassword"
+            placeholder="Confirm your password"
+            onChange={formik.handleChange}
+            value={formik.values.confirmpassword}
+            className="w-full px-6 py-3  text-sm rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
+          />
+          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-10 text-gray-500 hover:text-gray-700">
+            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+          {formik.errors.confirmpassword && <p className="text-red-500 text-sm">{formik.errors.confirmpassword}</p>}
+        </div>
+      </div>
+
+      {/* Terms & Submit */}
+      <div className="col-span-2">
+        <div className="flex items-center mb-6">
+          <input type="checkbox" name="acceptTerms" onChange={formik.handleChange} checked={formik.values.acceptTerms} className="mr-2" />
+          <span className="text-sm">
+                        By creating account you agree the <span className="text-blue-600 font-medium"> Paarsh Edu's</span>
+                        <a href="#0">
+                        
+                          Terms and Conditions
                         </a>
                         , and our
-                        <a href="#0" className="text-primary hover:underline">
-                          {" "}
-                          Privacy Policy{" "}
+                        <a href="#0">
+                        {" "}
+                          Privacy Policy
                         </a>
                       </span>
-                    </label>
-                  </div>
-                  <div className="mb-6">
-                    <button className="shadow-submit dark:shadow-submit-dark flex w-full items-center justify-center rounded-sm bg-blue-600 px-9 py-4 text-base font-medium text-black duration-300 hover:bg-white">
-                      Create Account
-                    </button>
-                  </div>
-                </form>
+        </div>
+        {formik.errors.acceptTerms && <p className="text-red-500 text-sm mb-3">{formik.errors.acceptTerms}</p>}
+        <button type="submit" className="w-full px-6 py-3 bg-blue-600 mb-4 text-white rounded hover:bg-black">
+          Create Account
+        </button>
+      </div>
+    </form>
                 <p className="text-center text-base font-medium text-body-color">
                   Already have account?{" "}
                   <Link href="/signin" className="text-primary hover:underline">
-                    Sign in
+                    Login
                   </Link>
                 </p>
               </div>
