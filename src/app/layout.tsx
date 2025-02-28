@@ -8,7 +8,6 @@ import "node_modules/react-modal-video/css/modal-video.css";
 import "../styles/index.css";
 import AutoModal from "@/components/AutoModal/AutoModal";
 
-
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({

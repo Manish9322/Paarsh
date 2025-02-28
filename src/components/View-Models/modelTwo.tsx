@@ -4,7 +4,7 @@ const ModelOne: React.FC = () => {
     return (
         <div className="relative rounded-b-sm shadow-three dark:bg-gray-dark mb-10 bg-white dark:shadow-none">
             <div className="relative">
-                <img className="w-full rounded object-cover h-60" src="/images/courses/image-2.jpg" alt="" />
+                <img className="w-full rounded object-cover h-72" src="/images/courses/image-2.jpg" alt="" />
                 <div className="rounded-b-sm absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-5 text-white">
                     <a href="#">
                         <h5 className="mb-2 text-2xl font-bold tracking-tight">
