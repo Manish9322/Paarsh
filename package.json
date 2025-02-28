@@ -29,6 +29,7 @@
     "framer-motion": "^12.4.7",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
+    "jspdf": "^3.0.0",
     "lucide-react": "^0.475.0",
     "mongoose": "^8.10.1",
     "next": "15.1.6",
