@@ -135,11 +135,11 @@ const BlogSidebarPage = () => {
                     </strong>
                   </p>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    You'll learn how to manipulate the
+                    You will learn how to manipulate the
                     <span className="text-primary underline dark:text-white">
                       {" "}DOM{" "}
                     </span>
-                    , handle events, and work with frameworks like React.js to build real-world applications. Through hands-on exercises and projects, you'll gain the practical skills needed to write clean, efficient, and scalable JavaScript code.
+                    , handle events, and work with frameworks like React.js to build real-world applications. Through hands-on exercises and projects, you will gain the practical skills needed to write clean, efficient, and scalable JavaScript code.
                   </p>
                   <h3 className="font-xl mb-10 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
                     This Course Includes
@@ -443,8 +443,7 @@ const BlogSidebarPage = () => {
                       image="/images/blog/post-01.jpg"
                       slug="#"
                       level="Beginner"
-                      duration="2 Months"
-                    />
+                      duration="2 Months" date={""}                    />
                   </li>
                   <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
@@ -452,8 +451,7 @@ const BlogSidebarPage = () => {
                       image="/images/blog/post-02.jpg"
                       slug="#"
                       level="Intermediate"
-                      duration="2 Weeks"
-                    />
+                      duration="2 Weeks" date={""}                    />
                   </li>
                   <li>
                     <RelatedPost
@@ -461,8 +459,7 @@ const BlogSidebarPage = () => {
                       image="/images/blog/post-03.jpg"
                       slug="#"
                       level="Difficult"
-                      duration="1 Month"
-                    />
+                      duration="1 Month" date={""}                    />
                   </li>
                 </ul>
               </div>

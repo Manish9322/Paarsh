@@ -11,14 +11,14 @@ _db();
 
 export async function POST(request) {
   try {
-    const { fullName, email, password } = await request.json();
+    const { fullName, email, password , phoneNumber , refferalCode } = await request.json();
 
     // Validate input
-    if (!fullName || !email || !password) {
+    if (!fullName || !email || !phoneNumber || !password) {
       return NextResponse.json(
         {
           success: false,
-          error: "FullName, Email, and password are required",
+          error: "FullName, Email, Phone and password are required",
         },
         { status: 400 }
       );
@@ -68,7 +68,7 @@ export async function POST(request) {
       data: {
         accessToken,
         refreshToken,
-        redirect:"/home"
+        redirect:"/dashboard"
       },
     });
   } catch (error) {

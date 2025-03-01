@@ -7,7 +7,6 @@ import { Metadata } from "next";
 import RelatedPost from "@/components/Blog/RelatedPost";
 import ModelTwo from "@/components/View-Models/modelTwo";
 
-
 export const metadata: Metadata = {
   title: "Blog Details Page | Free Next.js Template for Startup and SaaS",
   description: "This is Blog Details Page for Startup Nextjs Template",
@@ -20,8 +19,6 @@ const BlogDetailsPage = () => {
       <section className="pb-[120px] pt-[150px]">
         <div className="container">
           <div className="-mx-4 flex flex-wrap justify-center">
-
-            
             <div className="w-full lg:w-2/3">
               <div className="p-8">
                 <h2 className="mb-8 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
@@ -114,7 +111,7 @@ const BlogDetailsPage = () => {
                     esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
                     occaecat cupidatat.
                   </p>
-                  
+
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <div className="relative aspect-[97/60] w-full sm:aspect-[97/44]">
                       <Image
@@ -366,8 +363,8 @@ const BlogDetailsPage = () => {
               </div>
             </div>
 
-            <div className="p-3 mt-12 w-full lg:mt-0 lg:w-1/3">
-            <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
+            <div className="mt-12 w-full p-3 lg:mt-0 lg:w-1/3">
+              <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Most Read Blog
                 </h3>
@@ -378,6 +375,8 @@ const BlogDetailsPage = () => {
                       image="/images/blog/post-01.jpg"
                       slug="#"
                       date="12 Feb 2025"
+                      level={""}
+                      duration={""}
                     />
                   </li>
                   <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
@@ -386,6 +385,8 @@ const BlogDetailsPage = () => {
                       image="/images/blog/post-01.jpg"
                       slug="#"
                       date="12 Feb 2025"
+                      level={""}
+                      duration={""}
                     />
                   </li>
                   <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
@@ -394,6 +395,8 @@ const BlogDetailsPage = () => {
                       image="/images/blog/post-02.jpg"
                       slug="#"
                       date="15 Feb, 2024"
+                      level={""}
+                      duration={""}
                     />
                   </li>
                   <li>
@@ -402,19 +405,16 @@ const BlogDetailsPage = () => {
                       image="/images/blog/post-03.jpg"
                       slug="#"
                       date="05 Jun, 2024"
+                      level={""}
+                      duration={""}
                     />
                   </li>
                 </ul>
               </div>
-           <ModelOne/>
-           <ModelTwo/>
-           
+              <ModelOne />
+              <ModelTwo />
             </div>
-            
           </div>
-        
-
-          
         </div>
       </section>
     </>

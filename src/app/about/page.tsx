@@ -19,16 +19,14 @@ const AboutPage = () => {
   return (
     <>
       <Breadcrumb
-        pageName={<>About <span className="text-blue-600">Paarsh Edu. Learning</span></>}
+        pageName="About Paarsh Edu. Learning"
         description="Your ultimate learning platform to unlock knowledge, enhance skills, grow professionally, and shape a brighter future with smart, interactive, and effective education solutions."
       />
 
-      <AboutSectionThree/>
+      <AboutSectionThree />
       <AboutSectionOne />
       <AboutSectionTwo />
-      <AboutSection/>
-
-
+      <AboutSection />
     </>
   );
 };

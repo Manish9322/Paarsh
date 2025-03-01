@@ -35,7 +35,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "src/components/Sidebar/Sidebar.tsx", "src/components/Courses/AddCourse.js"  ],
+, "src/components/Sidebar/Sidebar.tsx", "src/components/Courses/AddCourse.js", "src/components/Categories/AddCategory.js"  ],
   "exclude": [
     "node_modules"
   ]

@@ -42,9 +42,9 @@ const Blog = () => {
                 <div className="space-y-3 px-6 py-5">
                   {[
                     "Web Development",
-                     "Web Design",
-                     "CSS",
-                     "Javascript",
+                    "Web Design",
+                    "CSS",
+                    "Javascript",
                     " UI / UX Design",
                   ].map((category, index) => (
                     <div
@@ -74,32 +74,28 @@ const Blog = () => {
                       title="Best way to boost your online sales."
                       image="/images/blog/post-01.jpg"
                       slug="#"
-                      date="12 Feb 2025"
-                    />
+                      date="12 Feb 2025" level={""} duration={""}                    />
                   </li>
                   <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
                       title="Best way to boost your online sales."
                       image="/images/blog/post-01.jpg"
                       slug="#"
-                      date="12 Feb 2025"
-                    />
+                      date="12 Feb 2025" level={""} duration={""}                    />
                   </li>
                   <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
                       title="50 Best web design tips & tricks that will help you."
                       image="/images/blog/post-02.jpg"
                       slug="#"
-                      date="15 Feb, 2024"
-                    />
+                      date="15 Feb, 2024" level={""} duration={""}                    />
                   </li>
                   <li>
                     <RelatedPost
                       title="The 8 best landing page builders, reviewed"
                       image="/images/blog/post-03.jpg"
                       slug="#"
-                      date="05 Jun, 2024"
-                    />
+                      date="05 Jun, 2024" level={""} duration={""}                    />
                   </li>
                 </ul>
               </div>

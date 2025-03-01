@@ -12,6 +12,13 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
+  phoneNumber: {
+    type: String,
+    required: true,
+  },
+  refferalCode: {
+    type: String,
+  },
   password: {
     type: String,
     required: true,

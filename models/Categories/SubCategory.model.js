@@ -2,12 +2,11 @@ import mongoose from "mongoose";
 
 const SubcategorySchema = new mongoose.Schema(
   {
-    category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category", // Reference to the Category model
+    categoryName: {
+      type: String,
       required: true,
     },
-    subcategory: {
+    subcategoryName: {
       type: String,
       required: true,
       trim: true,

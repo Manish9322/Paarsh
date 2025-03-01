@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-import _db from "../../../../utils/db";
-import Subcategory from "../../../../models/Subcategory.model";
-import { authMiddleware } from "../../../../middlewares/auth";
+import _db from "../../../../../utils/db";
+import Subcategory from "../../../../../models/Categories/SubCategory.model";
+import { authMiddleware } from "../../../../../middlewares/auth";
 
 _db();
 
 // Create Subcategory
 export const POST = authMiddleware(async (request) => {
   try {
-    const { category, subcategory, description, keywords } =
+    const { categoryName, subcategoryName, description, keywords } =
       await request.json();
 
-    if (!category || !subcategory || !description || !keywords) {
+    if (!categoryName || !subcategoryName || !description || !keywords) {
       return NextResponse.json(
         { success: false, error: "All required fields must be provided" },
         { status: 400 },
@@ -19,8 +19,8 @@ export const POST = authMiddleware(async (request) => {
     }
 
     const newSubcategory = new Subcategory({
-      category,
-      subcategory,
+      categoryName,
+      subcategoryName,
       description,
       keywords,
     });
@@ -44,7 +44,7 @@ export const POST = authMiddleware(async (request) => {
 // Get All Subcategories
 export const GET = authMiddleware(async () => {
   try {
-    const subcategories = await Subcategory.find().populate("category");
+    const subcategories = await Subcategory.find()
     return NextResponse.json({ success: true, data: subcategories });
   } catch (error) {
     console.error("Error fetching subcategories:", error);
@@ -59,10 +59,10 @@ export const GET = authMiddleware(async () => {
 
 export const PUT = authMiddleware(async (request) => {
   try {
-    const { id, category, subcategory, description, keywords } =
+    const { id, categoryName, subcategoryName, description, keywords } =
       await request.json();
 
-    if (!id || !category || !subcategory || !description || !keywords) {
+    if (!id || !categoryName || !subcategoryName || !description || !keywords) {
       return NextResponse.json(
         { success: false, error: "All required fields must be provided" },
         { status: 400 },
@@ -71,7 +71,7 @@ export const PUT = authMiddleware(async (request) => {
 
     const updatedSubcategory = await Subcategory.findByIdAndUpdate(
       id,
-      { category, subcategory, description, keywords },
+      { categoryName, subcategoryName, description, keywords },
       { new: true },
     );
 

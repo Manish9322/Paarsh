@@ -171,7 +171,7 @@ const EditCourseDialog = ({ editOpen, setEditOpen, selectedCourse }) => {
                     value={formData.courseFees}
                     onChange={handleInputChange}
                     required
-                    className="border  border-gray-300 bg-white text-black focus:outline-none "
+                    className="border  border-gray-300 bg-white text-black focus:outline-none appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none "
                   />
                 </div>
               </div>
@@ -288,6 +288,7 @@ const EditCourseDialog = ({ editOpen, setEditOpen, selectedCourse }) => {
                   />
                   {formData.thumbnail ? (
                     <img
+               
                       src={URL.createObjectURL(formData.thumbnailImage)}
                       alt="Thumbnail Preview"
                       className="h-full w-full object-cover"
