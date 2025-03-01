@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { useUpdateSubCategoryMutation } from "@/services/api";
 
-const EditSubCategoryModal = ({ editOpen, setEditOpen, selectedSubCategory }) => {
+const EditCategoryModal = ({ editOpen, setEditOpen, selectedCategory }) => {
   const dispatch = useDispatch();
   const subcategory = useSelector((state) => state.subcategory);
   const [_UPDATESUBCATEGORY, { isLoading }] = useUpdateSubCategoryMutation();
@@ -111,4 +111,4 @@ const EditSubCategoryModal = ({ editOpen, setEditOpen, selectedSubCategory }) =>
   );
 };
 
-export default EditSubCategoryModal;
+export default EditCategoryModal;
