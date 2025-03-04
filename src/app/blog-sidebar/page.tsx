@@ -1,3 +1,5 @@
+"use client"
+
 import RelatedPost from "@/components/Blog/RelatedPost";
 import SubscribeNewsletter from "@/components/SubscribeStripe/SubscribeStripe";
 import TagButton from "@/components/Blog/TagButton";
@@ -14,32 +16,75 @@ import DownloadSyllabus from "@/components/DownloadSyllabus/DownloadSyllabus";
 import Image from "next/image";
 import { Metadata } from "next";
 import { DialogDemo } from "@/components/ViewCourseModal";
+import { useFetchCourcesQuery } from "@/services/api";
+import { log } from "console";
 
 // import NewsLatterBox from "@/components/Cont act/NewsLatterBox";
 // import SharePost from "@/components/Blog/SharePost";
 
-export const metadata: Metadata = {
-  title: "Blog Details Page | Free Next.js Template for Startup and SaaS",
-  description: "This is Blog Details Page for Startup Nextjs Template",
-  // other metadata
-};
+interface Course {
+  id: number;
+  _id: string;
+  availability: string;
+  courseCategory: string;
+  courseSubCategory: string;
+  courseName: string;
+  instructor: string;
+  courseType: string;
+  courseDuration: string;
+  courseFees: number;
+  level: string;
+  feturedCourse: boolean;
+  languages: string[];
+  createdAt: string;
+  shortDescription: string;
+  longDescription: string;
+  keywords: string[];
+}
 
 const BlogSidebarPage = () => {
+
+  const {
+    data: courseData,
+    isLoading,
+    error,
+  } = useFetchCourcesQuery(undefined);
+  const courses: Course[] = courseData?.data || [];
+  const selectedCourse = courses.length > 0 ? courses[0] : null;
+
+  const keywordsArray = Array.isArray(selectedCourse?.keywords)
+    ? selectedCourse.keywords
+    : typeof selectedCourse?.keywords === "string"
+      ? selectedCourse.keywords.split(",").map((keyword) => keyword.trim())
+      : [];
+
+
+  console.log("Course Data : ", courses);
+
   return (
+
     <>
       <section className="overflow-hidden pb-[120px] pt-[180px]">
         <div className="container">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4 lg:w-8/12">
               <div>
-                <h1 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
+                {/* <h1 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
                   Mastering JavaScript
+                </h1> */}
+
+                <h1 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
+                  {selectedCourse ? selectedCourse.courseName : "Loading Heading..."}
+
                 </h1>
+
                 <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                  Unlock the power of JavaScript and build dynamic, interactive experiences with ease.</p>
+                  {selectedCourse ? selectedCourse.shortDescription : "Loading Tagline..."}
+                  {/* <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Assumenda, quisquam ut dolorem aspernatur ipsam explicabo cupiditate placeat laborum quia esse.</p> */}
+                </p>
                 <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
                   <div className="flex flex-wrap items-center">
-                    <div className="mb-5 mr-10 flex items-center">
+                    {/* <div className="mb-5 mr-10 flex items-center">
                       <div className="mr-4">
                         <div className="relative h-10 w-10 overflow-hidden rounded-full">
                           <Image
@@ -54,7 +99,7 @@ const BlogSidebarPage = () => {
                           By <span> Manish Sonawane</span>
                         </span>
                       </div>
-                    </div>
+                    </div> */}
                     <div className="mb-5 flex items-center">
 
                       <p className="mr-5 flex items-center text-base font-medium text-body-color">
@@ -69,7 +114,9 @@ const BlogSidebarPage = () => {
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
                           </svg>
                         </span>
-                        Beginner
+                        {/* Beginner */}
+                        {selectedCourse ? selectedCourse.level : "Loading Levels..."}
+
                       </p>
 
                       <p className="mr-5 flex items-center text-base font-medium text-body-color">
@@ -84,7 +131,9 @@ const BlogSidebarPage = () => {
                             <path d="M12 1a11 11 0 1 0 11 11A11.013 11.013 0 0 0 12 1Zm0 20a9 9 0 1 1 9-9 9.01 9.01 0 0 1-9 9Zm.5-14h-1v7l5 3 .5-.86-4.5-2.64Z" />
                           </svg>
                         </span>
-                        12 Weeks
+                        {/* 12 Weeks */}
+                        {selectedCourse ? selectedCourse.courseDuration : "Loading Course Duration..."}
+
                       </p>
 
                       <p className="mr-5 flex items-center text-base font-medium text-body-color">
@@ -100,30 +149,51 @@ const BlogSidebarPage = () => {
                             <path d="M11.0529 6.55322H4.69668C4.41543 6.55322 4.19043 6.77822 4.19043 7.05947C4.19043 7.34072 4.41543 7.56572 4.69668 7.56572H11.0811C11.3623 7.56572 11.5873 7.34072 11.5873 7.05947C11.5873 6.77822 11.3342 6.55322 11.0529 6.55322Z" />
                           </svg>
                         </span>
-                        Eng | Hin | Mar
+                        {/* Eng | Hin | Mar */}
+                        {selectedCourse ? selectedCourse.languages.join(" | ") : "Eng | Hin | Mar"}
+
                       </p>
+
+                      <p className="mr-5 flex items-center text-base font-medium text-green-600">
+                        <span className="mr-3">
+                          <svg fill="#16a34a" width="15" height="15" stroke="#16a34a" strokeWidth="6"
+                            viewBox="0 0 256 256" id="Flat" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M208,80a8.00039,8.00039,0,0,1-8,8H167.85156c.08789,1.32373.14844,2.65454.14844,4a60.06812,60.06812,0,0,1-60,60H92.69238l72.68946,66.08008a8.0006,8.0006,0,0,1-10.76368,11.83984l-88-80A8.0004,8.0004,0,0,1,72,136h36a44.04978,44.04978,0,0,0,44-44c0-1.34912-.0708-2.68164-.18994-4H72a8,8,0,0,1,0-16h75.17188A44.03678,44.03678,0,0,0,108,48H72a8,8,0,0,1,0-16H200a8,8,0,0,1,0,16H148.73535a60.16006,60.16006,0,0,1,15.82422,24H200A8.00039,8.00039,0,0,1,208,80Z" />
+                          </svg>
+
+                        </span>
+                        {/* Eng | Hin | Mar */}
+                        {selectedCourse ? selectedCourse.courseFees : "Eng | Hin | Mar"}
+
+                      </p>
+
                     </div>
                   </div>
-                  <div className="mb-5">
-                    <a
-                      href="#0"
-                      className="inline-flex items-center justify-center rounded bg-primary px-4 py-2 text-sm font-semibold text-white dark:bg-blue-600"
-                    >
-                      Purchase Now
-                    </a>
-                  </div>
+                  <div className="flex items-center">
+                    <div className="mb-5 mr-4">
+                      <a
+                        href="#0"
+                        className="inline-flex items-center justify-center rounded bg-primary px-4 py-2 text-sm font-semibold text-white dark:bg-blue-600"
+                      >
+                        Purchase Now
+                      </a>
+                    </div>
 
-                  <div className="mb-5">
-                    <a
-                      href="#0">
-                      <DialogDemo />
-                    </a>
+                    <div className="mb-5 mr-4">
+                      <a
+                        href="#0">
+                        <DialogDemo />
+                      </a>
+                    </div>
                   </div>
 
                 </div>
+
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    <span className="text-blue-600 font-bold"> JavaScript </span> plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more.
+                    {/* <span className="text-blue-600 font-bold"> JavaScript </span> plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more. */}
+                    {selectedCourse ? selectedCourse.longDescription : "12 Weeks"}
+
                   </p>
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <div className="relative aspect-[97/60] w-full sm:aspect-[97/44]">
@@ -136,8 +206,7 @@ const BlogSidebarPage = () => {
                     </div>
                   </div>
                   <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    JavaScript is one of the most essential programming languages for web development, enabling developers to create dynamic and interactive websites. This course will take you from the fundamentals of JavaScript, such as variables, data types, and functions, to advanced topics like asynchronous programming, APIs, and modern
-
+                    JavaScript is one of the most essential programming languages for web development, enabling developers to create dynamic and interactive websites. This course will take you from the fundamentals of JavaScript, such as variables, data types, and functions, to advanced topics like asynchronous programming, APIs, and Modern Technniques.
 
                     <strong className="text-primary dark:text-white">
                       {" "}
@@ -197,40 +266,6 @@ const BlogSidebarPage = () => {
                     <li className="mb-1 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
                       Many More...
                     </li>
-
-                    {/* <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button className="p-0 m-0 border-none hover:text-blue-700 text-blue-600 mb-2 text-base font-medium sm:text-lg lg:text-base xl:text-lg  underline hover:bg-white dark:bg-transparent" variant="outline">Download Syllabus</Button>
-                        </DialogTrigger>
-
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle>Download Syllabus</DialogTitle>
-                            <DialogDescription>
-                            Click the button below to download the syllabus and start your learning journey.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="name" className="text-right">
-                                Name
-                              </Label>
-                              <Input id="name" value="Manish Sonawane" className="col-span-3 rounded" />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="username" className="text-right">
-                                Username
-                              </Label>
-                              <Input id="username" value="Manishsonawane3010" className="col-span-3 rounded outline-none" />
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button className="bg-blue-600 hover:bg-blue-700 rounded" type="submit">Download</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </li> */}
 
                   </ul>
 
@@ -292,6 +327,7 @@ const BlogSidebarPage = () => {
                       </svg>
                     </span>
                     <span className="absolute bottom-0 right-0 z-[-1]">
+                      
                       <svg
                         width="53"
                         height="30"
@@ -378,6 +414,7 @@ const BlogSidebarPage = () => {
                           </radialGradient>
                         </defs>
                       </svg>
+
                     </span>
                   </div>
 
@@ -391,29 +428,21 @@ const BlogSidebarPage = () => {
                         Popular Tags :
                       </h4>
                       <div className="flex items-center flex-wrap">
-                        <TagButton text="DOM Manipulation" />
-                        <TagButton text="ES6" />
-                        <TagButton text="AJAX" />
-                        <TagButton text="Event Handling" />
-                        <TagButton text="Async/Await" />
-                        <TagButton text="Promises" />
+                        {keywordsArray.length > 0 ? (
+                          keywordsArray.map((keyword, index) => (
+                            <TagButton key={index} text={keyword} />
+                          ))
+                        ) : (
+                          <span>No tags available</span>
+                        )}
                       </div>
                     </div>
-
-                    {/* <div className="mb-5">
-                      <h5 className="mb-3 text-sm font-medium text-body-color sm:text-right">
-                        Share this post :
-                      </h5>
-                      <div className="flex items-center sm:justify-end">
-                        <SharePost />
-                      </div>
-                    </div> */}
-
                   </div>
+
                 </div>
               </div>
-
             </div>
+
             <div className="w-full px-4 lg:w-4/12">
               <div className="shadow-three dark:bg-gray-dark mb-10 mt-12 rounded-sm bg-white p-6 dark:shadow-none lg:mt-0">
                 <div className="flex items-center justify-between">
@@ -441,6 +470,7 @@ const BlogSidebarPage = () => {
                   </button>
                 </div>
               </div>
+              
               <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Related Courses
@@ -475,6 +505,7 @@ const BlogSidebarPage = () => {
                   </li>
                 </ul>
               </div>
+
               <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Popular Category
@@ -527,25 +558,36 @@ const BlogSidebarPage = () => {
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Popular Tags
                 </h3>
-                <div className="flex flex-wrap px-8 py-6">
+                {/* <div className="flex flex-wrap px-8 py-6">
                   <TagButton text="ES6" />
                   <TagButton text="DOM Manipulation" />
                   <TagButton text="Async/Await" />
                   <TagButton text="Event Handling" />
                   <TagButton text="Promises" />
                   <TagButton text="AJAX" />
+                </div> */}
+
+                <div className="flex items-center flex-wrap px-8 py-6">
+                  {keywordsArray.length > 0 ? (
+                    keywordsArray.map((keyword, index) => (
+                      <TagButton key={index} text={keyword} />
+                    ))
+                  ) : (
+                    <span>No tags available</span>
+                  )}
                 </div>
               </div>
               {/* <NewsLatterBox /> */}
               <ModelOne />
               <ModelTwo />
             </div>
+
           </div>
         </div>
         <Feedbacks />
       </section>
 
-      
+
       <ModelThree />
 
       <SubscribeNewsletter />
