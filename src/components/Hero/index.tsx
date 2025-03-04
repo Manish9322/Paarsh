@@ -19,17 +19,31 @@ const Hero = () => {
                 </p>
                 <div className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
                   <Link
-                    href="https://nextjstemplates.com/templates/saas-starter-startup"
+                    href="/courses"
                     className="rounded-sm bg-primary px-8 py-4 text-base font-semibold   text-white duration-300 ease-in-out hover:bg-black/90 dark:bg-white/10 dark:text-white dark:hover:bg-white/5"
                   >
                    View Courses
                   </Link>
+                  
                   <Link
-                    href="https://github.com/NextJSTemplates/startup-nextjs"
-                    className="inline-block rounded-sm bg-black px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out hover:bg-black/90 dark:bg-white/10 dark:text-white dark:hover:bg-white/5"
-                  >
-                    Explore More
+                    // href="https://github.com/NextJSTemplates/startup-nextjs"
+                    href=""
+                    className="flex items-center rounded-sm bg-black px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out hover:bg-black/90 dark:bg-white/10 dark:text-white dark:hover:bg-white/5"
+                  ><svg
+                  className="mr-2 text-gray-100 dark:text-primary dark:hover:text-primary"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M6.6 10.8C8 13.7 10.3 16 13.2 17.4L15.4 15.2C15.7 14.9 16.1 14.8 16.5 14.9L20.8 15.9C21.4 16.1 21.8 16.6 21.8 17.2V21C21.8 21.6 21.3 22.1 20.7 22C15.4 21.4 10.7 18.7 7.3 15.3C3.9 11.9 1.2 7.2 0.6 2C0.5 1.4 1 0.9 1.6 0.9H5.4C6 0.9 6.5 1.3 6.6 1.9L7.6 6.2C7.7 6.6 7.6 7 7.3 7.3L5.1 9.5C5.4 9.9 6 10.4 6.6 10.8Z"
+                  />
+                </svg>
+                    <p className="text-gray-100 dark:text-primary dark:hover:text-primary">+91 90752 01035</p>
                   </Link>
+                  
                 </div>
               </div>
             </div>
