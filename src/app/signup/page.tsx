@@ -2,9 +2,19 @@
 
 import Link from "next/link";
 import { useState } from "react";
- import { signUpValidationSchema } from '../../lib/validationSchema';
- import { useFormik } from 'formik';
+import { signUpValidationSchema } from "../../lib/validationSchema";
+import { useFormik } from "formik";
 import { Eye, EyeOff } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { selectRootState } from "@/lib/store";
+import { useSignupMutation } from "@/services/api";
+import {
+  resetForm,
+  setAuthData,
+  setSignupFormData,
+} from "@/lib/slices/userAuthSlice";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 // export const metadata: Metadata = {
 //   title: "Sign Up Page | Free Next.js Template for Startup and SaaS",
@@ -13,24 +23,64 @@ import { Eye, EyeOff } from "lucide-react";
 // };
 
 const SignupPage = () => {
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const signupForm = useSelector(
+    (state) => selectRootState(state).userAuth.forms,
+  );
+  const [_SIGNUP, { isLoading, error }] = useSignupMutation();
 
-  
-    const formik = useFormik({
-      initialValues: {
-        name: '',
-        email: '',
-        password: '',
-        confirmpassword: '',
-        mobile: '',
-        referralCode: '',
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    dispatch(setSignupFormData({ field: name, value }));
+  };
 
-        acceptTerms: false,
-      },
-      validationSchema: signUpValidationSchema,
-      onSubmit: (values) => {
-        console.log('Form Data:', values);
-      },
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await _SIGNUP(signupForm).unwrap();
+      if (response?.success) {
+        const { accessToken, refreshToken, user } = response?.data;
+        localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+
+        dispatch(setAuthData({ accessToken, refreshToken, user }));
+        toast.success("Registration Successfully", {
+          description: response?.message,
+        });
+        dispatch(resetForm({ formName: "signupForm" }));
+        router.push(
+          response?.data?.redirect ||
+          `/dashboard`,
+        );
+      } else {
+        toast.error("Registration Failed", {
+          description: response?.error || "An error occurred.",
+        });
+      }
+      dispatch(setAuthData(response)); // Set authentication state
+      dispatch(resetForm({ formName: "signupForm" })); // Reset the form
+    } catch (err) {
+      console.error("Signup failed:", err);
+    }
+  };
+
+  const formik = useFormik({
+    initialValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmpassword: "",
+      mobile: "",
+      referralCode: "",
+
+      acceptTerms: false,
+    },
+    validationSchema: signUpValidationSchema,
+    onSubmit: (values) => {
+      console.log("Form Data:", values);
+    },
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   return (
@@ -104,124 +154,187 @@ const SignupPage = () => {
                   </p>
                   <span className="hidden h-[1px] w-full max-w-[60px] bg-body-color/50 sm:block"></span>
                 </div> */}
-               
-    <form onSubmit={formik.handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Left Section */}
-      <div>
-        {/* Full Name */}
-        <div className="mb-6">
-          <label className="block text-lg text-dark dark:text-white">Full Name</label>
-          <input
-            type="text"
-            name="name"
-            placeholder="Enter your full name"
-            onChange={formik.handleChange}
-            value={formik.values.name}
-            className="w-full px-6 text-sm py-3 rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
-          />
-          {formik.errors.name && <p className="text-red-500 text-sm">{formik.errors.name}</p>}
-        </div>
-        
-        {/* Work Email */}
-        <div className="mb-6">
-          <label className="block text-lg text-dark dark:text-white">Work Email</label>
-          <input
-            type="email"
-            name="email"
-            placeholder="Enter your Email"
-            onChange={formik.handleChange}
-            value={formik.values.email}
-            className="w-full px-6  text-sm py-3 rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
-          />
-          {formik.errors.email && <p className="text-red-500 text-sm">{formik.errors.email}</p>}
-        </div>
 
-        {/* Referral Code */}
-        <div className="mb-6">
-          <label className="block text-lg text-dark dark:text-white">Referral Code</label>
-          <input
-            type="text"
-            name="referralCode"
-            placeholder="Enter Referral Code (optional)"
-            className="w-full px-6 py-3  text-sm rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
-          />
-        </div>
-      </div>
+                <form
+                  onSubmit={formik.handleSubmit}
+                  className="grid grid-cols-1 gap-6 md:grid-cols-2"
+                >
+                  {/* Left Section */}
+                  <div>
+                    {/* Full Name */}
+                    <div className="mb-6">
+                      <label className="block text-lg text-dark dark:text-white">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        placeholder="Enter your full name"
+                        onChange={formik.handleChange}
+                        value={formik.values.name}
+                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                      />
+                      {formik.errors.name && (
+                        <p className="text-sm text-red-500">
+                          {formik.errors.name}
+                        </p>
+                      )}
+                    </div>
 
-      {/* Right Section */}
-      <div>
-        {/* Mobile Number */}
-        <div className="mb-6">
-          <label className="block text-lg text-dark dark:text-white">Mobile Number</label>
-          <input
-            type="text"
-            name="mobile"
-            placeholder="Enter 10-digit number"
-            onChange={formik.handleChange}
-            value={formik.values.mobile}
-            className="w-full px-6 py-3  text-sm rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
-          />
-          {formik.errors.mobile && <p className="text-red-500 text-sm">{formik.errors.mobile}</p>}
-        </div>
+                    {/* Work Email */}
+                    <div className="mb-6">
+                      <label className="block text-lg text-dark dark:text-white">
+                        Work Email
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        placeholder="Enter your Email"
+                        onChange={formik.handleChange}
+                        value={formik.values.email}
+                        className="w-full rounded  border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                      />
+                      {formik.errors.email && (
+                        <p className="text-sm text-red-500">
+                          {formik.errors.email}
+                        </p>
+                      )}
+                    </div>
 
-        {/* Password */}
-        <div className="relative mb-6">
-          <label className="block text-lg text-dark dark:text-white">Password</label>
-          <input
-            type={showPassword ? "text" : "password"}
-            name="password"
-            placeholder="Enter your password"
-            onChange={formik.handleChange}
-            value={formik.values.password}
-            className="w-full px-6 py-3  text-sm rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
-          />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-10 text-gray-500 hover:text-gray-700">
-            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-          {formik.errors.password && <p className="text-red-500 text-sm">{formik.errors.password}</p>}
-        </div>
+                    {/* Referral Code */}
+                    <div className="mb-6">
+                      <label className="block text-lg text-dark dark:text-white">
+                        Referral Code
+                      </label>
+                      <input
+                        type="text"
+                        name="referralCode"
+                        placeholder="Enter Referral Code (optional)"
+                        className="w-full rounded border  bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                      />
+                    </div>
+                  </div>
 
-        {/* Confirm Password */}
-        <div className="relative mb-6">
-          <label className="block text-lg text-dark dark:text-white">Confirm Password</label>
-          <input
-            type={showConfirmPassword ? "text" : "password"}
-            name="confirmpassword"
-            placeholder="Confirm your password"
-            onChange={formik.handleChange}
-            value={formik.values.confirmpassword}
-            className="w-full px-6 py-3  text-sm rounded border bg-gray-100 dark:bg-gray-800 focus:border-blue-500"
-          />
-          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-10 text-gray-500 hover:text-gray-700">
-            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-          </button>
-          {formik.errors.confirmpassword && <p className="text-red-500 text-sm">{formik.errors.confirmpassword}</p>}
-        </div>
-      </div>
+                  {/* Right Section */}
+                  <div>
+                    {/* Mobile Number */}
+                    <div className="mb-6">
+                      <label className="block text-lg text-dark dark:text-white">
+                        Mobile Number
+                      </label>
+                      <input
+                        type="text"
+                        name="mobile"
+                        placeholder="Enter 10-digit number"
+                        onChange={formik.handleChange}
+                        value={formik.values.mobile}
+                        className="w-full rounded border  bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                      />
+                      {formik.errors.mobile && (
+                        <p className="text-sm text-red-500">
+                          {formik.errors.mobile}
+                        </p>
+                      )}
+                    </div>
 
-      {/* Terms & Submit */}
-      <div className="col-span-2">
-        <div className="flex items-center mb-6">
-          <input type="checkbox" name="acceptTerms" onChange={formik.handleChange} checked={formik.values.acceptTerms} className="mr-2" />
-          <span className="text-sm">
-                        By creating account you agree the <span className="text-blue-600 font-medium"> Paarsh Edu's</span>
-                        <a href="#0">
-                        
-                          Terms and Conditions
-                        </a>
-                        , and our
-                        <a href="#0">
-                        {" "}
-                          Privacy Policy
-                        </a>
+                    {/* Password */}
+                    <div className="relative mb-6">
+                      <label className="block text-lg text-dark dark:text-white">
+                        Password
+                      </label>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        placeholder="Enter your password"
+                        onChange={formik.handleChange}
+                        value={formik.values.password}
+                        className="w-full rounded border  bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-10 text-gray-500 hover:text-gray-700"
+                      >
+                        {showPassword ? (
+                          <EyeOff size={20} />
+                        ) : (
+                          <Eye size={20} />
+                        )}
+                      </button>
+                      {formik.errors.password && (
+                        <p className="text-sm text-red-500">
+                          {formik.errors.password}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Confirm Password */}
+                    <div className="relative mb-6">
+                      <label className="block text-lg text-dark dark:text-white">
+                        Confirm Password
+                      </label>
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        name="confirmpassword"
+                        placeholder="Confirm your password"
+                        onChange={formik.handleChange}
+                        value={formik.values.confirmpassword}
+                        className="w-full rounded border  bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        className="absolute right-4 top-10 text-gray-500 hover:text-gray-700"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={20} />
+                        ) : (
+                          <Eye size={20} />
+                        )}
+                      </button>
+                      {formik.errors.confirmpassword && (
+                        <p className="text-sm text-red-500">
+                          {formik.errors.confirmpassword}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Terms & Submit */}
+                  <div className="col-span-2">
+                    <div className="mb-6 flex items-center">
+                      <input
+                        type="checkbox"
+                        name="acceptTerms"
+                        onChange={formik.handleChange}
+                        checked={formik.values.acceptTerms}
+                        className="mr-2"
+                      />
+                      <span className="text-sm">
+                        By creating account you agree the{" "}
+                        <span className="font-medium text-blue-600">
+                          {" "}
+                          Paarsh Edu's
+                        </span>
+                        <a href="#0">Terms and Conditions</a>, and our
+                        <a href="#0"> Privacy Policy</a>
                       </span>
-        </div>
-        {formik.errors.acceptTerms && <p className="text-red-500 text-sm mb-3">{formik.errors.acceptTerms}</p>}
-        <button type="submit" className="w-full px-6 py-3 bg-blue-600 mb-4 text-white rounded hover:bg-black">
-          Create Account
-        </button>
-      </div>
-    </form>
+                    </div>
+                    {formik.errors.acceptTerms && (
+                      <p className="mb-3 text-sm text-red-500">
+                        {formik.errors.acceptTerms}
+                      </p>
+                    )}
+                    <button
+                      type="submit"
+                      className="mb-4 w-full rounded bg-blue-600 px-6 py-3 text-white hover:bg-black"
+                    >
+                      Create Account
+                    </button>
+                  </div>
+                </form>
                 <p className="text-center text-base font-medium text-body-color">
                   Already have account?{" "}
                   <Link href="/signin" className="text-primary hover:underline">

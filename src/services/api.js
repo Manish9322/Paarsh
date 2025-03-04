@@ -7,7 +7,27 @@ export const paarshEduApi = createApi({
   tagTypes: ["Course", "Agent"],
 
   endpoints: (builder) => ({
+    // ----------------------------------------------------User Apis-------------------------------------------------------------
+
+    login: builder.mutation({
+      query: (credentials) => ({
+        url: "user/login",
+        method: "POST",
+        body: credentials,
+      }),
+    }),
+
+    //-------------------------------For SignUp API-----------------------
+    signup: builder.mutation({
+      query: (userData) => ({
+        url: "user/register",
+        method: "POST",
+        body: userData,
+      }),
+    }),
+
     // ----------------------------------------------------Course Apis-------------------------------------------------------------
+
     addCourse: builder.mutation({
       query: (formData) => ({
         url: "/course",
@@ -162,6 +182,9 @@ export const paarshEduApi = createApi({
 });
 
 export const {
+  useLoginMutation,
+  useSignupMutation,
+
   useAddCourseMutation,
   useFetchCourcesQuery,
   useAdminloginMutation,
