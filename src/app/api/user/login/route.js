@@ -76,7 +76,7 @@ export async function POST(request) {
       data: {
         accessToken,
         refreshToken,
-        redirect,
+        redirect: "/dashboard",
       },
     });
   } catch (error) {

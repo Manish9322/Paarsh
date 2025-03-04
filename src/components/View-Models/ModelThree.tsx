@@ -12,7 +12,7 @@ const ModelThree: React.FC = () => {
                         </h5>
                     </a>
                     <p className="mb-3 font-normal lg:pr-96">
-                        Get ready to ignite your passion for learning! Discover the latest courses we've launched this year, crafted to elevate your expertise and unleash your potential.
+                        Get ready to ignite your passion for learning! Discover the latest courses we have launched this year, crafted to elevate your expertise and unleash your potential.
                         
                         Unlock your future with our brand-new courses! This year, we’re rolling out fresh content that’s all about enhancing your skills and expanding your horizons.</p>
                     <a

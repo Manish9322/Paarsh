@@ -206,7 +206,7 @@ const AddCourseDialog = () => {
                 <Input
                   type="number"
                   placeholder="e.g. 499"
-                  className="border  border-gray-300 bg-white text-black"
+                  className="border  border-gray-300 bg-white text-black appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   required
                   onChange={(e) => handleInputChange("fees", e.target.value)}
                 />

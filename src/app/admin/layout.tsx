@@ -1,6 +1,6 @@
 // layout.tsx (Keep it as a Server Component)
 
-import AdminProtectedRoute from "utils/adminProtectedRoute";
+import AdminProtectedRoute from "../../../utils/AdminProtectedRoute";
 
 export default function AdminLayout({
   children,

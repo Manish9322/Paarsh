@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   FaAward,
@@ -40,9 +40,9 @@ const BuyCourseCard = () => (
 );
 
 export default function CourseDetailsPage() {
-  const params = useSearchParams();
+  const params = useParams();
   const router = useRouter();
-  const id = params.get("id");
+  const id = params._id;
   const course = courseList.find((course) => String(course.id) === String(id));
   const relatedCourses = courseList.filter((c) => c.id !== id).slice(0, 3);
   const [currentInstructor, setCurrentInstructor] = useState(0);
@@ -52,23 +52,8 @@ export default function CourseDetailsPage() {
     ? relatedCourses
     : relatedCourses.slice(0, 3);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentInstructor((prev) => (prev + 1) % instructors.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (!course) {
-    return <p className="dark:text-white">Loading...</p>;
-  }
-
-  const toggleModule = (title: string) => {
-    setExpandedModule((prev) => (prev === title ? null : title));
-  };
   const [isAtFooter, setIsAtFooter] = useState(false);
   const footerRef = useRef<HTMLDivElement | null>(null);
-
   useEffect(() => {
     const handleScroll = () => {
       if (footerRef.current) {
@@ -86,6 +71,23 @@ export default function CourseDetailsPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentInstructor((prev) => (prev + 1) % instructors.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!course) {
+    return <p className="dark:text-white">Loading...</p>;
+  }
+
+  const toggleModule = (title: string) => {
+    setExpandedModule((prev) => (prev === title ? null : title));
+  };
+
+
 
   return (
     <div className="container mx-auto flex flex-col px-4 pt-28 dark:text-white">
@@ -210,9 +212,9 @@ export default function CourseDetailsPage() {
           <div className="mb-6 flex h-auto flex-col items-center gap-4 rounded-lg bg-gray-100 px-6 py-8 shadow dark:bg-gray-800 md:flex-row">
             <div className="flex flex-col gap-4 text-center md:text-left">
               <p className="flex flex-col items-center text-gray-700 dark:text-white md:flex-row md:items-start">
-                <span className="relative text-2xl sm:mb-2 font-extrabold md:text-3xl">
+                <span className="relative text-2xl font-extrabold sm:mb-2 md:text-3xl">
                   Course Completion Certificate
-                  <LiaCertificateSolid className="text-yellow absolute left-1/2 -translate-x-1/2 md:left-[11rem] md:top-10" />
+                  <LiaCertificateSolid className="absolute left-1/2 -translate-x-1/2 text-yellow md:left-[11rem] md:top-10" />
                 </span>
               </p>
               <span className="text-sm text-gray-600 dark:text-gray-300">

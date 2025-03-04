@@ -7,12 +7,14 @@ const RelatedPost = ({
   title,
   level,
   duration,
+  date,
 }: {
   image: string;
   slug: string;
   title: string;
   level: string;
   duration:string;
+  date: string;
 }) => {
   return (
     <div className="flex items-center lg:block xl:flex">
