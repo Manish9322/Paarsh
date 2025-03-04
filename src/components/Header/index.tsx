@@ -42,7 +42,7 @@ const Header = () => {
   return (
     <>
 
-      <div className="px-16 py-6 bg-black/90">
+      <div className="px-16 py-5 bg-black/90">
         <ul className="flex justify-between">
           <div className="flex items-center">
             <li className="phone flex mr-6 items-center ">

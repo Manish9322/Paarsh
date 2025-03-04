@@ -12,7 +12,7 @@ export function authMiddleware(handler, isAdmin = false) {
   return async (req) => {
     // Extract Authorization header
     const cookieStore = await cookies();
-    const token = cookieStore.get("admin_access_token")?.value;
+    const token = cookieStore.get("admin_access_token")?.value || req.headers.get("authorization")?.replace("Bearer ", "");
 
     if (!token) {
       return NextResponse.json(

@@ -81,7 +81,7 @@ export const POST = authMiddleware(async (request) => {
 }, true);
 
 //  Get All Courses
-export const GET = authMiddleware(async () => {
+export const GET = (async () => {
   try {
     const courses = await CourseModel.find();
     return NextResponse.json({ success: true, data: courses });
@@ -92,7 +92,7 @@ export const GET = authMiddleware(async () => {
       { status: 500 },
     );
   }
-}, true);
+});
 
 //  Update Course
 export const PUT = authMiddleware(async (request) => {

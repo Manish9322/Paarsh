@@ -5,11 +5,11 @@ const SubscribeNewsletter: React.FC = () => {
         <aside className="p-8 my-14 h-96 flex justify-center flex-col bg-white text-center border-gray-200 shadow-md sm:p-6 xl:p-12 lg:p-8 dark:bg-gray-800 dark:border-gray-800" aria-label="Subscribe to the Flowbite newsletter">
             <h3 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">Get more updates...</h3>
             <p className="xl:px-48 border-body-color border-opacity-10 pb-7 text-base leading-relaxed text-body-color dark:border-white dark:border-opacity-10 dark:text-white">
-            Do you want to get notified when new courses and resources are added to Edu Learning? Sign up for our newsletter and you'll be among the first to find out about new features, courses, updates, and tools.
+            Do you want to get notified when new courses and resources are added to Edu Learning? Sign up for our newsletter and you will be among the first to find out about new features, courses, updates, and tools.
             </p>
             <form
                 action="https://app.convertkit.com/forms/4692392/subscriptions"
-                className="seva-form formkit-form"
+                className="seva-form formkit-form min-w-400"
                 method="post"
                 data-sv-form="4692392"
                 data-uid="344e3b5c48"
@@ -24,7 +24,7 @@ const SubscribeNewsletter: React.FC = () => {
                 // "trigger":"timer","scroll_percentage":null,"timer":5,"devices":"all","show_once_every":15},
                 // "sticky_bar":{"display_in":"top","trigger":"timer","scroll_percentage":null,"timer":5,"devices":"all",
                 // "show_once_every":15}},"version":"5"}'
-                minWidth="400 500 600 700"
+                
             >
                 <div data-style="clean" className="flex justify-center items-end mb-3">
                     <ul className="formkit-alert formkit-alert-error" data-element="errors" data-group="alert"></ul>
@@ -59,7 +59,7 @@ const SubscribeNewsletter: React.FC = () => {
                 </div>
             </form>
             <div className="xl:px-48 border-body-color border-opacity-10 pb-8 text-base leading-relaxed text-body-color dark:border-white dark:border-opacity-10 dark:text-white">
-                By subscribing, you agree with Paarsh Edu Learning's <a rel="nofollow" href="https://convertkit.com/terms" className="text-blue-600 hover:underline dark:text-blue-500">Terms of Service</a> and <a rel="nofollow" className="text-blue-600 hover:underline dark:text-blue-500" href="https://convertkit.com/privacy">Privacy Policy</a>.
+                By subscribing, you agree with Paarsh Edu Learnings <a rel="nofollow" href="https://convertkit.com/terms" className="text-blue-600 hover:underline dark:text-blue-500">Terms of Service</a> and <a rel="nofollow" className="text-blue-600 hover:underline dark:text-blue-500" href="https://convertkit.com/privacy">Privacy Policy</a>.
             </div>
         </aside>
     );

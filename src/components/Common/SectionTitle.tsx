@@ -5,7 +5,7 @@ const SectionTitle = ({
   center,
   mb = "100px",
 }: {
-  title: string;
+  title: React.ReactNode;
   paragraph: string;
   width?: string;
   center?: boolean;
