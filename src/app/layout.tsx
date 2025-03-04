@@ -9,7 +9,6 @@ import "../styles/index.css";
 import AutoModal from "@/components/AutoModal/AutoModal";
 import {makeStore} from "../lib/store";
 
-
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({

@@ -1,6 +1,5 @@
 import RelatedPost from "@/components/Blog/RelatedPost";
 import SubscribeNewsletter from "@/components/SubscribeStripe/SubscribeStripe";
-import Testimonials from "@/components/Testimonials";
 import TagButton from "@/components/Blog/TagButton";
 
 // Ad Models Are imported here.
@@ -8,12 +7,15 @@ import ModelOne from "@/components/View-Models/modelOne";
 import ModelTwo from "@/components/View-Models/modelTwo";
 import ModelThree from "@/components/View-Models/ModelThree";
 
+
+import Feedbacks from "@/components/CourseFeedbacks";
 import DownloadSyllabus from "@/components/DownloadSyllabus/DownloadSyllabus";
 
 import Image from "next/image";
 import { Metadata } from "next";
+import { DialogDemo } from "@/components/ViewCourseModal";
 
-// import NewsLatterBox from "@/components/Contact/NewsLatterBox";
+// import NewsLatterBox from "@/components/Cont act/NewsLatterBox";
 // import SharePost from "@/components/Blog/SharePost";
 
 export const metadata: Metadata = {
@@ -34,7 +36,7 @@ const BlogSidebarPage = () => {
                   Mastering JavaScript
                 </h1>
                 <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                  Unlock the power of JavaScript and build dynamic, interactive experiences with ease.                  </p>
+                  Unlock the power of JavaScript and build dynamic, interactive experiences with ease.</p>
                 <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
                   <div className="flex flex-wrap items-center">
                     <div className="mb-5 mr-10 flex items-center">
@@ -105,11 +107,19 @@ const BlogSidebarPage = () => {
                   <div className="mb-5">
                     <a
                       href="#0"
-                      className="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white dark:bg-blue-600"
+                      className="inline-flex items-center justify-center rounded bg-primary px-4 py-2 text-sm font-semibold text-white dark:bg-blue-600"
                     >
                       Purchase Now
                     </a>
                   </div>
+
+                  <div className="mb-5">
+                    <a
+                      href="#0">
+                      <DialogDemo />
+                    </a>
+                  </div>
+
                 </div>
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
@@ -141,7 +151,7 @@ const BlogSidebarPage = () => {
                     </span>
                     , handle events, and work with frameworks like React.js to build real-world applications. Through hands-on exercises and projects, you will gain the practical skills needed to write clean, efficient, and scalable JavaScript code.
                   </p>
-                  <h3 className="font-xl mb-10 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
+                  <h3 className="font-xl mb-2 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
                     This Course Includes
                   </h3>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
@@ -164,7 +174,6 @@ const BlogSidebarPage = () => {
                       Access to Course Materials & Resources
                     </li>
                   </ul>
-
 
                   <h3 className="font-xl mb-10 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
                     Syllabus Overview
@@ -222,8 +231,6 @@ const BlogSidebarPage = () => {
                         </DialogContent>
                       </Dialog>
                     </li> */}
-
-
 
                   </ul>
 
@@ -373,6 +380,7 @@ const BlogSidebarPage = () => {
                       </svg>
                     </span>
                   </div>
+
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     Popular front-end frameworks and libraries such as React.js, Vue.js, and Angular are built on JavaScript, enabling developers to create scalable and responsive web applications with ease.
                   </p>
@@ -382,7 +390,7 @@ const BlogSidebarPage = () => {
                       <h4 className="mb-3 text-sm font-medium text-body-color">
                         Popular Tags :
                       </h4>
-                      <div className="flex items-center">
+                      <div className="flex items-center flex-wrap">
                         <TagButton text="DOM Manipulation" />
                         <TagButton text="ES6" />
                         <TagButton text="AJAX" />
@@ -404,6 +412,7 @@ const BlogSidebarPage = () => {
                   </div>
                 </div>
               </div>
+
             </div>
             <div className="w-full px-4 lg:w-4/12">
               <div className="shadow-three dark:bg-gray-dark mb-10 mt-12 rounded-sm bg-white p-6 dark:shadow-none lg:mt-0">
@@ -510,6 +519,7 @@ const BlogSidebarPage = () => {
                   </li>
                 </ul>
               </div>
+
               <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Popular Tags
@@ -525,15 +535,18 @@ const BlogSidebarPage = () => {
               </div>
               {/* <NewsLatterBox /> */}
               <ModelOne />
-              <ModelTwo/>
+              <ModelTwo />
             </div>
           </div>
         </div>
+        <Feedbacks />
       </section>
-      <Testimonials />
-      <ModelThree/>
+
+      
+      <ModelThree />
+
       <SubscribeNewsletter />
-      <DownloadSyllabus/>
+      <DownloadSyllabus />
 
     </>
   );

@@ -1,23 +1,37 @@
+"use client"
 import Link from "next/link";
-
+import { Eye, EyeOff } from "lucide-react"; 
 import { Metadata } from "next";
+import { signUpValidationSchema } from '../../lib/validationSchema';
+import { useFormik } from 'formik';
+import { useState } from "react";
 
-export const metadata: Metadata = {
-  title: "Sign In Page | Free Next.js Template for Startup and SaaS",
-  description: "This is Sign In Page for Startup Nextjs Template",
-  // other metadata
-};
+
 
 const SigninPage = () => {
+
+  const formik = useFormik({
+    initialValues: {
+     
+      email: '',
+      password: '',
+     
+    },
+    validationSchema: signUpValidationSchema,
+    onSubmit: (values) => {
+      console.log('Form Data:', values);
+    },
+  });
+  const [showPassword, setShowPassword] = useState(false);
   return (
     <>
       <section className="relative z-10 overflow-hidden pb-16 pt-36 md:pb-20 lg:pb-28 lg:pt-[180px]">
         <div className="container">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4">
-              <div className="shadow-three mx-auto max-w-[500px] rounded bg-white px-6 py-10 dark:bg-dark sm:p-[60px]">
+              <div className="mx-auto max-w-[500px] rounded bg-white px-6 py-10 shadow-three dark:bg-dark sm:p-[60px]">
                 <h3 className="mb-3 text-center text-2xl font-bold text-black dark:text-white sm:text-3xl">
-                  Sign in to your account
+                  Login to your account
                 </h3>
                 <p className="mb-11 text-center text-base font-medium text-body-color">
                   Login to your account for a faster checkout.
@@ -80,7 +94,7 @@ const SigninPage = () => {
                   </p>
                   <span className="hidden h-[1px] w-full max-w-[70px] bg-body-color/50 sm:block"></span>
                 </div> */}
-                <form>
+                <form onSubmit={formik.handleSubmit}>
                   <div className="mb-8">
                     <label
                       htmlFor="email"
@@ -92,23 +106,40 @@ const SigninPage = () => {
                       type="email"
                       name="email"
                       placeholder="Enter your Email"
-                      className="border-stroke dark:text-body-color-dark dark:shadow-two w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
+                      onChange={formik.handleChange}
+                      value={formik.values.email}
+                      className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:text-body-color-dark dark:shadow-two dark:focus:border-primary dark:focus:shadow-none"
                     />
+                     {formik.errors.email && <p className="text-red-500 text-sm">{formik.errors.email}</p>}
                   </div>
-                  <div className="mb-8">
-                    <label
-                      htmlFor="password"
-                      className="mb-3 block text-sm text-dark dark:text-white"
-                    >
-                      Your Password
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      placeholder="Enter your Password"
-                      className="border-stroke dark:text-body-color-dark dark:shadow-two w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
-                    />
-                  </div>
+                  <div className="mb-8 relative">
+  <label
+    htmlFor="password"
+    className="mb-3 block text-sm text-dark dark:text-white"
+  >
+    Your Password
+  </label>
+  <div className="relative w-full">
+    <input
+      type={showPassword ? "text" : "password"}
+      name="password"
+      placeholder="Enter your Password"
+      onChange={formik.handleChange}
+      value={formik.values.password}
+      className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 pr-12 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:text-body-color-dark dark:shadow-two dark:focus:border-primary dark:focus:shadow-none"
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+    >
+      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+    </button>
+  
+  </div>
+  {formik.errors.password && <p className="text-red-500 text-sm">{formik.errors.password}</p>}
+</div>
+
                   <div className="mb-8 flex flex-col justify-between sm:flex-row sm:items-center">
                     <div className="mb-4 sm:mb-0">
                       <label
@@ -140,7 +171,7 @@ const SigninPage = () => {
                             </span>
                           </div>
                         </div>
-                        Keep me signed in
+                       Remember Me
                       </label>
                     </div>
                     <div>
@@ -153,15 +184,15 @@ const SigninPage = () => {
                     </div>
                   </div>
                   <div className="mb-6">
-                    <button className="shadow-submit dark:shadow-submit-dark flex w-full items-center justify-center rounded-sm bg-blue-600 hover:black px-9 py-4 text-base font-medium text-black duration-300 hover:bg-white">
-                      Sign in
+                    <button className="flex w-full items-center justify-center rounded-sm bg-blue-600 px-9 py-4 text-base font-medium text-black shadow-submit duration-300 hover:bg-black hover:text-white dark:shadow-submit-dark dark:hover:bg-white dark:hover:text-black">
+                      Login
                     </button>
                   </div>
                 </form>
                 <p className="text-center text-base font-medium text-body-color">
                   Don’t you have an account?{" "}
                   <Link href="/signup" className="text-primary hover:underline">
-                    Sign up
+                   sign up
                   </Link>
                 </p>
               </div>
