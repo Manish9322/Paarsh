@@ -31,7 +31,7 @@ const SigninPage = () => {
         const response = await _LOGIN(values).unwrap();
 
         if (response?.success) {
-          const { accessToken, refreshToken, user } = response;
+          const { accessToken, refreshToken, user } = response?.data;
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
 

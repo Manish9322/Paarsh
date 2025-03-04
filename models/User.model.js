@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  fullName: {
+  name: {
     type: String,
     required: true,
   },
@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
-  phoneNumber: {
+  mobile: {
     type: String,
     required: true,
   },
@@ -22,6 +22,9 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+  },
+  acceptTerms:{
+    type: Boolean,
   },
   createdAt: {
     type: Date,

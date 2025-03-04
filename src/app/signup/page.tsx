@@ -35,50 +35,41 @@ const SignupPage = () => {
     dispatch(setSignupFormData({ field: name, value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await _SIGNUP(signupForm).unwrap();
-      if (response?.success) {
-        const { accessToken, refreshToken, user } = response?.data;
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
-
-        dispatch(setAuthData({ accessToken, refreshToken, user }));
-        toast.success("Registration Successfully", {
-          description: response?.message,
-        });
-        dispatch(resetForm({ formName: "signupForm" }));
-        router.push(
-          response?.data?.redirect ||
-          `/dashboard`,
-        );
-      } else {
-        toast.error("Registration Failed", {
-          description: response?.error || "An error occurred.",
-        });
-      }
-      dispatch(setAuthData(response)); // Set authentication state
-      dispatch(resetForm({ formName: "signupForm" })); // Reset the form
-    } catch (err) {
-      console.error("Signup failed:", err);
-    }
-  };
-
   const formik = useFormik({
     initialValues: {
       name: "",
       email: "",
       password: "",
-      confirmpassword: "",
+      confirmPassword: "",
       mobile: "",
       referralCode: "",
-
       acceptTerms: false,
     },
     validationSchema: signUpValidationSchema,
-    onSubmit: (values) => {
-      console.log("Form Data:", values);
+    onSubmit: async (values) => {
+      try {
+        const response = await _SIGNUP(values).unwrap();
+        if (response?.success) {
+          const { accessToken, refreshToken, user } = response?.data;
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", refreshToken);
+
+          dispatch(setAuthData({ accessToken, refreshToken, user }));
+          toast.success("Registration Successfully", {
+            description: response?.message,
+          });
+          dispatch(resetForm({ formName: "signupForm" }));
+          router.push(response?.data?.redirect || `/dashboard`);
+        } else {
+          toast.error("Registration Failed", {
+            description: response?.error || "An error occurred.",
+          });
+        }
+        dispatch(setAuthData(response)); // Set authentication state
+        dispatch(resetForm({ formName: "signupForm" })); // Reset the form
+      } catch (err) {
+        console.error("Signup failed:", err);
+      }
     },
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -161,40 +152,35 @@ const SignupPage = () => {
                 >
                   {/* Left Section */}
                   <div>
-                    {/* Full Name */}
-                    <div className="mb-6">
-                      <label className="block text-lg text-dark dark:text-white">
+                    <div className="mb-4"> 
+                      <label className="block text-lg mb-2 text-dark dark:text-white">
                         Full Name
                       </label>
                       <input
                         type="text"
-                        name="name"
+                        {...formik.getFieldProps("name")}
                         placeholder="Enter your full name"
-                        onChange={formik.handleChange}
-                        value={formik.values.name}
                         className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
                       />
-                      {formik.errors.name && (
+                      {formik.touched.name && formik.errors.name && (
                         <p className="text-sm text-red-500">
                           {formik.errors.name}
                         </p>
                       )}
                     </div>
 
-                    {/* Work Email */}
-                    <div className="mb-6">
-                      <label className="block text-lg text-dark dark:text-white">
+                    {/* Email */}
+                    <div className="mb-4">
+                      <label className="block text-lg mb-2 text-dark dark:text-white">
                         Work Email
                       </label>
                       <input
                         type="email"
-                        name="email"
+                        {...formik.getFieldProps("email")}
                         placeholder="Enter your Email"
-                        onChange={formik.handleChange}
-                        value={formik.values.email}
-                        className="w-full rounded  border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
                       />
-                      {formik.errors.email && (
+                      {formik.touched.email && formik.errors.email && (
                         <p className="text-sm text-red-500">
                           {formik.errors.email}
                         </p>
@@ -202,58 +188,36 @@ const SignupPage = () => {
                     </div>
 
                     {/* Referral Code */}
-                    <div className="mb-6">
-                      <label className="block text-lg text-dark dark:text-white">
-                        Referral Code
+                    <div >
+                      <label className="block text-lg mb-2 text-dark dark:text-white">
+                        Referral Code (Optional)
                       </label>
                       <input
                         type="text"
-                        name="referralCode"
-                        placeholder="Enter Referral Code (optional)"
-                        className="w-full rounded border  bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                        {...formik.getFieldProps("referralCode")}
+                        placeholder="Enter Referral Code"
+                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
                       />
                     </div>
                   </div>
 
                   {/* Right Section */}
                   <div>
-                    {/* Mobile Number */}
-                    <div className="mb-6">
-                      <label className="block text-lg text-dark dark:text-white">
-                        Mobile Number
-                      </label>
-                      <input
-                        type="text"
-                        name="mobile"
-                        placeholder="Enter 10-digit number"
-                        onChange={formik.handleChange}
-                        value={formik.values.mobile}
-                        className="w-full rounded border  bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
-                      />
-                      {formik.errors.mobile && (
-                        <p className="text-sm text-red-500">
-                          {formik.errors.mobile}
-                        </p>
-                      )}
-                    </div>
-
                     {/* Password */}
-                    <div className="relative mb-6">
-                      <label className="block text-lg text-dark dark:text-white">
+                    <div className="relative mb-4">
+                      <label className="block text-lg mb-2 text-dark dark:text-white">
                         Password
                       </label>
                       <input
                         type={showPassword ? "text" : "password"}
-                        name="password"
+                        {...formik.getFieldProps("password")}
                         placeholder="Enter your password"
-                        onChange={formik.handleChange}
-                        value={formik.values.password}
-                        className="w-full rounded border  bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
                       />
                       <button
                         type="button"
+                        className="absolute right-4 top-10"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-10 text-gray-500 hover:text-gray-700"
                       >
                         {showPassword ? (
                           <EyeOff size={20} />
@@ -261,7 +225,7 @@ const SignupPage = () => {
                           <Eye size={20} />
                         )}
                       </button>
-                      {formik.errors.password && (
+                      {formik.touched.password && formik.errors.password && (
                         <p className="text-sm text-red-500">
                           {formik.errors.password}
                         </p>
@@ -269,24 +233,22 @@ const SignupPage = () => {
                     </div>
 
                     {/* Confirm Password */}
-                    <div className="relative mb-6">
-                      <label className="block text-lg text-dark dark:text-white">
+                    <div className="relative mb-4">
+                      <label className="block text-lg mb-2 text-dark dark:text-white">
                         Confirm Password
                       </label>
                       <input
                         type={showConfirmPassword ? "text" : "password"}
-                        name="confirmpassword"
+                        {...formik.getFieldProps("confirmPassword")}
                         placeholder="Confirm your password"
-                        onChange={formik.handleChange}
-                        value={formik.values.confirmpassword}
-                        className="w-full rounded border  bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
                       />
                       <button
                         type="button"
+                        className="absolute right-4 top-10"
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        className="absolute right-4 top-10 text-gray-500 hover:text-gray-700"
                       >
                         {showConfirmPassword ? (
                           <EyeOff size={20} />
@@ -294,9 +256,28 @@ const SignupPage = () => {
                           <Eye size={20} />
                         )}
                       </button>
-                      {formik.errors.confirmpassword && (
+                      {formik.touched.confirmPassword &&
+                        formik.errors.confirmPassword && (
+                          <p className="text-sm text-red-500">
+                            {formik.errors.confirmPassword}
+                          </p>
+                        )}
+                    </div>
+
+                    {/* Mobile */}
+                    <div className="">
+                      <label className="block text-lg mb-2 text-dark dark:text-white">
+                        Mobile Number
+                      </label>
+                      <input
+                        type="text"
+                        {...formik.getFieldProps("mobile")}
+                        placeholder="Enter 10-digit number"
+                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
+                      />
+                      {formik.touched.mobile && formik.errors.mobile && (
                         <p className="text-sm text-red-500">
-                          {formik.errors.confirmpassword}
+                          {formik.errors.mobile}
                         </p>
                       )}
                     </div>

@@ -14,12 +14,13 @@ const initialState = {
       rememberMe: true,
     },
     signupForm: {
-      fullName: "",
+      name: "",
       email: "",
-      phoneNumber: "",
+      mobile: "",
       refferalCode: "",
       password: "",
       confirmPassword: "",
+      acceptTerms: true,
     },
   },
 };
@@ -51,15 +52,21 @@ const userAuthSlice = createSlice({
     },
 
     setSignupFormData(state, action) {
-        const { field, value } = action.payload;
-        state.forms.signupForm[field] = value;
-      },
+      const { field, value } = action.payload;
+      state.forms.signupForm[field] = value;
+    },
 
+    setLoginFormData(state, action) {
+      // ✅ NEW REDUCER ADDED
+      const { field, value } = action.payload;
+      state.forms.loginForm[field] = value;
+    },
   },
 });
 
 // Export actions
-export const { setAuthData, logout, resetForm,setSignupFormData } = userAuthSlice.actions;
+export const { setAuthData, logout, resetForm, setSignupFormData , setLoginFormData } =
+  userAuthSlice.actions;
 
 // Export reducer
 export default userAuthSlice.reducer;
