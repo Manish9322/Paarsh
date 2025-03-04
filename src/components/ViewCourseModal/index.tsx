@@ -33,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export function DialogDemo() {
+export function PreviewCourse() {
 
   const [items, setItems] = useState([[], [], [], []]);
   const [inputValues, setInputValues] = useState(['', '', '', '']);
@@ -70,7 +70,7 @@ export function DialogDemo() {
         <DialogHeader>
           <DialogTitle>Preview Course</DialogTitle>
           <DialogDescription>
-            Make changes to your profile here. Click save when you're done.
+            Make changes to your course here. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
 

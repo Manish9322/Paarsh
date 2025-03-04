@@ -15,7 +15,9 @@ import DownloadSyllabus from "@/components/DownloadSyllabus/DownloadSyllabus";
 
 import Image from "next/image";
 import { Metadata } from "next";
-import { DialogDemo } from "@/components/ViewCourseModal";
+import { PreviewCourse } from "@/components/ViewCourseModal";
+import { AddNewCourse } from "@/components/AddNewCourseModal";
+
 import { useFetchCourcesQuery } from "@/services/api";
 import { log } from "console";
 
@@ -182,7 +184,16 @@ const BlogSidebarPage = () => {
                     <div className="mb-5 mr-4">
                       <a
                         href="#0">
-                        <DialogDemo />
+                        <PreviewCourse />
+
+                      </a>
+                    </div>
+
+                    <div className="mb-5 mr-4">
+                      <a
+                        href="#0">
+                        <AddNewCourse />
+
                       </a>
                     </div>
                   </div>
@@ -327,7 +338,7 @@ const BlogSidebarPage = () => {
                       </svg>
                     </span>
                     <span className="absolute bottom-0 right-0 z-[-1]">
-                      
+
                       <svg
                         width="53"
                         height="30"
@@ -470,7 +481,7 @@ const BlogSidebarPage = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Related Courses
