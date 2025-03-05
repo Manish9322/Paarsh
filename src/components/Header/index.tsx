@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import ThemeToggler from "./ThemeToggler";
 import menuData from "./menuData";
+import Profile from "./Profile";
 
 const Header = () => {
   // Navbar toggle
@@ -204,6 +205,9 @@ const Header = () => {
                 </Link>
                 <div>
                   <ThemeToggler />
+                </div>
+                <div>
+                  <Profile />
                 </div>
               </div>
             </div>
