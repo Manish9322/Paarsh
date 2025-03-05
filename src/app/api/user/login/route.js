@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import UserModel from "../../../../../../Paarsh/models/User.model";
+import UserModel from "../../../../../models/User.model";
 import _db from "../../../../../utils/db";
 import validator from "validator";
 import generateTokens from "../../../../../utils/generateTokens";
