@@ -8,7 +8,7 @@ const UploadSyllabusButton: React.FC<{ onFileSelect: (file: File) => void }> = (
         const selectedFile = event.target.files?.[0];
         if (selectedFile && selectedFile.type === 'application/pdf') {
             setFile(selectedFile);
-            onFileSelect(selectedFile); // Pass the selected file to the parent
+            onFileSelect(selectedFile);
         } else {
             alert('Please select a valid PDF file.');
         }
@@ -25,7 +25,7 @@ const UploadSyllabusButton: React.FC<{ onFileSelect: (file: File) => void }> = (
                 accept="application/pdf"
                 onChange={handleFileChange}
                 ref={fileInputRef}
-                style={{ display: 'none' }} // Hide the input
+                style={{ display: 'none' }}
             />
             <button
                 onClick={openFileExplorer}
