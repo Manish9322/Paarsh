@@ -1,6 +1,8 @@
 "use client"
 import React, { useState } from "react";
 import Image from "next/image";
+import { CiGrid41 } from "react-icons/ci";
+import { TbLayoutList } from "react-icons/tb";
 
 const courses = [
   {
@@ -8,19 +10,22 @@ const courses = [
     coursename:"web designer",
     duration:"2 month",
     level:"diffcult",
-    languages:"html/css/bootstrap"
+    languages:"html/css/bootstrap",
+     image:"/images/certificates/certificate.jpg"
   },
   { cousreid:"02",
     coursename:"web designer",
     duration:"2 month",
     level:"diffcult",
-    languages:"html/css/bootstrap"
+    languages:"html/css/bootstrap",
+     image:"/images/certificates/certificate.jpg"
   },
   { cousreid:"03",
     coursename:"web designer",
     duration:"2 month",
     level:"diffcult",
-    languages:"html/css/bootstrap"
+    languages:"html/css/bootstrap",
+    image:"/images/certificates/certificate.jpg"
   }
  
  
@@ -96,6 +101,7 @@ const cardData = [
 ];
 
 function DashboardCards() {
+  const [isGridView, setIsGridView] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -136,15 +142,41 @@ function DashboardCards() {
 
     {selectedCategory === "courses" && (
   <div className="mt-8 p-6 border rounded-2xl shadow-2xl w-full mx-0 bg-white dark:bg-gray-900">
-    <h3 className="text-2xl font-bold mt-4 mb-6 text-gray-900 dark:text-white">My Courses</h3>
-    <div className="space-y-4">
+    <div className="flex justify-between items-center mb-6">
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white">My Courses</h3>
+      <button
+        onClick={() => setIsGridView(!isGridView)}
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+      >
+        {isGridView ? <TbLayoutList size={20} /> : <CiGrid41 size={20} />}
+      </button>
+    </div>
+    
+    <div className={isGridView ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4 "}>
       {courses.map((course, index) => (
-        <div key={index} className="w-full p-4 bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md">
-         
-          <p className="text-gray-700 dark:text-gray-300 text-lg">Course Name: {course.coursename}</p>
-          <p className="text-gray-700 dark:text-gray-300 text-lg">Duration: {course.duration}</p>
-          <p className="text-gray-700 dark:text-gray-300 text-lg">Level: {course.level}</p>
-          <p className="text-gray-700 dark:text-gray-300 text-lg">Languages: {course.languages}</p>
+        <div 
+          key={index} 
+          className={`w-full bg-gray-50 dark:bg-gray-800 rounded-lg shadow-md p-4 ${
+            isGridView ? "" : "max-w-xxl w-full flex items-center"
+          }`}
+        >
+          {/* Image Section */}
+          <img 
+            src={course.image} 
+            alt={course.coursename} 
+            className={`rounded-md object-cover ${
+              isGridView ? "w-full h-40 mb-4" : "w-100 h-60 mr-4"
+            }`}
+          />
+
+          {/* Text Section */}
+          <div className="flex-1">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{course.coursename}</h4>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{course.description}</p>
+            <p className="text-gray-700 dark:text-gray-300 text-lg">Duration: {course.duration}</p>
+            <p className="text-gray-700 dark:text-gray-300 text-lg">Level: {course.level}</p>
+            <p className="text-gray-700 dark:text-gray-300 text-lg">Languages: {course.languages}</p>
+          </div>
         </div>
       ))}
     </div>

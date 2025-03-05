@@ -8,6 +8,27 @@ import menuData from "./menuData";
 import Profile from "./Profile";
 
 const Header = () => {
+
+  //sign in button hide
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  useEffect(() => {
+    // Function to check authentication status
+    const checkAuth = () => {
+      const token = localStorage.getItem("accessToken");
+      setIsAuthenticated(!!token); // Convert to boolean
+    };
+
+    checkAuth(); // Run check on mount
+
+    // Listen for storage changes (e.g., login/logout)
+    window.addEventListener("storage", checkAuth);
+
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+    };
+  }, []);
+
   // Navbar toggle
   const [navbarOpen, setNavbarOpen] = useState(false);
   const navbarToggleHandler = () => {
@@ -197,18 +218,33 @@ const Header = () => {
                 </nav>
               </div>
               <div className="flex items-center justify-end pr-16 lg:pr-0">
-                <Link
+              <div>
+                  <ThemeToggler />
+                </div>
+
+                {
+                  isAuthenticated?(
+                    <Profile/>
+                  ):
+                  (<Link
+                    href="/signin"
+                    className="hidden px-7 py-3 text-base font-medium text-dark hover:opacity-70 dark:text-white md:block"
+                  >
+                    Sign In
+                  </Link>)
+                }
+                {/* <Link
                   href="/signin"
                   className="hidden px-7 py-3 text-base font-medium text-dark hover:opacity-70 dark:text-white md:block"
                 >
                   Sign In
-                </Link>
-                <div>
+                </Link> */}
+                {/* <div>
                   <ThemeToggler />
-                </div>
-                <div>
+                </div> */}
+                {/* <div>
                   <Profile />
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

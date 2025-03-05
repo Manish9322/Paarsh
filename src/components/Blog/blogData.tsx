@@ -3,42 +3,56 @@ import { Blog } from "@/types/blog";
 const blogData: Blog[] = [
   {
     id: 1,
-    title: "AI Revolutionizing Everyday Life and Work",
+    title: "Demystifying MVC Framework in PHP",
     paragraph:
-      "AI enhances automation, healthcare, and productivity, making daily tasks smarter and more efficient.",
-    image: "/images/blog/blog-01.jpg",
+      "In the realm of web development, the Model-View-Controller (MVC) architectural pattern stands as one of the most influential paradigms.",
+    image: "/images/blog/tutorial.png",
     author: {
-      name: "Rutik Ahire",
-      image: "/images/blog/author-02.png",
-      designation: "Sr. Data Analyst",
+      name: "Mr.Aditya Mahajan",
+      image: "/images/blog/aaditya.jpg",
+      designation: "Web Developer",
     },
     tags: ["creative"],
     publishDate: "2025",
   },
   {
     id: 2,
-    title: "Quantum Computing : The Future of Tech",
+    title: "Hey, When Did Intrinsic Web Design Become the Norm? ",
     paragraph:
-      "Quantum computing promises ultra-fast processing, revolutionizing cryptography, AI, and complex problem-solving.",
-    image: "/images/blog/blog-02.jpg",
+      "I’ll admit it: I rarely think about the mechanisms of “old school” Responsive Web Design (RWD) any more.",
+    image: "/images/blog/web.jpg",
     author: {
-      name: "Rupali Gaikwad",
-      image: "/images/blog/author-01.png",
-      designation: "QCR",
+      name: "Mr.Manish Sonawane",
+      image: "/images/blog/manish.jpg",
+      designation: "Web Developer ",
     },
     tags: ["computer"],
     publishDate: "2025",
   },
   {
     id: 3,
+    title: "Why Machine Learning Is A Metaphor For Life",
+    paragraph:
+      "Blockchain secures transactions, improves transparency, and finds applications in finance, healthcare, and logistics.",
+    image: "/images/blog/ml.jpg",
+    author: {
+      name: "Mr. Rutik Ahire",
+      image: "/images/blog/rutik.jpg",
+      designation: "Sr. Data Science Engineer",
+    },
+    tags: ["design"],
+    publishDate: "2025",
+  },
+  {
+    id: 4,
     title: "Blockchain Beyond Cryptocurrency",
     paragraph:
       "Blockchain secures transactions, improves transparency, and finds applications in finance, healthcare, and logistics.",
     image: "/images/blog/blog-03.jpg",
     author: {
-      name: "Siddhi Shinde",
-      image: "/images/blog/author-01.png",
-      designation: "Sr. Blockchain Engineer",
+      name: "Miss.Pranjal Mahajan",
+      image: "/images/blog/pranjal.jpg",
+      designation: "Cloud Developer",
     },
     tags: ["design"],
     publishDate: "2025",
