@@ -48,6 +48,14 @@ export default function Profile() {
     return () => document.removeEventListener("click", closeSidebar);
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";  // Disable scrolling
+    } else {
+      document.body.style.overflow = "auto";  // Enable scrolling
+    }
+  }, [isModalOpen]);
+
   return (
     <div className="relative">
       {/* Profile Image Trigger */}

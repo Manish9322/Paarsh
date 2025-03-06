@@ -1,12 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { ObjectId } from "bson"; // Use this to generate MongoDB IDs on the frontend
+import { ObjectId } from "bson";
 
 const initialState = {
   courseName: "",
-  category: "",
-  price: "",
-  feature: "",
-  topics: [], // Each topic contains multiple videos
+  topics: [],
 };
 
 const courseSlice = createSlice({
@@ -19,9 +16,11 @@ const courseSlice = createSlice({
     },
     addTopic: (state) => {
       state.topics.push({
-        _id: new ObjectId().toString(), // Use MongoDB ObjectId for topics
+        _id: new ObjectId().toString(),
         topicName: "",
-        videos: [{ _id: new ObjectId().toString(), videoName: "" }],
+        videos: [
+          { _id: new ObjectId().toString(), videoName: "", videoId: "" },
+        ],
       });
     },
     updateTopicName: (state, action) => {
@@ -33,7 +32,11 @@ const courseSlice = createSlice({
       const { topicId } = action.payload;
       const topic = state.topics.find((t) => t._id === topicId);
       if (topic) {
-        topic.videos.push({ _id: new ObjectId().toString(), videoName: "" });
+        topic.videos.push({
+          _id: new ObjectId().toString(),
+          videoName: "",
+          videoId: "",
+        });
       }
     },
     updateVideoName: (state, action) => {
@@ -44,12 +47,24 @@ const courseSlice = createSlice({
         if (video) video.videoName = value;
       }
     },
+    updateVideoId: (state, action) => {
+      const { topicId, videoId, value } = action.payload;
+      const topic = state.topics.find((t) => t._id === topicId);
+      if (topic) {
+        const video = topic.videos.find((v) => v._id === videoId);
+        if (video) video.videoId = value;
+      }
+    },
     removeVideoFromTopic: (state, action) => {
       const { topicId, videoId } = action.payload;
       const topic = state.topics.find((t) => t._id === topicId);
       if (topic) {
         topic.videos = topic.videos.filter((v) => v._id !== videoId);
       }
+    },
+    removeTopic: (state, action) => {
+      const topicId = action.payload;
+      state.topics = state.topics.filter((topic) => topic._id !== topicId);
     },
   },
 });
@@ -60,7 +75,9 @@ export const {
   updateTopicName,
   addVideoToTopic,
   updateVideoName,
+  updateVideoId,
   removeVideoFromTopic,
+  removeTopic,
 } = courseSlice.actions;
 
 export default courseSlice.reducer;

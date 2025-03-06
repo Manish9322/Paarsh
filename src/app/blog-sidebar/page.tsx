@@ -13,12 +13,12 @@ import Feedbacks from "@/components/CourseFeedbacks";
 import DownloadSyllabus from "@/components/DownloadSyllabus/DownloadSyllabus";
 
 import Image from "next/image";
-import { Metadata } from "next";
-import { PreviewCourse } from "@/components/ViewCourseModal";
-import { AddNewCourse } from "@/components/AddNewCourseModal";
 
-import { useFetchCourcesQuery } from "@/services/api";
+
+
+import { useFetchCourcebyIdQuery } from "@/services/api";
 import { log } from "console";
+import { useSearchParams } from "next/navigation";
 
 // import NewsLatterBox from "@/components/Cont act/NewsLatterBox";
 // import SharePost from "@/components/Blog/SharePost";
@@ -44,22 +44,27 @@ interface Course {
   keywords: string[];
 }
 
+
+
 const BlogSidebarPage = () => {
+
+  const param = useSearchParams();
+
+  const courseId = param.get("courseId");
   const {
     data: courseData,
     isLoading,
     error,
-  } = useFetchCourcesQuery(undefined);
-  const courses: Course[] = courseData?.data || [];
-  const selectedCourse = courses.length > 0 ? courses[0] : null;
+  } = useFetchCourcebyIdQuery(courseId);
+  const course: Course = courseData?.data;
 
-  const keywordsArray = Array.isArray(selectedCourse?.keywords)
-    ? selectedCourse.keywords
-    : typeof selectedCourse?.keywords === "string"
-      ? selectedCourse.keywords.split(",").map((keyword) => keyword.trim())
+  const keywordsArray = Array.isArray(course?.keywords)
+    ? course.keywords
+    : typeof course?.keywords === "string"
+      ? course.keywords.split(",").map((keyword) => keyword.trim())
       : [];
 
-  console.log("Course Data : ", courses);
+  console.log("Course Data : ", course);
 
   return (
     <>
@@ -73,14 +78,14 @@ const BlogSidebarPage = () => {
                 </h1> */}
 
                 <h1 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
-                  {selectedCourse
-                    ? selectedCourse.courseName
+                  {course
+                    ? course.courseName
                     : "Loading Heading..."}
                 </h1>
 
                 <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                  {selectedCourse
-                    ? selectedCourse.shortDescription
+                  {course
+                    ? course.shortDescription
                     : "Loading Tagline..."}
                   {/* <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Assumenda, quisquam ut dolorem aspernatur ipsam explicabo cupiditate placeat laborum quia esse.</p> */}
                 </p>
@@ -103,7 +108,7 @@ const BlogSidebarPage = () => {
                           </svg>
                         </span>
                         {/* Beginner */}
-                        {selectedCourse ? selectedCourse.certificate : "Loading Certificate..."}
+                        {course ? course.certificate : "Loading Certificate..."}
 
                       </p>
                       <p className="mr-5 flex items-center text-base font-medium text-body-color">
@@ -119,8 +124,8 @@ const BlogSidebarPage = () => {
                           </svg>
                         </span>
                         {/* Beginner */}
-                        {selectedCourse
-                          ? selectedCourse.level
+                        {course
+                          ? course.level
                           : "Loading Levels..."}
                       </p>
 
@@ -137,8 +142,8 @@ const BlogSidebarPage = () => {
                           </svg>
                         </span>
                         {/* 12 Weeks */}
-                        {selectedCourse
-                          ? selectedCourse.courseDuration
+                        {course
+                          ? course.courseDuration
                           : "Loading Course Duration..."}
                       </p>
 
@@ -156,7 +161,7 @@ const BlogSidebarPage = () => {
                           </svg>
                         </span>
                         {/* Eng | Hin | Mar */}
-                        {selectedCourse ? selectedCourse.languages.join(" | ") : "Loading Languages..."}
+                        {course ? course.languages : "Loading Languages..."}
 
                       </p>
 
@@ -176,7 +181,7 @@ const BlogSidebarPage = () => {
                           </svg>
                         </span>
                         {/* Eng | Hin | Mar */}
-                        {selectedCourse ? selectedCourse.courseFees : "Loading Course Fees..."}
+                        {course ? course.courseFees : "Loading Course Fees..."}
 
                       </p>
                     </div>
@@ -190,7 +195,7 @@ const BlogSidebarPage = () => {
                         Purchase Now
                       </a>
                     </div>
-
+                    {/* 
                     <div className="mb-5 mr-4">
                       <a href="#0">
                         <PreviewCourse />
@@ -201,14 +206,15 @@ const BlogSidebarPage = () => {
                       <a href="#0">
                         <AddNewCourse />
                       </a>
-                    </div>
+                    </div> */}
+
                   </div>
                 </div>
 
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     {/* <span className="text-blue-600 font-bold"> JavaScript </span> plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more. */}
-                    {selectedCourse ? selectedCourse.longDescription : "Loading Summary..."}
+                    {course ? course.longDescription : "Loading Summary..."}
 
                   </p>
                   <div className="mb-10 w-full overflow-hidden rounded">
@@ -531,7 +537,7 @@ const BlogSidebarPage = () => {
                       level="Difficult"
                       duration="1 Month"
                       date={""}
- />
+                    />
                   </li>
                 </ul>
               </div>

@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react";
+import React, { useState ,useEffect} from "react";
 import Image from "next/image";
 import { CiGrid41 } from "react-icons/ci";
 import { TbLayoutList } from "react-icons/tb";
@@ -111,6 +111,15 @@ function DashboardCards() {
   const handleCardClick = (category) => {
     setSelectedCategory((prev) => (prev === category ? null : category));
   };
+
+
+   useEffect(() => {
+      if (isModalOpen) {
+        document.body.style.overflow = "hidden";  // Disable scrolling
+      } else {
+        document.body.style.overflow = "auto";  // Enable scrolling
+      }
+    }, [isModalOpen]);
 
   return (
     <div className="container my-20 px-4 py-8">

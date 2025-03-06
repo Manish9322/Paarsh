@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { resetForm, setAuthData } from "@/lib/slices/userAuthSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
@@ -59,8 +59,19 @@ const SigninPage = () => {
     },
   });
 
+
+   useEffect(() => {
+      // Hide scrollbar
+      document.body.style.overflow = "hidden";
+  
+      // Cleanup function to reset when component unmounts
+      return () => {
+        document.body.style.overflow = "auto";
+      };
+    }, []);
+
   return (
-    <section className="relative z-10 overflow-hidden pb-16 pt-36 md:pb-20 lg:pb-28 lg:pt-[180px]">
+    <section className="relative z-10 overflow-hidden pb-16 pt-36 md:pb-20 lg:pb-28 lg:pt-[70px]">
       <div className="container">
         <div className="-mx-4 flex flex-wrap">
           <div className="w-full px-4">
