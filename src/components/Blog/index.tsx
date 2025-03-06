@@ -17,12 +17,13 @@ const Blog = () => {
         />
 
         <div className="grid grid-cols-1 gap-x-8 gap-y-10 md:grid-cols-2 md:gap-x-6 lg:gap-x-8 xl:grid-cols-3">
-          {blogData.map((blog) => (
+          {blogData.slice(0,3).map((blog) => (
             <div key={blog.id} className="w-full">
               <SingleBlog blog={blog} />
             </div>
           ))}
         </div>
+
       </div>
       <div className="mt-8 flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
                  <Link

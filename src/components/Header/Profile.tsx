@@ -5,11 +5,22 @@ import Link from 'next/link';
 import { X, LayoutDashboard, User, LogOut, BookOpen, GraduationCap, HelpCircle, MessageSquare, Camera } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { logout } from "../../lib/slices/authSlice";
+import { useDispatch } from "react-redux";
+
 
 export default function Profile() {
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const dispatch = useDispatch();
   const router = useRouter();
+
+  const handleLogout = () => {
+   
+ 
+    dispatch(logout());  // Redux  logout
+    router.push("/signin"); // Redirect to Sign In page
+  };
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -101,7 +112,7 @@ export default function Profile() {
           ))}
 
           {/* Logout Button */}
-          <div className="flex items-center space-x-3 cursor-pointer p-3 hover:bg-red-600 rounded-md text-red-500 hover:text-white">
+          <div className="flex items-center space-x-3 cursor-pointer p-3 hover:bg-red-600 rounded-md text-red-500 hover:text-white" onClick={handleLogout}>
             <LogOut size={20} />
             <span>Logout</span>
           </div>

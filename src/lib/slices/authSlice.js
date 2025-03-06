@@ -15,6 +15,9 @@ const authSlice = createSlice({
     logout: (state) => {
       state.token = null;
       state.isAuthenticated = false;
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken"); // Clear token from localStorage
+      sessionStorage.clear(); // Clear session storage
     },
     setError: (state, action) => {
       state.error = action.payload;

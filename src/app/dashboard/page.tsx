@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { CiGrid41 } from "react-icons/ci";
 import { TbLayoutList } from "react-icons/tb";
+import { PiCertificateLight } from "react-icons/pi";
+
 
 const courses = [
   {
@@ -82,7 +84,8 @@ const cardData = [
     description: "View and manage your alerts and messages.",
     iconPath: "M12 2a10 10 0 1 1-10 10A10 10 0 0 1 12 2z...",
     category: "ongoingcourse",
-     image:"/images/dashboard-card/ongoing.png"
+    image:"/images/dashboard-card/ongoing.png"
+   
   },
   {
     title: "Certificates",
@@ -115,7 +118,7 @@ function DashboardCards() {
       {cardData.map((card, index) => (
         <div
           key={index}
-          className="card-container cursor-pointer p-6 border rounded-2xl shadow-2xl hover:shadow-3xl transition-transform transform hover:scale-105 bg-white dark:bg-gray-900 flex flex-col items-center text-center"
+          className="card-container cursor-pointer p-6 border rounded-md shadow-md hover:shadow-3xl transition-transform transform hover:scale-105 bg-white dark:bg-gray-900 flex flex-col items-center text-center"
           onClick={() => handleCardClick(card.category)}
         >
                 <img
@@ -172,7 +175,7 @@ function DashboardCards() {
           {/* Text Section */}
           <div className="flex-1">
             <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{course.coursename}</h4>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{course.description}</p>
+            {/* <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{course.description}</p> */}
             <p className="text-gray-700 dark:text-gray-300 text-lg">Duration: {course.duration}</p>
             <p className="text-gray-700 dark:text-gray-300 text-lg">Level: {course.level}</p>
             <p className="text-gray-700 dark:text-gray-300 text-lg">Languages: {course.languages}</p>
@@ -263,7 +266,7 @@ function DashboardCards() {
       </div>
     </div>
   </div>
-)
+) 
 }
 
     </div>
