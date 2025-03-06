@@ -6,6 +6,7 @@ import agentReducer from '../lib/slices/agentSlice'
 import categoryReducer from '../lib/slices/categorySlice'
 import subCategoryReducer from '../lib/slices/subCategorySlice'
 import userAuthReducer from '../lib/slices/userAuthSlice'
+import courseVideoReducer from '../lib/slices/courseVideoSlice'
 
 // Combine all reducers
 const rootReducer = combineReducers({
@@ -15,6 +16,8 @@ const rootReducer = combineReducers({
   category:categoryReducer,
   subcategory:subCategoryReducer,
   userAuth : userAuthReducer,
+  courseVideo: courseVideoReducer,
+  
   [paarshEduApi.reducerPath]: paarshEduApi.reducer, // Include RTK Query API slice
 });
 

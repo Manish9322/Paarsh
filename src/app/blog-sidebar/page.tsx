@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import RelatedPost from "@/components/Blog/RelatedPost";
 import SubscribeNewsletter from "@/components/SubscribeStripe/SubscribeStripe";
@@ -8,7 +8,6 @@ import TagButton from "@/components/Blog/TagButton";
 import ModelOne from "@/components/View-Models/modelOne";
 import ModelTwo from "@/components/View-Models/modelTwo";
 import ModelThree from "@/components/View-Models/ModelThree";
-
 
 import Feedbacks from "@/components/CourseFeedbacks";
 import DownloadSyllabus from "@/components/DownloadSyllabus/DownloadSyllabus";
@@ -28,6 +27,7 @@ interface Course {
   id: number;
   _id: string;
   availability: string;
+  certificate: string;
   courseCategory: string;
   courseSubCategory: string;
   courseName: string;
@@ -45,7 +45,6 @@ interface Course {
 }
 
 const BlogSidebarPage = () => {
-
   const {
     data: courseData,
     isLoading,
@@ -60,11 +59,9 @@ const BlogSidebarPage = () => {
       ? selectedCourse.keywords.split(",").map((keyword) => keyword.trim())
       : [];
 
-
   console.log("Course Data : ", courses);
 
   return (
-
     <>
       <section className="overflow-hidden pb-[120px] pt-[180px]">
         <div className="container">
@@ -76,32 +73,21 @@ const BlogSidebarPage = () => {
                 </h1> */}
 
                 <h1 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
-                  {selectedCourse ? selectedCourse.courseName : "Loading Heading..."}
-
+                  {selectedCourse
+                    ? selectedCourse.courseName
+                    : "Loading Heading..."}
                 </h1>
 
                 <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                  {selectedCourse ? selectedCourse.shortDescription : "Loading Tagline..."}
+                  {selectedCourse
+                    ? selectedCourse.shortDescription
+                    : "Loading Tagline..."}
                   {/* <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Assumenda, quisquam ut dolorem aspernatur ipsam explicabo cupiditate placeat laborum quia esse.</p> */}
                 </p>
                 <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
                   <div className="flex flex-wrap items-center">
-                    {/* <div className="mb-5 mr-10 flex items-center">
-                      <div className="mr-4">
-                        <div className="relative h-10 w-10 overflow-hidden rounded-full">
-                          <Image
-                            src="/images/blog/author-02.png"
-                            alt="author"
-                            fill
-                          />
-                        </div>
-                      </div>
-                      <div className="w-full">
-                        <span className="mb-1 text-base font-medium text-body-color">
-                          By <span> Manish Sonawane</span>
-                        </span>
-                      </div>
-                    </div> */}
+
+
                     <div className="mb-5 flex items-center">
 
                       <p className="mr-5 flex items-center text-base font-medium text-body-color">
@@ -117,8 +103,25 @@ const BlogSidebarPage = () => {
                           </svg>
                         </span>
                         {/* Beginner */}
-                        {selectedCourse ? selectedCourse.level : "Loading Levels..."}
+                        {selectedCourse ? selectedCourse.certificate : "Loading Certificate..."}
 
+                      </p>
+                      <p className="mr-5 flex items-center text-base font-medium text-body-color">
+                        <span className="mr-3">
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="fill-current"
+                          >
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+                          </svg>
+                        </span>
+                        {/* Beginner */}
+                        {selectedCourse
+                          ? selectedCourse.level
+                          : "Loading Levels..."}
                       </p>
 
                       <p className="mr-5 flex items-center text-base font-medium text-body-color">
@@ -134,8 +137,9 @@ const BlogSidebarPage = () => {
                           </svg>
                         </span>
                         {/* 12 Weeks */}
-                        {selectedCourse ? selectedCourse.courseDuration : "Loading Course Duration..."}
-
+                        {selectedCourse
+                          ? selectedCourse.courseDuration
+                          : "Loading Course Duration..."}
                       </p>
 
                       <p className="mr-5 flex items-center text-base font-medium text-body-color">
@@ -152,23 +156,29 @@ const BlogSidebarPage = () => {
                           </svg>
                         </span>
                         {/* Eng | Hin | Mar */}
-                        {selectedCourse ? selectedCourse.languages.join(" | ") : "Eng | Hin | Mar"}
+                        {selectedCourse ? selectedCourse.languages.join(" | ") : "Loading Languages..."}
 
                       </p>
 
                       <p className="mr-5 flex items-center text-base font-medium text-green-600">
                         <span className="mr-3">
-                          <svg fill="#16a34a" width="15" height="15" stroke="#16a34a" strokeWidth="6"
-                            viewBox="0 0 256 256" id="Flat" xmlns="http://www.w3.org/2000/svg">
+                          <svg
+                            fill="#16a34a"
+                            width="15"
+                            height="15"
+                            stroke="#16a34a"
+                            strokeWidth="6"
+                            viewBox="0 0 256 256"
+                            id="Flat"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
                             <path d="M208,80a8.00039,8.00039,0,0,1-8,8H167.85156c.08789,1.32373.14844,2.65454.14844,4a60.06812,60.06812,0,0,1-60,60H92.69238l72.68946,66.08008a8.0006,8.0006,0,0,1-10.76368,11.83984l-88-80A8.0004,8.0004,0,0,1,72,136h36a44.04978,44.04978,0,0,0,44-44c0-1.34912-.0708-2.68164-.18994-4H72a8,8,0,0,1,0-16h75.17188A44.03678,44.03678,0,0,0,108,48H72a8,8,0,0,1,0-16H200a8,8,0,0,1,0,16H148.73535a60.16006,60.16006,0,0,1,15.82422,24H200A8.00039,8.00039,0,0,1,208,80Z" />
                           </svg>
-
                         </span>
                         {/* Eng | Hin | Mar */}
-                        {selectedCourse ? selectedCourse.courseFees : "Eng | Hin | Mar"}
+                        {selectedCourse ? selectedCourse.courseFees : "Loading Course Fees..."}
 
                       </p>
-
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -182,28 +192,23 @@ const BlogSidebarPage = () => {
                     </div>
 
                     <div className="mb-5 mr-4">
-                      <a
-                        href="#0">
+                      <a href="#0">
                         <PreviewCourse />
-
                       </a>
                     </div>
 
                     <div className="mb-5 mr-4">
-                      <a
-                        href="#0">
+                      <a href="#0">
                         <AddNewCourse />
-
                       </a>
                     </div>
                   </div>
-
                 </div>
 
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     {/* <span className="text-blue-600 font-bold"> JavaScript </span> plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more. */}
-                    {selectedCourse ? selectedCourse.longDescription : "12 Weeks"}
+                    {selectedCourse ? selectedCourse.longDescription : "Loading Summary..."}
 
                   </p>
                   <div className="mb-10 w-full overflow-hidden rounded">
@@ -217,8 +222,12 @@ const BlogSidebarPage = () => {
                     </div>
                   </div>
                   <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    JavaScript is one of the most essential programming languages for web development, enabling developers to create dynamic and interactive websites. This course will take you from the fundamentals of JavaScript, such as variables, data types, and functions, to advanced topics like asynchronous programming, APIs, and Modern Technniques.
-
+                    JavaScript is one of the most essential programming
+                    languages for web development, enabling developers to create
+                    dynamic and interactive websites. This course will take you
+                    from the fundamentals of JavaScript, such as variables, data
+                    types, and functions, to advanced topics like asynchronous
+                    programming, APIs, and Modern Technniques.
                     <strong className="text-primary dark:text-white">
                       {" "}
                       ES6+ features.{" "}
@@ -227,15 +236,20 @@ const BlogSidebarPage = () => {
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     You will learn how to manipulate the
                     <span className="text-primary underline dark:text-white">
-                      {" "}DOM{" "}
+                      {" "}
+                      DOM{" "}
                     </span>
-                    , handle events, and work with frameworks like React.js to build real-world applications. Through hands-on exercises and projects, you will gain the practical skills needed to write clean, efficient, and scalable JavaScript code.
+                    , handle events, and work with frameworks like React.js to
+                    build real-world applications. Through hands-on exercises
+                    and projects, you will gain the practical skills needed to
+                    write clean, efficient, and scalable JavaScript code.
                   </p>
                   <h3 className="font-xl mb-2 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
                     This Course Includes
                   </h3>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    Master JavaScript from basics to advanced and build dynamic web experiences!
+                    Master JavaScript from basics to advanced and build dynamic
+                    web experiences!
                   </p>
                   <ul className="mb-10 list-inside list-disc text-body-color">
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
@@ -255,9 +269,14 @@ const BlogSidebarPage = () => {
                     </li>
                   </ul>
 
-                  <h3 className="font-xl mb-10 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
+                  <h3 className="font-xl mb-2 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
                     Syllabus Overview
                   </h3>
+
+                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
+                    Your roadmap to mastering every topic with clarity and confidence!
+                  </p>
+
                   <ul className="mb-10 list-inside list-disc text-body-color">
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
                       Variables, Data Types, Operators
@@ -277,13 +296,14 @@ const BlogSidebarPage = () => {
                     <li className="mb-1 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
                       Many More...
                     </li>
-
                   </ul>
-
 
                   <div className="relative z-10 mb-10 overflow-hidden rounded-md bg-primary bg-opacity-10 p-8 md:p-9 lg:p-8 xl:p-9">
                     <p className="text-center text-base font-medium italic text-body-color">
-                      Learn JavaScript from scratch and advance to building dynamic web applications with hands-on projects, covering ES6+, DOM manipulation, APIs, and asynchronous programming to excel in modern web development.
+                      Learn JavaScript from scratch and advance to building
+                      dynamic web applications with hands-on projects, covering
+                      ES6+, DOM manipulation, APIs, and asynchronous programming
+                      to excel in modern web development.
                     </p>
                     <span className="absolute left-0 top-0 z-[-1]">
                       <svg
@@ -338,7 +358,6 @@ const BlogSidebarPage = () => {
                       </svg>
                     </span>
                     <span className="absolute bottom-0 right-0 z-[-1]">
-
                       <svg
                         width="53"
                         height="30"
@@ -425,12 +444,14 @@ const BlogSidebarPage = () => {
                           </radialGradient>
                         </defs>
                       </svg>
-
                     </span>
                   </div>
 
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    Popular front-end frameworks and libraries such as React.js, Vue.js, and Angular are built on JavaScript, enabling developers to create scalable and responsive web applications with ease.
+                    Popular front-end frameworks and libraries such as React.js,
+                    Vue.js, and Angular are built on JavaScript, enabling
+                    developers to create scalable and responsive web
+                    applications with ease.
                   </p>
 
                   <div className="items-center justify-between sm:flex">
@@ -438,7 +459,7 @@ const BlogSidebarPage = () => {
                       <h4 className="mb-3 text-sm font-medium text-body-color">
                         Popular Tags :
                       </h4>
-                      <div className="flex items-center flex-wrap">
+                      <div className="flex flex-wrap items-center">
                         {keywordsArray.length > 0 ? (
                           keywordsArray.map((keyword, index) => (
                             <TagButton key={index} text={keyword} />
@@ -449,18 +470,17 @@ const BlogSidebarPage = () => {
                       </div>
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
 
             <div className="w-full px-4 lg:w-4/12">
-              <div className="shadow-three dark:bg-gray-dark mb-10 mt-12 rounded-sm bg-white p-6 dark:shadow-none lg:mt-0">
+              <div className="mb-10 mt-12 rounded-sm bg-white p-6 shadow-three dark:bg-gray-dark dark:shadow-none lg:mt-0">
                 <div className="flex items-center justify-between">
                   <input
                     type="text"
                     placeholder="Search here..."
-                    className="border-stroke dark:text-body-color-dark dark:shadow-two mr-4 w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:focus:border-primary dark:focus:shadow-none"
+                    className="border-stroke mr-4 w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:text-body-color-dark dark:shadow-two dark:focus:border-primary dark:focus:shadow-none"
                   />
                   <button
                     aria-label="search button"
@@ -482,7 +502,7 @@ const BlogSidebarPage = () => {
                 </div>
               </div>
 
-              <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
+              <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Related Courses
                 </h3>
@@ -493,7 +513,7 @@ const BlogSidebarPage = () => {
                       image="/images/blog/post-01.jpg"
                       slug="#"
                       level="Beginner"
-                      duration="2 Months" date={""}                    />
+                      duration="2 Months" date={""} />
                   </li>
                   <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
@@ -501,7 +521,7 @@ const BlogSidebarPage = () => {
                       image="/images/blog/post-02.jpg"
                       slug="#"
                       level="Intermediate"
-                      duration="2 Weeks" date={""}                    />
+                      duration="2 Weeks" date={""} />
                   </li>
                   <li>
                     <RelatedPost
@@ -509,12 +529,14 @@ const BlogSidebarPage = () => {
                       image="/images/blog/post-03.jpg"
                       slug="#"
                       level="Difficult"
-                      duration="1 Month" date={""}                    />
+                      duration="1 Month"
+                      date={""}
+ />
                   </li>
                 </ul>
               </div>
 
-              <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
+              <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Popular Category
                 </h3>
@@ -562,7 +584,7 @@ const BlogSidebarPage = () => {
                 </ul>
               </div>
 
-              <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
+              <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Popular Tags
                 </h3>
@@ -575,13 +597,13 @@ const BlogSidebarPage = () => {
                   <TagButton text="AJAX" />
                 </div> */}
 
-                <div className="flex items-center flex-wrap px-8 py-6">
+                <div className="flex flex-wrap items-center px-8 py-6">
                   {keywordsArray.length > 0 ? (
                     keywordsArray.map((keyword, index) => (
                       <TagButton key={index} text={keyword} />
                     ))
                   ) : (
-                    <span>No tags available</span>
+                    <span className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary">No tags available</span>
                   )}
                 </div>
               </div>
@@ -589,18 +611,15 @@ const BlogSidebarPage = () => {
               <ModelOne />
               <ModelTwo />
             </div>
-
           </div>
         </div>
         <Feedbacks />
       </section>
 
-
       <ModelThree />
 
       <SubscribeNewsletter />
       <DownloadSyllabus />
-
     </>
   );
 };

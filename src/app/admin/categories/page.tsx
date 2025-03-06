@@ -221,7 +221,7 @@ const AdminPage: React.FC = () => {
           <EditCategoryModal
             editOpen={editOpen}
             setEditOpen={setEditOpen}
-            selectedCategory={categoryData}
+            selectedCategory={selectedCategory}
           />
 
           {/* Pagination Controls */}

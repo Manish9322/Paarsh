@@ -8,10 +8,18 @@ _db();
 // Create Agent
 export const POST = authMiddleware(async (request) => {
   try {
-    const { firstName, lastName, email, mobile, gender, state , city } =
+    const { firstName, lastName, email, mobile, gender, state, city } =
       await request.json();
 
-    if (!firstName || !lastName || !email || !mobile || !gender || !city || !state) {
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !mobile ||
+      !gender ||
+      !city ||
+      !state
+    ) {
       return NextResponse.json(
         { success: false, error: "All required fields must be provided" },
         { status: 400 },
@@ -70,29 +78,43 @@ export const GET = authMiddleware(async () => {
 // Update Agent
 export const PUT = authMiddleware(async (request) => {
   try {
-    const { id, firstName, lastName, email, mobile, gender, state , city } =
-      await request.json();
+    const { formData } = await request.json();
+    const id = formData?._id; // ✅ Extract ID from formData
+    console.log("formatDatais ", formData.id);
+    console.log("formData", formData);
 
-    if (
-      !id ||
-      !firstName ||
-      !lastName ||
-      !email ||
-      !mobile ||
-      !gender ||
-      !state ||
-      !city
-    ) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, error: "All required fields must be provided" },
+        { success: false, error: "Agent ID is required" },
         { status: 400 },
       );
     }
 
+    // Define required fields for validation
+    const requiredFields = [
+      "firstName",
+      "lastName",
+      "email",
+      "mobile",
+      "gender",
+      "state",
+      "city",
+    ];
+
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        return NextResponse.json(
+          { success: false, error: `${field} is required` },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Update agent
     const updatedAgent = await AgentModel.findByIdAndUpdate(
       id,
-      { firstName, lastName, email, mobile, gender, state,city },
-      { new: true },
+      { $set: formData },
+      { new: true, runValidators: true },
     );
 
     if (!updatedAgent) {

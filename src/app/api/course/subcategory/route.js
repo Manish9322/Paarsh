@@ -11,6 +11,9 @@ export const POST = authMiddleware(async (request) => {
     const { categoryName, subcategoryName, description, keywords } =
       await request.json();
 
+      console.log("cateedgoryNAme ", categoryName);
+      console.log("subcategoryNamw",subcategoryName);
+
     if (!categoryName || !subcategoryName || !description || !keywords) {
       return NextResponse.json(
         { success: false, error: "All required fields must be provided" },
@@ -44,7 +47,7 @@ export const POST = authMiddleware(async (request) => {
 // Get All Subcategories
 export const GET = authMiddleware(async () => {
   try {
-    const subcategories = await Subcategory.find()
+    const subcategories = await Subcategory.find();
     return NextResponse.json({ success: true, data: subcategories });
   } catch (error) {
     console.error("Error fetching subcategories:", error);
@@ -59,20 +62,38 @@ export const GET = authMiddleware(async () => {
 
 export const PUT = authMiddleware(async (request) => {
   try {
-    const { id, categoryName, subcategoryName, description, keywords } =
-      await request.json();
+    const { formData } = await request.json();
+    const id = formData?._id; // ✅ Extract ID from formData
 
-    if (!id || !categoryName || !subcategoryName || !description || !keywords) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, error: "All required fields must be provided" },
+        { success: false, error: "Subcategory ID is required" },
         { status: 400 },
       );
     }
 
+    // Define required fields for validation
+    const requiredFields = [
+      "categoryName",
+      "subcategoryName",
+      "description",
+      "keywords",
+    ];
+
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        return NextResponse.json(
+          { success: false, error: `${field} is required` },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Update subcategory
     const updatedSubcategory = await Subcategory.findByIdAndUpdate(
       id,
-      { categoryName, subcategoryName, description, keywords },
-      { new: true },
+      { $set: formData },
+      { new: true, runValidators: true },
     );
 
     if (!updatedSubcategory) {

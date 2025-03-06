@@ -11,10 +11,19 @@ import ModelTwo from "@/components/View-Models/modelOne";
 
 import { CiGrid41 } from "react-icons/ci";
 import { TbLayoutList } from "react-icons/tb";
-
+import { useFetchCourcesQuery } from "@/services/api";
 const Courses = () => {
   const [isGrid, setIsGrid] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const {
+    data: coursesData,
+    isLoading,
+    error,
+  } = useFetchCourcesQuery(undefined);
+
+  console.log("coursessssssw Dataaaa", coursesData);
+  console.log(courseData.data);
 
   const toggleDisplayStyle = () => {
     setIsGrid(!isGrid);
@@ -25,8 +34,9 @@ const Courses = () => {
   };
 
   const filteredCourses = selectedCategory
-    ? courseData.filter(course => course.tags.includes(selectedCategory))
-    : courseData;
+    ? coursesData?.data?.filter(course => course.tags.includes(selectedCategory))
+    : coursesData?.data || [];
+
 
   return (
     <>
@@ -42,8 +52,8 @@ const Courses = () => {
         >
           <div className="container">
             <div className={isGrid ? "grid grid-cols-1 gap-x-2 gap-y-10 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col w-full"}>
-              {filteredCourses.map((course) => (
-                <div key={course.id} className="w-full">
+              {filteredCourses?.map((course) => (
+                <div key={course.id ?? course.courseName} className="w-full">
                   <SingleCourse course={course} isGrid={isGrid} />
                 </div>
               ))}
@@ -61,25 +71,6 @@ const Courses = () => {
         </section>
 
         <aside className="part-2 w-1/3 my-8 mr-8">
-
-          {/* <div className="mb-4">
-            <button
-              onClick={toggleDisplayStyle}
-              className="inline-flex items-center rounded-sm text-white bg-blue-600 px-4 py-2 transition duration-300 hover:bg-blue-700"
-            >
-              {isGrid ? (
-                <>
-                  <TbLayoutList className="mr-2" />
-                  Switch to List View
-                </>
-              ) : (
-                <>
-                  <CiGrid41 className="mr-2" />
-                  Switch to Grid View
-                </>
-              )}
-            </button>
-          </div> */}
 
           <div className="rounded mb-4 flex w-fit p-1 px-1 border">
             <button

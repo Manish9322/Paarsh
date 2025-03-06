@@ -54,19 +54,33 @@ export const GET = authMiddleware(async () => {
 
 export const PUT = authMiddleware(async (request) => {
   try {
-    const { id, name, description, keywords } = await request.json();
+    const { formData } = await request.json();
+    const id = formData?._id; // ✅ Extract ID from formData
 
-    if (!id || !name || !description || !keywords) {
+    if (!id) {
       return NextResponse.json(
-        { success: false, error: "All required fields must be provided" },
+        { success: false, error: "Category ID is required" },
         { status: 400 },
       );
     }
 
+    // Define required fields for validation
+    const requiredFields = ["name", "description", "keywords"];
+
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        return NextResponse.json(
+          { success: false, error: `${field} is required` },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Update category
     const updatedCategory = await Category.findByIdAndUpdate(
       id,
-      { name, description, keywords },
-      { new: true },
+      { $set: formData },
+      { new: true, runValidators: true },
     );
 
     if (!updatedCategory) {

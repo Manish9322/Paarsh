@@ -178,6 +178,17 @@ export const paarshEduApi = createApi({
       query: () => "/course/subcategory",
       providesTags: ["SubCategory"],
     }),
+
+    // ---------------------------------------------------------------------------
+
+    addCourseVideo: builder.mutation({
+      query: (formData) => ({
+        url: "/course/video",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["SubCategory"],
+    }),
   }),
 });
 
@@ -207,4 +218,6 @@ export const {
   useFetchSubCategoriesQuery,
   useUpdateSubCategoriesMutation,
   useDeleteSubCategoriesMutation,
+
+  useAddCourseVideoMutation,
 } = paarshEduApi;

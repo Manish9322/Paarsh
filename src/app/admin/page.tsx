@@ -19,13 +19,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Eye, Edit, Trash2 } from "lucide-react";
-import AddCourseDialog from "@/components/Courses/AddCourse";
-import EditCourseModal from "@/components/Courses/EditCourse";
+import { EditCourse } from "../../components/Courses/EditCourses";
 import {
   useDeleteCourseMutation,
   useFetchCourcesQuery,
 } from "../../services/api";
 import { toast } from "sonner";
+import { AddNewCourse } from "@/components/AddNewCourseModal";
 
 // Define Course type
 interface Course {
@@ -104,9 +104,9 @@ const AdminPage: React.FC = () => {
 
         {/* Main Content */}
         <div className="ml-64 flex-1 overflow-auto  p-6">
-          <div className="flex items-center my-6 p-5 rounded-lg bg-white shadow-md justify-between">
+          <div className="my-6 flex items-center justify-between rounded-lg bg-white p-5 shadow-md">
             <h2 className="text-2xl font-bold text-gray-600">Courses</h2>
-            <AddCourseDialog />
+            <AddNewCourse />
           </div>
 
           {/* Courses Table */}
@@ -153,7 +153,7 @@ const AdminPage: React.FC = () => {
                     ) : (
                       displayedCourses.map((course, index) => (
                         <TableRow
-                          key={course.id}
+                          key={course._id}
                           className="border-b border-gray-300 hover:bg-gray-200"
                         >
                           <TableCell>{startIndex + index + 1}</TableCell>
@@ -163,15 +163,13 @@ const AdminPage: React.FC = () => {
                           <TableCell>{course.courseType}</TableCell>
                           <TableCell>{course.courseDuration}</TableCell>
                           <TableCell>{course.courseFees}</TableCell>
-                          <TableCell>{course.languages.join(", ")}</TableCell>
+                          <TableCell>{course.languages}</TableCell>
                           <TableCell>
                             {new Date(course.createdAt).toLocaleDateString()}
                           </TableCell>
-                          <TableCell className="flex gap-4 justify-center">
+                          <TableCell className="flex justify-center gap-4">
                             <button
-                              
                               className="text-green-600  "
-                             
                               onClick={() => {
                                 setSelectedCourse(course);
                                 setViewOpen(true);
@@ -180,7 +178,6 @@ const AdminPage: React.FC = () => {
                               <Eye size={22} />
                             </button>
                             <button
-                              
                               className="text-blue-600"
                               onClick={() => {
                                 setSelectedCourse(course);
@@ -190,7 +187,6 @@ const AdminPage: React.FC = () => {
                               <Edit size={20} />
                             </button>
                             <button
-
                               className="text-red-600"
                               onClick={() => {
                                 handleDeleteCourse(course._id);
@@ -227,7 +223,7 @@ const AdminPage: React.FC = () => {
                   <p>Fees: {selectedCourse.courseFees}</p>
                   <p>Level: {selectedCourse.level}</p>
                   <p>Featured: {selectedCourse.feturedCourse ? "Yes" : "No"}</p>
-                  <p>Languages: {selectedCourse.languages.join(", ")}</p>
+                  <p>Languages: {selectedCourse.languages}</p>
                   <p>
                     Created At:{" "}
                     {new Date(selectedCourse.createdAt).toLocaleDateString()}
@@ -238,7 +234,13 @@ const AdminPage: React.FC = () => {
           </Dialog>
 
           {/* Edit Course Modal */}
-          <EditCourseModal
+          {/* <EditCourseModal
+            editOpen={editOpen}
+            setEditOpen={setEditOpen}
+            selectedCourse={selectedCourse}
+          /> */}
+
+          <EditCourse
             editOpen={editOpen}
             setEditOpen={setEditOpen}
             selectedCourse={selectedCourse}

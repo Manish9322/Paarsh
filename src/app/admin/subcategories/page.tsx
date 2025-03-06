@@ -21,7 +21,7 @@ import {
 import { Eye, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import AddSubCategoryModal from "../../../components/Categories/AddSubCategory"
-import EditSubCategoryModal from "@/components/Categories/EditCategory";
+import EditSubCategoryModal from "@/components/Categories/EditSubCategory";
 import { useDeleteSubCategoriesMutation, useFetchSubCategoriesQuery } from "@/services/api";
 interface Subcategory {
   id: number;
@@ -158,7 +158,7 @@ const SubcategoriesPage: React.FC = () => {
           <EditSubCategoryModal
             editOpen={editOpen}
             setEditOpen={setEditOpen}
-            selectedSubCategory={subcategoryData}
+            selectedSubcategory={selectedSubcategory}
           />
         </div>
       </div>
