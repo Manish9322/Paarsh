@@ -71,28 +71,29 @@ const Blog = () => {
                 <ul className="space-y-6 p-6">
                   <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
-                      title="Best way to boost your online sales."
+                      title="PyBloggers—the best Python bloggers come together"
+                      image="/images/blog/python.jpeg"
+                      slug="#"
+                      date="12 Feb 2025" level={""} duration={""}                    />
+                  </li>
+                  <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
+                    <RelatedPost
+                      title="7 tips for building winning websites
+"
                       image="/images/blog/post-01.jpg"
                       slug="#"
                       date="12 Feb 2025" level={""} duration={""}                    />
                   </li>
                   <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
-                      title="Best way to boost your online sales."
-                      image="/images/blog/post-01.jpg"
-                      slug="#"
-                      date="12 Feb 2025" level={""} duration={""}                    />
-                  </li>
-                  <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
-                    <RelatedPost
-                      title="50 Best web design tips & tricks that will help you."
+                      title="Java News Roundup: Stable Values, Spring Modulith, Open Liberty, Quarkus, JReleaser, Gradle"
                       image="/images/blog/post-02.jpg"
                       slug="#"
                       date="15 Feb, 2024" level={""} duration={""}                    />
                   </li>
                   <li>
                     <RelatedPost
-                      title="The 8 best landing page builders, reviewed"
+                      title="ByteDance Launches New AI Coding Tool Trae with DeepSeek R1 and Claude 3.7 Sonnet Free For All Users"
                       image="/images/blog/post-03.jpg"
                       slug="#"
                       date="05 Jun, 2024" level={""} duration={""}                    />

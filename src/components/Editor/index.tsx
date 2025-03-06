@@ -12,8 +12,14 @@ const TextEditor = ({ placeholder, onChange }) => {
 
     const handleContentChange = (newContent) => {
         setContent(newContent);
+        
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = newContent;
+        const plainText = tempDiv.innerText;
+
         if (onChange) {
-            onChange(newContent);
+            onChange(plainText);
         }
     };
 
@@ -28,4 +34,5 @@ const TextEditor = ({ placeholder, onChange }) => {
         />
     );
 };
+
 export default TextEditor;

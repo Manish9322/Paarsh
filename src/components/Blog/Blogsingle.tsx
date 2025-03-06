@@ -5,7 +5,7 @@ import type { Blog } from "@/types/blog";
 
 
 const Blog = ({ blog }: { blog: Blog }) => {
-  const { title, image, paragraph, author, tags, publishDate } = blog;
+  const { id,title, image, paragraph, author, tags, publishDate } = blog;
   return (
     <>
 
@@ -54,13 +54,14 @@ const Blog = ({ blog }: { blog: Blog }) => {
                       </div>
                       <div className="inline-block">
                         <h4 className="mb-1 text-sm font-medium text-dark dark:text-white">
-                          last updated 3 min ago
+                          last updated 4 min ago
                         </h4>
                         <p className="text-xs text-body-color"></p>
                       </div>
                     </div>
                     <Link
                       href="/blog-details"
+                      // href={`/blog-details?id=${blog.id}`}
                       className="pt-4 text-primary font-semibold text-lg transition duration-300 flex items-center space-x-2 
              hover:text-primary-dark dark:text-white dark:hover:text-gray-300"
                     >

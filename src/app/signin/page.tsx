@@ -39,6 +39,10 @@ const SigninPage = () => {
           toast.success("Login Successful", { description: response?.message });
 
           dispatch(resetForm({ formName: "loginForm" }));
+
+          // 🔥 Force UI update instantly
+         window.dispatchEvent(new Event("storage"));
+
           router.push(response?.redirect || `/dashboard`);
         } else {
           toast.error("Login Failed", {
