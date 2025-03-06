@@ -41,13 +41,19 @@ const DownloadSyllabus: React.FC = () => {
                             <Label htmlFor="name" className="text-right">
                                 Name
                             </Label>
-                            <Input id="name" value="Manish Sonawane" className="col-span-3 rounded" />
+                            <Input id="name" className="col-span-3 rounded" placeholder="Enter Your Name Here..." />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="username" className="text-right">
-                                Username
+                            <Label htmlFor="contact" className="text-right">
+                                Contact
                             </Label>
-                            <Input id="username" value="Manishsonawane3010" className="col-span-3 rounded outline-none" />
+                            <Input id="contact" className="col-span-3 rounded" placeholder="Enter Your Contact Number Here..." />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="email" className="text-right">
+                                Email
+                            </Label>
+                            <Input id="contact" className="col-span-3 rounded" placeholder="Enter Your Email Here..." />
                         </div>
                     </div>
                     <DialogFooter>

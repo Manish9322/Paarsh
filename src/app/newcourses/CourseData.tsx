@@ -6,7 +6,7 @@ const courseData: Course[] = [
     "title": "JavaScript Mastery",
     "paragraph": "Master JavaScript concepts and advanced techniques for programming.",
     "level": "Advanced",
-    "tags": ["Framework"], // Updated category
+    "tags": ["Framework"], 
     "courseDuration": "6 Weeks",
     "image": "/images/blog/blog-01.jpg",
     "lang":"Eng | Hin",
@@ -18,7 +18,7 @@ const courseData: Course[] = [
     "title": "Quantum Computing",
     "paragraph": "Learn quantum principles and their real-world applications in computing.",
     "level": "Intermediate",
-    "tags": ["Computer / IT"], // Updated category
+    "tags": ["Computer / IT"],
     "courseDuration": "8 Weeks",
     "image": "/images/blog/blog-02.jpg",
     "lang":"Eng | Hin",
@@ -30,7 +30,7 @@ const courseData: Course[] = [
     "title": "Blockchain Applications",
     "paragraph": "Explore blockchain use cases beyond cryptocurrencies and finance.",
     "level": "Beginner",
-    "tags": ["Graphic Design"], // Updated category
+    "tags": ["Graphic Design"],
     "courseDuration": "10 Weeks",
     "image": "/images/blog/blog-03.jpg",
     "lang":"Eng | Hin",
@@ -42,7 +42,7 @@ const courseData: Course[] = [
     "title": "React Essentials",
     "paragraph": "Build dynamic user interfaces with React fundamentals efficiently.",
     "level": "Intermediate",
-    "tags": ["Framework"], // Updated category
+    "tags": ["Framework"],
     "courseDuration": "7 Weeks",
     "image": "/images/blog/blog-03.jpg",
     "lang":"Eng | Hin",
@@ -54,7 +54,7 @@ const courseData: Course[] = [
     "title": "Cybersecurity Basics",
     "paragraph": "Understand key cybersecurity threats and protection methods effectively.",
     "level": "Beginner",
-    "tags": ["Computer / IT"], // Updated category
+    "tags": ["Computer / IT"],
     "courseDuration": "5 Weeks",
     "image": "/images/blog/blog-02.jpg",
     "lang":"Eng | Hin",
@@ -66,7 +66,7 @@ const courseData: Course[] = [
     "title": "AI Fundamentals",
     "paragraph": "Discover machine learning and artificial intelligence concepts thoroughly.",
     "level": "Advanced",
-    "tags": ["Technology"], // Updated category
+    "tags": ["Technology"], 
     "courseDuration": "9 Weeks",
     "image": "/images/blog/blog-01.jpg",
     "lang":"Eng | Hin",

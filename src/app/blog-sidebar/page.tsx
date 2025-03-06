@@ -28,6 +28,7 @@ interface Course {
   id: number;
   _id: string;
   availability: string;
+  certificate: string;
   courseCategory: string;
   courseSubCategory: string;
   courseName: string;
@@ -81,28 +82,31 @@ const BlogSidebarPage = () => {
                 </h1>
 
                 <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                  {selectedCourse ? selectedCourse.shortDescription : "Loading Tagline..."}
+                  {selectedCourse ? selectedCourse.shortDescription : "Loading Course Tagline..."}
                   {/* <p>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Assumenda, quisquam ut dolorem aspernatur ipsam explicabo cupiditate placeat laborum quia esse.</p> */}
                 </p>
                 <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
                   <div className="flex flex-wrap items-center">
-                    {/* <div className="mb-5 mr-10 flex items-center">
-                      <div className="mr-4">
-                        <div className="relative h-10 w-10 overflow-hidden rounded-full">
-                          <Image
-                            src="/images/blog/author-02.png"
-                            alt="author"
-                            fill
-                          />
-                        </div>
-                      </div>
-                      <div className="w-full">
-                        <span className="mb-1 text-base font-medium text-body-color">
-                          By <span> Manish Sonawane</span>
-                        </span>
-                      </div>
-                    </div> */}
+
+
                     <div className="mb-5 flex items-center">
+
+                      <p className="mr-5 flex items-center text-base font-medium text-body-color">
+                        <span className="mr-3">
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="fill-current"
+                          >
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+                          </svg>
+                        </span>
+                        {/* Beginner */}
+                        {selectedCourse ? selectedCourse.certificate : "Loading Certificate..."}
+
+                      </p>
 
                       <p className="mr-5 flex items-center text-base font-medium text-body-color">
                         <span className="mr-3">
@@ -152,7 +156,7 @@ const BlogSidebarPage = () => {
                           </svg>
                         </span>
                         {/* Eng | Hin | Mar */}
-                        {selectedCourse ? selectedCourse.languages.join(" | ") : "Eng | Hin | Mar"}
+                        {selectedCourse ? selectedCourse.languages.join(" | ") : "Loading Languages..."}
 
                       </p>
 
@@ -165,7 +169,7 @@ const BlogSidebarPage = () => {
 
                         </span>
                         {/* Eng | Hin | Mar */}
-                        {selectedCourse ? selectedCourse.courseFees : "Eng | Hin | Mar"}
+                        {selectedCourse ? selectedCourse.courseFees : "Loading Course Fees..."}
 
                       </p>
 
@@ -203,7 +207,7 @@ const BlogSidebarPage = () => {
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     {/* <span className="text-blue-600 font-bold"> JavaScript </span> plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more. */}
-                    {selectedCourse ? selectedCourse.longDescription : "12 Weeks"}
+                    {selectedCourse ? selectedCourse.longDescription : "Loading Summary..."}
 
                   </p>
                   <div className="mb-10 w-full overflow-hidden rounded">
@@ -255,9 +259,14 @@ const BlogSidebarPage = () => {
                     </li>
                   </ul>
 
-                  <h3 className="font-xl mb-10 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
+                  <h3 className="font-xl mb-2 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
                     Syllabus Overview
                   </h3>
+
+                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
+                    Your roadmap to mastering every topic with clarity and confidence!
+                  </p>
+
                   <ul className="mb-10 list-inside list-disc text-body-color">
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
                       Variables, Data Types, Operators
@@ -493,7 +502,7 @@ const BlogSidebarPage = () => {
                       image="/images/blog/post-01.jpg"
                       slug="#"
                       level="Beginner"
-                      duration="2 Months" date={""}                    />
+                      duration="2 Months" date={""} />
                   </li>
                   <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
@@ -501,7 +510,7 @@ const BlogSidebarPage = () => {
                       image="/images/blog/post-02.jpg"
                       slug="#"
                       level="Intermediate"
-                      duration="2 Weeks" date={""}                    />
+                      duration="2 Weeks" date={""} />
                   </li>
                   <li>
                     <RelatedPost
@@ -509,7 +518,7 @@ const BlogSidebarPage = () => {
                       image="/images/blog/post-03.jpg"
                       slug="#"
                       level="Difficult"
-                      duration="1 Month" date={""}                    />
+                      duration="1 Month" date={""} />
                   </li>
                 </ul>
               </div>
@@ -581,7 +590,7 @@ const BlogSidebarPage = () => {
                       <TagButton key={index} text={keyword} />
                     ))
                   ) : (
-                    <span>No tags available</span>
+                    <span className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary">No tags available</span>
                   )}
                 </div>
               </div>

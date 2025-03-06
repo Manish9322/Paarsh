@@ -73,7 +73,7 @@ export function AddNewCourse() {
     const [editorContent, setEditorContent] = useState('');
     const [items, setItems] = useState([[], [], [], []]);
     const [inputValues, setInputValues] = useState(['', '', '', '']);
-    const [syllabusFile, setSyllabusFile] = useState<File | null>(null); // State to hold the syllabus file
+    const [syllabusFile, setSyllabusFile] = useState<File | null>(null);
 
 
     const {
@@ -171,7 +171,7 @@ export function AddNewCourse() {
                             {errors.level && <p className="text-red-500">{errors.level.message}</p>}
                         </div>
                     </div>
-
+ 
                     <div className="flex gap-4">
                         <div className="w-1/3">
                             <Label htmlFor="languages">Languages</Label>
@@ -250,7 +250,7 @@ export function AddNewCourse() {
                         </div>
                     </div>
 
-                    <TextEditor onChange={setEditorContent} />
+                    <TextEditor onChange={setEditorContent} placeholder={undefined} />
 
                     <div className="main-container">
                         <div className="container grid grid-cols-1 sm:grid-cols-2 gap-5">
