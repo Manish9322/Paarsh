@@ -1,14 +1,13 @@
-import { User } from "lucide-react";
-import path from "path";
+
 
 import { CiChat1 } from "react-icons/ci";
-import { FaHome, FaUsers } from "react-icons/fa";
+import { FaHome, FaRegUser } from "react-icons/fa";
 import { LuUsers } from "react-icons/lu";
 
 const sidebarConfig = [
   { name: "Dashboard", path: "/admin/dashboard", icon: <FaHome /> },
-  { name: "Agent", path: "/admin/agent", icon: <User />, },
-  { name: "Users", path: "/admin/users", icon: <User />, },
+  { name: "Agent", path: "/admin/agent", icon: <FaRegUser /> },
+  { name: "Users", path: "/admin/users", icon: <FaRegUser /> },
 
   {
     name: "Courses",
