@@ -60,6 +60,11 @@ export const paarshEduApi = createApi({
       providesTags: ["Course"],
     }),
 
+    fetchCourcebyId: builder.query({
+      query: (courseId) => `/course/courseid?id=${courseId}`,
+      providesTags: ["Course"],
+    }),
+
     // ----------------------------------------------------Admin Apis-------------------------------------------------------------
 
     adminlogin: builder.mutation({
@@ -187,7 +192,7 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: formData,
       }),
-      invalidatesTags: ["SubCategory"],
+    
     }),
   }),
 });
@@ -201,6 +206,7 @@ export const {
   useAdminloginMutation,
   useUpdateCourseMutation,
   useDeleteCourseMutation,
+  useFetchCourcebyIdQuery,
 
   useAddAgentMutation,
   useUpdateAgentMutation,

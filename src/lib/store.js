@@ -16,7 +16,7 @@ const rootReducer = combineReducers({
   category:categoryReducer,
   subcategory:subCategoryReducer,
   userAuth : userAuthReducer,
-  courseVideo: courseVideoReducer,
+  coursevideo: courseVideoReducer,
   
   [paarshEduApi.reducerPath]: paarshEduApi.reducer, // Include RTK Query API slice
 });
