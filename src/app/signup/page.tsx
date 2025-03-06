@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { signUpValidationSchema } from "../../lib/validationSchema";
 import { useFormik } from "formik";
 import { Eye, EyeOff } from "lucide-react";
@@ -23,6 +23,18 @@ import { useRouter } from "next/navigation";
 // };
 
 const SignupPage = () => {
+  useEffect(() => {
+    // Hide scrollbar
+    document.body.style.overflow = "hidden";
+
+    // Cleanup function to reset when component unmounts
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
+
+
+
   const dispatch = useDispatch();
   const router = useRouter();
   const signupForm = useSelector(
@@ -72,11 +84,13 @@ const SignupPage = () => {
       }
     },
   });
+
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   return (
     <>
-      <section className="relative z-10 overflow-hidden pb-16 pt-36 md:pb-20 lg:pb-28 lg:pt-[180px]">
+      <section className="relative z-10 overflow-hidden pb-16 pt-36 md:pb-20 lg:pb-28 lg:pt-[60px]">
         <div className="container">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4">

@@ -16,7 +16,7 @@ export default function Profile() {
   const router = useRouter();
 
   const handleLogout = () => {
-   
+    localStorage.removeItem("token"); // Access token remove kar
  
     dispatch(logout());  // Redux  logout
     router.push("/signin"); // Redirect to Sign In page
@@ -40,6 +40,14 @@ export default function Profile() {
     }
     return () => document.removeEventListener('click', closeSidebar);
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";  // Disable scrolling
+    } else {
+      document.body.style.overflow = "auto";  // Enable scrolling
+    }
+  }, [isModalOpen]);
 
   return (
     <div className="relative">
