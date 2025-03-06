@@ -5,40 +5,47 @@ import { authMiddleware } from "../../../../middlewares/auth";
 
 _db();
 
-//  Create Course
+// Add Course
+
 export const POST = authMiddleware(async (request) => {
   try {
     const {
-      courseCategory,
-      courseSubCategory,
+      category,
+      subcategory,
       courseName,
-      courseDuration,
-      courseFees,
-      languages,
+      duration,
+      price,
       level,
-      courseType,
+      languages,
       instructor,
-      thumbnailImage,
-      shortDescription,
-      longDescription,
-      availability,
-      keywords,
-      feturedCourse,
+      thumbnail, // Base64 Image
+      syllabus, // Base64 PDF
+      summaryText,
+      tagline,
+      taglineIncludes,
+      overviewTagline,
+      finalText,
+      tagline_in_the_box,
+      videoLink,
+      courseIncludes = [],
+      syllabusOverview = [],
+      thoughts = [],
+      tags = [],
+      availability = false,
+      certificate = false,
+      featuredCourse = false,
     } = await request.json();
 
+    // Validate required fields
     if (
-      !courseCategory ||
+      !category ||
       !courseName ||
-      !courseDuration ||
-      !courseFees ||
+      !duration ||
+      !price ||
       !languages ||
       !level ||
-      !courseType ||
       !instructor ||
-      !thumbnailImage ||
-      !shortDescription ||
-      !longDescription ||
-      !keywords
+      !tagline
     ) {
       return NextResponse.json(
         { success: false, error: "All required fields must be provided" },
@@ -46,22 +53,32 @@ export const POST = authMiddleware(async (request) => {
       );
     }
 
+    // Create new course
     const newCourse = new CourseModel({
-      courseCategory,
-      courseSubCategory,
+      category,
+      subcategory,
       courseName,
-      courseDuration,
-      courseFees,
-      languages,
+      duration,
+      price,
       level,
-      courseType,
+      languages,
       instructor,
-      thumbnailImage,
-      shortDescription,
-      longDescription,
+      thumbnail,
+      syllabus,
+      summaryText,
+      tagline,
+      taglineIncludes,
+      overviewTagline,
+      finalText,
+      tagline_in_the_box,
+      videoLink,
+      courseIncludes,
+      syllabusOverview,
+      thoughts,
+      tags,
       availability,
-      keywords,
-      feturedCourse,
+      certificate,
+      featuredCourse,
     });
 
     await newCourse.save();
@@ -81,7 +98,7 @@ export const POST = authMiddleware(async (request) => {
 }, true);
 
 //  Get All Courses
-export const GET = (async () => {
+export const GET = async () => {
   try {
     const courses = await CourseModel.find();
     return NextResponse.json({ success: true, data: courses });
@@ -92,9 +109,10 @@ export const GET = (async () => {
       { status: 500 },
     );
   }
-});
+};
 
-//  Update Course
+// Edit Course
+
 export const PUT = authMiddleware(async (request) => {
   try {
     const { ...updateData } = await request.json();
@@ -107,19 +125,16 @@ export const PUT = authMiddleware(async (request) => {
       );
     }
 
+    // List of required fields
     const requiredFields = [
-      "courseCategory",
+      "category",
       "courseName",
-      "courseDuration",
-      "courseFees",
+      "duration",
+      "price",
       "languages",
       "level",
-      "courseType",
       "instructor",
-      "thumbnailImage",
-      "shortDescription",
-      "longDescription",
-      "keywords",
+      "tagline",
     ];
 
     for (const field of requiredFields) {
@@ -131,9 +146,65 @@ export const PUT = authMiddleware(async (request) => {
       }
     }
 
+    // Extract update data properly
+    const {
+      category,
+      subcategory,
+      courseName,
+      duration,
+      price,
+      level,
+      languages,
+      instructor,
+      thumbnail, // Base64 Image
+      syllabus, // Base64 PDF
+      summaryText,
+      tagline,
+      taglineIncludes,
+      overviewTagline,
+      finalText,
+      tagline_in_the_box,
+      videoLink,
+      courseIncludes = [],
+      syllabusOverview = [],
+      thoughts = [],
+      tags = [],
+      availability = false,
+      certificate = false,
+      featuredCourse = false,
+    } = updateData?.formData;
+
+    // Find and update course
     const updatedCourse = await CourseModel.findByIdAndUpdate(
       id,
-      { $set: updateData?.formData },
+      {
+        $set: {
+          category,
+          subcategory,
+          courseName,
+          duration,
+          price,
+          level,
+          languages,
+          instructor,
+          thumbnail,
+          syllabus,
+          summaryText,
+          tagline,
+          taglineIncludes,
+          overviewTagline,
+          finalText,
+          tagline_in_the_box,
+          videoLink,
+          courseIncludes,
+          syllabusOverview,
+          thoughts,
+          tags,
+          availability,
+          certificate,
+          featuredCourse,
+        },
+      },
       { new: true, runValidators: true },
     );
 

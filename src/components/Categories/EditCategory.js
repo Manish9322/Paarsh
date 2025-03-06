@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { updateField, resetForm } from "../../lib/slices/subCategorySlice";
+import { updateField, resetForm } from "../../lib/slices/categorySlice";
 import {
   Dialog,
   DialogContent,
@@ -13,20 +13,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
-import { useUpdateSubCategoryMutation } from "@/services/api";
+import { useUpdateCategoriesMutation } from "@/services/api";
 
 const EditCategoryModal = ({ editOpen, setEditOpen, selectedCategory }) => {
   const dispatch = useDispatch();
-  const subcategory = useSelector((state) => state.subcategory);
-  const [_UPDATESUBCATEGORY, { isLoading }] = useUpdateSubCategoryMutation();
-
+  const category = useSelector((state) => state.category);
+  const [_UPDATECATEGORY, { isLoading }] = useUpdateCategoriesMutation();
+  
+  console.log("category",category);
+console.log("selectedCategory", selectedCategory)
   useEffect(() => {
-    if (selectedSubCategory) {
-      Object.keys(selectedSubCategory).forEach((key) => {
-        dispatch(updateField({ field: key, value: selectedSubCategory[key] }));
+    if (selectedCategory) {
+      Object.keys(selectedCategory).forEach((key) => {
+        dispatch(updateField({ field: key, value: selectedCategory[key] }));
       });
     }
-  }, [selectedSubCategory, dispatch]);
+  }, [selectedCategory, dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,13 +41,13 @@ const EditCategoryModal = ({ editOpen, setEditOpen, selectedCategory }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await _UPDATESUBCATEGORY({ id: selectedSubCategory._id, ...subcategory }).unwrap();
-      toast.success("SubCategory updated successfully");
+      await _UPDATECATEGORY({ id: selectedCategory._id, ...category }).unwrap();
+      toast.success("category updated successfully");
       setEditOpen(false);
       dispatch(resetForm());
     } catch (error) {
       toast.error(
-        error?.data?.message || "Failed to update subcategory. Please try again."
+        error?.data?.message || "Failed to update category. Please try again."
       );
     }
   };
@@ -61,22 +63,14 @@ const EditCategoryModal = ({ editOpen, setEditOpen, selectedCategory }) => {
         <DialogContent className="w-[400px] rounded-lg bg-white p-6 text-black shadow-lg">
           <DialogHeader className="mb-4 flex justify-between items-center">
             <DialogTitle className="text-xl font-semibold">
-              Edit SubCategory
+              Edit category
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              name="categoryName"
+              name="name"
               placeholder="Category Name"
-              value={subcategory.categoryName || ""}
-              onChange={handleChange}
-              required
-              className="border border-gray-300 bg-white p-2 rounded-lg text-black focus:ring-2 focus:ring-blue-500"
-            />
-            <Input
-              name="subcategoryName"
-              placeholder="SubCategory Name"
-              value={subcategory.subcategoryName || ""}
+              value={category?.name || ""}
               onChange={handleChange}
               required
               className="border border-gray-300 bg-white p-2 rounded-lg text-black focus:ring-2 focus:ring-blue-500"
@@ -84,7 +78,7 @@ const EditCategoryModal = ({ editOpen, setEditOpen, selectedCategory }) => {
             <Input
               name="description"
               placeholder="Description"
-              value={subcategory.description || ""}
+              value={category?.description || ""}
               onChange={handleChange}
               required
               className="border border-gray-300 bg-white p-2 rounded-lg text-black focus:ring-2 focus:ring-blue-500"
@@ -92,7 +86,7 @@ const EditCategoryModal = ({ editOpen, setEditOpen, selectedCategory }) => {
             <Input
               name="keywords"
               placeholder="Keywords (comma separated)"
-              value={subcategory.keywords?.join(", ") || ""}
+              value={category?.keywords || ""}
               onChange={handleChange}
               required
               className="border border-gray-300 bg-white p-2 rounded-lg text-black focus:ring-2 focus:ring-blue-500"
@@ -102,7 +96,7 @@ const EditCategoryModal = ({ editOpen, setEditOpen, selectedCategory }) => {
               disabled={isLoading}
               className="w-full bg-blue-500 text-white p-2 rounded-lg font-medium hover:bg-blue-600"
             >
-              {isLoading ? "Updating..." : "Update SubCategory"}
+              {isLoading ? "Updating..." : "Update Category"}
             </Button>
           </form>
         </DialogContent>

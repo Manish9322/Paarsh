@@ -15,18 +15,18 @@ import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { useUpdateSubCategoriesMutation } from "../../services/api";
 
-const EditSubCategoryModal = ({ editOpen, setEditOpen, selectedSubCategory }) => {
+const EditSubCategoryModal = ({ editOpen, setEditOpen, selectedSubcategory }) => {
   const dispatch = useDispatch();
   const subcategory = useSelector((state) => state.subcategory);
   const [_UPDATESUBCATEGORY, { isLoading }] = useUpdateSubCategoriesMutation(undefined);
 
   useEffect(() => {
-    if (selectedSubCategory) {
-      Object.keys(selectedSubCategory).forEach((key) => {
-        dispatch(updateField({ field: key, value: selectedSubCategory[key] }));
+    if (selectedSubcategory) {
+      Object.keys(selectedSubcategory).forEach((key) => {
+        dispatch(updateField({ field: key, value: selectedSubcategory[key] }));
       });
     }
-  }, [selectedSubCategory, dispatch]);
+  }, [selectedSubcategory, dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,7 +39,7 @@ const EditSubCategoryModal = ({ editOpen, setEditOpen, selectedSubCategory }) =>
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await _UPDATESUBCATEGORY({ id: selectedSubCategory._id, ...subcategory }).unwrap();
+      await _UPDATESUBCATEGORY({ id: selectedSubcategory._id, ...subcategory }).unwrap();
       toast.success("SubCategory updated successfully");
       setEditOpen(false);
       dispatch(resetForm());

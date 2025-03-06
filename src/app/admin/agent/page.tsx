@@ -16,11 +16,16 @@ import { ChevronUp, ChevronDown, Eye, Edit, Trash2 } from "lucide-react";
 
 import AddAgentModal from "../../../components/Agent/AddAgent";
 import { Input } from "@/components/ui/input";
-import { useFetchAgentQuery } from "@/services/api";
+import { useDeleteAgentMutation, useFetchAgentQuery } from "@/services/api";
+import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
+import { DialogHeader } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import EditAgentModal from "../../../components/Agent/EditAgent";
 
 // Define Agent type
 interface Agent {
-  id: number;
+  _id: string;
+  id: string;
   firstName: string;
   lastName: string;
   contact: string;
@@ -32,6 +37,9 @@ interface Agent {
 const AgentPage: React.FC = () => {
   const [sortField, setSortField] = useState<keyof Agent | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,6 +49,8 @@ const AgentPage: React.FC = () => {
   const agents: Agent[] = agentData?.data || [];
   const startIndex = (currentPage - 1) * agentsPerPage;
 
+  const [_DELETEAGENT, { isLoading: isDeleteLoading, error: deleteError }] =
+    useDeleteAgentMutation();
   const handleSort = (field: keyof Agent) => {
     setSortField(field);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -69,6 +79,23 @@ const AgentPage: React.FC = () => {
     currentPage * agentsPerPage,
   );
 
+  const handleDeleteAgent = async (agentId: string) => {
+    try {
+      const response = await _DELETEAGENT({ id: agentId }).unwrap();
+
+      if (response?.success) {
+        toast.success("Agent deleted successfully");
+      }
+    } catch (error) {
+      console.error("Error deleting agent:", error);
+      toast.error(
+        error?.data?.message ||
+          "Failed to Delete the category. Please try again.",
+      );
+    }
+  };
+
+  console.log("displayedAgetn is", displayedAgents);
   return (
     <div className="flex h-screen flex-col bg-gray-100">
       <nav className="fixed top-0 z-10 flex w-full items-center justify-between bg-white p-4 shadow-md">
@@ -128,7 +155,7 @@ const AgentPage: React.FC = () => {
                       {sortField === "state" &&
                         (sortOrder === "asc" ? <ChevronUp /> : <ChevronDown />)}
                     </TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -153,14 +180,28 @@ const AgentPage: React.FC = () => {
                         <TableCell className="flex justify-center gap-4">
                           <button
                             className="text-green-600  "
-                            onClick={() => {}}
+                            onClick={() => {
+                              setSelectedAgent(agent);
+                              setViewOpen(true);
+                            }}
                           >
                             <Eye size={22} />
                           </button>
-                          <button className="text-blue-600" onClick={() => {}}>
+                          <button
+                            className="text-blue-600"
+                            onClick={() => {
+                              setSelectedAgent(agent);
+                              setEditOpen(true);
+                            }}
+                          >
                             <Edit size={20} />
                           </button>
-                          <button className="text-red-600" onClick={() => {}}>
+                          <button
+                            className="text-red-600"
+                            onClick={() => {
+                              handleDeleteAgent(agent._id);
+                            }}
+                          >
                             <Trash2 size={20} />
                           </button>
                         </TableCell>
@@ -171,6 +212,47 @@ const AgentPage: React.FC = () => {
               </Table>
             </CardContent>
           </Card>
+
+          <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Agent Details</DialogTitle>
+              </DialogHeader>
+              {selectedAgent ? (
+                <div className="space-y-2">
+                  <p>
+                    <strong>ID:</strong> {selectedAgent.id}
+                  </p>
+                  <p>
+                    <strong>Name:</strong> {selectedAgent.firstName}{" "}
+                    {selectedAgent.lastName}
+                  </p>
+                  <p>
+                    <strong>Contact:</strong> {selectedAgent.contact}
+                  </p>
+                  <p>
+                    <strong>Sales Count:</strong> {selectedAgent.countSale}
+                  </p>
+                  <p>
+                    <strong>State:</strong> {selectedAgent.state}
+                  </p>
+                  <p>
+                    <strong>Created At:</strong>{" "}
+                    {new Date(selectedAgent.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ) : (
+                <p>No agent selected.</p>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Course Modal */}
+          <EditAgentModal
+            editOpen={editOpen}
+            setEditOpen={setEditOpen}
+            selectedAgent={selectedAgent}
+          />
 
           <div className="mt-4 flex items-center justify-between">
             {/* Placeholder div to push "Page X of Y" to the center */}
