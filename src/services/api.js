@@ -2,13 +2,25 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const paarshEduApi = createApi({
   reducerPath: "paarshEduApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/api", credentials: "include" }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: "/api",
+    prepareHeaders: (headers) => {
+      // Include the access token in headers if available
+      const accessToken =
+        localStorage.getItem("accessToken") ||
+        sessionStorage.getItem("accessToken");
+      if (accessToken) {
+        headers.set("Authorization", `Bearer ${accessToken}`);
+      }
+      return headers;
+    },
+    credentials: "include",
+  }),
 
   tagTypes: ["Course", "Agent"],
 
   endpoints: (builder) => ({
-    // ----------------------------------------------------User Apis-------------------------------------------------------------
-
+    // ----------------------------------------------------User Apis---------------------------------------------
     login: builder.mutation({
       query: (credentials) => ({
         url: "user/login",
@@ -26,7 +38,7 @@ export const paarshEduApi = createApi({
       }),
     }),
 
-    // ----------------------------------------------------Course Apis-------------------------------------------------------------
+    // ----------------------------------------------------Course Apis------------------------------------
 
     addCourse: builder.mutation({
       query: (formData) => ({
@@ -60,8 +72,7 @@ export const paarshEduApi = createApi({
       providesTags: ["Course"],
     }),
 
-    // ----------------------------------------------------Admin Apis-------------------------------------------------------------
-
+    // ----------------------------------------------------Admin Apis--------------------------------------
     adminlogin: builder.mutation({
       query: (credentials) => ({
         url: "/admin/login",
@@ -71,8 +82,7 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Course"],
     }),
 
-    // ------------------------------------------------------------Agent Apis-------------------------------------------------------------
-
+    // ------------------------------------------------------------Agent Apis---------------------
     addAgent: builder.mutation({
       query: (formData) => ({
         url: "/agent",
@@ -108,6 +118,10 @@ export const paarshEduApi = createApi({
     // ------------------------------------------------------------Users Apis-------------------------------------------------------------
 
     fetchUsers: builder.query({
+      query: () => "/users",
+    }),
+
+    fetchUser: builder.query({
       query: () => "/user",
     }),
 
@@ -207,6 +221,7 @@ export const {
   useDeleteAgentMutation,
   useFetchAgentQuery,
 
+  useFetchUserQuery,
   useFetchUsersQuery,
 
   useAddCategoryMutation,

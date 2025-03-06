@@ -31,7 +31,7 @@ export const POST = authMiddleware(async (request) => {
       syllabusOverview = [],
       thoughts = [],
       tags = [],
-      availability = false,
+      availability,
       certificate = false,
       featuredCourse = false,
     } = await request.json();
@@ -169,7 +169,7 @@ export const PUT = authMiddleware(async (request) => {
       syllabusOverview = [],
       thoughts = [],
       tags = [],
-      availability = false,
+      availability,
       certificate = false,
       featuredCourse = false,
     } = updateData?.formData;

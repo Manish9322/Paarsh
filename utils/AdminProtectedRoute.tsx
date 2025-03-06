@@ -1,26 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import {useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 
-export default function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
+export default function AdminProtectedRoute({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null); // null = loading state
+  const [authenticated, setAuthenticated] = useState<boolean | null>(false); // null = loading state
 
   useEffect(() => {
     const token = localStorage.getItem("admin_access_token");
-    console.log("Retrieved Token:", token);
 
     if (!token) {
-      router.replace("/admin/signin"); // Use replace() to prevent going back
-      return;
+      router.replace("/admin/signin"); // Use replace() to prevent going backk
     }
 
-    setIsAuthenticated(true);
+    setAuthenticated(true);
   }, []);
 
-
+  if (!authenticated) {
+    return null;
+  }
 
   return <>{children}</>;
 }

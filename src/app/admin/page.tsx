@@ -32,13 +32,12 @@ interface Course {
   id: number;
   _id: string;
   availability: string;
-  courseCategory: string;
-  courseSubCategory: string;
+  category: string;
+  subcategory: string;
   courseName: string;
   instructor: string;
-  courseType: string;
-  courseDuration: string;
-  courseFees: number;
+  duration: string;
+  price: number;
   level: string;
   feturedCourse: boolean;
   languages: string[];
@@ -59,6 +58,8 @@ const AdminPage: React.FC = () => {
     error,
   } = useFetchCourcesQuery(undefined);
   const courses: Course[] = courseData?.data || [];
+
+  console.log("courses", courses);  
 
   const [_DELETECOURSE, { isLoading: isDeleteLoading, error: deleteError }] =
     useDeleteCourseMutation();
@@ -120,7 +121,7 @@ const AdminPage: React.FC = () => {
                       <TableHead>Availability</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Course Name</TableHead>
-                      <TableHead>Type</TableHead>
+                      <TableHead>Level</TableHead>
                       <TableHead>Duration</TableHead>
                       <TableHead>Fees ($)</TableHead>
                       <TableHead>Languages</TableHead>
@@ -158,11 +159,11 @@ const AdminPage: React.FC = () => {
                         >
                           <TableCell>{startIndex + index + 1}</TableCell>
                           <TableCell>{course.availability}</TableCell>
-                          <TableCell>{course.courseCategory}</TableCell>
+                          <TableCell>{course.category}</TableCell>
                           <TableCell>{course.courseName}</TableCell>
-                          <TableCell>{course.courseType}</TableCell>
-                          <TableCell>{course.courseDuration}</TableCell>
-                          <TableCell>{course.courseFees}</TableCell>
+                          <TableCell>{course.level}</TableCell>
+                          <TableCell>{course.duration}</TableCell>
+                          <TableCell>{course.price}</TableCell>
                           <TableCell>{course.languages}</TableCell>
                           <TableCell>
                             {new Date(course.createdAt).toLocaleDateString()}
@@ -213,14 +214,13 @@ const AdminPage: React.FC = () => {
               {selectedCourse && (
                 <div>
                   <p>
-                    <strong>{selectedCourse.courseCategory}</strong>
+                    <strong>{selectedCourse.category}</strong>
                   </p>
-                  <p>Subcategory: {selectedCourse.courseSubCategory}</p>
+                  <p>Subcategory: {selectedCourse.subcategory}</p>
                   <p>Course Name: {selectedCourse.courseName}</p>
                   <p>Instructor: {selectedCourse.instructor}</p>
-                  <p>Type: {selectedCourse.courseType}</p>
-                  <p>Duration: {selectedCourse.courseDuration}</p>
-                  <p>Fees: {selectedCourse.courseFees}</p>
+                  <p>Duration: {selectedCourse.duration}</p>
+                  <p>Fees: {selectedCourse.price}</p>
                   <p>Level: {selectedCourse.level}</p>
                   <p>Featured: {selectedCourse.feturedCourse ? "Yes" : "No"}</p>
                   <p>Languages: {selectedCourse.languages}</p>
