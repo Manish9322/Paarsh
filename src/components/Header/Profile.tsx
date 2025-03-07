@@ -19,6 +19,23 @@ import { logout } from "../../lib/slices/userAuthSlice"
 import { useDispatch } from "react-redux";
 
 export default function Profile() {
+
+  const { data : usersData, error, isLoading } = useFetchUserQuery(undefined);
+
+  console.log("Data",data);
+
+  const users: Users[] = data?.data || [];
+  console.log("Users data",users);
+useEffect(() => {
+  if (data) {
+    console.log("User Data:", data);
+  }
+  if (error) {
+    console.error("Error fetching user data:", error);
+  }
+}, [data, error]);
+
+
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const dispatch = useDispatch();
@@ -56,6 +73,10 @@ export default function Profile() {
     }
   }, [isModalOpen]);
 
+  const userName = data?.name || "User Name";
+  const userEmail = data?.email || "user@example.com";
+
+  
   return (
     <div className="relative">
       {/* Profile Image Trigger */}
