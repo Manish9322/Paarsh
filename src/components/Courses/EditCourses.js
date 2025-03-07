@@ -24,7 +24,7 @@ import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import TextEditor from "../Editor";
+import TextEditor from "../../components/TextEditor";
 import { useDispatch, useSelector } from "react-redux";
 import { useAddCourseMutation } from "@/services/api";
 import {
@@ -293,7 +293,7 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 type="text"
                 {...register("level")}
                 onChange={(e) => handleChange("level", e.target.value)}
-                value={course.level}
+                defaultValue={course.level}
               />
               {errors.level && (
                 <p className="text-red-500">{errors.level.message}</p>
@@ -323,7 +323,7 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 onValueChange={(value) =>
                   handleSelectChange("availability", value)
                 }
-                value={course.availability}
+                value={String(course.availability)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Available?" />
@@ -341,7 +341,7 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 onValueChange={(value) =>
                   handleSelectChange("featuredCourse", value)
                 }
-                value={course.featuredCourse}
+                value={String(course.featuredCourse)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Featured?" />
@@ -361,7 +361,7 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 onValueChange={(value) =>
                   handleSelectChange("certificate", value)
                 }
-                value={course.certificate}
+                value={String(course.certificate)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Certificate Included?" />
@@ -465,6 +465,13 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 onChange={(e) => handleFileChange(e, "thumbnail")}
                 ref={fileInputRef}
               />
+              {course.thumbnail && (
+                <img
+                  src={course.thumbnail}
+                  alt="Thumbnail Preview"
+                  className="mt-2 h-32 w-32"
+                />
+              )}
               {errors.thumbnail && (
                 <p className="text-red-500">{errors.thumbnail.message}</p>
               )}
@@ -556,6 +563,16 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 onChange={(e) => handleFileChange(e, "syllabus")}
                 ref={fileInputRef}
               />
+              {course.syllabus && (
+                <a
+                  href={course.syllabus}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 text-blue-500 underline"
+                >
+                  View Current Syllabus
+                </a>
+              )}
             </div>
           </div>
 

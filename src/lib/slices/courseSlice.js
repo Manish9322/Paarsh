@@ -21,7 +21,7 @@ const initialState = {
   tags: [],
   category: "", // Added new field
   subcategory: "", // Added new field
-  availability: false, // Added new field (assuming it's a boolean)
+  availability: "", // Added new field (assuming it's a boolean)
   certificate: false, // Added new field (assuming it's a boolean)
   instructor: "", // Added new field
   featuredCourse: false, // Added new field (assuming it's a boolean)

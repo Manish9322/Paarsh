@@ -24,7 +24,7 @@ import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import TextEditor from "../Editor";
+import TextEditor from "../../components/TextEditor";
 import { useDispatch, useSelector } from "react-redux";
 import { useAddCourseMutation } from "@/services/api";
 import {
@@ -82,10 +82,10 @@ const categories = [
 
 export function AddNewCourse() {
   const [open, setOpen] = useState(false);
-  const [editorContent, setEditorContent] = useState("");
   const dispatch = useDispatch();
   const course = useSelector((state) => state.course);
   const [_ADDCOURSE, { isLoading }] = useAddCourseMutation();
+
 
   const {
     register,
@@ -141,7 +141,6 @@ export function AddNewCourse() {
       syllabusOverview: course.syllabusOverview,
       thoughts: course.thoughts,
       tags: course.tags,
-      editorContent,
     };
 
     try {
@@ -322,8 +321,9 @@ export function AddNewCourse() {
                   <SelectValue placeholder="Available?" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="true">Yes</SelectItem>
-                  <SelectItem value="false">No</SelectItem>
+                  <SelectItem value="Available">Available</SelectItem>
+                  <SelectItem value="Unavailable">Unavailable</SelectItem>
+                  <SelectItem value="Upcoming">Upcoming</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -539,7 +539,7 @@ export function AddNewCourse() {
             </div>
           </div>
 
-          <TextEditor onChange={setEditorContent} placeholder={undefined} />
+          <TextEditor  placeholder={undefined} />
 
           <div className="grid grid-cols-2 gap-4">
             {cardConfig.map(

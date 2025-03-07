@@ -69,8 +69,7 @@ const courseSchema = new mongoose.Schema(
       type: String,
     },
     availability: {
-      type: Boolean,
-      default: false,
+      type: String,
     },
     certificate: {
       type: Boolean,

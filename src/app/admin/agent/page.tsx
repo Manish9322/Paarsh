@@ -100,7 +100,7 @@ const AgentPage: React.FC = () => {
     <div className="flex h-screen flex-col bg-gray-100">
       <nav className="fixed top-0 z-10 flex w-full items-center justify-between bg-white p-4 shadow-md">
         <h1 className="ml-20 text-3xl font-semibold text-black">Paarsh Edu</h1>
-        <Button className="mr-8 bg-blue-500 text-white hover:bg-blue-600">
+        <Button className="mr-8 bg-blue-600 text-white hover:bg-blue-700">
           Logout
         </Button>
       </nav>

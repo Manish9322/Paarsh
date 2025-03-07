@@ -8,10 +8,12 @@ import { HiOutlineUsers } from "react-icons/hi2";
 import { TbClockHour7 } from "react-icons/tb";
 import { LiaSignalSolid } from "react-icons/lia";
 import { IoLanguage } from "react-icons/io5";
+import { useRouter } from "next/navigation";
 
 
 const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) => {
   const {
+    _id,
     id,
     title,
     courseName,
@@ -33,6 +35,11 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
     shortDescription // New field
   } = course;
 
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    router.push(`/blog-sidebar?courseId=${_id}`);
+  };
 
   return (
     <section className={`part-1 ${isGrid ? 'grid-item' : 'list-item list-none'}`}>
@@ -42,6 +49,9 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
             <div className={`flex flex-col items-center space-y-8 ${isGrid ? '' : ' py-4'}`}>
               <div
                 className={`w-full bg-white dark:bg-dark shadow-one dark:shadow-gray-dark rounded-lg transition duration-300 hover:shadow-two dark:hover:shadow-gray-dark ${isGrid ? 'flex flex-col' : ' flex flex-row'}`} // Add list-card class for list view
+
+                onClick={handleCardClick} // 🔥 Add onClick event to the entire card
+                style={{ cursor: "pointer" }} // 🔥 Make sure it's clickable
               >
 
                 <div className={`w-full relative ${isGrid ? 'h-40 object-cover ' : 'h-30 mr-4'}`}>
@@ -88,7 +98,7 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
                     </div>
                     <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <IoLanguage className="mr-1" />
-                      <p className="text-xs py-1">{languages.join(' | ')}</p>
+                      <p className="text-xs py-1">{languages}</p>
                     </div>
                   </div>
                 </div>

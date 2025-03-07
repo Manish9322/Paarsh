@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
-  setCourseData,
+  setCourseField,
   addTopic,
   updateTopicName,
   removeTopic,
@@ -13,23 +13,21 @@ import {
   updateVideoName,
   updateVideoId,
   removeVideoFromTopic,
-} from "../../lib/slices/courseSlice";
+} from "../../lib/slices/courseVideoSlice";
 import { useAddCourseVideoMutation } from "@/services/api";
 
-
-const AddCourseModal = ({ isOpen, onClose }) => {
+const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   const dispatch = useDispatch();
-  const courseData = useSelector((state) => state.course);
+  const courseData = useSelector((state) => state.coursevideo);
   const [createCourse, { isLoading }] = useAddCourseVideoMutation();
 
-  // Handle input change for course details
   const handleChange = (e) => {
-    dispatch(setCourseData({ ...courseData, [e.target.name]: e.target.value }));
+    dispatch(setCourseField({ field: e.target.name, value: e.target.value }));
   };
 
-  // Submit form data
+  
   const handleSubmit = async () => {
-    if (!courseData.courseName || !courseData.category || !courseData.price) {
+    if (!courseData.courseName) {
       toast.error("Please fill all required fields.");
       return;
     }
@@ -38,6 +36,7 @@ const AddCourseModal = ({ isOpen, onClose }) => {
       const response = await createCourse(courseData).unwrap();
       if (response.success) {
         toast.success("Course added successfully!");
+        onAddCourse(response.data);
         onClose();
       }
     } catch (error) {
@@ -48,8 +47,10 @@ const AddCourseModal = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="p-6">
-        <DialogTitle className="text-2xl font-semibold">Add New Course</DialogTitle>
+      <DialogContent className="max-h-[80vh] overflow-y-auto p-6">
+        <DialogTitle className="text-2xl font-semibold">
+          Add New Course
+        </DialogTitle>
 
         {/* Course Details */}
         <Input
@@ -60,45 +61,36 @@ const AddCourseModal = ({ isOpen, onClose }) => {
           value={courseData.courseName}
           onChange={handleChange}
         />
-        <Input
+        {/* <Input
           type="text"
-          name="category"
+          name="category" // Keep this input if you want to retain category
           placeholder="Category"
           className="mb-3"
           value={courseData.category}
           onChange={handleChange}
-        />
-        <Input
-          type="text"
-          name="price"
-          placeholder="Price"
-          className="mb-3"
-          value={courseData.price}
-          onChange={handleChange}
-        />
-        <Input
-          type="text"
-          name="feature"
-          placeholder="Feature"
-          className="mb-3"
-          value={courseData.feature}
-          onChange={handleChange}
-        />
+        /> */}
 
         {/* Topics & Videos */}
-        <div className="mt-4">
+        <div className="">
           <h3 className="text-lg font-semibold">Topics & Videos</h3>
-          
+
           {(courseData?.topics ?? []).map((topic) => (
-            <div key={topic._id} className="border p-3 mb-3">
+            <div key={topic._id} className="mb-3 mt-2 p-3">
               <Input
                 type="text"
                 placeholder="Topic Name"
                 value={topic.topicName}
-                onChange={(e) => dispatch(updateTopicName({ topicId: topic._id, value: e.target.value }))}
+                onChange={(e) =>
+                  dispatch(
+                    updateTopicName({
+                      topicId: topic._id,
+                      value: e.target.value,
+                    }),
+                  )
+                }
                 className="mb-2"
               />
-              
+
               {/* Videos inside the topic */}
               {(topic?.videos ?? []).map((video) => (
                 <div key={video._id} className="mb-2 flex gap-2">
@@ -106,41 +98,85 @@ const AddCourseModal = ({ isOpen, onClose }) => {
                     type="text"
                     placeholder="Video Name"
                     value={video.videoName}
-                    onChange={(e) => dispatch(updateVideoName({ topicId: topic._id, videoId: video._id, value: e.target.value }))}
+                    onChange={(e) =>
+                      dispatch(
+                        updateVideoName({
+                          topicId: topic._id,
+                          videoId: video._id,
+                          value: e.target.value,
+                        }),
+                      )
+                    }
                   />
                   <Input
                     type="text"
                     placeholder="Video ID"
                     value={video.videoId}
-                    onChange={(e) => dispatch(updateVideoId({ topicId: topic._id, videoId: video._id, value: e.target.value }))}
+                    onChange={(e) =>
+                      dispatch(
+                        updateVideoId({
+                          topicId: topic._id,
+                          videoId: video._id,
+                          value: e.target.value,
+                        }),
+                      )
+                    }
                   />
                   <Button
-                    onClick={() => dispatch(removeVideoFromTopic({ topicId: topic._id, videoId: video._id }))}
-                    className="bg-red-500 text-white hover:bg-red-600"
+                    onClick={() =>
+                      dispatch(
+                        removeVideoFromTopic({
+                          topicId: topic._id,
+                          videoId: video._id,
+                        }),
+                      )
+                    }
+                    className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
                   >
-                    X
+                    Remove
                   </Button>
                 </div>
               ))}
 
-              <Button onClick={() => dispatch(addVideoToTopic(topic._id))} className="mt-2 bg-blue-500 text-white hover:bg-blue-600">
+              <Button
+                onClick={() =>
+                  dispatch(addVideoToTopic({ topicId: topic._id }))
+                }
+                className="mt-2 bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
+              >
                 + Add Video
               </Button>
-              <Button onClick={() => dispatch(removeTopic(topic._id))} className="mt-2 ml-2 bg-red-500 text-white hover:bg-red-600">
+
+              <Button
+                onClick={() => dispatch(removeTopic(topic._id))}
+                className="ml-2 mt-2 bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
+              >
                 Remove Topic
               </Button>
             </div>
           ))}
 
-          <Button onClick={() => dispatch(addTopic())} className="mt-4 bg-green-500 text-white hover:bg-green-600">
+          <Button
+            onClick={() => dispatch(addTopic())}
+            className="mt-4 bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
+          >
             + Add Topic
           </Button>
         </div>
 
         {/* Submit & Cancel */}
         <div className="mt-5 flex justify-end gap-3">
-          <Button onClick={onClose} className="bg-gray-500 text-white hover:bg-gray-600">Cancel</Button>
-          <Button onClick={handleSubmit} className="bg-green-500 text-white hover:bg-green-600" disabled={isLoading}>
+          <Button
+            onClick={onClose}
+            className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
+            disabled={isLoading}
+          >
             {isLoading ? "Saving..." : "Save Course"}
           </Button>
         </div>
