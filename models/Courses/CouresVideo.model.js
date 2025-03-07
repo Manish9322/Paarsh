@@ -7,15 +7,17 @@ const courseVideoSchema = new mongoose.Schema(
       ref: "Course",
       required: true,
     },
+    courseName: {
+      type: String,
+      required: true,
+    },
     topics: [
       {
         topicName: { type: String, required: true },
-        order: { type: Number, required: true }, 
         videos: [
           {
-            title: { type: String, required: true }, 
-            videoUrl: { type: String, required: true }, 
-            order: { type: Number, required: true }, 
+            videoName: { type: String, required: true },
+            videoId: { type: String, required: true },
           },
         ],
       },

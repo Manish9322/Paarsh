@@ -16,24 +16,22 @@ import {
 } from "../../lib/slices/courseVideoSlice";
 import { useAddCourseVideoMutation } from "@/services/api";
 
-const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
+const AddCourseModal = ({ isOpen, onClose, onAddCourse, selectedCourse }) => {
   const dispatch = useDispatch();
   const courseData = useSelector((state) => state.coursevideo);
   const [createCourse, { isLoading }] = useAddCourseVideoMutation();
 
-  const handleChange = (e) => {
-    dispatch(setCourseField({ field: e.target.name, value: e.target.value }));
-  };
 
-  
   const handleSubmit = async () => {
-    if (!courseData.courseName) {
-      toast.error("Please fill all required fields.");
-      return;
-    }
+
+   const formmatedData = {
+      ...courseData,
+      courseName: selectedCourse.courseName,
+      courseId: selectedCourse._id,
+    };
 
     try {
-      const response = await createCourse(courseData).unwrap();
+      const response = await createCourse(formmatedData).unwrap();
       if (response.success) {
         toast.success("Course added successfully!");
         onAddCourse(response.data);
@@ -51,16 +49,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
         <DialogTitle className="text-2xl font-semibold">
           Add New Course
         </DialogTitle>
-
-        {/* Course Details */}
-        <Input
-          type="text"
-          name="courseName"
-          placeholder="Course Name"
-          className="mb-3"
-          value={courseData.courseName}
-          onChange={handleChange}
-        />
+     
         {/* <Input
           type="text"
           name="category" // Keep this input if you want to retain category
