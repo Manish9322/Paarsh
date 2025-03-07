@@ -213,7 +213,6 @@ const BlogSidebarPage = () => {
 
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    {/* <span className="text-blue-600 font-bold"> JavaScript </span> plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more. */}
                     {course ? course.longDescription : "Loading Summary..."}
 
                   </p>
