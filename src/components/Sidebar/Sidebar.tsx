@@ -6,7 +6,7 @@ import sidebarConfig from "../../../config/sidebarconfig";
 import { motion, AnimatePresence } from "framer-motion";
 import { TbSquareToggle } from "react-icons/tb";
 import { useRouter } from "next/navigation";
-
+import Link from "next/link";
 
 const Sidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState<boolean>(true);
@@ -79,12 +79,12 @@ const Sidebar: React.FC = () => {
                         >
                           {item.children.map((child, childIndex) => (
                             <li key={childIndex}>
-                              <button
-                                onClick={() => router.push(child.path)}
+                              <Link
+                                href={child.path}
                                 className="flex w-full items-center space-x-3 rounded-md px-6 py-2 text-sm transition-all hover:bg-gray-200"
                               >
                                 {isOpen && <span>{child.name}</span>}
-                              </button>
+                              </Link>
                             </li>
                           ))}
                         </motion.ul>
@@ -93,13 +93,13 @@ const Sidebar: React.FC = () => {
                   </>
                 ) : (
                   /* Normal Menu Item */
-                  <button
-                    onClick={() => router.push(item.path)}
+                  <Link
+                    href={item.path}
                     className="flex w-full items-center space-x-3 rounded-lg px-6 py-3 text-sm font-medium transition-all hover:bg-gray-100"
                   >
                     {item.icon}
                     {isOpen && <span>{item.name}</span>}
-                  </button>
+                  </Link>
                 )}
               </li>
             ))}

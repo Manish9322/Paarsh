@@ -23,9 +23,9 @@ import { Input } from "@/components/ui/input";
 // Define Agent type
 interface Users {
   id: number;
-  fullName: string;
+  name: string;
   email: string;
-  contact: string;
+  mobile: string;
   createdAt: string;
 }
 
@@ -89,6 +89,7 @@ const UserPage: React.FC = () => {
     }
   };
 
+  console.log("displayedUsers Are",displayedAgents)
   
 
   return (
@@ -109,9 +110,9 @@ const UserPage: React.FC = () => {
                 <TableHeader>
                   <TableRow className="border-b border-gray-300 hover:bg-gray-200">
                     <TableHead>#</TableHead>
-                    <TableHead onClick={() => handleSort("fullName")}>
+                    <TableHead onClick={() => handleSort("name")}>
                       Full Name{" "}
-                      {sortField === "fullName" &&
+                      {sortField === "name" &&
                         (sortOrder === "asc" ? <ChevronUp /> : <ChevronDown />)}
                     </TableHead>
                     <TableHead onClick={() => handleSort("email")}>
@@ -119,9 +120,9 @@ const UserPage: React.FC = () => {
                       {sortField === "email" &&
                         (sortOrder === "asc" ? <ChevronUp /> : <ChevronDown />)}
                     </TableHead>
-                    <TableHead onClick={() => handleSort("contact")}>
+                    <TableHead onClick={() => handleSort("mobile")}>
                       Contact{" "}
-                      {sortField === "contact" &&
+                      {sortField === "mobile" &&
                         (sortOrder === "asc" ? <ChevronUp /> : <ChevronDown />)}
                     </TableHead>
                     <TableHead className="text-center">Actions</TableHead>
@@ -141,9 +142,9 @@ const UserPage: React.FC = () => {
                         className="border-b border-gray-300 hover:bg-gray-200"
                       >
                         <TableCell>{startIndex + index + 1}</TableCell>
-                        <TableCell>{agent.fullName}</TableCell>
+                        <TableCell>{agent.name}</TableCell>
                         <TableCell>{agent.email}</TableCell>
-                        <TableCell>{agent.contact}</TableCell>
+                        <TableCell>{agent.mobile}</TableCell>
                         <TableCell className="flex gap-4 justify-center">
                             <button
                               

@@ -32,7 +32,9 @@ const CourseVideoPage: React.FC = () => {
   const [viewOpen, setViewOpen] = useState(false);
   const [sortField, setSortField] = useState<keyof CourseVideo | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [selectedCourse, setSelectedCourse] = useState<CourseVideo | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<CourseVideo | null>(
+    null,
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -97,7 +99,7 @@ const CourseVideoPage: React.FC = () => {
     <div className="flex h-screen flex-col bg-gray-100">
       <nav className="fixed top-0 z-10 flex w-full items-center justify-between bg-white p-4 shadow-md">
         <h1 className="ml-20 text-3xl font-semibold text-black">Paarsh Edu</h1>
-        <Button className="mr-8 bg-blue-600 text-white hover:bg-blue-700 rounded">
+        <Button className="mr-8 rounded bg-blue-600 text-white hover:bg-blue-700">
           Logout
         </Button>
       </nav>
@@ -111,7 +113,7 @@ const CourseVideoPage: React.FC = () => {
         <div className="my-6 flex items-center justify-between rounded-lg bg-white p-5 shadow-md">
           <h2 className="text-2xl font-bold text-gray-600">Courses</h2>
           <button
-            className="text-sm rounded transition bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black px-3 py-3"
+            className="rounded bg-blue-600 px-3 py-3 text-sm text-white transition hover:bg-blue-700 dark:bg-white dark:text-black"
             onClick={() => setIsModalOpen(true)}
           >
             Add Course
@@ -149,12 +151,19 @@ const CourseVideoPage: React.FC = () => {
                       <TableCell>{startIndex + index + 1}</TableCell>
                       <TableCell>{course.courseName}</TableCell>
                       <TableCell>
-                        {course.videos.map((video, i) => (
-                          <p key={i} className="text-sm text-gray-700">
-                            {video.videoName} ({video.videoId})
+                        {course.videos?.length > 0 ? (
+                          course.videos.map((video, i) => (
+                            <p key={i} className="text-sm text-gray-700">
+                              {video.videoName} ({video.videoId})
+                            </p>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">
+                            No videos available
                           </p>
-                        ))}
+                        )}
                       </TableCell>
+
                       <TableCell className="flex justify-center gap-4">
                         <button
                           className="text-green-600"
@@ -187,7 +196,7 @@ const CourseVideoPage: React.FC = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onAddCourse={handleAddCourse} // Pass the callback to the modal
-        />
+          selectedCourse={undefined}        />
       </div>
     </div>
   );
