@@ -206,7 +206,22 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: formData,
       }),
-    
+    }),
+
+    //----------------------------------Payment ------------------------------------------------------------------------------
+    createOrder: builder.mutation({
+      query: ({ userId, courseId, amount }) => ({
+        url: "/create-order",
+        method: "POST",
+        body: { userId, courseId, amount },
+      }),
+    }),
+    verifyPayment: builder.mutation({
+      query: (paymentData) => ({
+        url: "/payment-verification",
+        method: "POST",
+        body: paymentData,
+      }),
     }),
   }),
 });
@@ -241,4 +256,7 @@ export const {
   useDeleteSubCategoriesMutation,
 
   useAddCourseVideoMutation,
+
+  useCreateOrderMutation,
+  useVerifyPaymentMutation,
 } = paarshEduApi;
