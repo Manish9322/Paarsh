@@ -202,7 +202,7 @@ export const paarshEduApi = createApi({
 
     addCourseVideo: builder.mutation({
       query: (formData) => ({
-        url: "/course/video",
+        url: "/course/videos",
         method: "POST",
         body: formData,
       }),

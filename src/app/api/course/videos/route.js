@@ -7,12 +7,20 @@ _db();
 
 export const POST = authMiddleware(async (req) => {
   try {
-    const { courseId, topics } = await req.json();
-    const newCourseVideo = new CourseVideoModel({ courseId, topics });
+    const { courseId, courseName, topics } = await req.json();
+    const newCourseVideo = new CourseVideoModel({
+      courseId,
+      courseName,
+      topics,
+    });
 
     await newCourseVideo.save();
     return NextResponse.json(
-      { message: "Course videos added successfully", newCourseVideo },
+      {
+        success: true,
+        message: "Course videos added successfully",
+        data: newCourseVideo,
+      },
       { status: 201 },
     );
   } catch (error) {

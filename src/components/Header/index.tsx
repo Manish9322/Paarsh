@@ -52,10 +52,10 @@ const Header = () => {
 
   return (
     <>
-      <div className="bg-black/90 px-16 py-5">
-        <ul className="flex justify-between">
-          <div className="flex items-center">
-            <li className="phone mr-6 flex items-center ">
+      <div className="relative bg-black/90 px-6 md:px-16 py-5">
+        <ul className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex flex-col md:flex-row items-center mb-4 md:mb-0">
+            <li className="phone flex items-center mb-2 md:mb-0 md:mr-6">
               <svg
                 className="mr-2 text-gray-100 dark:text-primary dark:hover:text-primary"
                 width="24"
@@ -220,6 +220,8 @@ const Header = () => {
           </div>
         </ul>
       </div>
+     
+
 
       <header
         className={`header left-0 top-0 z-40 flex w-full items-center ${
@@ -255,7 +257,7 @@ const Header = () => {
             </div>
             <div className="flex w-full items-center justify-between px-4">
               <div>
-                <button
+                {/* <button
                   onClick={navbarToggleHandler}
                   id="navbarToggler"
                   aria-label="Mobile Menu"
@@ -276,7 +278,7 @@ const Header = () => {
                       navbarOpen ? " top-[-8px] -rotate-45" : " "
                     }`}
                   />
-                </button>
+                </button> */}
                 <nav
                   id="navbarCollapse"
                   className={`navbar absolute right-0 z-30 w-[250px] rounded border-[.5px] border-body-color/50 bg-white px-6 py-4 duration-300 dark:border-body-color/20 dark:bg-dark lg:visible lg:static lg:w-auto lg:border-none lg:!bg-transparent lg:p-0 lg:opacity-100 ${
@@ -351,7 +353,7 @@ const Header = () => {
                 ) : (
                   <Link
                     href="/signin"
-                    className="hidden px-7 py-3 text-base font-medium text-dark hover:opacity-70 dark:text-white md:block"
+                    className=" px-7 py-3 text-base font-medium text-dark hover:opacity-70 dark:text-white md:block"
                   >
                     Sign In
                   </Link>

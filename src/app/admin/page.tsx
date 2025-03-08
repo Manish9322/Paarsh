@@ -26,6 +26,7 @@ import {
 } from "../../services/api";
 import { toast } from "sonner";
 import { AddNewCourse } from "@/components/AddNewCourseModal";
+import AddCourseModal from "@/components/Courses/AddCourseVideo";
 
 // Define Course type
 interface Course {
@@ -44,11 +45,23 @@ interface Course {
   createdAt: string;
 }
 
+interface CourseVideo {
+  _id: string;
+  id: string;
+  courseName: string;
+  videos: {
+    videoName: string;
+    videoId: string;
+  }[];
+  createdAt: string;
+}
 const AdminPage: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [coursess, setCourses] = useState<CourseVideo[]>([]);
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const coursesPerPage = 10;
 
   // Fetch courses data
@@ -59,7 +72,7 @@ const AdminPage: React.FC = () => {
   } = useFetchCourcesQuery(undefined);
   const courses: Course[] = courseData?.data || [];
 
-  console.log("courses", courses);  
+  console.log("courses", courses);
 
   const [_DELETECOURSE, { isLoading: isDeleteLoading, error: deleteError }] =
     useDeleteCourseMutation();
@@ -85,6 +98,10 @@ const AdminPage: React.FC = () => {
           "Failed to Delete the course. Please try again.",
       );
     }
+  };
+
+  const handleAddCourse = (newCourse: CourseVideo) => {
+    setCourses((prevCourses) => [...prevCourses, newCourse]);
   };
   return (
     <div className="flex h-screen flex-col bg-gray-100">
@@ -118,14 +135,12 @@ const AdminPage: React.FC = () => {
                   <TableHeader>
                     <TableRow className="border-b border-gray-300 hover:bg-gray-200">
                       <TableHead>#</TableHead>
-                      <TableHead>Availability</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Course Name</TableHead>
                       <TableHead>Level</TableHead>
                       <TableHead>Duration</TableHead>
                       <TableHead>Fees ($)</TableHead>
                       <TableHead>Languages</TableHead>
-                      <TableHead>Created At</TableHead>
                       <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -158,17 +173,22 @@ const AdminPage: React.FC = () => {
                           className="border-b border-gray-300 hover:bg-gray-200"
                         >
                           <TableCell>{startIndex + index + 1}</TableCell>
-                          <TableCell>{course.availability}</TableCell>
                           <TableCell>{course.category}</TableCell>
                           <TableCell>{course.courseName}</TableCell>
                           <TableCell>{course.level}</TableCell>
                           <TableCell>{course.duration}</TableCell>
                           <TableCell>{course.price}</TableCell>
                           <TableCell>{course.languages}</TableCell>
-                          <TableCell>
-                            {new Date(course.createdAt).toLocaleDateString()}
-                          </TableCell>
                           <TableCell className="flex justify-center gap-4">
+                            <button
+                              className="rounded bg-blue-600 px-3 py-3 text-sm text-white transition hover:bg-blue-700 dark:bg-white dark:text-black"
+                              onClick={() => {
+                                setSelectedCourse(course);
+                                setIsModalOpen(true);
+                              }}
+                            >
+                              Add Lectures
+                            </button>
                             <button
                               className="text-green-600  "
                               onClick={() => {
@@ -279,6 +299,13 @@ const AdminPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Add Course Modal */}
+      <AddCourseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddCourse={handleAddCourse}
+        selectedCourse={selectedCourse}
+      />
       {/* Custom Scrollbar Styling */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {

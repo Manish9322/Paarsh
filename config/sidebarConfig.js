@@ -1,5 +1,3 @@
-
-
 import { CiChat1 } from "react-icons/ci";
 import { FaHome, FaRegUser } from "react-icons/fa";
 import { LuUsers } from "react-icons/lu";
@@ -25,12 +23,12 @@ const sidebarConfig = [
     children: [
       { name: "Posts", path: "/admin/posts" },
       { name: "Categories", path: "/admin/categories" },
-      { name: "Tags" },
+      { name: "Tags", path: "/admin/tags" },
     ],
   },
 
   { name: "Enquiries", path: "/admin/enquiries", icon: <CiChat1 /> },
-  { name: "Contact Requests", icon: <CiChat1 /> },
+  { name: "Contact Requests", path: "/admin/contacts", icon: <CiChat1 /> },
 ];
 
 export default sidebarConfig;
