@@ -17,16 +17,17 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
     id,
     title,
     courseName,
+    tagline,
     paragraph,
     level,
     image,
-    courseDuration,
+    duration,
     lang,
     certificate,
     student,
     tags,
     availability, // New field
-    courseCategory, // New field
+    category, // New field
     courseFees, // New field
     instructor, // New field
     keywords, // New field
@@ -50,14 +51,14 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
               <div
                 className={`w-full bg-white dark:bg-dark shadow-one dark:shadow-gray-dark rounded-lg transition duration-300 hover:shadow-two dark:hover:shadow-gray-dark ${isGrid ? 'flex flex-col' : ' flex flex-row'}`} // Add list-card class for list view
 
-                onClick={handleCardClick} // 🔥 Add onClick event to the entire card
-                style={{ cursor: "pointer" }} // 🔥 Make sure it's clickable
+                onClick={handleCardClick} 
+                style={{ cursor: "pointer" }}
               >
 
                 <div className={`w-full relative ${isGrid ? 'h-40 object-cover ' : 'h-30 mr-4'}`}>
 
                   <span className="absolute right-3 top-3 z-20 inline-flex items-center justify-center rounded-full bg-primary px-3 py-1.5 text-xs font-semibold capitalize text-white dark:text-black">
-                    {courseCategory ? courseCategory : "No Tag"}
+                    {category ? category : "No Tag"}
                   </span>
 
                   <Image
@@ -77,28 +78,30 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
                     </Link>
                   </h3>
                   <p className={`py-4 mb-4 border-b font-medium text-body-color dark:text-gray-400 ${isGrid ? ' font-medium text-body-color dark:text-gray-400' : 'w-fit'}`}>
-                    {shortDescription}
+                    {tagline}
                   </p>
                   <div className="flex flex-wrap">
                     <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <PiCertificateLight className="mr-1" />
-                      <p className="text-xs py-1">{certificate}</p>
+                      <p className="text-xs py-1">{certificate ? "Certificate" : "No Certificate"}</p>
                     </div>
-                    <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
-                      <HiOutlineUsers className="mr-1" />
-                      <p className="text-xs py-1">{student ? student : "1"}</p>
-                    </div>
+                    
                     <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <TbClockHour7 className="mr-1" />
-                      <p className="text-xs py-1">{courseDuration}</p>
+                      <p className="text-xs py-1">{duration}</p>
                     </div>
                     <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <LiaSignalSolid className="mr-1" />
                       <p className="text-xs py-1">{level}</p>
                     </div>
                     <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
+                      <HiOutlineUsers className="mr-1" />
+                      <p className="text-xs py-1">{student ? student : "1"}</p>
+                    </div>
+                    <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <IoLanguage className="mr-1" />
-                      <p className="text-xs py-1">{languages}</p>
+                      <p className="text-xs py-1">{course ? course.languages.split(", ").join(" | ") : "No Languages Available"}</p>
+
                     </div>
                   </div>
                 </div>

@@ -3,16 +3,17 @@ export type Course = {
   id: string;
   title: string;
   courseName:string;
+  tagline:string;
   image: string;
   paragraph: string;
   level: string;
   tags: string[];
-  courseDuration: string;
+  duration: string;
   lang: string;
   certificate: string;
   student: string;
   availability: string; // New field
-  courseCategory: string; // New field
+  category: string; // New field
   courseFees: number; // New field
   courseType: string; // New field
   instructor: string; // New field

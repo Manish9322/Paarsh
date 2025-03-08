@@ -17,24 +17,16 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { logout } from "../../lib/slices/userAuthSlice"
 import { useDispatch } from "react-redux";
+import { useFetchUserQuery } from "@/services/api";
+
 
 export default function Profile() {
 
-  const { data : usersData, error, isLoading } = useFetchUserQuery(undefined);
+  const { data : userData, error, isLoading } = useFetchUserQuery(undefined);
 
-  console.log("Data",data);
+  console.log("Data",userData?.data);
 
-  const users: Users[] = data?.data || [];
-  console.log("Users data",users);
-useEffect(() => {
-  if (data) {
-    console.log("User Data:", data);
-  }
-  if (error) {
-    console.error("Error fetching user data:", error);
-  }
-}, [data, error]);
-
+  // const users: User = userData?.data;
 
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,7 +35,7 @@ useEffect(() => {
 
   const handleLogout = () => {
     dispatch(logout()); // Redux  logout
-    router.push("/signin"); // Redirect to Sign In page
+    router.push("/"); // Redirect to Sign In page
   };
 
   const toggleSidebar = () => {
@@ -73,10 +65,52 @@ useEffect(() => {
     }
   }, [isModalOpen]);
 
-  const userName = data?.name || "User Name";
-  const userEmail = data?.email || "user@example.com";
+ 
+const [editableUser, setEditableUser] = useState({
+  name: "",
+  email: "",
+  password: "",
+  mobile: "",
+  profilePic: null,
+});
 
   
+// Populate the state when userData is available
+useEffect(() => {
+  if (userData?.data) {
+    setEditableUser({
+      name: userData.data.name || "",
+      email: userData.data.email || "",
+      password: "", // Keep empty for security
+      mobile: userData.data.mobile || "",
+      profilePic: null,
+    });
+  }
+}, [userData]);
+
+// Handle input changes
+const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  setEditableUser((prev) => ({
+    ...prev,
+    [name]: value,
+  }));
+};
+
+// Handle file change
+const handleFileChange = (e) => {
+  setEditableUser((prev) => ({
+    ...prev,
+    profilePic: e.target.files[0], // Store file object
+  }));
+};
+
+// Function to submit the update (API call can be added here)
+const handleUpdate = () => {
+  console.log("Updated User Data:", editableUser);
+  setIsModalOpen(false);
+};
+
   return (
     <div className="relative">
       {/* Profile Image Trigger */}
@@ -122,9 +156,9 @@ useEffect(() => {
               <Camera size={20} className="text-black dark:text-white" />
             </button>
           </div>
-          <h3 className="mt-3 text-lg font-semibold">John Doe</h3>
+          <h3 className="mt-3 text-lg font-semibold">{userData?.data?.name || "User Name"}</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            john.doe@example.com
+          {userData?.data?.email || "user@example.com"}
           </p>
         </div>
 
@@ -136,7 +170,7 @@ useEffect(() => {
             {
               icon: GraduationCap,
               label: "My Certificate",
-              href: "/my-certificate",
+              href: "/",
             },
             {
               icon: User,
@@ -182,21 +216,33 @@ useEffect(() => {
             <div className="space-y-4">
               <input
                 type="text"
+                name="name"
+                value={editableUser.name}
+                onChange={handleInputChange}
                 placeholder="Enter your full name"
                 className="block w-full rounded-lg border p-3 shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
               />
               <input
                 type="email"
+                name="email"
+                value={editableUser.email}
+                onChange={handleInputChange}
                 placeholder="Enter your email"
                 className="block w-full rounded-lg border p-3 shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
               />
               <input
                 type="password"
+                name="password"
+                value={editableUser.password}
+                onChange={handleInputChange}
                 placeholder="Enter your password"
                 className="block w-full rounded-lg border p-3 shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
               />
               <input
                 type="tel"
+                name="mobile"
+                value={editableUser.mobile}
+                onChange={handleInputChange}
                 placeholder="Enter your mobile number"
                 className="block w-full rounded-lg border p-3 shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
               />

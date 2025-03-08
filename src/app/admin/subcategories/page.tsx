@@ -43,6 +43,8 @@ const SubcategoriesPage: React.FC = () => {
   const { data: subcategoryData, isLoading, error } = useFetchSubCategoriesQuery(undefined);
   const subcategories: Subcategory[] = subcategoryData?.data || [];
 
+  console.log("Subcategory Data: ", subcategoryData);
+
   const [_DELETE_SUBCATEGORY] = useDeleteSubCategoriesMutation();
 
   const totalPages = Math.ceil(subcategories.length / itemsPerPage);

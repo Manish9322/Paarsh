@@ -26,7 +26,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import TextEditor from "../../components/TextEditor";
 import { useDispatch, useSelector } from "react-redux";
-import { useAddCourseMutation } from "@/services/api";
+import {
+  useAddCourseMutation,
+  useFetchCategoriesQuery,
+  useFetchSubCategoriesQuery,
+} from "@/services/api";
 import {
   updateField,
   addCourseInclude,
@@ -75,17 +79,21 @@ const formSchema = z.object({
   featuredCourse: z.boolean().optional(),
 });
 
-const categories = [
-  { name: "Development", subcategories: ["Web Development", "Mobile Apps"] },
-  { name: "Business", subcategories: ["Marketing", "Finance"] },
-];
-
 export function AddNewCourse() {
   const [open, setOpen] = useState(false);
   const dispatch = useDispatch();
   const course = useSelector((state) => state.course);
   const [_ADDCOURSE, { isLoading }] = useAddCourseMutation();
 
+  const { data: categoriesData } = useFetchCategoriesQuery();
+  const { data: subCategoriesData } = useFetchSubCategoriesQuery();
+
+  console.log("subCategoriesData", subCategoriesData?.data);
+
+  const categories = categoriesData?.data || [];
+  const subCategories = subCategoriesData?.data || [];
+
+  console.log("categoies", categories);
 
   const {
     register,
@@ -219,11 +227,15 @@ export function AddNewCourse() {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Web Development">
-                    Web Development
-                  </SelectItem>
-                  <SelectItem value="Data Science">Data Science</SelectItem>
-                  <SelectItem value="Design">Design</SelectItem>
+                  {Array.isArray(categories) && categories.length > 0 ? (
+                    categories.map((category) => (
+                      <SelectItem key={category._id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <p>No categories available</p>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -239,9 +251,18 @@ export function AddNewCourse() {
                   <SelectValue placeholder="Select subcategory" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Frontend">Frontend</SelectItem>
-                  <SelectItem value="Backend">Backend</SelectItem>
-                  <SelectItem value="UI/UX">UI/UX</SelectItem>
+                  {Array.isArray(subCategories) && subCategories.length > 0 ? (
+                    subCategories.map((subCategory) => (
+                      <SelectItem
+                        key={subCategory._id}
+                        value={subCategory.subcategoryName}
+                      >
+                        {subCategory.subcategoryName}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <p>No SubCategories available</p>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -539,7 +560,7 @@ export function AddNewCourse() {
             </div>
           </div>
 
-          <TextEditor  placeholder={undefined} />
+          <TextEditor placeholder={undefined} />
 
           <div className="grid grid-cols-2 gap-4">
             {cardConfig.map(
