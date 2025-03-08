@@ -211,14 +211,14 @@ export const paarshEduApi = createApi({
     //----------------------------------Payment ------------------------------------------------------------------------------
     createOrder: builder.mutation({
       query: ({ userId, courseId, amount }) => ({
-        url: "/create-order",
+        url: "/createorder",
         method: "POST",
         body: { userId, courseId, amount },
       }),
     }),
     verifyPayment: builder.mutation({
       query: (paymentData) => ({
-        url: "/payment-verification",
+        url: "/paymentverification",
         method: "POST",
         body: paymentData,
       }),

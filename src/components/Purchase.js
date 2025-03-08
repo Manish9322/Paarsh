@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading } from "../lib/slices/paymentSlice";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,25 +10,35 @@ import {
   useFetchUserQuery,
   useVerifyPaymentMutation,
 } from "@/services/api";
+import { RAZORPAY_KEY_ID } from "../../config/config";
 
 const PurchaseModal = ({ isOpen, onClose, course }) => {
+  if (!course) return null;
+  const coursePrice = Number(course.price);
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state.payment.isLoading);
   const [createOrder] = useCreateOrderMutation();
   const [verifyPayment] = useVerifyPaymentMutation();
-  const [finalPrice, setFinalPrice] = useState(null);
   const [promoCode, setPromoCode] = useState("");
   const [discountApplied, setDiscountApplied] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { data: userData } = useFetchUserQuery();
+  const [finalPrice, setFinalPrice] = useState(coursePrice);
 
   const user = userData?.data;
 
-  if (!course) return null;
-  const coursePrice =  course.price;
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   const validPromoCode = "DISCOUNT20";
-
-
 
   if (!isOpen) return null;
 
@@ -57,20 +67,21 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
 
     try {
       // Step 1: Request backend to create order
-      const { data } = await createOrder({
-        userId: user.id,
-        courseId: course.id,
+      const orderResponse = await createOrder({
+        userId: user._id,
+        courseId: course._id,
         amount: finalPrice * 100, // Convert to smallest currency unit
       });
 
-      if (data.success) {
+      const orderData = orderResponse.data; // ✅ Extract actual data
+
+      if (orderData && orderData.success) {
         const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Public Key
-          amount: data.amount,
-          currency: data.currency,
-          order_id: data.orderId,
+          key: RAZORPAY_KEY_ID, // Public Key
+          amount: orderData.amount,
+          currency: orderData.currency,
+          order_id: orderData.orderId,
           handler: async function (response) {
-            // Step 4: Verify payment on backend
             await verifyPayment(response);
             alert("Payment Successful! Course Access Granted.");
             handleClose();

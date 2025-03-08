@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import authMiddleware from "../../../../middlewares/auth";
+import {authMiddleware} from "../../../../middlewares/auth";
 import UserModel from "../../../../models/User.model";
 import CourseModel from "../../../../models/Courses/Course.model";
 import TransactionModel from "../../../../models/Transaction.model";
-import { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } from "@/config/config";
+import { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } from "../../../../config/config";
 
 export const POST = authMiddleware(async (request) => {
   try {
