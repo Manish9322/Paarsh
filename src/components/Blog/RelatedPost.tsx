@@ -7,14 +7,14 @@ const RelatedPost = ({
   title,
   level,
   duration,
-  date,
+  certificate
 }: {
   image: string;
   slug: string;
   title: string;
   level: string;
-  duration:string;
-  date: string;
+  duration: string;
+  certificate: string;
 }) => {
   return (
     <div className="flex items-center lg:block xl:flex">
@@ -32,11 +32,16 @@ const RelatedPost = ({
             {title}
           </Link>
         </h5>
-        <div className="flex">
-        <p className="text-xs font-medium text-body-color mr-4"> {level} </p>
-        <p className="text-xs font-medium text-body-color"> {duration}</p>  
+        <div className="flex mb-2">
+          <p className="text-xs font-medium text-body-color mr-4"> {level} </p>
+          <p className="text-xs font-medium text-body-color"> {duration}</p>
         </div>
-        
+        <div className="flex mb-2">
+          <p className="text-xs font-medium text-body-color">
+            {certificate ? "Certificate" : "No Certificate"}
+          </p>
+        </div>
+
       </div>
     </div>
   );

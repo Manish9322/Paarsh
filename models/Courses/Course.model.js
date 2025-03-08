@@ -31,6 +31,9 @@ const courseSchema = new mongoose.Schema(
     summaryText: {
       type: String,
     },
+    editorContent: {
+      type: String,
+    },
     taglineIncludes: {
       type: String,
     },
