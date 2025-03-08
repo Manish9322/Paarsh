@@ -14,21 +14,39 @@ import 'react-loading-skeleton/dist/skeleton.css';
 
 import { CiGrid41 } from "react-icons/ci";
 import { TbLayoutList } from "react-icons/tb";
-import { useFetchCourcesQuery } from "@/services/api";
+import { useFetchCategoriesQuery, useFetchCourcesQuery } from "@/services/api";
+import { useSearchParams } from "next/navigation";
+
+interface Category {
+  id: number;
+  _id: string;
+  name: string;
+  description: string;
+  keywords: string[];
+  createdAt: string;
+}
 
 const Courses = () => {
   const [isGrid, setIsGrid] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showMore, setShowMore] = useState(false); // State to manage showing more courses
 
+  // TITLE CASE FUNCTION
+
+  const toTitleCase = (str: string) => {
+    return str.replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  // CATEGORY SECTION
+
   const {
     data: coursesData,
     error,
   } = useFetchCourcesQuery(undefined);
-  
-  const isLoading = !coursesData; // Adjust loading state based on data availability
-  console.log("coursessssssw Dataaaa", coursesData);
-  console.log(courseData.data);
+
+  const isLoading = !coursesData;
+  console.log("Courses Data", coursesData);
+  // console.log(courseData.data);
 
   const getRandomCourses = (courses, count = 3) => {
     if (!courses || courses.length === 0) return [];
@@ -37,6 +55,28 @@ const Courses = () => {
   };
 
   const randomCourses = useMemo(() => getRandomCourses(coursesData?.data, 3), [coursesData]);
+
+  // CATEGORY SECTION
+
+  const param = useSearchParams();
+  const courseId = param.get("courseId");
+
+  const {
+    data: categoryData,
+    isLoading: categoryLoading,
+    error: categoryError,
+  } = useFetchCategoriesQuery(courseId);
+
+  const categories = categoryData?.data || [];
+
+  const category: Category = categoryData?.data;
+  console.log("Categories : ", category);
+
+  const getRandomCategories = (categories, count) => {
+    if (!Array.isArray(categories) || categories.length === 0) return [];
+    const shuffled = [...categories].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
 
   const toggleDisplayStyle = () => {
     setIsGrid(!isGrid);
@@ -141,21 +181,26 @@ const Courses = () => {
                   onClick={() => handleCategoryClick(null)}
                   className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
                 >
-                  All Courses
+                  ALL COURSES
                 </a>
               </li>
-              {["Cloud", "Computer / IT", "Graphic Design", "Framework", "Database"].map(category => (
-                <li key={category}>
-                  <a
-                    href="#0"
-                    onClick={() => handleCategoryClick(category)}
-                    className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
-                  >
-                    {category}
-                  </a>
-                </li>
-              ))}
+              {categoryLoading ? (
+                <Skeleton count={3} />
+              ) : (
+                getRandomCategories(categoryData?.data, 6).map((category) => (
+                  <li key={category._id}>
+                    <a
+                      href="#0"
+                      onClick={() => handleCategoryClick(category.name)}
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                    >
+                      {toTitleCase(category.name)}
+                    </a>
+                  </li>
+                ))
+              )}
             </ul>
+
           </div>
 
           <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">

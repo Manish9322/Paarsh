@@ -17,8 +17,7 @@ import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 
 
-import { useFetchCourcebyIdQuery, useFetchCourcesQuery } from "@/services/api";
-import { log } from "console";
+import { useFetchCategoriesQuery, useFetchCourcebyIdQuery, useFetchCourcesQuery } from "@/services/api";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -57,6 +56,15 @@ interface Course {
   overviewTagline: string;
 }
 
+interface Category {
+  id: number;
+  _id: string;
+  name: string;
+  description: string;
+  keywords: string[];
+  createdAt: string;
+}
+
 const BlogSidebarPage = () => {
 
   const param = useSearchParams();
@@ -69,6 +77,24 @@ const BlogSidebarPage = () => {
   } = useFetchCourcebyIdQuery(courseId);
   const course: Course = courseData?.data;
 
+
+  const {
+    data: categoryData,
+    isLoading: categoryLoading,
+    error: categoryError,
+  } = useFetchCategoriesQuery(courseId);
+
+  const categories = categoryData?.data || [];
+
+  const category: Category = categoryData?.data;
+  console.log("Categories : ", category);
+
+  const getRandomCategories = (categories, count) => {
+    if (!Array.isArray(categories) || categories.length === 0) return [];
+    const shuffled = [...categories].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  };
+
   const tagsArray = Array.isArray(course?.tags)
     ? course.tags
     : typeof course?.tags === "string"
@@ -77,6 +103,7 @@ const BlogSidebarPage = () => {
 
   console.log("Course Data : ", course);
   console.log("Editor Content:", course?.editorContent);
+
   const {
     data: coursesData,
     error: courseError,
@@ -527,53 +554,24 @@ const BlogSidebarPage = () => {
                   Popular Category
                 </h3>
                 <ul className="px-8 py-6">
-                  {isLoading ? (
+                  {categoryLoading ? (
                     <Skeleton count={3} />
                   ) : (
                     <>
-                      <li>
-                        <a
-                          href="#0"
-                          className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
-                        >
-                          Cloud
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          href="#0"
-                          className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
-                        >
-                          Computer / IT
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          href="#0"
-                          className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
-                        >
-                          Graphic Design
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          href="#0"
-                          className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
-                        >
-                          Framework
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          href="#0"
-                          className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
-                        >
-                          Database
-                        </a>
-                      </li>
+                      {getRandomCategories(categoryData?.data, 6).map((category) => (
+                        <li key={category._id}>
+                          <a
+                            href="#0"
+                            className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                          >
+                            {category.name}
+                          </a>
+                        </li>
+                      ))}
                     </>
                   )}
                 </ul>
+
               </div>
 
               <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">

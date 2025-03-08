@@ -168,7 +168,8 @@ export function AddNewCourse() {
     }
   };
 
-  const handleRemoveItem = (field, action) => (index) => {
+  const handleRemoveItem = (field, action) => (index,e) => {
+    e.preventDefault();
     dispatch(action(index));
   };
 
