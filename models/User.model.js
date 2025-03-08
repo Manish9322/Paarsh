@@ -23,7 +23,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  acceptTerms:{
+  purchasedCourses: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Course",
+    },
+  ],
+  acceptTerms: {
     type: Boolean,
   },
   createdAt: {

@@ -82,6 +82,12 @@ const courseSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    enrolledUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ], // Users who bought the course
   },
   { timestamps: true },
 );

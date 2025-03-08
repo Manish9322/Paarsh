@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
 import _db from "../../../../../utils/db";
 import CourseModel from "../../../../../models/Courses/Course.model";
-import { authMiddleware } from "../../../../../middlewares/auth";
 
 _db();
 
 export const GET = async (req) => {
   try {
-      
-      const url = new URL(req.url);
-      const id = url.searchParams.get("id");
-      
-      console.log("id is the : ", id);
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
 
+    console.log("id is the : ", id);
 
     if (!id) {
       return NextResponse.json(

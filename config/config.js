@@ -7,3 +7,5 @@ export const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 export const JWT_REFRESH_TOKEN_EXPIRY = process.env.JWT_REFRESH_TOKEN_EXPIRY;
 export const BASE_URL = process.env.BASE_URL;
 export const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET;
+export const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+export const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
