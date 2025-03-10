@@ -1,14 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// Retrieve tokens from localStorage
-const accessToken = localStorage.getItem("accessToken");
-const refreshToken = localStorage.getItem("refreshToken");
 
 const initialState = {
-  accessToken: accessToken || null,
-  refreshToken: refreshToken || null,
+  accessToken: null,
+  refreshToken:  null,
   user: null, // Don't store in localStorage
-  isAuthenticated: !!accessToken, // Set to true if token exists
+  isAuthenticated: false, // Set to true if token exists
   loading: false,
   error: null,
   forms: {
@@ -41,8 +38,10 @@ const userAuthSlice = createSlice({
       state.error = null;
 
       // ✅ Store only tokens in localStorage
+      if (typeof window !== 'undefined') {
       localStorage.setItem("accessToken", action.payload.accessToken);
       localStorage.setItem("refreshToken", action.payload.refreshToken);
+      }
     },
     logout(state) {
       state.accessToken = null;
@@ -52,8 +51,10 @@ const userAuthSlice = createSlice({
       state.forms = initialState.forms;
 
       // ✅ Remove only tokens from localStorage
+      if (typeof window !== 'undefined') {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      }
     },
     resetForm(state, action) {
       const { formName } = action.payload;
