@@ -3,7 +3,7 @@ import crypto from "crypto";
 import TransactionModel from "../../../../models/Transaction.model";
 import UserModel from "../../../../models/User.model";
 import CourseModel from "../../../../models/Courses/Course.model";
-import { RAZORPAY_KEY_SECRET } from "@/config/config";
+import { RAZORPAY_KEY_SECRET } from "../../../../config/config";
 
 export const POST = async (request) => {
   try {
