@@ -43,7 +43,7 @@ const SigninPage = () => {
           // 🔥 Force UI update instantly
          window.dispatchEvent(new Event("storage"));
 
-          router.push(response?.redirect || `/dashboard`);
+          router.push(response?.redirect || `/userdashboard`);
         } else {
           toast.error("Login Failed", {
             description: response?.error || "An error occurred.",
@@ -60,15 +60,15 @@ const SigninPage = () => {
   });
 
 
-   useEffect(() => {
-      // Hide scrollbar
-      document.body.style.overflow = "hidden";
+  //  useEffect(() => {
+  //     // Hide scrollbar
+  //     document.body.style.overflow = "hidden";
   
-      // Cleanup function to reset when component unmounts
-      return () => {
-        document.body.style.overflow = "auto";
-      };
-    }, []);
+  //     // Cleanup function to reset when component unmounts
+  //     return () => {
+  //       document.body.style.overflow = "auto";
+  //     };
+  //   }, []);
 
   return (
     <section className="relative z-10 overflow-hidden pb-16 pt-36 md:pb-20 lg:pb-28 lg:pt-[70px]">

@@ -21,6 +21,7 @@ export default function RootLayout({
   const isAdminPage = pathname.startsWith("/admin");
   const isSigninPage = pathname.startsWith("/signin");
   const isSignupPage = pathname.startsWith("/signup");
+  const isDashboardPage = pathname.startsWith("/userdashboard");
   return (
     <html suppressHydrationWarning lang="en">
       {/*
@@ -32,9 +33,9 @@ export default function RootLayout({
       <body className={`bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
       <Provider store={makeStore}>
         <Providers>  
-        {!(isAdminPage  || isSigninPage || isSignupPage)&& <Header />} {/* Hide header on admin pages */}
+        {!(isAdminPage  || isSigninPage || isSignupPage || isDashboardPage)&& <Header />} {/* Hide header on admin pages */}
           {children}
-          {!(isAdminPage  || isSigninPage || isSignupPage) && <Footer />} {/* Hide footer on admin pages */}
+          {!(isAdminPage  || isSigninPage || isSignupPage || isDashboardPage) && <Footer />} {/* Hide footer on admin pages */}
           <ScrollToTop />
           <AutoModal/>
           <Toaster richColors />

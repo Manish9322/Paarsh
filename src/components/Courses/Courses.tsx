@@ -68,7 +68,7 @@ export default function CoursesPage() {
           </div>
         </section>
 
-        {/* Category Selection */}
+        {/* Category Selection
         <div className="flex justify-center gap-4">
           {Object.keys(courses).map((category) => (
             <button
@@ -82,7 +82,24 @@ export default function CoursesPage() {
               {category}
             </button>
           ))}
-        </div>
+        </div> */}
+
+<div className="flex flex-wrap justify-center gap-4 sm:gap-2">
+  {Object.keys(courses).map((category) => (
+    <button
+      key={category}
+      onClick={() => setSelectedCategory(category as keyof typeof courses)}
+      className={`px-6 py-2 text-sm sm:text-xs rounded font-medium transition ${
+        selectedCategory === category
+          ? "bg-blue-600 text-white"
+          : "bg-gray-200 text-gray-800 hover:bg-blue-500 hover:text-white"
+      }`}
+    >
+      {category}
+    </button>
+  ))}
+</div>
+
 
         {/* Course Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
