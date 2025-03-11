@@ -100,9 +100,10 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg">
-      <Card className="relative flex w-full max-w-md flex-col space-y-6 rounded-xl bg-white p-8 shadow-2xl">
+    <div className="fixed inset-0 z-150 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg">
+      <Card className="relative flex w-full max-w-lg flex-col space-y-6 rounded-xl bg-white p-8 shadow-2xl">
         {/* Close Button */}
+
         <Button
           variant="ghost"
           className="absolute right-4 top-4 text-xl text-gray-600 hover:text-gray-900"
@@ -111,42 +112,40 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
           &times;
         </Button>
 
-        {/* Course Details */}
-        <div className="space-y-2 text-center">
-          <h2 className="text-2xl font-bold text-black">{course.name}</h2>
-          <p className="text-gray-500">{course.description}</p>
+        <div className="p-4  text-center">
+          <h2 className="text-6xl font-bold mb-2">Get 20% Off</h2>
+          <p className="text-gray-400">Use Promo Code <span className="font-bold text-black">DISCOUNT20</span> For First Purchase</p>
         </div>
-
-        <Separator />
 
         {/* Price Details */}
         <div className="rounded-lg bg-gray-100 p-4 text-center">
-          <p className="text-gray-600">
-            Original Price:{" "}
+          <p className="text mb-2 text-gray-500">
+            Original Price :{" "}
             <span className="line-through">${coursePrice.toFixed(2)}</span>
           </p>
           {discountApplied && (
-            <p className="text-red-500">
+            <p className="mb-2 text-black ">
               Discount: -${(coursePrice * 0.2).toFixed(2)}
             </p>
           )}
-          <p className="text-xl font-bold text-green-600">
-            Final Price: ${finalPrice}
+          <p className="text-4xl font-bold text-green-600">
+            Final Price : ${finalPrice}
           </p>
         </div>
 
         {/* Promo Code Section */}
-        <div className="flex flex-col space-y-3">
+        <div className="flex flex-col space-y-6">
           <Input
             type="text"
-            placeholder="Enter Promo Code"
-            className="bg-white text-gray-600"
+            placeholder="Enter Promo Code Here...."
+            className="h-12 w-full bg-white text-base text-gray-600 placeholder:text-base placeholder:text-gray-400 focus:outline-none focus:ring-0"
             value={promoCode}
             onChange={(e) => setPromoCode(e.target.value)}
           />
+
           <Button
             onClick={applyPromoCode}
-            className="w-full bg-blue-500 hover:bg-blue-600"
+            className="mt-4 h-12 w-full bg-black text-base hover:bg-blue-600"
           >
             Apply Code
           </Button>
@@ -155,14 +154,11 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
           )}
         </div>
 
-        <Separator />
-
-        {/* Proceed Button */}
         <Button
           onClick={handlePayment}
           disabled={isLoading}
-          className="w-full bg-green-500 py-3 text-lg hover:bg-green-600"
-        >
+          className="h-12 w-full bg-green-500 text-base hover:bg-green-600"
+          >
           {isLoading ? "Processing..." : "Proceed to Payment"}
         </Button>
       </Card>

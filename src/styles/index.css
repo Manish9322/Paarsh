@@ -129,3 +129,10 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+
+/* CSS BY MANISH SONAWANE */
+
+.swiper-button-prev:after, .swiper-button-next:after{
+  opacity: 0 !important;
+}

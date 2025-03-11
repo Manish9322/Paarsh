@@ -28,8 +28,9 @@ interface Category {
 
 const Courses = () => {
   const [isGrid, setIsGrid] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showMore, setShowMore] = useState(false); // State to manage showing more courses
+  const [selectedCategory, setSelectedCategory] = useState("");
+
 
   // TITLE CASE FUNCTION
 
@@ -37,7 +38,7 @@ const Courses = () => {
     return str.replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
-  // CATEGORY SECTION
+  // COURSES SECTION
 
   const {
     data: coursesData,
@@ -58,6 +59,7 @@ const Courses = () => {
 
   // CATEGORY SECTION
 
+
   const param = useSearchParams();
   const courseId = param.get("courseId");
 
@@ -69,29 +71,40 @@ const Courses = () => {
 
   const categories = categoryData?.data || [];
 
-  const category: Category = categoryData?.data;
-  console.log("Categories : ", category);
-
   const getRandomCategories = (categories, count) => {
     if (!Array.isArray(categories) || categories.length === 0) return [];
     const shuffled = [...categories].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
   };
 
-  const toggleDisplayStyle = () => {
-    setIsGrid(!isGrid);
-  };
-
   const handleCategoryClick = (category: string | null) => {
     setSelectedCategory(category);
+    setShowMore(false); // Reset showMore when changing category
   };
 
   const filteredCourses = selectedCategory
     ? coursesData?.data?.filter(course => course.tags.includes(selectedCategory))
     : coursesData?.data || [];
 
-  // Determine the courses to display based on the showMore state
   const displayedCourses = showMore ? filteredCourses : filteredCourses.slice(0, 6);
+
+  const toggleDisplayStyle = () => {
+    setIsGrid(!isGrid);
+  };
+
+  console.log("Fltered courses: ", filteredCourses);
+  console.log("category : ", categories)
+
+
+  // const handleCategoryClick = (category: string | null) => {
+  //   setSelectedCategory(category);
+  // };
+
+  // const filteredCourses = selectedCategory
+  //   ? coursesData?.data?.filter(course => course.tags.includes(selectedCategory))
+  //   : coursesData?.data || [];
+
+  // const displayedCourses = showMore ? filteredCourses : filteredCourses.slice(0, 6);
 
   return (
     <>
@@ -106,11 +119,11 @@ const Courses = () => {
           className="part-1 w-full md:pb-20 md:pt-8 lg:pb-28"
         >
           <div className="container">
-            <div className={isGrid ? "grid grid-cols-1 gap-x-2 gap-y-10 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col w-full"}>
+            <div className={isGrid ? "grid grid-cols-1 gap-x-5 gap-y-5 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col w-full"}>
               {isLoading ? (
                 // Directly render skeletons in the grid layout
                 Array(6).fill(0).map((_, index) => (
-                  <div key={index} className="w-full rounded-lg p-4 pt-14 shadow">
+                  <div key={index} className="w-full rounded-lg p-4 shadow">
                     {/* Skeleton for Image */}
                     <Skeleton height={200} width="100%" className="rounded-lg" />
 
@@ -187,7 +200,7 @@ const Courses = () => {
               {categoryLoading ? (
                 <Skeleton count={3} />
               ) : (
-                getRandomCategories(categoryData?.data, 6).map((category) => (
+                getRandomCategories(categories, 6).map((category) => (
                   <li key={category._id}>
                     <a
                       href="#0"

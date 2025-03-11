@@ -168,7 +168,7 @@ export function AddNewCourse() {
     }
   };
 
-  const handleRemoveItem = (field, action) => (index,e) => {
+  const handleRemoveItem = (field, action) => (index, e) => {
     e.preventDefault();
     dispatch(action(index));
   };
@@ -199,6 +199,9 @@ export function AddNewCourse() {
       removeAction: removeTag,
     },
   ];
+
+  console.log("course subcategories : ", course.subcategoryName);
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -303,14 +306,21 @@ export function AddNewCourse() {
           <div className="flex gap-4">
             <div className="w-1/2">
               <Label htmlFor="level">Difficulty Level</Label>
-              <Input
-                id="level"
-                name="level"
-                className="mt-2 w-full"
-                type="text"
-                {...register("level")}
-                onChange={(e) => handleChange("level", e.target.value)}
-              />
+              <Select
+                onValueChange={(value) => {
+                  handleSelectChange("level", value);
+                  setValue("level", value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
               {errors.level && (
                 <p className="text-red-500">{errors.level.message}</p>
               )}
