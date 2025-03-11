@@ -11,6 +11,12 @@ const courseVideoSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    enrolledUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     topics: [
       {
         topicName: { type: String, required: true },
