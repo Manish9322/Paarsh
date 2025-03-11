@@ -8,9 +8,14 @@ import menuData from "./menuData";
 import Profile from "./Profile";
 import { useSelector } from "react-redux";
 import { selectRootState } from "@/lib/store";
-
+import { Rocket } from "lucide-react";
+import { useRouter } from "next/navigation";
 const Header = () => {
-  //sign in button hide
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push("/userdashboard");
+  };
 
   const isAuthenticated = useSelector(
     (state) => selectRootState(state).userAuth.isAuthenticated,
@@ -73,7 +78,7 @@ const Header = () => {
                 +91 90752 01035
               </p>
             </li>
-            <li className="email mr-6 flex items-center dark:text-body-color-dark dark:hover:text-primary">
+            <li className="email flex items-center dark:text-body-color-dark dark:hover:text-primary">
               <svg
                 className="mr-3 text-gray-100 dark:text-primary dark:hover:text-primary"
                 width="24"
@@ -224,9 +229,9 @@ const Header = () => {
 
 
       <header
-        className={`header left-0 top-0 z-40 flex w-full items-center ${
+        className={`header pt-16 md:pt-0 left-0 top-0 z-40 flex w-full  ${
           sticky
-            ? "fixed z-[9999] bg-white !bg-opacity-80 shadow-sticky backdrop-blur-sm transition dark:bg-gray-dark dark:shadow-sticky-dark"
+            ? "fixed z-[9999] !pt-0 md:pt-0 bg-white !bg-opacity-80 shadow-sticky backdrop-blur-sm transition dark:bg-gray-dark dark:shadow-sticky-dark"
             : "absolute mt-16 bg-transparent"
         }`}
       >
@@ -341,35 +346,43 @@ const Header = () => {
                   </ul>
                 </nav>
               </div>
-              <div className="flex items-center justify-end pr-16 lg:pr-0">
+              <div className="flex items-center justify-end lg:pr-0">
                 <div>
                   <ThemeToggler />
                 </div>
+            
 
                 {isAuthenticated ? (
+                      <>
+                  <div>
+                 
+                  <button 
+                   onClick={handleClick}
+                  className="flex items-center justify-center gap-1 px-4 py-2 rounded-3xl bg-[#1E2A47] text-white shadow-md hover:bg-[#16203A] transition duration-300 dark:bg-[#1B1F3B] dark:hover:bg-[#13172E] 
+      text-sm sm:text-base w-full sm:w-auto">
+      
+      <span className="hidden sm:inline font-medium">Dashboard</span>
+      
+      <Rocket size={16} />
+    </button>
+
+                  </div>
                   <div>
                     <Profile />
+                 
                   </div>
-                ) : (
+                  </>
+                ) : (<>
                   <Link
                     href="/signin"
-                    className=" px-7 py-3 text-base font-medium text-dark hover:opacity-70 dark:text-white md:block"
+                    className=" px-3 py-3 text-base font-medium text-dark hover:opacity-70 dark:text-white md:block"
                   >
                     Sign In
                   </Link>
+             
+                  </>
                 )}
-                {/* <Link
-                  href="/signin"
-                  className="hidden px-7 py-3 text-base font-medium text-dark hover:opacity-70 dark:text-white md:block"
-                >
-                  Sign In
-                </Link> */}
-                {/* <div>
-                  <ThemeToggler />
-                </div> */}
-                {/* <div>
-                  <Profile />
-                </div> */}
+                
               </div>
             </div>
           </div>

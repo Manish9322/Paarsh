@@ -5,6 +5,26 @@ import { authMiddleware } from "../../../../middlewares/auth";
 
 _db();
 
+// Function to generate a unique referral code
+const generateUniqueReferralCode = async (firstName, lastName) => {
+  let referralCode;
+  let isUnique = false;
+
+  while (!isUnique) {
+    const initials = (firstName[0] + lastName[0]).toUpperCase(); // Extract initials (e.g., "John Doe" → "JD")
+    const randomNumber = Math.floor(1000 + Math.random() * 9000); // Generate a 4-digit random number
+    referralCode = `${initials}${randomNumber}`; // Example: "JD1234"
+
+    // Check if referral code already exists
+    const existingAgent = await AgentModel.findOne({ referralCode });
+    if (!existingAgent) {
+      isUnique = true;
+    }
+  }
+
+  return referralCode;
+};
+
 // Create Agent
 export const POST = authMiddleware(async (request) => {
   try {
@@ -35,6 +55,9 @@ export const POST = authMiddleware(async (request) => {
       );
     }
 
+    // Generate a unique referral code
+    const referralCode = await generateUniqueReferralCode(firstName, lastName);
+
     const newAgent = new AgentModel({
       firstName,
       lastName,
@@ -43,6 +66,7 @@ export const POST = authMiddleware(async (request) => {
       gender,
       state,
       city,
+      referralCode,
     });
 
     await newAgent.save();

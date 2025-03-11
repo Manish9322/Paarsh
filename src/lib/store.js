@@ -1,32 +1,32 @@
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import courseReducer from '../lib/slices/courseSlice';
-import { paarshEduApi } from '../services/api';
-import authReducer from '../lib/slices/authSlice'
-import agentReducer from '../lib/slices/agentSlice'
-import categoryReducer from '../lib/slices/categorySlice'
-import subCategoryReducer from '../lib/slices/subCategorySlice'
-import userAuthReducer from '../lib/slices/userAuthSlice'
-import courseVideoReducer from '../lib/slices/courseVideoSlice'
-import paymentReducer from '../lib/slices/paymentSlice'
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
+import courseReducer from "../lib/slices/courseSlice";
+import { paarshEduApi } from "../services/api";
+import authReducer from "../lib/slices/authSlice";
+import agentReducer from "../lib/slices/agentSlice";
+import categoryReducer from "../lib/slices/categorySlice";
+import subCategoryReducer from "../lib/slices/subCategorySlice";
+import userAuthReducer from "../lib/slices/userAuthSlice";
+import courseVideoReducer from "../lib/slices/courseVideoSlice";
+import paymentReducer from "../lib/slices/paymentSlice";
 
 // Combine all reducers
 const rootReducer = combineReducers({
   course: courseReducer,
   auth: authReducer,
   agent: agentReducer,
-  category:categoryReducer,
-  subcategory:subCategoryReducer,
-  userAuth : userAuthReducer,
+  category: categoryReducer,
+  subcategory: subCategoryReducer,
+  userAuth: userAuthReducer,
   coursevideo: courseVideoReducer,
-  payment:paymentReducer,
-  
+  payment: paymentReducer,
+
   [paarshEduApi.reducerPath]: paarshEduApi.reducer, // Include RTK Query API slice
 });
 
-
 // Configure store
-export const makeStore = configureStore({
+export const store = configureStore({
   reducer: rootReducer,
+
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false, // Disable for non-serializable values
@@ -34,4 +34,3 @@ export const makeStore = configureStore({
 });
 
 export const selectRootState = (state) => state;
-

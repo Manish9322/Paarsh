@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
 import { useState ,useEffect} from "react";
-import { resetForm, setAuthData } from "@/lib/slices/userAuthSlice";
+import { resetForm, setAuthData } from "../../lib/slices/userAuthSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -38,12 +38,16 @@ const SigninPage = () => {
           dispatch(setAuthData({ accessToken, refreshToken, user }));
           toast.success("Login Successful", { description: response?.message });
 
+          // dispatch(resetForm({ formName: "loginForm" }));
           dispatch(resetForm({ formName: "loginForm" }));
+
+          // Reset Formik form state
+          
 
           // 🔥 Force UI update instantly
          window.dispatchEvent(new Event("storage"));
 
-          router.push(response?.redirect || `/dashboard`);
+          router.push(response?.redirect || `/userdashboard`);
         } else {
           toast.error("Login Failed", {
             description: response?.error || "An error occurred.",
@@ -60,15 +64,15 @@ const SigninPage = () => {
   });
 
 
-   useEffect(() => {
-      // Hide scrollbar
-      document.body.style.overflow = "hidden";
+  //  useEffect(() => {
+  //     // Hide scrollbar
+  //     document.body.style.overflow = "hidden";
   
-      // Cleanup function to reset when component unmounts
-      return () => {
-        document.body.style.overflow = "auto";
-      };
-    }, []);
+  //     // Cleanup function to reset when component unmounts
+  //     return () => {
+  //       document.body.style.overflow = "auto";
+  //     };
+  //   }, []);
 
   return (
     <section className="relative z-10 overflow-hidden pb-16 pt-36 md:pb-20 lg:pb-28 lg:pt-[70px]">

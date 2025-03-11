@@ -17,7 +17,7 @@ export const paarshEduApi = createApi({
     credentials: "include",
   }),
 
-  tagTypes: ["Course", "Agent"],
+  tagTypes: ["Course", "Agent","Category","SubCategory","CourseVideo","Payment"],
 
   endpoints: (builder) => ({
     // ----------------------------------------------------User Apis---------------------------------------------

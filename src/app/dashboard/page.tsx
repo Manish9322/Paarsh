@@ -4,7 +4,14 @@ import Image from "next/image";
 import { CiGrid41 } from "react-icons/ci";
 import { TbLayoutList } from "react-icons/tb";
 import { PiCertificateLight } from "react-icons/pi";
+import { FaUser, FaCertificate, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
 
+const sidebarItems = [
+  { name: "Profile", icon: <FaUser />, category: "profile" },
+  { name: "Certificates", icon: <FaCertificate />, category: "certificate" },
+  { name: "FAQs", icon: <FaQuestionCircle />, category: "faqs" },
+  { name: "Logout", icon: <FaSignOutAlt />, category: "logout" },
+];
 
 const courses = [
   {
@@ -122,7 +129,28 @@ function DashboardCards() {
     }, [isModalOpen]);
 
   return (
-    <div className="container my-20 px-4 py-8">
+
+<div className="container my-20 px-4 py-8">
+
+<div className="w-64 h-screen bg-gray-800 text-white p-6 flex flex-col fixed">
+        <div className="flex items-center mb-6">
+          <Image src="/images/logo.png" alt="Logo" width={40} height={40} />
+          <h2 className="text-xl font-bold ml-2">Dashboard</h2>
+        </div>
+        <ul className="space-y-4">
+          {sidebarItems.map((item, index) => (
+            <li
+              key={index}
+              className="flex items-center p-2 cursor-pointer hover:bg-gray-700 rounded"
+              onClick={() => setSelectedCategory(item.category)}
+            >
+              <span className="mr-3">{item.icon}</span>
+              {item.name}
+            </li>
+          ))}
+        </ul>
+      </div>
+
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {cardData.map((card, index) => (
         <div

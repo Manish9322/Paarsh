@@ -23,15 +23,15 @@ import { useRouter } from "next/navigation";
 // };
 
 const SignupPage = () => {
-  useEffect(() => {
-    // Hide scrollbar
-    document.body.style.overflow = "hidden";
+  // useEffect(() => {
+  //   // Hide scrollbar
+  //   document.body.style.overflow = "hidden";
 
-    // Cleanup function to reset when component unmounts
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, []);
+  //   // Cleanup function to reset when component unmounts
+  //   return () => {
+  //     document.body.style.overflow = "auto";
+  //   };
+  // }, []);
 
 
 
@@ -71,7 +71,7 @@ const SignupPage = () => {
             description: response?.message,
           });
           dispatch(resetForm({ formName: "signupForm" }));
-          router.push(response?.data?.redirect || `/dashboard`);
+          router.push(response?.data?.redirect || `/userdashboard`);
         } else {
           toast.error("Registration Failed", {
             description: response?.error || "An error occurred.",
