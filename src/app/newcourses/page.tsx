@@ -30,24 +30,34 @@ const Courses = () => {
   const [isGrid, setIsGrid] = useState(true);
   const [showMore, setShowMore] = useState(false); // State to manage showing more courses
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
+  const param = useSearchParams();
+  const courseId = param.get("courseId");
 
   // TITLE CASE FUNCTION
-
   const toTitleCase = (str: string) => {
     return str.replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
   // COURSES SECTION
-
   const {
     data: coursesData,
     error,
   } = useFetchCourcesQuery(undefined);
 
+  // CATEGORY SECTION
+  const {
+    data: categoryData,
+    isLoading: categoryLoading,
+    error: categoryError,
+  } = useFetchCategoriesQuery(courseId);
+
+  const categories = categoryData?.data || [];
+  const visibleCategories = showAll ? categories : categories.slice(0, 4);
+
   const isLoading = !coursesData;
   console.log("Courses Data", coursesData);
-  // console.log(courseData.data);
 
   const getRandomCourses = (courses, count = 3) => {
     if (!courses || courses.length === 0) return [];
@@ -56,20 +66,6 @@ const Courses = () => {
   };
 
   const randomCourses = useMemo(() => getRandomCourses(coursesData?.data, 3), [coursesData]);
-
-  // CATEGORY SECTION
-
-
-  const param = useSearchParams();
-  const courseId = param.get("courseId");
-
-  const {
-    data: categoryData,
-    isLoading: categoryLoading,
-    error: categoryError,
-  } = useFetchCategoriesQuery(courseId);
-
-  const categories = categoryData?.data || [];
 
   const getRandomCategories = (categories, count) => {
     if (!Array.isArray(categories) || categories.length === 0) return [];
@@ -83,8 +79,7 @@ const Courses = () => {
   };
 
   const filteredCourses = selectedCategory
-    ? coursesData?.data?.filter(course => course.tags.includes(selectedCategory))
-    : coursesData?.data || [];
+    ? (coursesData?.data || []).filter((course: { category: string; }) => course.category === selectedCategory) : coursesData?.data || [];
 
   const displayedCourses = showMore ? filteredCourses : filteredCourses.slice(0, 6);
 
@@ -92,19 +87,8 @@ const Courses = () => {
     setIsGrid(!isGrid);
   };
 
-  console.log("Fltered courses: ", filteredCourses);
+  console.log("Filtered courses: ", filteredCourses);
   console.log("category : ", categories)
-
-
-  // const handleCategoryClick = (category: string | null) => {
-  //   setSelectedCategory(category);
-  // };
-
-  // const filteredCourses = selectedCategory
-  //   ? coursesData?.data?.filter(course => course.tags.includes(selectedCategory))
-  //   : coursesData?.data || [];
-
-  // const displayedCourses = showMore ? filteredCourses : filteredCourses.slice(0, 6);
 
   return (
     <>
@@ -113,11 +97,10 @@ const Courses = () => {
         description="Discover a wide range of courses designed to enhance your skills, boost your knowledge, and help you achieve your goals—learn at your own pace anytime, anywhere!"
       />
 
-      <div className="main-container flex px-10">
+      <div className="main-container flex flex-col md:flex-row px-4 md:px-10">
         <section
           id="courses"
-          className="part-1 w-full md:pb-20 md:pt-8 lg:pb-28"
-        >
+          className="part-1 w-full mt-4 md:mt-0 md:pb-20 md:pt-8 lg:pb-28"        >
           <div className="container">
             <div className={isGrid ? "grid grid-cols-1 gap-x-5 gap-y-5 md:grid-cols-2 xl:grid-cols-3" : "flex flex-col w-full"}>
               {isLoading ? (
@@ -125,31 +108,39 @@ const Courses = () => {
                 Array(6).fill(0).map((_, index) => (
                   <div key={index} className="w-full rounded-lg p-4 shadow">
                     {/* Skeleton for Image */}
-                    <Skeleton height={200} width="100%" className="rounded-lg" />
+                    <Skeleton height={200} width="100%" className="rounded-lg dark:bg-gray-800 dark:text-gray-900" />
 
                     {/* Skeleton for Heading */}
-                    <Skeleton height={20} width="80%" className="mt-4" />
+                    <Skeleton height={20} width="80%" className="mt-4 dark:bg-gray-800  dark:text-gray-900" />
 
                     {/* Skeleton for Tagline */}
-                    <Skeleton height={10} width="60%" className="mt-4" />
-                    <Skeleton height={10} width="60%" className="" />
-                    <Skeleton height={10} width="60%" className="" />
+                    <Skeleton height={10} width="60%" className="mt-4 dark:bg-gray-800  dark:text-gray-900" />
+                    <Skeleton height={10} width="60%" className=" dark:bg-gray-800  dark:text-gray-900" />
+                    <Skeleton height={10} width="60%" className=" dark:bg-gray-800 dark:text-gray-900" />
 
                     {/* Skeleton for Tags */}
                     <div className="flex mt-2">
                       {Array(5).fill(0).map((_, tagIndex) => (
-                        <Skeleton key={tagIndex} height={10} width={30} className={`mr-2 ${tagIndex === 4 ? 'mr-0' : ''}`} />
+                        <Skeleton key={tagIndex} height={10} width={30} className={`mr-2  dark:bg-gray-800 ${tagIndex === 4 ? 'mr-0' : ''}`} />
                       ))}
                     </div>
                   </div>
                 ))
               ) : (
-                // Render actual courses when not loading
-                displayedCourses.map((course) => (
-                  <div key={course.id ?? course.courseName} className="w-full">
-                    <SingleCourse course={course} isGrid={isGrid} />
-                  </div>
-                ))
+                <>
+                  {displayedCourses.length === 0 ? (
+                    <div className="w-full flex items-center justify-center text-base font-medium leading-relaxed text-body-color">
+                      Note : Does Not Have Courses To Display In this Category.
+                    </div>
+                  ) : (
+                    // Render actual courses when not loading
+                    displayedCourses.map((course) => (
+                      <div key={course.id ?? course.courseName} className="w-full lg:mr-6">
+                        <SingleCourse course={course} isGrid={isGrid} />
+                      </div>
+                    ))
+                  )}
+                </>
               )}
             </div>
 
@@ -167,28 +158,34 @@ const Courses = () => {
           </div>
         </section>
 
-        <aside className="part-2 w-1/3 my-8 mr-8">
-          <div className="rounded mb-4 flex w-fit p-1 px-1 border">
-            <button
-              onClick={toggleDisplayStyle}
-              className={`p-1 mr-1 rounded ${isGrid ? 'bg-blue-500 text-white' : ''}`}
-            >
-              <CiGrid41 className="text-2xl" />
-            </button>
-            <button
-              onClick={toggleDisplayStyle}
-              className={`p-1 rounded ${!isGrid ? 'bg-blue-500 text-white' : ''}`}
-            >
-              <TbLayoutList className="text-2xl" />
-            </button>
+        {/* ASIDE SECTION */}
+        <aside className="part-2 w-full md:w-1/3 my-8 mr-8 lg:ml-1 sticky top-20 h-fit">
+
+          {/*TOGGLE BUTTON FOR LIST VIEW */}
+          <div className="w-full flex lg:justify-start sm:justify-center">
+            <div className="sm:w-fit rounded mb-4 flex p-2 border items-center justify-center sm:justify-start sm:p-1">
+              <button
+                onClick={toggleDisplayStyle}
+                className={`p-2 sm:p-1 rounded ${isGrid ? 'bg-blue-500 text-white' : ''}`}
+              >
+                <CiGrid41 className="text-2xl" />
+              </button>
+              <button
+                onClick={toggleDisplayStyle}
+                className={`p-2 sm:p-1 rounded ${!isGrid ? 'bg-blue-500 text-white' : ''}`}
+              >
+                <TbLayoutList className="text-2xl" />
+              </button>
+            </div>
           </div>
 
-          <div className="shadow-three dark:bg-gray-dark mb-10 mt-12 rounded-sm bg-white dark:shadow-none lg:mt-0">
-            <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
+          {/* POPULAR CATEGORIES */}
+          <div className="shadow-three dark:bg-gray-dark mb-10 mt-12 rounded-sm bg-white dark:shadow-none lg:mt-0 w-full sm:w-auto">
+            <h3 className="border-b border-body-color border-opacity-10 px-4 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white text-center sm:text-left sm:px-8 sm:py-4">
               Popular Categories
             </h3>
-            <ul className="px-8 py-6">
-              <li>
+            <ul className="px-4 py-4 sm:px-8 sm:py-6">
+              <li className="text-center sm:text-left">
                 <a
                   href="#0"
                   onClick={() => handleCategoryClick(null)}
@@ -197,45 +194,81 @@ const Courses = () => {
                   ALL COURSES
                 </a>
               </li>
+
               {categoryLoading ? (
-                <Skeleton count={3} />
+                <Skeleton count={3} className="dark:bg-gray-800" />
               ) : (
-                getRandomCategories(categories, 6).map((category) => (
-                  <li key={category._id}>
-                    <a
-                      href="#0"
-                      onClick={() => handleCategoryClick(category.name)}
-                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                <>
+                  {visibleCategories.map((category) => (
+                    <li key={category._id} className="text-center sm:text-left">
+                      <a
+                        href="#0"
+                        onClick={() => handleCategoryClick(category.name)}
+                        className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                      >
+                        {toTitleCase(category.name)}
+                      </a>
+                    </li>
+                  ))}
+
+                  {categories.length > 4 && (
+                    <li className="text-center sm:text-left">
+                      <button
+                        onClick={() => setShowAll(!showAll)}
+                        className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                      >
+                        {showAll ? "SHOW LESS" : "SHOW MORE"}
+                      </button>
+                    </li>
+                  )}
+                </>
+              )}
+            </ul>
+          </div>
+
+          <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none w-full sm:w-auto">
+            <h3 className="border-b border-body-color border-opacity-10 px-4 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white text-center sm:text-left sm:px-8 sm:py-4">
+              Related Courses
+            </h3>
+            <ul className="p-4 sm:p-8">
+              {isLoading ? (
+                <>
+                  {[...Array(3)].map((_, index) => (
+                    <li
+                      key={index}
+                      className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10"
                     >
-                      {toTitleCase(category.name)}
-                    </a>
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
+                        {/* Skeleton for course image */}
+                        <Skeleton height={60} width={60} className="rounded-md dark:bg-gray-800" />
+                        <div className="flex flex-col text-center sm:text-left">
+                          {/* Skeleton for course title */}
+                          <Skeleton height={20} width={200} className="mb-2 dark:bg-gray-800" />
+                          {/* Skeleton for course details */}
+                          <Skeleton height={14} width={150} className="dark:bg-gray-800" />
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </>
+              ) : (
+                // Show actual course data when loaded
+                randomCourses.map((course) => (
+                  <li
+                    key={course.id ?? course.courseName}
+                    className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10"
+                  >
+                    <RelatedPost
+                      title={course.courseName}
+                      image={course.image || "/images/blog/blog-01.jpg"}
+                      slug={`/${course.slug || "#"}`}
+                      level={course.level || "N/A"}
+                      duration={course.duration || "Unknown"}
+                      certificate={course.certificate || "Unknown"}
+                    />
                   </li>
                 ))
               )}
-            </ul>
-
-          </div>
-
-          <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none">
-            <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
-              Related Courses
-            </h3>
-            <ul className="p-8">
-              {randomCourses.map((course) => (
-                <li
-                  key={course.id ?? course.courseName}
-                  className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10"
-                >
-                  <RelatedPost
-                    title={course.courseName}
-                    image={course.image || "/images/blog/blog-01.jpg"}
-                    slug={`/${course.slug || "#"}`}
-                    level={course.level || "N/A"}
-                    duration={course.duration || "Unknown"}
-                    certificate={course.certificate || "Unknown"}
-                  />
-                </li>
-              ))}
             </ul>
           </div>
 
