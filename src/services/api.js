@@ -17,7 +17,14 @@ export const paarshEduApi = createApi({
     credentials: "include",
   }),
 
-  tagTypes: ["Course", "Agent","Category","SubCategory","CourseVideo","Payment"],
+  tagTypes: [
+    "Course",
+    "Agent",
+    "Category",
+    "SubCategory",
+    "CourseVideo",
+    "Payment",
+  ],
 
   endpoints: (builder) => ({
     // ----------------------------------------------------User Apis---------------------------------------------
@@ -223,6 +230,13 @@ export const paarshEduApi = createApi({
         body: paymentData,
       }),
     }),
+
+    // --------------------------------------------------------------------------------------------------------------
+
+    fetchUserCourse: builder.query({
+      query: () => "/user/course",
+      providesTags: [""],
+    }),
   }),
 });
 
@@ -256,6 +270,8 @@ export const {
   useDeleteSubCategoriesMutation,
 
   useAddCourseVideoMutation,
+
+  useFetchUserCourseQuery,
 
   useCreateOrderMutation,
   useVerifyPaymentMutation,
