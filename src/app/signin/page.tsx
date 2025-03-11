@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useFormik } from "formik";
 import { useState ,useEffect} from "react";
-import { resetForm, setAuthData } from "@/lib/slices/userAuthSlice";
+import { resetForm, setAuthData } from "../../lib/slices/userAuthSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -38,7 +38,11 @@ const SigninPage = () => {
           dispatch(setAuthData({ accessToken, refreshToken, user }));
           toast.success("Login Successful", { description: response?.message });
 
+          // dispatch(resetForm({ formName: "loginForm" }));
           dispatch(resetForm({ formName: "loginForm" }));
+
+          // Reset Formik form state
+          
 
           // 🔥 Force UI update instantly
          window.dispatchEvent(new Event("storage"));

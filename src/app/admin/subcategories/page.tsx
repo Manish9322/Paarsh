@@ -43,6 +43,8 @@ const SubcategoriesPage: React.FC = () => {
   const { data: subcategoryData, isLoading, error } = useFetchSubCategoriesQuery(undefined);
   const subcategories: Subcategory[] = subcategoryData?.data || [];
 
+  console.log("Subcategory Data: ", subcategoryData);
+
   const [_DELETE_SUBCATEGORY] = useDeleteSubCategoriesMutation();
 
   const totalPages = Math.ceil(subcategories.length / itemsPerPage);
@@ -62,11 +64,7 @@ const SubcategoriesPage: React.FC = () => {
 
   return (
     <div className="flex h-screen flex-col bg-gray-100">
-      <nav className="fixed top-0 z-10 flex w-full items-center justify-between bg-white p-4 shadow-md">
-        <h1 className="ml-20 text-3xl font-semibold text-black">PaarshEdu</h1>
-        <Button className="mr-8 bg-blue-500 text-white hover:bg-blue-600">Logout</Button>
-      </nav>
-
+   
       <div className="flex flex-1 pt-16">
         <div className="fixed bg-white shadow-md md:relative">
           <Sidebar />

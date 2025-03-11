@@ -12,7 +12,7 @@ export const POST = authMiddleware(async (request) => {
       await request.json();
 
       console.log("cateedgoryNAme ", categoryName);
-      console.log("subcategoryNamw",subcategoryName);
+      console.log("subcategoryName",subcategoryName);
 
     if (!categoryName || !subcategoryName || !description || !keywords) {
       return NextResponse.json(

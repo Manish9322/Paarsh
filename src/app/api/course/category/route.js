@@ -8,6 +8,7 @@ _db();
 // Create Category
 
 export const POST = authMiddleware(async (request) => {
+  
   try {
     const { name, description, keywords } = await request.json();
 

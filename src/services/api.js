@@ -17,7 +17,7 @@ export const paarshEduApi = createApi({
     credentials: "include",
   }),
 
-  tagTypes: ["Course", "Agent"],
+  tagTypes: ["Course", "Agent","Category","SubCategory","CourseVideo","Payment"],
 
   endpoints: (builder) => ({
     // ----------------------------------------------------User Apis---------------------------------------------
@@ -206,7 +206,22 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: formData,
       }),
-    
+    }),
+
+    //----------------------------------Payment ------------------------------------------------------------------------------
+    createOrder: builder.mutation({
+      query: ({ userId, courseId, amount }) => ({
+        url: "/createorder",
+        method: "POST",
+        body: { userId, courseId, amount },
+      }),
+    }),
+    verifyPayment: builder.mutation({
+      query: (paymentData) => ({
+        url: "/paymentverification",
+        method: "POST",
+        body: paymentData,
+      }),
     }),
   }),
 });
@@ -241,4 +256,7 @@ export const {
   useDeleteSubCategoriesMutation,
 
   useAddCourseVideoMutation,
+
+  useCreateOrderMutation,
+  useVerifyPaymentMutation,
 } = paarshEduApi;

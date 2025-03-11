@@ -105,14 +105,7 @@ const AdminPage: React.FC = () => {
   };
   return (
     <div className="flex h-screen flex-col bg-gray-100">
-      {/* Navbar */}
-      <nav className="fixed top-0 z-10 flex w-full items-center justify-between bg-white p-4 shadow-md">
-        <h1 className="ml-20 text-3xl font-semibold text-black">PaarshEdu</h1>
-        <Button className="mr-8 bg-blue-600 text-white hover:bg-blue-700">
-          Logout
-        </Button>
-      </nav>
-
+    
       {/* Sidebar & Main Content Wrapper */}
       <div className="flex flex-1 pt-16">
         {/* Sidebar */}
