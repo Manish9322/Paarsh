@@ -59,14 +59,14 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
   if (isAuthenticated && isAuthPage) {
     if (typeof window !== "undefined") {
-      window.location.href = "/dashboard"; // Redirect to dashboard
+      window.location.href = "/userdashboard"; // Redirect to dashboard
     }
     return null;
   }
 
   return (
     <>
-      {!isAdminPage && !isAuthPage && <Header />}
+      {!isAdminPage && !isAuthPage &&  <Header />}
       {children}
       {!isAdminPage && !isAuthPage && <Footer />}
       <ScrollToTop />

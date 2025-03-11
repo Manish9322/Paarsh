@@ -22,14 +22,10 @@ import { useFetchUserQuery } from "@/services/api";
 
 export default function Profile() {
 
-  const { data : userData, error, isLoading } = useFetchUserQuery(undefined);
-
-  console.log("Data",userData?.data);
-
-  // const users: User = userData?.data;
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const { data : userData, error, isLoading } = useFetchUserQuery(undefined);
+console.log("Data",userData?.data);
+const [isOpen, setIsOpen] = useState(false);
+ 
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -38,83 +34,13 @@ export default function Profile() {
     router.push("/"); // Redirect to Sign In page
   };
 
-  const toggleSidebar = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const closeSidebar = (e) => {
-    if (!e.target.closest("#sidebar") && isOpen) {
-      setIsOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener("click", closeSidebar);
-    } else {
-      document.removeEventListener("click", closeSidebar);
-    }
-    return () => document.removeEventListener("click", closeSidebar);
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isModalOpen) {
-      document.body.style.overflow = "hidden";  // Disable scrolling
-    } else {
-      document.body.style.overflow = "auto";  // Enable scrolling
-    }
-  }, [isModalOpen]);
-
- 
-const [editableUser, setEditableUser] = useState({
-  name: "",
-  email: "",
-  password: "",
-  mobile: "",
-  profilePic: null,
-});
-
-  
-// Populate the state when userData is available
-useEffect(() => {
-  if (userData?.data) {
-    setEditableUser({
-      name: userData.data.name || "",
-      email: userData.data.email || "",
-      password: "", // Keep empty for security
-      mobile: userData.data.mobile || "",
-      profilePic: null,
-    });
-  }
-}, [userData]);
-
-// Handle input changes
-const handleInputChange = (e) => {
-  const { name, value } = e.target;
-  setEditableUser((prev) => ({
-    ...prev,
-    [name]: value,
-  }));
+ const toggleMenu = () => {
+  setIsOpen(!isOpen);
 };
-
-// Handle file change
-const handleFileChange = (e) => {
-  setEditableUser((prev) => ({
-    ...prev,
-    profilePic: e.target.files[0], // Store file object
-  }));
-};
-
-// Function to submit the update (API call can be added here)
-const handleUpdate = () => {
-  console.log("Updated User Data:", editableUser);
-  setIsModalOpen(false);
-};
-
-  return (
+return (
     <div className="relative">
       {/* Profile Image Trigger */}
-      <div className="cursor-pointer p-2" onClick={toggleSidebar}>
+      <div className="cursor-pointer p-2" onClick={toggleMenu}>
         <Image
           src="/images/profile/profile.png"
           alt="Profile Picture"
@@ -124,146 +50,14 @@ const handleUpdate = () => {
         />
       </div>
 
-      {/* Sidebar */}
-      <div
-        id="sidebar"
-        className={`fixed right-0 top-0 h-screen w-72 transform bg-white text-black shadow-2xl transition-transform duration-300 ease-in-out dark:bg-gray-900 dark:text-white ${isOpen ? "translate-x-0" : "translate-x-full"}`}
-      >
-        <div className="flex items-center justify-between border-b border-gray-300 p-5 dark:border-gray-700">
-          <h2 className="text-lg font-bold">Profile</h2>
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md border border-gray-200 z-50">
           <button
-            onClick={() => setIsOpen(false)}
-            className="text-black dark:text-white"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* Profile Section */}
-        <div className="relative flex flex-col items-center border-b border-gray-300 p-6 dark:border-gray-700">
-          <div className="relative">
-            <Image
-              src="/images/profile/profile.png"
-              alt="Profile Picture"
-              width={80}
-              height={80}
-              className="rounded-full border-2 border-gray-300 shadow-md"
-            />
-            <button
-              className="absolute bottom-0 right-0 rounded-full bg-gray-200 p-2 transition-colors hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <Camera size={20} className="text-black dark:text-white" />
-            </button>
-          </div>
-          <h3 className="mt-3 text-lg font-semibold">{userData?.data?.name || "User Name"}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-          {userData?.data?.email || "user@example.com"}
-          </p>
-        </div>
-
-        {/* Sidebar Menu */}
-        <div className="space-y-2 p-4">
-          {[
-            { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
-            { icon: BookOpen, label: "My Course", href: "/my-course" },
-            {
-              icon: GraduationCap,
-              label: "My Certificate",
-              href: "/",
-            },
-            {
-              icon: User,
-              label: "My Question Bank",
-              href: "/my-question-bank",
-            },
-            { icon: MessageSquare, label: "Message Box", href: "/message-box" },
-            { icon: HelpCircle, label: "FAQs", href: "/faqs" },
-          ].map((item) => (
-            <React.Fragment key={item.href}>
-              <Link href={item.href} passHref>
-                <div
-                  className="flex cursor-pointer items-center space-x-3 rounded-md p-3 hover:bg-gray-300 dark:hover:bg-gray-700"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <item.icon size={20} />
-                  <span>{item.label}</span>
-                </div>
-              </Link>
-              <hr className="border-gray-300 dark:border-gray-700" />
-            </React.Fragment>
-          ))}
-
-          {/* Logout Button */}
-          <div
-            className="flex cursor-pointer items-center space-x-3 rounded-md p-3 text-red-500 hover:bg-red-600 hover:text-white"
             onClick={handleLogout}
+            className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
           >
-            <LogOut size={20} />
-            <span>Logout</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Modal for Profile Picture Update */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-96 rounded-lg bg-white p-8 text-center shadow-2xl dark:bg-gray-900 md:w-[35rem]">
-            <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">
-              Update Profile
-            </h2>
-
-            <div className="space-y-4">
-              <input
-                type="text"
-                name="name"
-                value={editableUser.name}
-                onChange={handleInputChange}
-                placeholder="Enter your full name"
-                className="block w-full rounded-lg border p-3 shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              />
-              <input
-                type="email"
-                name="email"
-                value={editableUser.email}
-                onChange={handleInputChange}
-                placeholder="Enter your email"
-                className="block w-full rounded-lg border p-3 shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              />
-              <input
-                type="password"
-                name="password"
-                value={editableUser.password}
-                onChange={handleInputChange}
-                placeholder="Enter your password"
-                className="block w-full rounded-lg border p-3 shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              />
-              <input
-                type="tel"
-                name="mobile"
-                value={editableUser.mobile}
-                onChange={handleInputChange}
-                placeholder="Enter your mobile number"
-                className="block w-full rounded-lg border p-3 shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              />
-              <input
-                type="file"
-                className="block w-full rounded-lg border p-3 shadow-sm focus:ring-2 focus:ring-blue-500 dark:bg-gray-800"
-              />
-            </div>
-
-            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                className="rounded-lg bg-gray-300 p-3 shadow-md transition-colors hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600"
-                onClick={() => setIsModalOpen(false)}
-              >
-                Cancel
-              </button>
-              <button className="rounded-lg bg-black p-3 text-white shadow-md transition-colors hover:bg-blue-700 dark:bg-gray-700 dark:hover:bg-blue-600">
-                Update
-              </button>
-            </div>
-          </div>
+            Logout
+          </button>
         </div>
       )}
     </div>

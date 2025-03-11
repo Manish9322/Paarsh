@@ -8,9 +8,14 @@ import menuData from "./menuData";
 import Profile from "./Profile";
 import { useSelector } from "react-redux";
 import { selectRootState } from "@/lib/store";
-
+import { Rocket } from "lucide-react";
+import { useRouter } from "next/navigation";
 const Header = () => {
-  //sign in button hide
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push("/userdashboard");
+  };
 
   const isAuthenticated = useSelector(
     (state) => selectRootState(state).userAuth.isAuthenticated,
@@ -348,9 +353,25 @@ const Header = () => {
             
 
                 {isAuthenticated ? (
+                      <>
+                  <div>
+                 
+                  <button 
+                   onClick={handleClick}
+                  className="flex items-center justify-center gap-1 px-4 py-2 rounded-3xl bg-[#1E2A47] text-white shadow-md hover:bg-[#16203A] transition duration-300 dark:bg-[#1B1F3B] dark:hover:bg-[#13172E] 
+      text-sm sm:text-base w-full sm:w-auto">
+      
+      <span className="hidden sm:inline font-medium">Dashboard</span>
+      
+      <Rocket size={16} />
+    </button>
+
+                  </div>
                   <div>
                     <Profile />
+                 
                   </div>
+                  </>
                 ) : (<>
                   <Link
                     href="/signin"
@@ -358,12 +379,7 @@ const Header = () => {
                   >
                     Sign In
                   </Link>
-                  <button className="px-6 py-3 rounded-2xl shadow-md text-white font-semibold transition-all duration-300
-  bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-gray-800 dark:to-gray-900 
-  hover:from-blue-600 hover:to-indigo-700 dark:hover:from-gray-700 dark:hover:to-gray-800
-  focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-gray-600">
-  Dashboard
-</button>
+             
                   </>
                 )}
                 
