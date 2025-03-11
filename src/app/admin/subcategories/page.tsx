@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import AddSubCategoryModal from "../../../components/Categories/AddSubCategory"
 import EditSubCategoryModal from "@/components/Categories/EditSubCategory";
 import { useDeleteSubCategoriesMutation, useFetchSubCategoriesQuery } from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
 interface Subcategory {
   id: number;
   _id: string;
@@ -90,15 +91,28 @@ const SubcategoriesPage: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="p-4 text-center">Loading...</TableCell>
-                    </TableRow>
-                  ) : error ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="p-4 text-center text-red-500">Failed to load subcategories</TableCell>
-                    </TableRow>
-                  ) : displayedSubcategories.length === 0 ? (
+                {isLoading
+                    ? Array.from({ length: 7 }).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Skeleton className="h-4 w-6" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-20" />
+                          </TableCell>
+                          <TableCell className="flex justify-center gap-4">
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                          </TableCell>
+                        </TableRow>
+                      )) : displayedSubcategories.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="p-4 text-center">No subcategories available</TableCell>
                     </TableRow>

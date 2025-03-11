@@ -14,7 +14,8 @@ import {
 import { ChevronUp, ChevronDown, Eye, Trash2 } from "lucide-react";
 import { useDeleteAgentMutation, useFetchAgentQuery } from "@/services/api";
 import { toast } from "sonner";
-import AddCourseModal from "../../../../../components/Courses/AddCourseVideo";
+import AddCourseModal from "../../../../components/Courses/AddCourseVideo";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CourseVideo {
   _id: string;
@@ -130,13 +131,28 @@ const CourseVideoPage: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : (
+              {isLoading
+                    ? Array.from({ length: 7 }).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Skeleton className="h-4 w-6" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-20" />
+                          </TableCell>
+                          <TableCell className="flex justify-center gap-4">
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                          </TableCell>
+                        </TableRow>
+                      )) : (
                   displayedCourses.map((course, index) => (
                     <TableRow
                       key={course.id}

@@ -12,13 +12,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ChevronUp, ChevronDown, Eye, Pencil, Trash, Trash2, Edit } from "lucide-react";
+import {
+  ChevronUp,
+  ChevronDown,
+  Eye,
+  Pencil,
+  Trash,
+  Trash2,
+  Edit,
+} from "lucide-react";
 import {
   useDeleteAgentMutation,
   useFetchUsersQuery,
 } from "../../../services/api";
 import AddAgentModal from "../../../components/Agent/AddAgent";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Define Agent type
 interface Users {
@@ -43,7 +52,7 @@ const UserPage: React.FC = () => {
   const users: Users[] = userData?.data || [];
   const startIndex = (currentPage - 1) * agentsPerPage;
 
-  console.log("Users data",users);
+  console.log("Users data", users);
 
   const handleSort = (field: keyof Users) => {
     setSortField(field);
@@ -89,12 +98,10 @@ const UserPage: React.FC = () => {
     }
   };
 
-  console.log("displayedUsers Are",displayedAgents)
-  
+  console.log("displayedUsers Are", displayedAgents);
 
   return (
     <div className="flex h-screen flex-col bg-gray-100">
-     
       <div className="flex flex-1 pt-16">
         <Sidebar />
         <div className="ml-64 mt-20 flex-1 overflow-auto p-6">
@@ -123,55 +130,56 @@ const UserPage: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center">
-                        Loading...
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    displayedAgents.map((agent, index) => (
-                      <TableRow
-                        key={agent.id}
-                        className="border-b border-gray-300 hover:bg-gray-200"
-                      >
-                        <TableCell>{startIndex + index + 1}</TableCell>
-                        <TableCell>{agent.name}</TableCell>
-                        <TableCell>{agent.email}</TableCell>
-                        <TableCell>{agent.mobile}</TableCell>
-                        <TableCell className="flex gap-4 justify-center">
+                  {isLoading
+                    ? Array.from({ length: 7 }).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Skeleton className="h-4 w-6" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-20" />
+                          </TableCell>
+                          <TableCell className="flex justify-center gap-4">
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : displayedAgents.map((agent, index) => (
+                        <TableRow
+                          key={agent.id}
+                          className="border-b border-gray-300 hover:bg-gray-200"
+                        >
+                          <TableCell>{startIndex + index + 1}</TableCell>
+                          <TableCell>{agent.name}</TableCell>
+                          <TableCell>{agent.email}</TableCell>
+                          <TableCell>{agent.mobile}</TableCell>
+                          <TableCell className="flex justify-center gap-4">
                             <button
-                              
                               className="text-green-600  "
-                             
-                              onClick={() => {
-                               
-                              }}
+                              onClick={() => {}}
                             >
                               <Eye size={22} />
                             </button>
                             <button
-                              
                               className="text-blue-600"
-                              onClick={() => {
-                              
-                              }}
+                              onClick={() => {}}
                             >
                               <Edit size={20} />
                             </button>
-                            <button
-
-                              className="text-red-600"
-                              onClick={() => {
-                               
-                              }}
-                            >
+                            <button className="text-red-600" onClick={() => {}}>
                               <Trash2 size={20} />
                             </button>
                           </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                        </TableRow>
+                      ))}
                 </TableBody>
               </Table>
             </CardContent>

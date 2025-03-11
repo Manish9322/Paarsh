@@ -11,7 +11,7 @@ const sidebarConfig = [
     name: "Courses",
     icon: <LuUsers />,
     children: [
-      { name: "Courses", path: "/admin/courses" },
+      { name: "Courses", path: "/admin/course" },
       { name: "Categories", path: "/admin/categories" },
       { name: "Subcategories", path: "/admin/subcategories" },
     ],

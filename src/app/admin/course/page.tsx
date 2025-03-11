@@ -19,74 +19,94 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Eye, Edit, Trash2 } from "lucide-react";
-import AddCourseDialog from "@/components/Courses/AddCourse";
-import EditCourseModal from "@/components/Courses/EditCourse";
-import { toast } from "sonner";
+import { EditCourse } from "../../../components/Courses/EditCourses";
 import {
-  useDeleteCategoriesMutation,
-  useFetchCategoriesQuery,
-} from "@/services/api";
-import AddCategoryModal from "@/components/Categories/AddCategory";
-import EditCategoryModal from "@/components/Categories/EditCategory";
+  useDeleteCourseMutation,
+  useFetchCourcesQuery,
+} from "../../../services/api";
+import { toast } from "sonner";
+import { AddNewCourse } from "@/components/AddNewCourseModal";
+import AddCourseModal from "@/components/Courses/AddCourseVideo";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Define Course type
-interface Category {
+interface Course {
   id: number;
   _id: string;
-  name: string;
-  description: string;
-  keywords: string[];
+  availability: string;
+  category: string;
+  subcategory: string;
+  courseName: string;
+  instructor: string;
+  duration: string;
+  price: number;
+  level: string;
+  feturedCourse: boolean;
+  languages: string[];
   createdAt: string;
 }
 
-const AdminPage: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
-    null,
-  );
+interface CourseVideo {
+  _id: string;
+  id: string;
+  courseName: string;
+  videos: {
+    videoName: string;
+    videoId: string;
+  }[];
+  createdAt: string;
+}
+const coursePage: React.FC = () => {
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [coursess, setCourses] = useState<CourseVideo[]>([]);
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const coursesPerPage = 10;
 
   // Fetch courses data
   const {
-    data: categoryData,
+    data: courseData,
     isLoading,
     error,
-  } = useFetchCategoriesQuery(undefined);
-  const courses: Category[] = categoryData?.data || [];
+  } = useFetchCourcesQuery(undefined);
+  const courses: Course[] = courseData?.data || [];
 
-  const [_DELETECATEGORY, { isLoading: isDeleteLoading, error: deleteError }] =
-    useDeleteCategoriesMutation();
+  console.log("courses", courses);
+
+  const [_DELETECOURSE, { isLoading: isDeleteLoading, error: deleteError }] =
+    useDeleteCourseMutation();
   // Pagination logic
   const totalPages = Math.ceil(courses.length / coursesPerPage);
   const startIndex = (currentPage - 1) * coursesPerPage;
-  const displayedCategories = courses.slice(
+  const displayedCourses = courses.slice(
     startIndex,
     startIndex + coursesPerPage,
   );
 
-  const handleDeleteCategory = async (courseId: string) => {
+  const handleDeleteCourse = async (courseId: string) => {
     try {
-      const response = await _DELETECATEGORY({ id: courseId }).unwrap();
+      const response = await _DELETECOURSE({ id: courseId }).unwrap();
 
       if (response?.success) {
-        toast.success("Category deleted successfully");
+        toast.success("Course updated successfully");
       }
     } catch (error) {
-      console.error("Error deleting category:", error);
+      console.error("Error updating course:", error);
       toast.error(
         error?.data?.message ||
-          "Failed to Delete the category. Please try again.",
+          "Failed to Delete the course. Please try again.",
       );
     }
   };
 
-  
+  const handleAddCourse = (newCourse: CourseVideo) => {
+    setCourses((prevCourses) => [...prevCourses, newCourse]);
+  };
   return (
     <div className="flex h-screen flex-col bg-gray-100">
- 
+    
       {/* Sidebar & Main Content Wrapper */}
       <div className="flex flex-1 pt-16">
         {/* Sidebar */}
@@ -97,8 +117,8 @@ const AdminPage: React.FC = () => {
         {/* Main Content */}
         <div className="ml-64 flex-1 overflow-auto  p-6">
           <div className="my-6 flex items-center justify-between rounded-lg bg-white p-5 shadow-md">
-            <h2 className="text-2xl font-bold text-gray-600">Categories</h2>
-            <AddCategoryModal />
+            <h2 className="text-2xl font-bold text-gray-600">Courses</h2>
+            <AddNewCourse />
           </div>
 
           {/* Courses Table */}
@@ -109,10 +129,12 @@ const AdminPage: React.FC = () => {
                   <TableHeader>
                     <TableRow className="border-b border-gray-300 hover:bg-gray-200">
                       <TableHead>#</TableHead>
-                      <TableHead>Category Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>keywords</TableHead>
-                      <TableHead>Created At</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Course Name</TableHead>
+                      <TableHead>Level</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Fees ($)</TableHead>
+                      <TableHead>Languages</TableHead>
                       <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -138,30 +160,39 @@ const AdminPage: React.FC = () => {
                             <Skeleton className="h-6 w-6 rounded-full" />
                           </TableCell>
                         </TableRow>
-                      )) : displayedCategories.length === 0 ? (
+                      )) : displayedCourses.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={14} className="p-4 text-center">
-                          No categories available
+                          No courses available
                         </TableCell>
                       </TableRow>
                     ) : (
-                      displayedCategories.map((category, index) => (
+                      displayedCourses.map((course, index) => (
                         <TableRow
-                          key={category.id}
+                          key={course._id}
                           className="border-b border-gray-300 hover:bg-gray-200"
                         >
                           <TableCell>{startIndex + index + 1}</TableCell>
-                          <TableCell>{category.name}</TableCell>
-                          <TableCell>{category.description}</TableCell>
-                          <TableCell>{category.keywords.join(", ")}</TableCell>
-                          <TableCell>
-                            {new Date(category.createdAt).toLocaleDateString()}
-                          </TableCell>
+                          <TableCell>{course.category}</TableCell>
+                          <TableCell>{course.courseName}</TableCell>
+                          <TableCell>{course.level}</TableCell>
+                          <TableCell>{course.duration}</TableCell>
+                          <TableCell>{course.price}</TableCell>
+                          <TableCell>{course.languages}</TableCell>
                           <TableCell className="flex justify-center gap-4">
+                            <button
+                              className="rounded bg-blue-600 px-3 py-3 text-sm text-white transition hover:bg-blue-700 dark:bg-white dark:text-black"
+                              onClick={() => {
+                                setSelectedCourse(course);
+                                setIsModalOpen(true);
+                              }}
+                            >
+                              Add Lectures
+                            </button>
                             <button
                               className="text-green-600  "
                               onClick={() => {
-                                setSelectedCategory(category);
+                                setSelectedCourse(course);
                                 setViewOpen(true);
                               }}
                             >
@@ -170,7 +201,7 @@ const AdminPage: React.FC = () => {
                             <button
                               className="text-blue-600"
                               onClick={() => {
-                                setSelectedCategory(category);
+                                setSelectedCourse(course);
                                 setEditOpen(true);
                               }}
                             >
@@ -179,7 +210,7 @@ const AdminPage: React.FC = () => {
                             <button
                               className="text-red-600"
                               onClick={() => {
-                                handleDeleteCategory(category._id);
+                                handleDeleteCourse(course._id);
                               }}
                             >
                               <Trash2 size={20} />
@@ -198,19 +229,24 @@ const AdminPage: React.FC = () => {
           <Dialog open={viewOpen} onOpenChange={setViewOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Category Details</DialogTitle>
+                <DialogTitle>Course Details</DialogTitle>
               </DialogHeader>
-              {selectedCategory && (
+              {selectedCourse && (
                 <div>
                   <p>
-                    <strong>{selectedCategory.description}</strong>
+                    <strong>{selectedCourse.category}</strong>
                   </p>
-                  <p>Category Name: {selectedCategory.name}</p>
-                  <p>Description: {selectedCategory.description}</p>
-                  <p>keywords: {selectedCategory.keywords.join(", ")}</p>
+                  <p>Subcategory: {selectedCourse.subcategory}</p>
+                  <p>Course Name: {selectedCourse.courseName}</p>
+                  <p>Instructor: {selectedCourse.instructor}</p>
+                  <p>Duration: {selectedCourse.duration}</p>
+                  <p>Fees: {selectedCourse.price}</p>
+                  <p>Level: {selectedCourse.level}</p>
+                  <p>Featured: {selectedCourse.feturedCourse ? "Yes" : "No"}</p>
+                  <p>Languages: {selectedCourse.languages}</p>
                   <p>
                     Created At:{" "}
-                    {new Date(selectedCategory.createdAt).toLocaleDateString()}
+                    {new Date(selectedCourse.createdAt).toLocaleDateString()}
                   </p>
                 </div>
               )}
@@ -218,10 +254,16 @@ const AdminPage: React.FC = () => {
           </Dialog>
 
           {/* Edit Course Modal */}
-          <EditCategoryModal
+          {/* <EditCourseModal
             editOpen={editOpen}
             setEditOpen={setEditOpen}
-            selectedCategory={selectedCategory}
+            selectedCourse={selectedCourse}
+          /> */}
+
+          <EditCourse
+            editOpen={editOpen}
+            setEditOpen={setEditOpen}
+            selectedCourse={selectedCourse}
           />
 
           {/* Pagination Controls */}
@@ -257,6 +299,13 @@ const AdminPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Add Course Modal */}
+      <AddCourseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddCourse={handleAddCourse}
+        selectedCourse={selectedCourse}
+      />
       {/* Custom Scrollbar Styling */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
@@ -275,4 +324,4 @@ const AdminPage: React.FC = () => {
   );
 };
 
-export default AdminPage;
+export default coursePage;
