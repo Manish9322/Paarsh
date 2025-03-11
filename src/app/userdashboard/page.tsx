@@ -15,6 +15,7 @@ import {
   LogOut,
   Menu,
 } from "lucide-react";
+import ReferEarn from "@/components/ReferEarn/page";
 import TotalCourses from "@/components/totalcourses/page";
 import OngoingCourse from "@/components/ongoingcourses/page";
 import QuestionBank from "@/components/questionbank/page";
@@ -22,6 +23,7 @@ import Certificates from "@/components/certificate/page";
 import Userprofile from "@/components/userprofile/page";
 import { logout } from "../../lib/slices/userAuthSlice"
 import { useDispatch } from "react-redux";
+import { on } from "events";
 
 const cardData = [
   {
@@ -61,6 +63,7 @@ const componentsMap = {
   certificate: <Certificates />,
   questionbank: <QuestionBank />,
   userprofile: <Userprofile />,
+  referEarn: <ReferEarn />,
 };
 
 function Userdashboard() {
@@ -112,7 +115,7 @@ const handleLogout = () => {
               { name: "Home", icon: <Home size={20} />, onClick: () => router.push("/") },
               { name: "User Profile", icon: <User size={20} />, onClick: () => setSelectedCategory("userprofile") },
               { name: "Meeting Links", icon: <Video size={20} />, link: "#" },
-              { name: "Refer & Earn", icon: <Gift size={20} />, link: "#" },
+              { name: "Refer & Earn", icon: <Gift size={20} />, link: "#" ,onClick: () => setSelectedCategory("referEarn") },
               { name: "Notifications", icon: <Bell size={20} />, link: "#" },
               { name: "FAQ", icon: <HelpCircle size={20} />, link: "#" },
               { name: "Log Out", icon: <LogOut size={20} />, onClick: handleLogout
