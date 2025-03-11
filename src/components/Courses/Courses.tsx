@@ -33,7 +33,7 @@ const CoursesPage = () => {
     <div className="main-container px-10">
       <div className="w-full mx-auto text-center pt-10 mb-6" style={{ maxWidth: "570px" }}>
         <h2 className="mb-4 text-3xl font-bold !leading-tight text-black dark:text-white sm:text-4xl md:text-[45px]">
-          Top Courses
+          What Would You Like To <span className="text-blue-500"> Learn</span>
         </h2>
         <p className="text-base !leading-relaxed text-body-color md:text-lg">
           Discover top courses to elevate your skills and unlock new opportunities for personal growth.
@@ -47,7 +47,7 @@ const CoursesPage = () => {
             key={category._id}
             onClick={() => setSelectedCategory(category.name)}
             className={`px-4 py-1 text-sm rounded font-medium transition ${
-              selectedCategory === category.name ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 hover:bg-blue-500 hover:text-white"
+              selectedCategory === category.name ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-800 dark:text-gray-200 text-gray-800 hover:bg-blue-500 hover:text-white"
             }`}
           >
             {category.name}

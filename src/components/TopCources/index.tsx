@@ -5,10 +5,9 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { useFetchCourcesQuery } from "@/services/api";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-import "swiper/css/pagination";
 
 const IntervalCarousel = () => {
   const { data: coursesData, error } = useFetchCourcesQuery(undefined);
@@ -17,7 +16,7 @@ const IntervalCarousel = () => {
   const displayedCourses = coursesData?.data || []; // Show all courses
 
   return (
-    <div className="main-container px-10">
+    <div className="main-container px-4 sm:px-10"> {/* Adjusted padding for small screens */}
       <div className="w-full mx-auto text-center pt-10 mb-6" style={{ maxWidth: "570px" }}>
         <h2 className="mb-4 text-3xl font-bold !leading-tight text-black dark:text-white sm:text-4xl md:text-[45px]">
           Top Courses
@@ -27,20 +26,19 @@ const IntervalCarousel = () => {
         </p>
       </div>
 
-      <div className="flex">
+      <div className="lg:flex">
         <section id="courses" className="part-1 mx-auto md:pt-8">
           <div className="container">
             <Swiper
               modules={[Navigation, Autoplay]}
-              spaceBetween={1}
-              slidesPerView={1}
+              spaceBetween={20} // Adjust this value to increase/decrease space between cards
+              slidesPerView={1} // Default to 1 slide on small screens
               breakpoints={{
-                640: { slidesPerView: 1 },
-                768: { slidesPerView: 2 },
-                1024: { slidesPerView: 3 },
+                640: { slidesPerView: 1 }, // 1 slide for small screens
+                768: { slidesPerView: 2 }, // 2 slides for medium screens
+                1024: { slidesPerView: 3 }, // 3 slides for large screens
               }}
               navigation
-              // pagination={{ clickable: true }}
               autoplay={{ delay: 3000, disableOnInteraction: false }}
               loop={true}
               speed={1500}
@@ -49,21 +47,21 @@ const IntervalCarousel = () => {
             >
               {isLoading
                 ? Array(3)
-                    .fill(0)
-                    .map((_, index) => (
-                      <SwiperSlide key={index} className="w-full">
-                        <div className="w-full rounded-lg p-4 shadow">
-                          <Skeleton height={200} width="100%" className="rounded-lg" />
-                          <Skeleton height={20} width="80%" className="mt-4" />
-                          <Skeleton height={10} width="60%" className="mt-4" />
-                        </div>
-                      </SwiperSlide>
-                    ))
-                : displayedCourses.map((course) => (
-                    <SwiperSlide key={course.id ?? course.courseName} className="w-full">
-                      <SingleCourse course={course} isGrid={true} />
+                  .fill(0)
+                  .map((_, index) => (
+                    <SwiperSlide key={index} className="w-full">
+                      <div className="w-full rounded-lg p-4 shadow">
+                        <Skeleton height={200} width="100%" className="rounded-lg" />
+                        <Skeleton height={20} width="80%" className="mt-4" />
+                        <Skeleton height={10} width="60%" className="mt-4" />
+                      </div>
                     </SwiperSlide>
-                  ))}
+                  ))
+                : displayedCourses.map((course) => (
+                  <SwiperSlide key={course.id ?? course.courseName} className="w-full">
+                    <SingleCourse course={course} isGrid={true} />
+                  </SwiperSlide>
+                ))}
             </Swiper>
           </div>
         </section>
