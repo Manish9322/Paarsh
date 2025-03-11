@@ -78,7 +78,7 @@ const Contact = () => {
         
         </div>
       </div>
-      <SubscribeNewsletter/>
+      
     </section>
   );
 };

@@ -26,7 +26,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import TextEditor from "../../components/TextEditor";
 import { useDispatch, useSelector } from "react-redux";
-import { useAddCourseMutation } from "@/services/api";
+import {
+  useAddCourseMutation,
+  useFetchCategoriesQuery,
+  useFetchSubCategoriesQuery,
+} from "@/services/api";
 import {
   updateField,
   addCourseInclude,
@@ -95,6 +99,16 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
   } = useForm({
     resolver: zodResolver(formSchema),
   });
+
+  const { data: categoriesData } = useFetchCategoriesQuery();
+  const { data: subCategoriesData } = useFetchSubCategoriesQuery();
+
+  console.log("subCategoriesData", subCategoriesData?.data);
+
+  const categories = categoriesData?.data || [];
+  const subCategories = subCategoriesData?.data || [];
+
+  console.log("categoies", categories);
 
   const handleChange = (field, value) => {
     dispatch(updateField({ field, value }));
@@ -221,11 +235,15 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Web Development">
-                    Web Development
-                  </SelectItem>
-                  <SelectItem value="Data Science">Data Science</SelectItem>
-                  <SelectItem value="Design">Design</SelectItem>
+                  {Array.isArray(categories) && categories.length > 0 ? (
+                    categories.map((category) => (
+                      <SelectItem key={category._id} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <p>No categories available</p>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -242,9 +260,18 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                   <SelectValue placeholder="Select subcategory" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Frontend">Frontend</SelectItem>
-                  <SelectItem value="Backend">Backend</SelectItem>
-                  <SelectItem value="UI/UX">UI/UX</SelectItem>
+                  {Array.isArray(subCategories) && subCategories.length > 0 ? (
+                    subCategories.map((subCategory) => (
+                      <SelectItem
+                        key={subCategory._id}
+                        value={subCategory.subcategoryName}
+                      >
+                        {subCategory.subcategoryName}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <p>No SubCategories available</p>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -286,15 +313,21 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
           <div className="flex gap-4">
             <div className="w-1/2">
               <Label htmlFor="level">Difficulty Level</Label>
-              <Input
-                id="level"
-                name="level"
-                className="mt-2 w-full"
-                type="text"
-                {...register("level")}
-                onChange={(e) => handleChange("level", e.target.value)}
-                defaultValue={course.level}
-              />
+              <Select
+                onValueChange={(value) => {
+                  handleSelectChange("level", value);
+                  setValue("level", value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Beginner">Beginner</SelectItem>
+                  <SelectItem value="Intermediate">Intermediate</SelectItem>
+                  <SelectItem value="Advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
               {errors.level && (
                 <p className="text-red-500">{errors.level.message}</p>
               )}

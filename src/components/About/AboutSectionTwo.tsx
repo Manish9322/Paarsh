@@ -4,10 +4,12 @@ const AboutSectionTwo = () => {
   return (
     <section className="py-16 md:py-20 lg:py-28">
       <div className="container">
-        
-        <h1 className="text-center mb-5 text-5xl font-bold leading-tight text-black dark:text-white">
-  <span className="text-blue-500">Strategies</span>  for Student
-</h1>
+
+        <h1 className=" text-center mb-4 text-5xl font-bold leading-tight text-black dark:text-white">
+          <span className="text-blue-500">Strategies</span>  for Student
+        </h1>
+        <p className="w-3/4 mx-auto text-center text-base !leading-relaxed text-body-color md:text-lg lg:mb-10 ">
+          Smart strategies to boost student success—time management, productivity hacks, and study techniques for better learning, focus, and academic excellence!</p>
 
         <div className="-mx-4 flex flex-wrap items-center">
           <div className="w-full px-4 lg:w-1/3">
