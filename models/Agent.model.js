@@ -40,6 +40,10 @@ const agentSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    referralCode: {
+      type: String,
+      unique: true,
+    },
   },
   { timestamps: true },
 );

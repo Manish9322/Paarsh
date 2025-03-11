@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogTitle } from "@radix-ui/react-dialog";
 import { DialogHeader } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import EditAgentModal from "../../../components/Agent/EditAgent";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Define Agent type
 interface Agent {
@@ -28,7 +29,7 @@ interface Agent {
   id: string;
   firstName: string;
   lastName: string;
-  contact: string;
+  mobile: string;
   countSale: number;
   state: string;
   createdAt: string;
@@ -98,7 +99,6 @@ const AgentPage: React.FC = () => {
   console.log("displayedAgetn is", displayedAgents);
   return (
     <div className="flex h-screen flex-col bg-gray-100">
-  
       <div className="flex flex-1 pt-16">
         <Sidebar />
         <div className="ml-64 flex-1 overflow-auto p-6">
@@ -134,9 +134,9 @@ const AgentPage: React.FC = () => {
                       {sortField === "lastName" &&
                         (sortOrder === "asc" ? <ChevronUp /> : <ChevronDown />)}
                     </TableHead>
-                    <TableHead onClick={() => handleSort("contact")}>
+                    <TableHead onClick={() => handleSort("mobile")}>
                       Contact{" "}
-                      {sortField === "contact" &&
+                      {sortField === "mobile" &&
                         (sortOrder === "asc" ? <ChevronUp /> : <ChevronDown />)}
                     </TableHead>
                     <TableHead onClick={() => handleSort("countSale")}>
@@ -153,55 +153,75 @@ const AgentPage: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center">
-                        Loading...
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    displayedAgents.map((agent, index) => (
-                      <TableRow
-                        key={agent.id}
-                        className="border-b border-gray-300 hover:bg-gray-200"
-                      >
-                        <TableCell>{startIndex + index + 1}</TableCell>
-                        <TableCell>{agent.firstName}</TableCell>
-                        <TableCell>{agent.lastName}</TableCell>
-                        <TableCell>{agent.contact}</TableCell>
-                        <TableCell>{agent.countSale}</TableCell>
-                        <TableCell>{agent.state}</TableCell>
-                        <TableCell className="flex justify-center gap-4">
-                          <button
-                            className="text-green-600  "
-                            onClick={() => {
-                              setSelectedAgent(agent);
-                              setViewOpen(true);
-                            }}
-                          >
-                            <Eye size={22} />
-                          </button>
-                          <button
-                            className="text-blue-600"
-                            onClick={() => {
-                              setSelectedAgent(agent);
-                              setEditOpen(true);
-                            }}
-                          >
-                            <Edit size={20} />
-                          </button>
-                          <button
-                            className="text-red-600"
-                            onClick={() => {
-                              handleDeleteAgent(agent._id);
-                            }}
-                          >
-                            <Trash2 size={20} />
-                          </button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  {isLoading
+                    ? Array.from({ length: 6 }).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Skeleton className="h-4 w-6" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-20" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-16" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-20" />
+                          </TableCell>
+                          <TableCell className="flex justify-center gap-4">
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    : displayedAgents.map((agent, index) => (
+                        <TableRow
+                          key={agent.id}
+                          className="border-b border-gray-300 hover:bg-gray-200"
+                        >
+                          <TableCell>{startIndex + index + 1}</TableCell>
+                          <TableCell>{agent.firstName}</TableCell>
+                          <TableCell>{agent.lastName}</TableCell>
+                          <TableCell>{agent.mobile}</TableCell>
+                          <TableCell>{agent.countSale}</TableCell>
+                          <TableCell>{agent.state}</TableCell>
+                          <TableCell className="flex justify-center gap-4">
+                            <button
+                              className="text-green-600  "
+                              onClick={() => {
+                                setSelectedAgent(agent);
+                                setViewOpen(true);
+                              }}
+                            >
+                              <Eye size={22} />
+                            </button>
+                            <button
+                              className="text-blue-600"
+                              onClick={() => {
+                                setSelectedAgent(agent);
+                                setEditOpen(true);
+                              }}
+                            >
+                              <Edit size={20} />
+                            </button>
+                            <button
+                              className="text-red-600"
+                              onClick={() => {
+                                handleDeleteAgent(agent._id);
+                              }}
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -222,7 +242,7 @@ const AgentPage: React.FC = () => {
                     {selectedAgent.lastName}
                   </p>
                   <p>
-                    <strong>Contact:</strong> {selectedAgent.contact}
+                    <strong>Contact:</strong> {selectedAgent.mobile}
                   </p>
                   <p>
                     <strong>Sales Count:</strong> {selectedAgent.countSale}

@@ -56,6 +56,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
   const isAuthPage = ["/signin", "/signup"].includes(pathname);
   const isAdminPage = pathname.startsWith("/admin");
+  const isDashboardPage = pathname.startsWith("/userdashboard");
 
   if (isAuthenticated && isAuthPage) {
     if (typeof window !== "undefined") {
@@ -66,9 +67,9 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {!isAdminPage && !isAuthPage && <Header />}
+      {!isAdminPage && !isAuthPage && !isDashboardPage && <Header />}
       {children}
-      {!isAdminPage && !isAuthPage && <Footer />}
+      {!isAdminPage && !isAuthPage && !isDashboardPage && <Footer />}
       <ScrollToTop />
       <AutoModal />
       <Toaster richColors />
