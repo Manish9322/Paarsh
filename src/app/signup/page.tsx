@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState ,useEffect} from "react";
+import { useState, useEffect } from "react";
 import { signUpValidationSchema } from "../../lib/validationSchema";
 import { useFormik } from "formik";
 import { Eye, EyeOff } from "lucide-react";
@@ -16,12 +16,6 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-// export const metadata: Metadata = {
-//   title: "Sign Up Page | Free Next.js Template for Startup and SaaS",
-//   description: "This is Sign Up Page for Startup Nextjs Template",
-//   // other metadata
-// };
-
 const SignupPage = () => {
   // useEffect(() => {
   //   // Hide scrollbar
@@ -32,8 +26,6 @@ const SignupPage = () => {
   //     document.body.style.overflow = "auto";
   //   };
   // }, []);
-
-
 
   const dispatch = useDispatch();
   const router = useRouter();
@@ -84,7 +76,6 @@ const SignupPage = () => {
       }
     },
   });
-
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -166,8 +157,8 @@ const SignupPage = () => {
                 >
                   {/* Left Section */}
                   <div>
-                    <div className="mb-4"> 
-                      <label className="block text-lg mb-2 text-dark dark:text-white">
+                    <div className="mb-4">
+                      <label className="mb-2 block text-lg text-dark dark:text-white">
                         Full Name
                       </label>
                       <input
@@ -185,7 +176,7 @@ const SignupPage = () => {
 
                     {/* Email */}
                     <div className="mb-4">
-                      <label className="block text-lg mb-2 text-dark dark:text-white">
+                      <label className="mb-2 block text-lg text-dark dark:text-white">
                         Work Email
                       </label>
                       <input
@@ -202,8 +193,8 @@ const SignupPage = () => {
                     </div>
 
                     {/* Referral Code */}
-                    <div >
-                      <label className="block text-lg mb-2 text-dark dark:text-white">
+                    <div>
+                      <label className="mb-2 block text-lg text-dark dark:text-white">
                         Referral Code (Optional)
                       </label>
                       <input
@@ -219,7 +210,7 @@ const SignupPage = () => {
                   <div>
                     {/* Password */}
                     <div className="relative mb-4">
-                      <label className="block text-lg mb-2 text-dark dark:text-white">
+                      <label className="mb-2 block text-lg text-dark dark:text-white">
                         Password
                       </label>
                       <input
@@ -248,7 +239,7 @@ const SignupPage = () => {
 
                     {/* Confirm Password */}
                     <div className="relative mb-4">
-                      <label className="block text-lg mb-2 text-dark dark:text-white">
+                      <label className="mb-2 block text-lg text-dark dark:text-white">
                         Confirm Password
                       </label>
                       <input
@@ -280,13 +271,18 @@ const SignupPage = () => {
 
                     {/* Mobile */}
                     <div className="">
-                      <label className="block text-lg mb-2 text-dark dark:text-white">
+                      <label className="mb-2 block text-lg text-dark dark:text-white">
                         Mobile Number
                       </label>
                       <input
-                        type="text"
+                        type="tel"
                         {...formik.getFieldProps("mobile")}
                         placeholder="Enter 10-digit number"
+                        maxLength={10} // Prevents more than 10 digits
+                        onInput={(e) => {
+                          const input = e.target as HTMLInputElement; // Type assertion
+                          input.value = input.value.replace(/\D/g, ""); // Remove non-numeric characters
+                        }}
                         className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
                       />
                       {formik.touched.mobile && formik.errors.mobile && (
