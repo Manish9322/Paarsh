@@ -1,139 +1,118 @@
-"use client";
-import React, { useState } from "react";
-import { Camera, Edit, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Phone, Mail, Edit } from "lucide-react";
+import { useFetchUserQuery } from "@/services/api";
 
-const Profile = () => {
-  const [user, setUser] = useState({
-    name: "John Doe",
-    email: "johndoe@example.com",
-    bio: "Full-stack developer with a passion for creating amazing web applications.",
-    location: "New York, USA",
-    phone: "+1 123 456 7890",
-    profilePic: "/images/default-avatar.png",
-  });
+export default function ProfilePage() {
+  const { data: user, isLoading, error } = useFetchUserQuery(undefined);
+  console.log("Fetched User Data:", user); // Debugging: Check fetched user data
 
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [userData, setUserData] = useState({
+    name: "",
+    mobile: "",
+    email: "",
+  });
 
-  const handleInputChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
-  };
+  const users = user?.data;
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setSelectedImage(imageUrl);
+  useEffect(() => {
+    if (users) {
+      setUserData({
+        name: users?.name || "",
+        mobile: users?.mobile || "",
+        email: users?.email || "",
+      });
     }
+  }, [users]);
+
+  const handleChange = (e) => {
+    setUserData({ ...userData, [e.target.name]: e.target.value });
   };
+
+  if (isLoading) return <div className="text-center mt-10 text-lg">Loading user data...</div>;
+  if (error) return <div className="text-center mt-10 text-red-500">Error fetching user data!</div>;
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg p-6">
-        {/* Profile Picture */}
-        <div className="relative flex justify-center">
-          <img
-            src={selectedImage || user.profilePic}
-            alt="Profile"
-            className="w-32 h-32 rounded-full border-4 border-gray-300 object-cover"
-          />
-          <label className="absolute bottom-2 right-2 bg-gray-800 p-2 rounded-full cursor-pointer">
-            <Camera className="text-white" size={18} />
-            <input type="file" className="hidden" onChange={handleImageChange} />
-          </label>
+    <div className="relative min-h-screen flex items-center justify-center p-6">
+      {/* Full-Screen Transparent Image */}
+      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-75" 
+        style={{ backgroundImage: "url('/images/profile/user1.jpg')" }}>
+      </div>
+
+      {/* Profile Container */}
+      <div className="relative flex flex-col md:flex-row bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden w-full max-w-4xl z-10">
+        {/* Left Section - Profile Info */}
+        <div className="md:w-1/3 w-full flex flex-col items-center justify-center bg-gradient-to-b from-gray-700 to-gray-900 text-white p-8">
+          <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center shadow-md">
+            <User className="text-gray-700" size={60} />
+          </div>
+          <h2 className="text-2xl font-bold mt-4">Hi, {userData.name}</h2>
         </div>
 
-        {/* User Details */}
-        <div className="mt-4 text-center">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {isEditing ? (
+        {/* Right Section - Profile Form */}
+        <div className="md:w-2/3 w-full p-8">
+          <div className="flex items-center mb-6">
+            <User className="text-gray-500 dark:text-gray-300 mr-3" size={28} />
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Hi, Ashwini 👋</h2>
+          </div>
+
+          <div className="space-y-6">
+            {/* Name Field */}
+            <div className={`flex items-center border-b-2 py-3 transition-all ${
+              isEditing ? "border-blue-500" : "border-gray-300 dark:border-gray-600"
+            }`}>
+              <User className="text-gray-500 dark:text-gray-300 mr-3" size={22} />
               <input
                 type="text"
                 name="name"
-                value={user.name}
-                onChange={handleInputChange}
-                className="border p-1 rounded-md"
+                value={userData.name}
+                onChange={handleChange}
+                readOnly={!isEditing}
+                className="w-full bg-transparent outline-none text-gray-800 dark:text-white"
               />
-            ) : (
-              user.name
-            )}
-          </h2>
-          <p className="text-gray-600">{user.email}</p>
-        </div>
+            </div>
 
-        {/* Profile Information */}
-        <div className="mt-6 space-y-4">
-          {/* Bio */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600">Bio</label>
-            {isEditing ? (
-              <textarea
-                name="bio"
-                value={user.bio}
-                onChange={handleInputChange}
-                className="border p-2 rounded-md"
-              />
-            ) : (
-              <p className="text-gray-800">{user.bio}</p>
-            )}
-          </div>
-
-          {/* Location */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600">Location</label>
-            {isEditing ? (
+            {/* Mobile Number Field */}
+            <div className={`flex items-center border-b-2 py-3 transition-all ${
+              isEditing ? "border-blue-500" : "border-gray-300 dark:border-gray-600"
+            }`}>
+              <Phone className="text-gray-500 dark:text-gray-300 mr-3" size={22} />
               <input
                 type="text"
-                name="location"
-                value={user.location}
-                onChange={handleInputChange}
-                className="border p-2 rounded-md"
+                name="mobile"
+                value={userData.mobile}
+                onChange={handleChange}
+                readOnly={!isEditing}
+                className="w-full bg-transparent outline-none text-gray-800 dark:text-white"
               />
-            ) : (
-              <p className="text-gray-800">{user.location}</p>
-            )}
-          </div>
+            </div>
 
-          {/* Phone Number */}
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600">Phone</label>
-            {isEditing ? (
+            {/* Email Field */}
+            <div className={`flex items-center border-b-2 py-3 transition-all ${
+              isEditing ? "border-blue-500" : "border-gray-300 dark:border-gray-600"
+            }`}>
+              <Mail className="text-gray-500 dark:text-gray-300 mr-3" size={22} />
               <input
-                type="text"
-                name="phone"
-                value={user.phone}
-                onChange={handleInputChange}
-                className="border p-2 rounded-md"
+                type="email"
+                name="email"
+                value={userData.email}
+                onChange={handleChange}
+                readOnly={!isEditing}
+                className="w-full bg-transparent outline-none text-gray-800 dark:text-white"
               />
-            ) : (
-              <p className="text-gray-800">{user.phone}</p>
-            )}
+            </div>
           </div>
-        </div>
 
-        {/* Edit / Save Button */}
-        <div className="mt-6 flex justify-center">
-          {isEditing ? (
-            <button
-              className="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700"
-              onClick={() => setIsEditing(false)}
-            >
-              <Save size={18} className="mr-2" />
-              Save Changes
-            </button>
-          ) : (
-            <button
-              className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
-              onClick={() => setIsEditing(true)}
-            >
-              <Edit size={18} className="mr-2" />
-              Edit Profile
-            </button>
-          )}
+          {/* Edit/Save Button */}
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="mt-6 flex items-center justify-center w-full bg-gray-700 hover:bg-gray-800 text-white py-3 px-6 rounded-lg transition-all shadow-md"
+          >
+            {isEditing ? "Save Changes" : "Edit Profile"}
+            <Edit className="ml-2" size={20} />
+          </button>
         </div>
       </div>
     </div>
   );
-};
-
-export default Profile;
+}
