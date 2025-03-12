@@ -8,6 +8,8 @@ import OngoingCourse from "@/components/ongoingcourses/page";
 import QuestionBank from "@/components/questionbank/page";
 import Certificates from "@/components/certificate/page";
 import Userprofile from "@/components/userprofile/page";
+import ViewLinks from "@/components/viewlinks/page";
+import Faq from "@/components/faq/page";
 
 const cardData = [
   {
@@ -39,6 +41,9 @@ const componentsMap = {
   questionbank: <QuestionBank />,
   userprofile: <Userprofile />,
   referEarn: <ReferEarn />,
+  viewlinks: <ViewLinks />,
+  faq: <Faq />,
+ 
 };
 
 function Userdashboard() {
