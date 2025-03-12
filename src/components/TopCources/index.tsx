@@ -16,7 +16,7 @@ const IntervalCarousel = () => {
   const displayedCourses = coursesData?.data || []; // Show all courses
 
   return (
-    <div className="main-container px-4 sm:px-10"> {/* Adjusted padding for small screens */}
+    <div className="main-container px-4 my-14 sm:px-10"> {/* Adjusted padding for small screens */}
       <div className="w-full mx-auto text-center pt-10 mb-6" style={{ maxWidth: "570px" }}>
         <h2 className="mb-4 text-3xl font-bold !leading-tight text-black dark:text-white sm:text-4xl md:text-[45px]">
           Top Courses

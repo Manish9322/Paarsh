@@ -2,8 +2,8 @@ import * as Yup from "yup";
 
 export const signUpValidationSchema = Yup.object({
   name: Yup.string()
-    .min(3, "Name must be at least 3 characters")
-    .required("Name is required"),
+  .min(3, "Name must be at least 3 characters")
+  .required("Name is required"),
   email: Yup.string()
     .email("Invalid email format")
     .required("Email is required"),
@@ -18,7 +18,7 @@ export const signUpValidationSchema = Yup.object({
     .required("Confirm Password is required"),
   referralCode: Yup.string(),
   acceptTerms: Yup.boolean()
-    .oneOf([true], "You must accept the Terms and Conditions.") // ✅ Validation
+    .oneOf([true], "You must accept the Terms and Conditions.")
     .required("Required"),
 });
 
