@@ -57,7 +57,7 @@ function OngoingCourses() {
           />
           {/* No Ongoing Courses Message */}
           <p className="text-center text-lg font-semibold text-gray-700">
-            You haven't started any courses yet!
+            You havent started any courses yet!
           </p>
           {/* View Courses Button */}
           <button

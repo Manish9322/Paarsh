@@ -7,7 +7,8 @@ const RelatedPost = ({
   title,
   level,
   duration,
-  certificate
+  certificate,
+  date
 }: {
   image: string;
   slug: string;
@@ -15,6 +16,7 @@ const RelatedPost = ({
   level: string;
   duration: string;
   certificate: string;
+  date: string
 }) => {
   return (
     <div className="flex items-center lg:block xl:flex">
