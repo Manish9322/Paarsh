@@ -55,7 +55,7 @@ function TotalCourses() {
           />
           {/* No Courses Message */}
           <p className="text-lg font-semibold text-center text-gray-700">
-            You haven't purchased any courses yet!
+            You havent purchased any courses yet!
           </p>
           {/* View Courses Button */}
           <button

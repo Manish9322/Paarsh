@@ -56,7 +56,7 @@ interface CourseVideo {
   }[];
   createdAt: string;
 }
-const coursePage: React.FC = () => {
+const CoursePage: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [coursess, setCourses] = useState<CourseVideo[]>([]);
   const [viewOpen, setViewOpen] = useState(false);
@@ -324,4 +324,4 @@ const coursePage: React.FC = () => {
   );
 };
 
-export default coursePage;
+export default CoursePage;

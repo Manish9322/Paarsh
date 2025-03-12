@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthData } from "../lib/slices/userAuthSlice";
 import { usePathname } from "next/navigation";
@@ -24,11 +24,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html suppressHydrationWarning lang="en">
       <head />
       <body className={`bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
+        <Suspense>
         <Provider store={store}>
           <Providers>
             <MainLayout>{children}</MainLayout>
           </Providers>
         </Provider>
+        </Suspense>
       </body>
     </html>
   );

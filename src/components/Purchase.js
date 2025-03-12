@@ -11,10 +11,11 @@ import {
   useVerifyPaymentMutation,
 } from "@/services/api";
 import { RAZORPAY_KEY_ID } from "../../config/config";
+import { set } from "mongoose";
+import { toast } from "sonner";
+
 
 const PurchaseModal = ({ isOpen, onClose, course }) => {
-  if (!course) return null;
-  const coursePrice = Number(course.price);
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state.payment.isLoading);
   const [createOrder] = useCreateOrderMutation();
@@ -23,10 +24,17 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
   const [discountApplied, setDiscountApplied] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { data: userData } = useFetchUserQuery();
-  const [finalPrice, setFinalPrice] = useState(coursePrice);
+  const [finalPrice, setFinalPrice] = useState(course?.price || 0); // Default to course price if available
 
   const user = userData?.data;
 
+  useEffect(() => {
+    if (course?.price) {
+      setFinalPrice(Number(course.price)); // Update once course data is available
+      coursePrice = Number(course.price);
+    }
+  }, [course]); // Runs when course updates
+  
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -37,6 +45,12 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
       document.body.removeChild(script);
     };
   }, []);
+  let coursePrice;
+  if (!course) {
+    return null;
+  } else {
+    coursePrice = Number(course.price);
+  }
 
   const validPromoCode = "DISCOUNT20";
 
@@ -82,9 +96,33 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
           currency: orderData.currency,
           order_id: orderData.orderId,
           handler: async function (response) {
-            await verifyPayment(response);
-            alert("Payment Successful! Course Access Granted.");
-            handleClose();
+            try {
+              await verifyPayment(response);
+              toast.success("Payment Successful! Course Access Granted.", {
+                duration: 5000,
+                position: "top-center",
+                icon: "🎉",
+                style: {
+                  borderRadius: "10px",
+                  background: "#333",
+                  color: "#fff",
+                },
+              });
+              handleClose();
+            } catch (error) {
+              toast.error("Payment verification failed. Please contact support.", {
+                duration: 5000,
+                position: "top-center",
+              });
+              console.error("Payment verification error:", error);
+            }
+          },
+          prefill: {
+            email: user?.email || "",
+            name: user?.name || "",
+          },
+          theme: {
+            color: "#4F46E5", // Indigo color to match our UI
           },
         };
 
@@ -94,74 +132,275 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
       }
     } catch (error) {
       console.error("Payment failed:", error);
+      toast.error("Payment initialization failed. Please try again.", {
+        duration: 4000,
+        position: "top-center",
+      });
     }
 
     dispatch(setLoading(false));
   };
 
   return (
-    <div className="fixed inset-0 z-150 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-lg">
-      <Card className="relative flex w-full max-w-lg flex-col space-y-6 rounded-xl bg-white p-8 shadow-2xl">
-        {/* Close Button */}
-
-        <Button
-          variant="ghost"
-          className="absolute right-4 top-4 text-xl text-gray-600 hover:text-gray-900"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm dark:bg-black/70">
+      <div className="relative w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-gray-900">
+        {/* Close button */}
+        <button 
+          className="absolute right-4 top-4 z-10 rounded-full bg-gray-100 p-2 text-gray-600 transition-all hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           onClick={handleClose}
         >
-          &times;
-        </Button>
-
-        <div className="p-4  text-center">
-          <h2 className="text-6xl font-bold mb-2">Get 20% Off</h2>
-          <p className="text-gray-400">Use Promo Code <span className="font-bold text-black">DISCOUNT20</span> For First Purchase</p>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
+        {/* Split panel container */}
+        <div className="flex flex-col md:flex-row">
+          {/* Left panel (image/course info) */}
+          <div className="relative flex-shrink-0 bg-gradient-to-br from-blue-800 via-indigo-700 to-violet-800 p-6 md:w-2/5">
+            {/* Background pattern overlay */}
+            <div className="absolute inset-0 opacity-10">
+              <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                  <pattern id="grid-pattern" width="10" height="10" patternUnits="userSpaceOnUse">
+                    <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5" />
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid-pattern)" />
+              </svg>
+            </div>
+            
+            <div className="relative z-10 flex h-full flex-col">
+              {/* Course category badge at top */}
+              <div className="mb-4 inline-block self-start rounded-lg bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-white/80 backdrop-blur-sm">
+                {course?.category || "Online Course"}
+              </div>
+              
+              {/* Course title */}
+              <h2 className="mb-4 text-2xl font-bold tracking-tight text-white md:text-3xl">
+                {course?.title || "Course Title"}
+              </h2>
+              
+              {/* Instructor info */}
+              <div className="mb-6 flex items-center space-x-2">
+                <div className="h-8 w-8 overflow-hidden rounded-full bg-white/20">
+                  {course?.instructorAvatar ? (
+                    <img 
+                      src={course.instructorAvatar} 
+                      alt={course.instructor} 
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-indigo-600 text-xs font-bold text-white">
+                      {course?.instructor?.charAt(0) || "I"}
+                    </div>
+                  )}
+                </div>
+                <p className="text-white/90">
+                  {course?.instructor || "Instructor"}
+                </p>
+              </div>
+              
+              {/* Course thumbnail with enhanced styling - moved down */}
+              <div className="overflow-hidden rounded-xl bg-gradient-to-br from-white/20 to-white/5 p-[2px] shadow-lg backdrop-blur-sm">
+                <div className="aspect-video overflow-hidden rounded-[10px] border border-white/10">
+                  {course?.thumbnail ? (
+                    <img 
+                      src={course.thumbnail} 
+                      alt={course.title} 
+                      className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-900 to-violet-900 p-6">
+                      <div className="rounded-full bg-white/10 p-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Feature highlights - adding content to fill space */}
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <div className="rounded-lg bg-white/10 p-3 backdrop-blur-sm">
+                  <div className="mb-1 text-xl text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
+                    </svg>
+                  </div>
+                  <p className="text-xs font-medium text-white/80">Certificate Included</p>
+                </div>
+                
+                <div className="rounded-lg bg-white/10 p-3 backdrop-blur-sm">
+                  <div className="mb-1 text-xl text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <p className="text-xs font-medium text-white/80">Lifetime Access</p>
+                </div>
+              </div>
+              
+              {/* Price badge with enhanced styling */}
+              <div className="mt-6 rounded-xl bg-gradient-to-r from-white/20 to-white/5 p-[1px] backdrop-blur-sm">
+                <div className="rounded-xl bg-gradient-to-r from-black/30 to-black/10 px-5 py-3 backdrop-blur-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-white/80">Price</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium text-white">
+                        {discountApplied ? (
+                          <>
+                            <span className="mr-2 text-sm line-through opacity-70">
+                              ${coursePrice.toFixed(2)}
+                            </span>
+                            ${finalPrice}
+                          </>
+                        ) : (
+                          `$${finalPrice}`
+                        )}
+                      </span>
+                      {discountApplied && (
+                        <span className="rounded-full bg-green-500 px-2 py-1 text-xs font-bold text-white">
+                          20% OFF
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Enhanced decorative elements */}
+              <div className="absolute -bottom-32 -left-16 h-64 w-64 rounded-full bg-blue-700/30 blur-3xl"></div>
+              <div className="absolute -right-16 top-32 h-40 w-40 rounded-full bg-violet-700/20 blur-3xl"></div>
+              <div className="absolute left-1/2 top-8 h-24 w-24 -translate-x-1/2 rounded-full bg-indigo-600/30 blur-2xl"></div>
+            </div>
+          </div>
+          
+          {/* Right panel (payment details) */}
+          <div className="flex flex-grow flex-col justify-between p-8 text-gray-800 dark:text-white md:w-3/5">
+            <div>
+              <h2 className="text-2xl font-bold">Complete Your Purchase</h2>
+              <p className="mt-1 text-gray-600 dark:text-gray-400">Unlock access to this course in just a few steps</p>
+              
+              {/* Price summary */}
+              <div className="mt-8 rounded-xl bg-gray-50 p-6 shadow-sm dark:bg-gray-800/80">
+                <h3 className="mb-4 text-lg font-medium">Order Summary</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Course Price</span>
+                    <span>${coursePrice.toFixed(2)}</span>
+                  </div>
+                  
+                  {discountApplied && (
+                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                      <span>Discount (20%)</span>
+                      <span>-${(coursePrice * 0.2).toFixed(2)}</span>
+                    </div>
+                  )}
+                  
+                  <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
+                    <div className="flex justify-between">
+                      <span className="text-lg font-medium">Total</span>
+                      <span className="text-xl font-bold text-blue-600 dark:text-blue-400">${finalPrice}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Promo code section */}
+              <div className="mt-6">
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Have a promo code?
+                </label>
+                <div className="flex items-center space-x-2">
+                  <div className="relative flex-grow">
+                    <Input
+                      type="text"
+                      placeholder="Enter your code"
+                      className="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                    />
+                    {promoCode && (
+                      <button
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                        onClick={() => setPromoCode("")}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  <Button
+                    onClick={applyPromoCode}
+                    disabled={!promoCode}
+                    className="h-12 rounded-lg bg-blue-600 px-5 font-medium text-white transition-all hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                  >
+                    Apply
+                  </Button>
+                </div>
+                {errorMessage && (
+                  <p className="mt-2 text-sm font-medium text-red-500 dark:text-red-400">{errorMessage}</p>
+                )}
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Use code DISCOUNT20 for 20% off your purchase
+                </p>
+              </div>
+            </div>
+            
+            {/* Payment button */}
+            <div className="mt-8">
+              <Button
+                onClick={handlePayment}
+                disabled={isLoading}
+                className="relative h-14 w-full overflow-hidden rounded-xl bg-blue-600 font-medium text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 disabled:bg-gray-400 dark:bg-blue-600 dark:hover:bg-blue-700 dark:hover:shadow-blue-600/10"
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center space-x-2">
+                    <svg className="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Processing Payment...</span>
+                  </div>
+                ) : (
+                  <>
+                    <span className="relative z-10">Complete Purchase</span>
+                    <div className="absolute inset-0 -translate-x-full transform-gpu bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700 ease-in-out group-hover:translate-x-full"></div>
+                  </>
+                )}
+              </Button>
+              
+              <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex items-center space-x-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  <span>Secure Payment</span>
+                </div>
+                <span>•</span>
+                <div className="flex items-center space-x-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <span>Instant Access</span>
+                </div>
+                <span>•</span>
+                <div className="flex items-center space-x-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  <span>Money-Back Guarantee</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* Price Details */}
-        <div className="rounded-lg bg-gray-100 p-4 text-center">
-          <p className="text mb-2 text-gray-500">
-            Original Price :{" "}
-            <span className="line-through">${coursePrice.toFixed(2)}</span>
-          </p>
-          {discountApplied && (
-            <p className="mb-2 text-black ">
-              Discount: -${(coursePrice * 0.2).toFixed(2)}
-            </p>
-          )}
-          <p className="text-4xl font-bold text-green-600">
-            Final Price : ${finalPrice}
-          </p>
-        </div>
-
-        {/* Promo Code Section */}
-        <div className="flex flex-col space-y-6">
-          <Input
-            type="text"
-            placeholder="Enter Promo Code Here...."
-            className="h-12 w-full bg-white text-base text-gray-600 placeholder:text-base placeholder:text-gray-400 focus:outline-none focus:ring-0"
-            value={promoCode}
-            onChange={(e) => setPromoCode(e.target.value)}
-          />
-
-          <Button
-            onClick={applyPromoCode}
-            className="mt-4 h-12 w-full bg-black text-base hover:bg-blue-600"
-          >
-            Apply Code
-          </Button>
-          {errorMessage && (
-            <p className="text-center text-sm text-red-500">{errorMessage}</p>
-          )}
-        </div>
-
-        <Button
-          onClick={handlePayment}
-          disabled={isLoading}
-          className="h-12 w-full bg-green-500 text-base hover:bg-green-600"
-          >
-          {isLoading ? "Processing..." : "Proceed to Payment"}
-        </Button>
-      </Card>
+      </div>
     </div>
   );
 };

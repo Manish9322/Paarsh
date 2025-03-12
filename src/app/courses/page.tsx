@@ -1,11 +1,11 @@
 import CoursesPage from '@/components/Courses/Courses'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 const page = () => {
   return (
-    <div>
-      <CoursesPage />
-    </div>
+    <Suspense fallback={<div>Loading...</div>}>
+    <CoursesPage />
+  </Suspense>
   )
 }
 

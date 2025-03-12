@@ -4,7 +4,7 @@ const Breadcrumb = ({
   pageName,
   description,
 }: {
-  pageName: string;
+  pageName: React.ReactNode;
   description: string;
 }) => {
   return (
