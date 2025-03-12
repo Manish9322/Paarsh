@@ -70,7 +70,7 @@ export function PreviewCourse() {
         <DialogHeader>
           <DialogTitle>Preview Course</DialogTitle>
           <DialogDescription>
-            Make changes to your course here. Click save when you're done.
+            Make changes to your course here. Click save when you are done.
           </DialogDescription>
         </DialogHeader>
 
@@ -113,7 +113,7 @@ export function PreviewCourse() {
               <p className="pt-0 py-2">JavaScript plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more.</p>
               <ol className="list-decimal px-4">
                 <li className="pb-4">JavaScript is one of the most essential programming languages for web development, enabling developers to create dynamic and interactive websites. This course will take you from the fundamentals of JavaScript, such as variables, data types, and functions, to advanced topics like asynchronous programming, APIs, and modern ES6+ features.</li>
-                <li className="pb-4">You'll learn how to manipulate the DOM , handle events, and work with frameworks like React.js to build real-world applications. Through hands-on exercises and projects, you'll gain the practical skills needed to write clean, efficient, and scalable JavaScript code.</li>
+                <li className="pb-4">You Will learn how to manipulate the DOM , handle events, and work with frameworks like React.js to build real-world applications. Through hands-on exercises and projects, you will gain the practical skills needed to write clean, efficient, and scalable JavaScript code.</li>
                 <li className="pb-4">Learn JavaScript from scratch and advance to building dynamic web applications with hands-on projects, covering ES6+, DOM manipulation, APIs, and asynchronous programming to excel in modern web development.</li>
                 <li className="pb-4">Popular front-end frameworks and libraries such as React.js, Vue.js, and Angular are built on JavaScript, enabling developers to create scalable and responsive web applications with ease.</li>
               </ol>

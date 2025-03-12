@@ -19,7 +19,7 @@ const Blog = () => {
       />
 
       <section className="pb-20 pt-10">
-        <div className="container mx-auto px-6 lg:px-12">
+        <div className="container mx-auto px-6 sm:px-12">
           <div className="flex flex-col lg:flex-row lg:space-x-12">
             {/* Left Side - Blog List */}
             <div className="w-full lg:w-2/3">
@@ -34,6 +34,44 @@ const Blog = () => {
 
             {/* Right Side - Related Posts */}
             <div className="mt-12 w-full lg:mt-0 lg:w-1/3">
+
+
+              <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
+                <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
+                  Popular Category
+                </h3>
+                <ul className="px-8 py-6">
+
+                  <li>
+                    <a
+                      href="#0"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                    >
+                      HELLO WORLD
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#0"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                    >
+                      HELLO WORLD
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#0"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                    >
+                      HELLO WORLD
+                    </a>
+                  </li>
+
+                </ul>
+
+              </div>
+
+
               {/* category */}
               <div className="mb-8 rounded-md bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-6 py-3 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
@@ -74,7 +112,8 @@ const Blog = () => {
                       title="PyBloggers—the best Python bloggers come together"
                       image="/images/blog/python.jpeg"
                       slug="#"
-                      date="12 Feb 2025" level={""} duration={""}                    />
+                      date="12 Feb 2025" level={""} duration={""} 
+                      certificate ={""}/>
                   </li>
                   <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
@@ -82,21 +121,24 @@ const Blog = () => {
 "
                       image="/images/blog/post-01.jpg"
                       slug="#"
-                      date="12 Feb 2025" level={""} duration={""}                    />
+                      date="12 Feb 2025" level={""} duration={""} 
+                      certificate ={""}/>
                   </li>
                   <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
                       title="Java News Roundup: Stable Values, Spring Modulith, Open Liberty, Quarkus, JReleaser, Gradle"
                       image="/images/blog/post-02.jpg"
                       slug="#"
-                      date="15 Feb, 2024" level={""} duration={""}                    />
+                      date="15 Feb, 2024" level={""} duration={""}
+                      certificate ={""} />
                   </li>
                   <li>
                     <RelatedPost
                       title="ByteDance Launches New AI Coding Tool Trae with DeepSeek R1 and Claude 3.7 Sonnet Free For All Users"
                       image="/images/blog/post-03.jpg"
                       slug="#"
-                      date="05 Jun, 2024" level={""} duration={""}                    />
+                      date="05 Jun, 2024" level={""} duration={""}
+                      certificate ={""} />
                   </li>
                 </ul>
               </div>

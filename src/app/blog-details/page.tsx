@@ -22,7 +22,7 @@ const BlogDetailsPage = () => {
             <div className="w-full lg:w-2/3">
               <div className="p-8">
                 <h2 className="mb-8 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
-                Demystifying MVC Framework in PHP
+                  Demystifying MVC Framework in PHP
                 </h2>
                 <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
                   <div className="flex flex-wrap items-center">
@@ -106,9 +106,13 @@ const BlogDetailsPage = () => {
                 </div>
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                  In the realm of web development, the Model-View-Controller (MVC) architectural pattern stands as one of the most influential paradigms. 
-                  It provides a structured approach to designing web applications, promoting modularity, scalability, and maintainability.
-                   In this guide, we'll delve into the MVC framework in PHP, exploring its key components, principles, and benefits.
+                    In the realm of web development, the Model-View-Controller
+                    (MVC) architectural pattern stands as one of the most
+                    influential paradigms. It provides a structured approach to
+                    designing web applications, promoting modularity,
+                    scalability, and maintainability. In this guide, we will
+                    delve into the MVC framework in PHP, exploring its key
+                    components, principles, and benefits.
                   </p>
 
                   <div className="mb-10 w-full overflow-hidden rounded">
@@ -122,68 +126,94 @@ const BlogDetailsPage = () => {
                     </div>
                   </div>
                   <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                  MVC separates an application into three interconnected components, each with its distinct responsibility<br/>
+                    MVC separates an application into three interconnected
+                    components, each with its distinct responsibility
+                    <br />
                     <strong className="text-primary dark:text-white">
-                    Model:
+                      Model:
                     </strong>
-                     The model represents the application's data and business logic. It encapsulates the data structure, database interactions, and validation rules. In MVC, the model is responsible for managing data persistence and state.
+                    The model represents the applications data and business
+                    logic. It encapsulates the data structure, database
+                    interactions, and validation rules. In MVC, the model is
+                    responsible for managing data persistence and state.
                   </p>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                  <strong className="text-primary dark:text-white">
-                  View:
-                    </strong>
-                    The view is responsible for presenting data to the user in a visually appealing format.
-                     It encompasses the HTML markup, CSS styling, and client-side scripting necessary to render
-                       the user interface. Views are typically 
-                     components that receive data from the controller and display it to the user.<br/>
                     <strong className="text-primary dark:text-white">
-                    Controller: 
+                      View:
                     </strong>
-                    The controller acts as an intermediary between the model and the view. It processes user requests,
-                     invokes the appropriate methods in the model to retrieve or manipulate data, and selects the appropriate view to 
-                     render the response. Controllers
-                     handle user input, orchestrate business logic, and coordinate the flow of data between the model and the view.
+                    The view is responsible for presenting data to the user in a
+                    visually appealing format. It encompasses the HTML markup,
+                    CSS styling, and client-side scripting necessary to render
+                    the user interface. Views are typically components that
+                    receive data from the controller and display it to the user.
+                    <br />
+                    <strong className="text-primary dark:text-white">
+                      Controller:
+                    </strong>
+                    The controller acts as an intermediary between the model and
+                    the view. It processes user requests, invokes the
+                    appropriate methods in the model to retrieve or manipulate
+                    data, and selects the appropriate view to render the
+                    response. Controllers handle user input, orchestrate
+                    business logic, and coordinate the flow of data between the
+                    model and the view.
                   </p>
                   <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                  In PHP, models typically represent data entities and interact with the database. They 
-                  encapsulate data access logic and provide methods for querying, inserting, updating, and deleting records.
+                    In PHP, models typically represent data entities and
+                    interact with the database. They encapsulate data access
+                    logic and provide methods for querying, inserting, updating,
+                    and deleting records.
                     {/* <strong className="text-primary dark:text-white">
                       malesuada
                     </strong> */}
-              Views in PHP are responsible for generating HTML markup to render the user interface. They receive data from the controller and use it to dynamically generate the content displayed to the user.
-               Views can include HTML templates with embedded PHP code or utilize template engines for better separation of concerns.
+                    Views in PHP are responsible for generating HTML markup to
+                    render the user interface. They receive data from the
+                    controller and use it to dynamically generate the content
+                    displayed to the user. Views can include HTML templates with
+                    embedded PHP code or utilize template engines for better
+                    separation of concerns.
                   </p>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     Semper auctor neque vitae tempus quam pellentesque nec.
-                    
-                    Controllers in PHP handle user requests, process input data, and interact with models to retrieve or manipulate data. They select the appropriate view to render the response and pass data to the 
-                    view for presentation. Controllers are responsible for defining application routes and managing the overall application flow.
-                    sed.
+                    Controllers in PHP handle user requests, process input data,
+                    and interact with models to retrieve or manipulate data.
+                    They select the appropriate view to render the response and
+                    pass data to the view for presentation. Controllers are
+                    responsible for defining application routes and managing the
+                    overall application flow. sed.
                   </p>
                   <h3 className="font-xl mb-10 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
-                  Benefits of MVC Framework in PHP:
+                    Benefits of MVC Framework in PHP:
                   </h3>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                
-                  </p>
+                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed"></p>
                   <ul className="mb-10 list-inside list-disc text-body-color">
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                    Separation of Concerns: MVC promotes a clear separation of concerns, making it easier to manage code complexity and maintainability.
+                      Separation of Concerns: MVC promotes a clear separation of
+                      concerns, making it easier to manage code complexity and
+                      maintainability.
                     </li>
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                    Modularity: Components in MVC are modular and reusable, allowing developers to build and extend applications more efficiently.
+                      Modularity: Components in MVC are modular and reusable,
+                      allowing developers to build and extend applications more
+                      efficiently.
                     </li>
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                    Testability: With distinct components, it becomes easier to write unit tests for models, views, and controllers independently.
+                      Testability: With distinct components, it becomes easier
+                      to write unit tests for models, views, and controllers
+                      independently.
                     </li>
                     <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                    Scalability: MVC facilitates the scalability of web applications by enabling developers to add new features or modify existing ones without impacting other parts of the system.
-
+                      Scalability: MVC facilitates the scalability of web
+                      applications by enabling developers to add new features or
+                      modify existing ones without impacting other parts of the
+                      system.
                     </li>
                   </ul>
                   <div className="relative z-10 mb-10 overflow-hidden rounded-md bg-primary bg-opacity-10 p-8 md:p-9 lg:p-8 xl:p-9">
                     <p className="text-center text-base font-medium italic text-body-color">
-                    The MVC framework in PHP provides a robust architectural pattern for building scalable and maintainable web applications. 
+                      The MVC framework in PHP provides a robust architectural
+                      pattern for building scalable and maintainable web
+                      applications.
                     </p>
                     <span className="absolute left-0 top-0 z-[-1]">
                       <svg
@@ -327,8 +357,9 @@ const BlogDetailsPage = () => {
                     </span>
                   </div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                   By separating concerns into models, views, and controllers, 
-                  developers can organize code more effectively, enhance testability, and streamline the development process.
+                    By separating concerns into models, views, and controllers,
+                    developers can organize code more effectively, enhance
+                    testability, and streamline the development process.
                   </p>
                   <div className="items-center justify-between sm:flex">
                     <div className="mb-5">
@@ -368,6 +399,7 @@ const BlogDetailsPage = () => {
                       date="12 Feb 2025"
                       level={""}
                       duration={""}
+                      certificate={""}
                     />
                   </li>
                   <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
@@ -378,6 +410,7 @@ const BlogDetailsPage = () => {
                       date="12 Feb 2025"
                       level={""}
                       duration={""}
+                      certificate={""}
                     />
                   </li>
                   <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
@@ -388,17 +421,18 @@ const BlogDetailsPage = () => {
                       date="15 Feb, 2024"
                       level={""}
                       duration={""}
+                      certificate={""}
                     />
                   </li>
                   <li>
                     <RelatedPost
-                      title="
-Redefining the Database for AI: Why MongoDB Acquired Voyage AI"
+                      title="Redefining the Database for AI: Why MongoDB Acquired Voyage AI"
                       image="/images/blog/ai.jpg"
                       slug="#"
                       date="05 Jun, 2024"
                       level={""}
                       duration={""}
+                      certificate={""}
                     />
                   </li>
                 </ul>

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import SingleCourse from "./SingleCourse";
-import courseData from "./CourseData";
 import Breadcrumb from "@/components/Common/Breadcrumb";
 import RelatedPost from "@/components/Blog/RelatedPost";
 import { useMemo, useState } from "react";
@@ -15,7 +14,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { CiGrid41 } from "react-icons/ci";
 import { TbLayoutList } from "react-icons/tb";
 import { useFetchCategoriesQuery, useFetchCourcesQuery } from "@/services/api";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Category {
   id: number;
@@ -32,8 +31,10 @@ const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showAll, setShowAll] = useState(false);
 
+  const router = useRouter();
   const param = useSearchParams();
   const courseId = param.get("courseId");
+  
 
   // TITLE CASE FUNCTION
   const toTitleCase = (str: string) => {
@@ -79,7 +80,7 @@ const Courses = () => {
   };
 
   const filteredCourses = selectedCategory
-    ? (coursesData?.data || []).filter((course: { category: string; }) => course.category === selectedCategory) : coursesData?.data || [];
+    ? (coursesData?.data || []).filter((course: { category: string }) => course.category === selectedCategory) : coursesData?.data || [];
 
   const displayedCourses = showMore ? filteredCourses : filteredCourses.slice(0, 6);
 
@@ -90,10 +91,15 @@ const Courses = () => {
   console.log("Filtered courses: ", filteredCourses);
   console.log("category : ", categories)
 
+  const PageName = () =>{
+    <>
+    All <span className="text-blue-600">Courses</span></>
+  }
+
   return (
     <>
       <Breadcrumb
-        pageName={<>All <span className="text-blue-600">Courses</span></>}
+        pageName={<PageName/>}
         description="Discover a wide range of courses designed to enhance your skills, boost your knowledge, and help you achieve your goals—learn at your own pace anytime, anywhere!"
       />
 
@@ -149,7 +155,7 @@ const Courses = () => {
               <div className="mt-8 flex justify-center">
                 <button
                   onClick={() => setShowMore(!showMore)}
-                  className="inline-block rounded-sm text-black font-semibold px-8 py-4 text-base transition duration-300 hover:shadow-two dark:bg-white dark:hover:bg-gray-200 bg-white shadow-one dark:shadow-gray-dark"
+                  className="inline-block rounded-sm bg-black px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out hover:bg-black/90 dark:bg-white/10 dark:text-white dark:hover:bg-white/50"
                 >
                   {showMore ? "Show Less" : "View More"}
                 </button>
@@ -239,12 +245,9 @@ const Courses = () => {
                       className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10"
                     >
                       <div className="flex flex-col sm:flex-row items-center gap-4">
-                        {/* Skeleton for course image */}
                         <Skeleton height={60} width={60} className="rounded-md dark:bg-gray-800" />
                         <div className="flex flex-col text-center sm:text-left">
-                          {/* Skeleton for course title */}
                           <Skeleton height={20} width={200} className="mb-2 dark:bg-gray-800" />
-                          {/* Skeleton for course details */}
                           <Skeleton height={14} width={150} className="dark:bg-gray-800" />
                         </div>
                       </div>
@@ -252,20 +255,25 @@ const Courses = () => {
                   ))}
                 </>
               ) : (
-                // Show actual course data when loaded
                 randomCourses.map((course) => (
                   <li
                     key={course.id ?? course.courseName}
                     className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10"
                   >
-                    <RelatedPost
-                      title={course.courseName}
-                      image={course.image || "/images/blog/blog-01.jpg"}
-                      slug={`/${course.slug || "#"}`}
-                      level={course.level || "N/A"}
-                      duration={course.duration || "Unknown"}
-                      certificate={course.certificate || "Unknown"}
-                    />
+                    <div
+                      className="cursor-pointer"
+                      onClick={() => router.push(`/blog-sidebar?courseId=${course._id}`)}
+                    >
+                      <RelatedPost
+                        title={course.courseName}
+                        image={course.image || "/images/blog/blog-01.jpg"}
+                        slug={`/${course.slug || "#"}`}
+                        level={course.level || "N/A"}
+                        duration={course.duration || "Unknown"}
+                        certificate={course.certificate || "Unknown"}
+                        date={""}
+                      />
+                    </div>
                   </li>
                 ))
               )}

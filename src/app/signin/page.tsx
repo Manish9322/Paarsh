@@ -92,7 +92,7 @@ const SigninPage = () => {
                 <div className="mb-8">
                   <label
                     htmlFor="email"
-                    className="mb-3 block text-sm text-dark dark:text-white"
+                    className="mb-3 block text-primary text-dark dark:text-white"
                   >
                     Your Email
                   </label>
@@ -104,7 +104,7 @@ const SigninPage = () => {
                     {...formik.getFieldProps("email")} // ✅ Simplified form handling
                   />
                   {formik.touched.email && formik.errors.email && (
-                    <p className="text-sm text-red-500">
+                    <p className="mx-1 mt-2 text-sm text-red-500">
                       {formik.errors.email}
                     </p>
                   )}
@@ -114,7 +114,7 @@ const SigninPage = () => {
                 <div className="relative mb-8">
                   <label
                     htmlFor="password"
-                    className="mb-3 block text-sm text-dark dark:text-white"
+                    className="mb-3 block text-primary text-dark dark:text-white"
                   >
                     Your Password
                   </label>
@@ -135,7 +135,7 @@ const SigninPage = () => {
                     </button>
                   </div>
                   {formik.touched.password && formik.errors.password && (
-                    <p className="text-sm text-red-500">
+                    <p className="mx-1 mt-2 text-sm text-red-500">
                       {formik.errors.password}
                     </p>
                   )}
@@ -145,7 +145,7 @@ const SigninPage = () => {
                 <div className="mb-6">
                   <button
                     type="submit"
-                    className="w-full rounded-sm bg-blue-900 px-6 py-3 text-base text-white outline-none transition-all duration-300 hover:bg-opacity-80"
+                    className="mb-4 w-full rounded transition bg-blue-600 px-6 py-3 text-white hover:bg-black"
                     disabled={formik.isSubmitting}
                   >
                     {formik.isSubmitting ? "Processing..." : "Sign In"}
@@ -153,7 +153,7 @@ const SigninPage = () => {
                 </div>
               </form>
 
-              <p className="text-center text-sm text-body-color">
+              <p className="text-center text-base font-medium text-body-color">
                 Don’t have an account?
                 <Link href="/signup" className="text-primary hover:underline">
                   {" "}

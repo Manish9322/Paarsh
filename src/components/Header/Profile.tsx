@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   X,
@@ -15,17 +15,18 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { logout } from "../../lib/slices/userAuthSlice"
+import { logout } from "../../lib/slices/userAuthSlice";
 import { useDispatch } from "react-redux";
 import { useFetchUserQuery } from "@/services/api";
 
-
 export default function Profile() {
+  const { data: userData, error, isLoading } = useFetchUserQuery(undefined);
 
-const { data : userData, error, isLoading } = useFetchUserQuery(undefined);
-console.log("Data",userData?.data);
-const [isOpen, setIsOpen] = useState(false);
- 
+  const user = userData?.data;
+
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null); // Ref for detecting outside clicks
+
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -34,11 +35,28 @@ const [isOpen, setIsOpen] = useState(false);
     router.push("/"); // Redirect to Sign In page
   };
 
- const toggleMenu = () => {
-  setIsOpen(!isOpen);
-};
-return (
-    <div className="relative">
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
       {/* Profile Image Trigger */}
       <div className="cursor-pointer p-2" onClick={toggleMenu}>
         <Image
@@ -50,14 +68,37 @@ return (
         />
       </div>
 
+      {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-md border border-gray-200 z-50">
-          <button
-            onClick={handleLogout}
-            className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
-          >
-            Logout
-          </button>
+        <div className="absolute right-0 z-50 mt-2 w-56 rounded-md border border-gray-200 bg-white p-4 shadow-lg">
+          {/* Loading State */}
+          {isLoading ? (
+            <p className="text-center text-gray-500">Loading...</p>
+          ) : error ? (
+            <p className="text-center text-red-500">Failed to load user</p>
+          ) : (
+            <>
+              {/* User Info */}
+              <div className="mb-4 flex items-center gap-3">
+                <User size={24} className="text-gray-600" />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs text-gray-600">{user?.email}</p>
+                </div>
+              </div>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-white hover:bg-red-700"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

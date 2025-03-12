@@ -48,7 +48,7 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
           <div className={` ${isGrid ? '' : ' border-b'}`}>
             <div className={`flex flex-col items-center space-y-8 ${isGrid ? '' : ' py-4'}`}>
               <div
-                className={`w-full bg-white dark:bg-dark shadow-one dark:shadow-gray-dark rounded-lg transition duration-300 hover:shadow-two dark:hover:shadow-gray-dark ${isGrid ? 'flex flex-col' : ' flex flex-col md:flex-row'}`} // Add list-card class for list view
+                className={`w-full bg-white dark:bg-dark shadow-one dark:shadow-gray-dark rounded transition duration-300 hover:shadow-two dark:hover:shadow-gray-dark ${isGrid ? 'flex flex-col' : ' flex flex-col md:flex-row'}`} // Add list-card class for list view
                 onClick={handleCardClick} 
                 style={{ cursor: "pointer" }}
               >
@@ -97,7 +97,10 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
                     </div>
                     <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <IoLanguage className="mr-1" />
-                      <p className="text-xs py-1">{languages ? languages.split(", ").join(" | ") : "No Languages Available"}</p>
+                      <p className="text-xs py-1">
+                      {Array.isArray(languages)
+                        ? languages.join(" | ") : typeof languages === "string" ? languages : "No Languages Available"}
+                      </p>
                     </div>
                   </div>
                 </div>
