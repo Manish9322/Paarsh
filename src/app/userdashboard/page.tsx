@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import DashboardSidebar from "@/components/Layout/DashboardSidebar"; // Import Sidebar component
+import DashboardSidebar from "@/components/Layout/DashboardSidebar";
 import ReferEarn from "@/components/ReferEarn/page";
 import TotalCourses from "@/components/totalcourses/page";
 import OngoingCourse from "@/components/ongoingcourses/page";
@@ -41,13 +41,12 @@ const componentsMap = {
   referEarn: <ReferEarn />,
 };
 
-function Userdashboard() {
+export default function UserDashboard() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const router = useRouter();
 
   return (
-    <>
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar Component */}
       <DashboardSidebar
         isSidebarOpen={isSidebarOpen}
@@ -56,7 +55,7 @@ function Userdashboard() {
       />
 
       {/* Main Content Area */}
-      <div className="p-4 sm:ml-64">
+      <div className="flex-1 p-4 sm:ml-64">
         <div className="p-4 dark:border-gray-700">
           {selectedCategory ? (
             componentsMap[selectedCategory]
@@ -82,8 +81,6 @@ function Userdashboard() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
-
-export default Userdashboard;

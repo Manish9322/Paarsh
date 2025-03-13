@@ -26,8 +26,12 @@ import Purchase from "../../components/Purchase";
 
 import { useFetchCategoriesQuery, useFetchCourcebyIdQuery, useFetchCourcesQuery } from "@/services/api";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { SkeletonThemeProvider } from "@/components/ui/skeleton-theme-provider";
+import VideoPlayer from "@/components/VideoPlayer/VideoPlayer";
+import debounce from 'lodash/debounce';
+
 
 
 // import NewsLatterBox from "@/components/Cont act/NewsLatterBox";
@@ -43,7 +47,8 @@ interface Course {
   courseName: string;
   tagline: string;
   summaryText: string;
-
+  thumbnailUrl: string;
+  videoUrl: string;
   instructor: string;
   courseType: string;
   duration: string;
@@ -56,10 +61,8 @@ interface Course {
   finalText: string;
   tagline_in_the_box: string;
   editorContent: string;
-
   courseIncludes: string[];
   taglineIncludes: string;
-
   syllabusOverview: string;
   overviewTagline: string;
 }
@@ -78,23 +81,24 @@ const BlogSidebarPage = () => {
   const router = useRouter();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const modalOpen = () => {
-    setIsModalOpen(true);
-  };
-
-  const modalClose = () => {
-    setIsModalOpen(false);
-  };
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   const courseId = param.get("courseId");
+  
+  // Check authentication status on component mount
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    setIsAuthorized(!!accessToken);
+  }, []);
+
   const {
     data: courseData,
     isLoading,
     error,
   } = useFetchCourcebyIdQuery(courseId);
-  const course: Course = courseData?.data;
-
 
   const {
     data: categoryData,
@@ -102,7 +106,102 @@ const BlogSidebarPage = () => {
     error: categoryError,
   } = useFetchCategoriesQuery(courseId);
 
+  const {
+    data: coursesData,
+    error: courseError,
+  } = useFetchCourcesQuery(undefined);
+
+  const course: Course = courseData?.data;
   const categories = categoryData?.data || [];
+
+  // Memoize random courses to prevent unnecessary recalculations
+  const getRandomCourses = useCallback((courses, count = 3) => {
+    if (!courses || courses.length === 0) return [];
+    const shuffled = [...courses].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  }, []);
+
+  // Memoize random categories
+  const randomCategories = useMemo(() => 
+    getRandomCategories(categories, 6),
+    [categories]
+  );
+
+  // Memoize search results and random courses
+  const displayedCourses = useMemo(() => {
+    if (searchResults.length > 0) {
+      return searchResults.slice(0, 3);
+    }
+    return getRandomCourses(coursesData?.data, 3);
+  }, [searchResults, coursesData?.data, getRandomCourses]);
+
+  // Optimize search function with debounce
+  const debouncedSearch = useCallback(
+    debounce((query: string) => {
+      if (!query.trim()) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+      
+      if (coursesData?.data) {
+        const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
+        
+        const filteredResults = coursesData.data.filter((course) => {
+          const searchableContent = [
+            course.courseName,
+            course.level,
+            course.courseCategory,
+            course.courseSubCategory,
+          ]
+            .filter(Boolean)
+            .map(item => item.toString().toLowerCase())
+            .join(' ');
+
+          return searchTerms.every(term => searchableContent.includes(term));
+        });
+        
+        setSearchResults(filteredResults);
+      }
+      
+      setIsSearching(false);
+    }, 300),
+    [coursesData]
+  );
+
+  // Handle search input
+  const handleSearch = useCallback(() => {
+    debouncedSearch(searchQuery);
+  }, [searchQuery, debouncedSearch]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      handleSearch();
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery, handleSearch]);
+
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }, [handleSearch]);
+
+  const modalOpen = () => {
+    if (isAuthorized) {
+      setIsModalOpen(true);
+    } else {
+      // Redirect to sign-in page if not authorized
+      router.push('/signin');
+    }
+  };
+
+  const modalClose = () => {
+    setIsModalOpen(false);
+  };
 
   const category: Category = categoryData?.data;
   console.log("Categories : ", category);
@@ -123,119 +222,67 @@ const BlogSidebarPage = () => {
   console.log("Course Data : ", course);
   console.log("Editor Content:", course?.editorContent);
 
-  const {
-    data: coursesData,
-    error: courseError,
-  } = useFetchCourcesQuery(undefined);
-
-
-  const getRandomCourses = (courses, count = 3) => {
-    if (!courses || courses.length === 0) return [];
-    const shuffled = [...courses].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-  };
-
-  const randomCourses = useMemo(
-    () => getRandomCourses(coursesData?.data, 3),
-    [coursesData],
-  );
-
   return (
-    <>
+    <SkeletonThemeProvider>
       <section className="overflow-hidden pb-[120px] pt-[180px]">
         <div className="container">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4 lg:w-8/12">
               <div>
-                {/* <h1 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
-                  Mastering JavaScript
-                </h1> */}
-                <div className="flex justify-between">
-                  <div className="w-4/5">
-                    <h1 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
-                      {isLoading ? <Skeleton width={300} /> : course?.courseName}
-                    </h1>
+                <div className="flex flex-col mb-8">
+                  <h1 className="mb-3 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
+                    {isLoading ? <Skeleton width={300} /> : course?.courseName}
+                  </h1>
 
-                    <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                      {isLoading ? <Skeleton count={2} /> : course?.tagline}
-                    </p>
-                  </div>
+                  <p className="mb-6 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
+                    {isLoading ? <Skeleton count={2} /> : course?.tagline}
+                  </p>
 
-                  <div className="w-fit">
-                    <p className="mr-5 flex items-start text-5xl font-extrabold text-blue-600 hover:text-blue-400 transition duration-300 tracking-wide uppercase bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text text-transparent">
-
-                      <span className="text-xl">
-                        <FaIndianRupeeSign className="text-blue-400 transition duration-300  tracking-wide uppercase bg-gradient-to-r from-blue-400 to-blue-500 bg-clip-text" />
-
-                      </span>
-                      {isLoading ? (
-                        <Skeleton width={100} />
-                      ) : course ? (
-                        course.price
-                      ) : (
-                        "Loading Course Fees..."
-                      )}
-                    </p>
-                  </div>
-
-                </div>
-                <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
-                  <div className="flex flex-wrap items-center">
-                    <div className="mb-5 flex items-center">
-                      <p className="mr-5 flex items-center text-base font-medium text-body-color">
-                        <span className="mr-2 text-xl">
-                          <PiCertificateLight />
-                        </span>
-
-                        {isLoading ? <Skeleton width={100} /> : `${course?.certificate ? "Certificate" : "No Certificate"}`}
-                      </p>
-
-
-                      <p className="mr-5 flex items-center text-base font-medium text-body-color">
-                        <span className="mr-2 text-xl">
-                          <LiaSignalSolid />
-                        </span>
-
-                        {isLoading ? <Skeleton width={100} /> : course?.level}
-                      </p>
-                      <p className="mr-5 flex items-center text-base font-medium text-body-color">
-                        <span className="mr-2 text-xl">
-                          <TbClockHour7 />
-                        </span>
-                        {isLoading ? (
-                          <Skeleton width={100} />
-                        ) : (
-                          course?.duration
-                        )}
-                      </p>
-
-                      <p className="mr-5 flex items-center text-base font-medium text-body-color">
-                        <span className="mr-2 text-xl">
-                          <IoLanguage />
-                        </span>
-                        {isLoading ? (
-                          <Skeleton width={100} />
-                        ) : course ? (
-                          course.languages
-                        ) : (
-                          "Loading Languages..."
-                        )}
-                      </p>
-
+                  <div className="mb-8">
+                    <div className="inline-flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-300 mb-6">
+                      <div className="flex items-center gap-1">
+                        <TbClockHour7 className="text-blue-600 text-base" />
+                        <span>{isLoading ? <Skeleton width={60} /> : course?.duration}</span>
+                      </div>
+                      <span className="text-gray-300">•</span>
+                      <div className="flex items-center gap-1">
+                        <LiaSignalSolid className="text-blue-600 text-base" />
+                        <span>{isLoading ? <Skeleton width={60} /> : course?.level}</span>
+                      </div>
+                      <span className="text-gray-300">•</span>
+                      <div className="flex items-center gap-1">
+                        <IoLanguage className="text-blue-600 text-base" />
+                        <span className="truncate">{isLoading ? <Skeleton width={60} /> : Array.isArray(course?.languages) ? course?.languages.join(', ') : course?.languages}</span>
+                      </div>
+                      <span className="text-gray-300">•</span>
+                      <div className="flex items-center gap-1">
+                        <PiCertificateLight className="text-blue-600 text-base" />
+                        <span>{course?.certificate ? "Certificate Included" : "No Certificate"}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="mb-5 mr-4">
+                    
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center">
+                          <FaIndianRupeeSign className="text-3xl text-blue-600 dark:text-blue-400" />
+                          <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                            {isLoading ? <Skeleton width={100} /> : course?.price}
+                          </span>
+                        </div>
+                        <div className="flex flex-col ml-2">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">One-time payment</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Lifetime access</span>
+                        </div>
+                      </div>
                       <Button
                         onClick={modalOpen}
-                        className="inline-flex items-center justify-center rounded bg-blue-600 hover:bg-blue-700 transition px-4 py-2 text-base font-medium text-white dark:bg-blue-600 dark:hover:bg-blue-700"
+                        className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-10 py-4 text-lg font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
                       >
-                        Purchase Now
+                        Enroll Now
                       </Button>
                     </div>
                   </div>
                 </div>
-
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     {/* <span className="text-blue-600 font-bold"> JavaScript </span> plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more. */}
@@ -248,14 +295,11 @@ const BlogSidebarPage = () => {
                     )}
                   </p>
                   <div className="mb-10 w-full overflow-hidden rounded">
-                    <div className="relative aspect-[97/60] w-full sm:aspect-[97/44]">
-                      <Image
-                        src="/images/blog/blog-details-01.jpg"
-                        alt="image"
-                        fill
-                        className="h-full w-full object-cover object-center"
-                      />
-                    </div>
+                    <VideoPlayer
+                      thumbnailUrl={"/images/blog/blog-details-01.jpg"}
+                      videoUrl={"https://paarsh.v2winonline.com:8090/placement.mp4"}
+                      title={course?.courseName || "Course Video"}
+                    />
                   </div>
                   <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
                     {isLoading ? (
@@ -533,10 +577,14 @@ const BlogSidebarPage = () => {
                     type="text"
                     placeholder="Search here..."
                     className="border-stroke mr-4 w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:text-body-color-dark dark:shadow-two dark:focus:border-primary dark:focus:shadow-none"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyPress}
                   />
                   <button
                     aria-label="search button"
                     className="flex h-[50px] w-full max-w-[50px] items-center justify-center rounded-sm bg-primary text-white dark:bg-blue-600"
+                    onClick={handleSearch}
                   >
                     <svg
                       width="20"
@@ -552,6 +600,43 @@ const BlogSidebarPage = () => {
                     </svg>
                   </button>
                 </div>
+                {isSearching && (
+                  <div className="mt-4">
+                    <Skeleton count={3} />
+                  </div>
+                )}
+                {searchResults.length > 0 && !isSearching && (
+                  <div className="mt-4">
+                    <h4 className="mb-3 text-sm font-medium text-body-color">
+                      Search Results ({searchResults.length})
+                    </h4>
+                    <ul className="max-h-60 overflow-y-auto">
+                      {searchResults.map((course) => (
+                        <li 
+                          key={course._id || course.id} 
+                          className="mb-2 border-b border-body-color border-opacity-10 pb-2 dark:border-white dark:border-opacity-10"
+                        >
+                          <a 
+                            href={`/blog-sidebar?courseId=${course._id || course.id}`}
+                            className="text-base font-medium text-body-color hover:text-primary"
+                          >
+                            {course.courseName}
+                          </a>
+                          <p className="text-xs text-body-color">
+                            {course.level} • {course.duration}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {searchQuery && searchResults.length === 0 && !isSearching && (
+                  <div className="mt-4">
+                    <p className="text-sm text-body-color">
+                      No courses found for {searchQuery}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
@@ -559,14 +644,14 @@ const BlogSidebarPage = () => {
                   Related Courses
                 </h3>
                 <ul className="p-8">
-                  {randomCourses.map((course) => (
+                  {displayedCourses.map((course) => (
                     <li
-                      key={course.id ?? course.courseName}
+                      key={course.id ?? course._id ?? course.courseName}
                       className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10"
                     >
                       <div
                         className="cursor-pointer"
-                        onClick={() => router.push(`/blog-sidebar?courseId=${course._id}`)}
+                        onClick={() => router.push(`/blog-sidebar?courseId=${course._id || course.id || ""}`)}
                       >
                         <RelatedPost
                           title={course.courseName}
@@ -574,7 +659,8 @@ const BlogSidebarPage = () => {
                           slug={`/${course.slug || "#"}`}
                           level={course.level || "N/A"}
                           duration={course.duration || "Unknown"}
-                          certificate={course.certificate || "Unknown"} date={""}
+                          certificate={course.certificate || "Unknown"} 
+                          date={""}
                         />
                       </div>
                     </li>
@@ -591,7 +677,7 @@ const BlogSidebarPage = () => {
                     <Skeleton count={3} />
                   ) : (
                     <>
-                      {getRandomCategories(categoryData?.data, 6).map((category) => (
+                      {randomCategories.map((category) => (
                         <li key={category._id}>
                           <a
                             href="#0"
@@ -639,7 +725,7 @@ const BlogSidebarPage = () => {
 
       <SubscribeNewsletter />
       <DownloadSyllabus />
-    </>
+    </SkeletonThemeProvider>
   );
 };
 
