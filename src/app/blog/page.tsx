@@ -34,8 +34,9 @@ const Blog = () => {
 
             {/* Right Side - Related Posts */}
             <div className="mt-12 w-full lg:mt-0 lg:w-1/3">
+            <aside className="sticky top-20">
 
-
+              {/* POPULAR CATEGORIES */}
               <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Popular Category
@@ -47,7 +48,7 @@ const Blog = () => {
                       href="#0"
                       className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
                     >
-                      HELLO WORLD
+                      IT
                     </a>
                   </li>
                   <li>
@@ -55,7 +56,7 @@ const Blog = () => {
                       href="#0"
                       className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
                     >
-                      HELLO WORLD
+                      NON-IT
                     </a>
                   </li>
                   <li>
@@ -63,7 +64,25 @@ const Blog = () => {
                       href="#0"
                       className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
                     >
-                      HELLO WORLD
+                      ANIMATION
+                    </a>
+                  </li>
+
+                  <li>
+                    <a
+                      href="#0"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                    >
+                      GRAPHICS DESIGNING
+                    </a>
+                  </li>
+
+                  <li>
+                    <a
+                      href="#0"
+                      className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                    >
+                      LANGUAGES
                     </a>
                   </li>
 
@@ -73,7 +92,7 @@ const Blog = () => {
 
 
               {/* category */}
-              <div className="mb-8 rounded-md bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
+              {/* <div className="mb-8 rounded-md bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-6 py-3 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                   Popular Category
                 </h3>
@@ -100,7 +119,7 @@ const Blog = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               <div className="rounded-lg bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
                 <h3 className="border-b border-body-color border-opacity-10 px-6 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
@@ -112,8 +131,8 @@ const Blog = () => {
                       title="PyBloggers—the best Python bloggers come together"
                       image="/images/blog/python.jpeg"
                       slug="#"
-                      date="12 Feb 2025" level={""} duration={""} 
-                      certificate ={""}/>
+                      date="12 Feb 2025" level="Last Updated 4 Mins Ago" duration={""} 
+                      certificate =""/>
                   </li>
                   <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
                     <RelatedPost
@@ -121,7 +140,7 @@ const Blog = () => {
 "
                       image="/images/blog/post-01.jpg"
                       slug="#"
-                      date="12 Feb 2025" level={""} duration={""} 
+                      date="12 Feb 2025" level="Last Updated 4 Mins Ago" duration={""} 
                       certificate ={""}/>
                   </li>
                   <li className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
@@ -129,7 +148,7 @@ const Blog = () => {
                       title="Java News Roundup: Stable Values, Spring Modulith, Open Liberty, Quarkus, JReleaser, Gradle"
                       image="/images/blog/post-02.jpg"
                       slug="#"
-                      date="15 Feb, 2024" level={""} duration={""}
+                      date="15 Feb, 2024" level="Last Updated 4 Mins Ago" duration={""}
                       certificate ={""} />
                   </li>
                   <li>
@@ -137,11 +156,12 @@ const Blog = () => {
                       title="ByteDance Launches New AI Coding Tool Trae with DeepSeek R1 and Claude 3.7 Sonnet Free For All Users"
                       image="/images/blog/post-03.jpg"
                       slug="#"
-                      date="05 Jun, 2024" level={""} duration={""}
+                      date="05 Jun, 2024" level="Last Updated 4 Mins Ago" duration={""}
                       certificate ={""} />
                   </li>
                 </ul>
               </div>
+            </aside>
             </div>
           </div>
         </div>

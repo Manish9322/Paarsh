@@ -15,7 +15,7 @@ const AboutSectionThree = () => {
           <div className="-mx-4 flex flex-wrap items-center">
             <div className="w-full px-4 lg:w-1/2">
               <SectionTitle
-                title={"<span className='text-blue-600'>Transforming Education</span> with Web Experiences."}
+                title={<span><span className='text-blue-600'>Transforming Education</span> with Web Experiences.</span>}
                 paragraph="Seamless course management with flexible pricing, user-friendly interface, and lifetime access."
                 mb="44px"
               />

@@ -14,7 +14,7 @@ const IntervalCarousel = () => {
   const { data: coursesData, error } = useFetchCourcesQuery(undefined);
   const isLoading = !coursesData;
 
-  const displayedCourses = coursesData?.data || []; // Show all courses
+  const displayedCourses = coursesData?.data || [];
 
   return (
     <SkeletonThemeProvider>
