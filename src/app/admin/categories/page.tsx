@@ -19,8 +19,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Eye, Edit, Trash2 } from "lucide-react";
-import AddCourseDialog from "@/components/Courses/AddCourse";
-import EditCourseModal from "@/components/Courses/EditCourse";
 import { toast } from "sonner";
 import {
   useDeleteCategoriesMutation,
