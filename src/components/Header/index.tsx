@@ -252,7 +252,7 @@ const Header = () => {
                   className="w-full dark:hidden"
                 />
                 <Image
-                  src="/images/logo/logo1.png"
+                  src="/images/logo/PAARSHEDU.png"
                   alt="logo"
                   width={140}
                   height={30}
