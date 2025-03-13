@@ -30,10 +30,10 @@ const CoursesPage = () => {
   const displayedCourses = (coursesData?.data || []).filter((course: { category: string; }) => course.category === selectedCategory).slice(0, 3);
 
   return (
-    <div className="main-container px-10 my-14">
+    <div className="main-container px-10 my-16">
       <div className="w-full mx-auto text-center pt-10 mb-6" style={{ maxWidth: "570px" }}>
         <h2 className="mb-4 text-3xl font-bold !leading-tight text-black dark:text-white sm:text-4xl md:text-[45px]">
-          What Would You Like To <span className="text-blue-500"> Learn</span>
+          What Would You Like To <span className="text-blue-500"> Learn ?</span>
         </h2>
         <p className="text-base !leading-relaxed text-body-color md:text-lg">
           Discover top courses to elevate your skills and unlock new opportunities for personal growth.

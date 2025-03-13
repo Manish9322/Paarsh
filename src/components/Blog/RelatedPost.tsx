@@ -16,6 +16,7 @@ const RelatedPost = ({
   level: string;
   duration: string;
   certificate: string;
+  
   date: string
 }) => {
   return (

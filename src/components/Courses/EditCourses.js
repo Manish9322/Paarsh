@@ -120,6 +120,7 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
 
   React.useEffect(() => {
     if (selectedCourse) {
+      setEditorContent(selectedCourse.editorContent || "");
       Object.keys(selectedCourse).forEach((key) => {
         dispatch(updateField({ field: key, value: selectedCourse[key] }));
       });

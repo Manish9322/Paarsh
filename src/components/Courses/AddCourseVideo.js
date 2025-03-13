@@ -15,16 +15,78 @@ import {
   removeVideoFromTopic,
 } from "../../lib/slices/courseVideoSlice";
 import { useAddCourseVideoMutation } from "@/services/api";
+import { useState } from "react";
 
 const AddCourseModal = ({ isOpen, onClose, onAddCourse, selectedCourse }) => {
   const dispatch = useDispatch();
   const courseData = useSelector((state) => state.coursevideo);
   const [createCourse, { isLoading }] = useAddCourseVideoMutation();
+  const [videoUploads, setVideoUploads] = useState({});
 
+  // Function to convert file to base64
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const fileReader = new FileReader();
+      fileReader.readAsDataURL(file);
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+      fileReader.onerror = (error) => {
+        reject(error);
+      };
+    });
+  };
+
+  // Handle file upload and conversion to base64
+  const handleFileUpload = async (e, topicId, videoId) => {
+    try {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      // Check if file is a video
+      if (!file.type.startsWith('video/')) {
+        toast.error("Please upload a video file");
+        return;
+      }
+      
+      // Check file size (limit to 100MB)
+      if (file.size > 100 * 1024 * 1024) {
+        toast.error("File size should be less than 100MB");
+        return;
+      }
+
+      // Show loading toast
+      toast.loading("Converting video...");
+      
+      // Convert to base64
+      const base64 = await convertToBase64(file);
+      
+      // Update state with file name for display
+      setVideoUploads({
+        ...videoUploads,
+        [`${topicId}-${videoId}`]: file.name
+      });
+      
+      // Update Redux store with base64 data
+      dispatch(
+        updateVideoId({
+          topicId,
+          videoId,
+          value: base64,
+        })
+      );
+      
+      toast.dismiss();
+      toast.success("Video uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.dismiss();
+      toast.error("Failed to upload video");
+    }
+  };
 
   const handleSubmit = async () => {
-
-   const formmatedData = {
+    const formmatedData = {
       ...courseData,
       courseName: selectedCourse.courseName,
       courseId: selectedCourse._id,
@@ -82,7 +144,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse, selectedCourse }) => {
 
               {/* Videos inside the topic */}
               {(topic?.videos ?? []).map((video) => (
-                <div key={video._id} className="mb-2 flex gap-2">
+                <div key={video._id} className="mb-2 flex flex-col gap-2">
                   <Input
                     type="text"
                     placeholder="Video Name"
@@ -97,33 +159,32 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse, selectedCourse }) => {
                       )
                     }
                   />
-                  <Input
-                    type="text"
-                    placeholder="Video ID"
-                    value={video.videoId}
-                    onChange={(e) =>
-                      dispatch(
-                        updateVideoId({
-                          topicId: topic._id,
-                          videoId: video._id,
-                          value: e.target.value,
-                        }),
-                      )
-                    }
-                  />
-                  <Button
-                    onClick={() =>
-                      dispatch(
-                        removeVideoFromTopic({
-                          topicId: topic._id,
-                          videoId: video._id,
-                        }),
-                      )
-                    }
-                    className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
-                  >
-                    Remove
-                  </Button>
+                  <div className="flex gap-2">
+                    <Input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => handleFileUpload(e, topic._id, video._id)}
+                      className="cursor-pointer"
+                    />
+                    {videoUploads[`${topic._id}-${video._id}`] && (
+                      <div className="text-sm text-green-600">
+                        {videoUploads[`${topic._id}-${video._id}`]}
+                      </div>
+                    )}
+                    <Button
+                      onClick={() =>
+                        dispatch(
+                          removeVideoFromTopic({
+                            topicId: topic._id,
+                            videoId: video._id,
+                          }),
+                        )
+                      }
+                      className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
+                    >
+                      Remove
+                    </Button>
+                  </div>
                 </div>
               ))}
 
