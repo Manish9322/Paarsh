@@ -53,7 +53,7 @@ export default function ProfilePage() {
         <div className="md:w-2/3 w-full p-8">
           <div className="flex items-center mb-6">
             <User className="text-gray-500 dark:text-gray-300 mr-3" size={28} />
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Hi, Ashwini 👋</h2>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Hi, {userData.name} 👋</h2>
           </div>
 
           <div className="space-y-6">

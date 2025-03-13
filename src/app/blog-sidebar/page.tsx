@@ -114,18 +114,24 @@ const BlogSidebarPage = () => {
   const course: Course = courseData?.data;
   const categories = categoryData?.data || [];
 
-  // Memoize random courses to prevent unnecessary recalculations
-  const getRandomCourses = useCallback((courses, count = 3) => {
-    if (!courses || courses.length === 0) return [];
-    const shuffled = [...courses].sort(() => 0.5 - Math.random());
+  const getRandomCategories = (categories, count) => {
+    if (!Array.isArray(categories) || categories.length === 0) return [];
+    const shuffled = [...categories].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, count);
-  }, []);
+  };
 
   // Memoize random categories
   const randomCategories = useMemo(() => 
     getRandomCategories(categories, 6),
     [categories]
   );
+
+  // Memoize random courses to prevent unnecessary recalculations
+  const getRandomCourses = useCallback((courses, count = 3) => {
+    if (!courses || courses.length === 0) return [];
+    const shuffled = [...courses].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+  }, []);
 
   // Memoize search results and random courses
   const displayedCourses = useMemo(() => {
@@ -206,13 +212,6 @@ const BlogSidebarPage = () => {
   const category: Category = categoryData?.data;
   console.log("Categories : ", category);
 
-
-  const getRandomCategories = (categories, count) => {
-    if (!Array.isArray(categories) || categories.length === 0) return [];
-    const shuffled = [...categories].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-  };
-
   const tagsArray = Array.isArray(course?.tags)
     ? course.tags
     : typeof course?.tags === "string"
@@ -257,7 +256,7 @@ const BlogSidebarPage = () => {
                       <span className="text-gray-300">•</span>
                       <div className="flex items-center gap-1">
                         <PiCertificateLight className="text-blue-600 text-base" />
-                        <span>{course?.certificate ? "Certificate Included" : "No Certificate"}</span>
+                        <span>{course?.certificate ? "Certificate" : "No Certificate"}</span>
                       </div>
                     </div>
                     
@@ -276,7 +275,7 @@ const BlogSidebarPage = () => {
                       </div>
                       <Button
                         onClick={modalOpen}
-                        className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-10 py-4 text-lg font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+                        className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
                       >
                         Enroll Now
                       </Button>

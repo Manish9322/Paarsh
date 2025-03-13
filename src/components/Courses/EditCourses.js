@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HiOutlinePlus } from "react-icons/hi";
 
@@ -118,9 +118,12 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
     dispatch(updateField({ field: name, value }));
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedCourse) {
+      console.log("Selected Course Editor Content:", selectedCourse?.editorContent);
       setEditorContent(selectedCourse.editorContent || "");
+      console.log("Initialized Editor Content:", editorContent);
+      
       Object.keys(selectedCourse).forEach((key) => {
         dispatch(updateField({ field: key, value: selectedCourse[key] }));
       });
