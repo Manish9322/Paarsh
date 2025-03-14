@@ -325,11 +325,11 @@ const Footer = () => {
   
   {/* Right Side - Terms & Privacy Policy */}
   <div className="flex space-x-4 mr-5">
-  <a
-      href="/termscondition"
+    <a
+      href="/returnpolicy"
       className="text-base text-body-color dark:text-white hover:text-primary"
     >
-     Refund Policy
+      Return Policy
     </a>
     <a
       href="/termscondition"
