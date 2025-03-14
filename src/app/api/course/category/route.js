@@ -38,7 +38,7 @@ export const POST = authMiddleware(async (request) => {
 }, true);
 
 // Get All Categories
-export const GET = authMiddleware(async () => {
+export const GET = async () => {
   try {
     const categories = await Category.find();
     return NextResponse.json({ success: true, data: categories });
@@ -49,7 +49,7 @@ export const GET = authMiddleware(async () => {
       { status: 500 },
     );
   }
-}, true);
+};
 
 // Update Category
 
