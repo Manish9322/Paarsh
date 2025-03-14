@@ -85,7 +85,7 @@ const CoursesPage = () => {
             What Would You Like To <span className="text-blue-500">Learn</span>
           </h2>
           <p className="text-base !leading-relaxed text-body-color md:text-lg">
-            Explore our most popular courses and dive into categories.
+            Explore our most popular courses and dive.
           </p>
         </div>
 
