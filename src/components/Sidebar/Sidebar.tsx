@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { FaBars, FaChevronDown } from "react-icons/fa";
-import sidebarConfig from "../../../config/sidebarconfig";
+import sidebarConfig from "../../../config/sidebarConfig";
 import { motion, AnimatePresence } from "framer-motion";
 import { TbSquareToggle } from "react-icons/tb";
 import { useRouter } from "next/navigation";
