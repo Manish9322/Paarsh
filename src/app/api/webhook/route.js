@@ -7,10 +7,10 @@ export async function POST(req) {
 
     exec('/root/PaarshEdu/Paarsh/deploy.sh', (err, stdout, stderr) => {
         if (err) {
-            console.error(Deployment Error: ${stderr});
+            console.error(`Deployment Error: ${stderr}`);
             return new Response(stderr, { status: 500 });
         }
-        console.log(Deployment Success: ${stdout});
+        console.log(`Deployment Success: ${stdout}`);
         return new Response(stdout, { status: 200 });
     });
 
