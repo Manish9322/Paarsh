@@ -29,9 +29,9 @@ const PrivacyPolicy = () => {
 
               <div className="space-y-6 text-base leading-relaxed text-body-color dark:text-body-color-dark">
                 <p>
-                  The Privacy Notice for Paarsh EDU ('We', 'US', or 'our',) described how and way we might
-                  access, collect, store, use, and/or share ('process') your personal information when you use
-                  our service ('SERVICES'), including when
+                  The Privacy Notice for Paarsh EDU (&apos;We&apos;, &apos;US&apos;, or &apos;our&apos;) described how and way we might
+                  access, collect, store, use, and/or share (&apos;process&apos;) your personal information when you use
+                  our service (&apos;SERVICES&apos;), including when
                 </p>
                 <p>You:</p>
                 <ul className="list-disc pl-6">
@@ -63,7 +63,7 @@ const PrivacyPolicy = () => {
                     Services, the choice you make, and the products and feature you use. Learn more about
                     personal information you disclose to us.</li>
                   <li>Do we process any sensitive personal information? Some of the information may be
-                    considered 'special' or 'sensitive' in certain jurisdictions, for example your racial or ethnic
+                    considered &apos;special&apos; or &apos;sensitive&apos; in certain jurisdictions, for example your racial or ethnic
                     origins, sexual orientation, and religious beliefs. We do not process sensitive personal information.</li>
                   <li>Do we collect any information from third parties? We do not collect any information from
                     third parties.</li>
@@ -160,8 +160,8 @@ const PrivacyPolicy = () => {
                 </h4>
                 <p>
                   We may provide you with the option to register with us using your existing social media account details, like your Facebook, X, or other social media accounts.
-                  If you choose to register in this way, we will collect certain profile information about you from the social media provider, as described in the session called 'HOW DO WE HANDLE
-                  YOUR SOCIAL LOGINS?' below.
+                  If you choose to register in this way, we will collect certain profile information about you from the social media provider, as described in the session called &apos;HOW DO WE HANDLE
+                  YOUR SOCIAL LOGINS?&apos; below.
                 </p>
 
                 <h4 className="text-lg font-semibold text-black dark:text-white">
@@ -172,7 +172,7 @@ const PrivacyPolicy = () => {
                 </p>
                 <ul className="list-disc pl-6">
                   <li>Geolocation Information. We may request access or permission to track location-based information from your mobile device, either continuously or while you are
-                    using our mobile application(s), to provide certain location-based services. If you wish to change our access or permissions, you may do so in your device's settings.</li>
+                    using our mobile application(s), to provide certain location-based services. If you wish to change our access or permissions, you may do so in your device&apos;s settings.</li>
                   <li>Push notification. We may request to send you a push notification regarding your account or certain features of the application(s). If you wish to opt-out from
                     receiving these types of communications, you may turn them off in your devices settings.</li>
                 </ul>
@@ -212,7 +212,7 @@ const PrivacyPolicy = () => {
                   <li>To request feedback. We may process your information when necessary to request feedback and to contact you about your use of our Services.</li>
                   <li>To send you marketing and promotional communications. We may process the personal information you send to us for our marketing
                     purposes if this is in accordance with your marketing preferences. You can opt out of our marketing emails at any time. For more information, see
-                    'WHAT ARE YOUR PRIVACY RIGHTS'? Below.</li>
+                    &apos;WHAT ARE YOUR PRIVACY RIGHTS&apos;? Below.</li>
                   <li>To deliver targeted advertising to you. We may process your information to develop and display personalized content and advertising tailored to
                     your interests, location, and more.</li>
                   <li>To post testimonials. We post testimonials on your Services that may contain personal information.</li>
@@ -301,8 +301,8 @@ const PrivacyPolicy = () => {
                 </h4>
                 <p>
                   If we are relying on your consent to process your personal information, which may be express and/or implied consent depending on the applicable law, you have the right to
-                  withdraw your consent at any time. You can withdraw your consent at any time by contacting us using the contact details provided in the session 'HOW CAN YOU CONTACT
-                  US ABOUT THIS NOTICE?' below.
+                  withdraw your consent at any time. You can withdraw your consent at any time by contacting us using the contact details provided in the session &apos;HOW CAN YOU CONTACT
+                  US ABOUT THIS NOTICE?&apos; below.
                 </p>
                 <p>
                   However, please note that this will not affect the lawfulness of the processing before its withdrawal nor when applicable law allows, will it affect the processing of your
@@ -313,8 +313,8 @@ const PrivacyPolicy = () => {
                   Opting out of marketing and promotional communications
                 </h4>
                 <p>
-                  You can unsubscribe from our marketing and promotional communication at any time by clicking on the unsubscribe link in the emails that we send, replying 'STOP' or
-                  'UNSUBSCRIBE' to the SMS message that we send, or by contacting us using the details providing in the section 'HOW CAN YOU CONTACT US ABOUT THIS NOTICE?' below.
+                  You can unsubscribe from our marketing and promotional communication at any time by clicking on the unsubscribe link in the emails that we send, replying &apos;STOP&apos; or
+                  &apos;UNSUBSCRIBE&apos; to the SMS message that we send, or by contacting us using the details providing in the section &apos;HOW CAN YOU CONTACT US ABOUT THIS NOTICE?&apos; below.
                   You will then be removed from the marketing lists.
                 </p>
                 <p>
@@ -343,7 +343,7 @@ const PrivacyPolicy = () => {
                   8. CONTROLS FOR D-NOT-TRACK FEATURES
                 </h3>
                 <p>
-                  Most web browsers and some mobile operating systems and mobile applications include a Do-Not-Track ('DNT') feature or setting you can activate to signal your privacy
+                  Most web browsers and some mobile operating systems and mobile applications include a Do-Not-Track (&apos;DNT&apos;) feature or setting you can activate to signal your privacy
                   preference not to have data about your online browsing activities monitored and collected. At this stage, no uniform technology standard for recognizing and implementing
                   DNT signals has been finalized. As such, we do not currently respond to DNT browser signals or any other mechanism that automatically communicates your choice not to
                   be tracked online. If a standard for online tracking is adopted that we must follow in the future, we will inform you about that practice in a revised version of this Privacy
@@ -357,7 +357,7 @@ const PrivacyPolicy = () => {
                   In Short: Yes, we will update this notice as necessary to stay compliant with relevant laws.
                 </p>
                 <p>
-                  We may update this Privacy Notice from time to time. The updated version will be indicated by an updated 'Revised' date at the top of this Privacy Notice. If we make
+                  We may update this Privacy Notice from time to time. The updated version will be indicated by an updated &apos;Revised&apos; date at the top of this Privacy Notice. If we make
                   material changes to this Privacy Notice, we may notify you either by prominently posting a notice of such changes or by directly sending you a notification. We encourage
                   you to review this Privacy Notice frequently to be informed of how we are protecting your information.
                 </p>
