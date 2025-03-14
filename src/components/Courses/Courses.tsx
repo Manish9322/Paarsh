@@ -85,7 +85,7 @@ const CoursesPage = () => {
             What Would You Like To <span className="text-blue-500">Learn</span>
           </h2>
           <p className="text-base !leading-relaxed text-body-color md:text-lg">
-            Explore More.
+            Explore More than 1000 online video courses with new additions published every month.
           </p>
         </div>
 
