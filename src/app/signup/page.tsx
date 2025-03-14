@@ -29,6 +29,12 @@ const SignupPage = () => {
   const param = useSearchParams();
   const ref = param.get("ref");
 
+  useEffect(() => {
+    // If referral code is provided in URL, set it in the form
+    if (ref) {
+      formik.setFieldValue("referralCode", ref);
+    }
+  }, [ref]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,33 +48,80 @@ const SignupPage = () => {
       password: "",
       confirmPassword: "",
       mobile: "",
-      referralCode: "",
+      referralCode: ref || "",
       acceptTerms: false,
     },
     validationSchema: signUpValidationSchema,
     onSubmit: async (values) => {
       try {
-        const response = await _SIGNUP(values).unwrap();
+        const response = await _SIGNUP({
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          mobile: values.mobile,
+          refferalCode: values.referralCode, // Note: Backend uses "refferalCode" with double 'f'
+          acceptTerms: values.acceptTerms
+        }).unwrap();
+        
         if (response?.success) {
           const { accessToken, refreshToken, user } = response?.data;
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
 
           dispatch(setAuthData({ accessToken, refreshToken, user }));
-          toast.success("Registration Successfully", {
+          toast.success("Registration Successful", {
             description: response?.message,
           });
           dispatch(resetForm({ formName: "signupForm" }));
           router.push(response?.data?.redirect || `/userdashboard`);
         } else {
+          // This block handles when success is false but no error was thrown
           toast.error("Registration Failed", {
             description: response?.error || "An error occurred.",
           });
         }
-        dispatch(setAuthData(response)); // Set authentication state
-        dispatch(resetForm({ formName: "signupForm" })); // Reset the form
       } catch (err) {
         console.error("Signup failed:", err);
+        
+        // Handle specific error cases from the backend
+        if (err.status === 400) {
+          const errorData = err.data;
+          
+          if (errorData?.error === "Email already registered") {
+            toast.error("Email already registered", {
+              description: "This email is already in use. Please login instead.",
+              action: {
+                label: "Login",
+                onClick: () => router.push("/login")
+              }
+            });
+            formik.setFieldError("email", "Email already registered");
+          } else if (errorData?.error === "Invalid referral code.") {
+            toast.error("Invalid Referral Code", {
+              description: "The referral code you entered is not valid."
+            });
+            formik.setFieldError("referralCode", "Invalid referral code");
+          } else if (errorData?.error === "Invalid email address") {
+            toast.error("Invalid Email", {
+              description: "Please enter a valid email address."
+            });
+            formik.setFieldError("email", "Invalid email address");
+          } else if (errorData?.error?.includes("required")) {
+            toast.error("Missing Information", {
+              description: errorData.error
+            });
+          } else {
+            // Generic error for other 400 errors
+            toast.error("Registration Failed", {
+              description: errorData?.error || "Please check your information and try again."
+            });
+          }
+        } else {
+          // Handle server errors (500) or network issues
+          toast.error("Server Error", {
+            description: "We're experiencing technical difficulties. Please try again later."
+          });
+        }
       }
     },
   });
@@ -141,6 +194,11 @@ const SignupPage = () => {
                         className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
                         disabled={!!ref} // Disable if referral code is present
                       />
+                      {formik.touched.referralCode && formik.errors.referralCode && (
+                        <p className="mx-1 mt-2 text-sm text-red-500">
+                          {formik.errors.referralCode}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -258,9 +316,14 @@ const SignupPage = () => {
                     </div>
                     <button
                       type="submit"
-                      className="mb-4 w-full rounded transition bg-blue-600 px-6 py-3 text-white hover:bg-black"
+                      disabled={isLoading}
+                      className={`mb-4 w-full rounded transition px-6 py-3 text-white ${
+                        isLoading 
+                          ? "bg-gray-400 cursor-not-allowed" 
+                          : "bg-blue-600 hover:bg-black"
+                      }`}
                     >
-                      Create Account
+                      {isLoading ? "Creating Account..." : "Create Account"}
                     </button>
                   </div>
                 </form>

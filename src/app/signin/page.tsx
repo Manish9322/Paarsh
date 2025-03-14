@@ -19,6 +19,15 @@ const SigninPage = () => {
     (state) => selectRootState(state).userAuth.forms,
   );
   const [showPassword, setShowPassword] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  // Check if user is already authenticated and redirect if needed
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken && !isRedirecting) {
+      router.push("/userdashboard");
+    }
+  }, [router, isRedirecting]);
 
   const formik = useFormik({
     initialValues: {
@@ -28,34 +37,49 @@ const SigninPage = () => {
     validationSchema: signInValidationSchema, // ✅ FIXED SCHEMA
     onSubmit: async (values, { setSubmitting }) => {
       try {
+        setSubmitting(true);
+        
         const response = await _LOGIN(values).unwrap();
+        console.log("Login response:", response);
 
         if (response?.success) {
           const { accessToken, refreshToken, user } = response?.data;
+          console.log("Setting auth data:", { accessToken, refreshToken, user });
+          
+          // Show success toast
+          toast.success("Login Successful", { 
+            description: response?.message || "Welcome back!",
+            duration: 3000,
+          
+          });
+          
+          // Store tokens in localStorage
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
 
+          // Update Redux state
           dispatch(setAuthData({ accessToken, refreshToken, user }));
-          toast.success("Login Successful", { description: response?.message });
-
-          // dispatch(resetForm({ formName: "loginForm" }));
-          dispatch(resetForm({ formName: "loginForm" }));
-
-          // Reset Formik form state
           
-
-          // 🔥 Force UI update instantly
-         window.dispatchEvent(new Event("storage"));
-
-          router.push(response?.redirect || `/userdashboard`);
+          // Reset form
+          dispatch(resetForm({ formName: "loginForm" }));
+          
+          // Delay navigation to allow toast to be visible
+          setTimeout(() => {
+            setIsRedirecting(true);
+            router.push(response?.data?.redirect || `/userdashboard`);
+          }, 2000);
         } else {
           toast.error("Login Failed", {
             description: response?.error || "An error occurred.",
+            duration: 3000,
+            position: "top-center"
           });
         }
       } catch (error) {
+        console.error("Login error:", error);
         toast.error("Login Failed", {
-          description: error?.data?.error || "An error occurred.",
+          description: error?.data?.error || "An error occurred. Please try again.",
+          duration: 3000,
         });
       } finally {
         setSubmitting(false);
@@ -154,7 +178,7 @@ const SigninPage = () => {
               </form>
 
               <p className="text-center text-base font-medium text-body-color">
-                Don’t have an account?
+                Don't have an account?
                 <Link href="/signup" className="text-primary hover:underline">
                   {" "}
                   Sign up
