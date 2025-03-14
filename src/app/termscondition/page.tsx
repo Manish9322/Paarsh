@@ -32,16 +32,16 @@ const TermsAndConditions = () => {
                   AGREEMENT TO OUR LEGAL TERMS
                 </h3>
                 <p>
-                  We are PAARSH EDU ("Company," "We," ''OUR''). We operate, as well as any other related product and services that refer or link to this legal term (the "Legal Terms") (collectively, the "Services").
+                  We are PAARSH EDU (&quot;Company,&quot; &quot;We,&quot; &quot;OUR&quot;). We operate, as well as any other related product and services that refer or link to this legal term (the &quot;Legal Terms&quot;) (collectively, the &quot;Services&quot;).
                 </p>
                 <p>
                   You can contact us by email at info@paarshedu.com
                 </p>
                 <p>
-                  These Legal Terms constitute a legally binding agreement made between you, whether personally or on behalf of the entity ('You"), and PAARSH EDU, concerning your access to and use of the Services. You agree that by accessing the Services, you have read, understood, and agreed to be bound by all of these Legal Terms. IF YOU DO NOT AGREE WITH ALL OF THESE LEGAL TERMS, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SERVICES AND YOU MUST DISCONTINUE USE IMMEDIATELY.
+                  These Legal Terms constitute a legally binding agreement made between you, whether personally or on behalf of the entity (&quot;You&quot;), and PAARSH EDU, concerning your access to and use of the Services. You agree that by accessing the Services, you have read, understood, and agreed to be bound by all of these Legal Terms. IF YOU DO NOT AGREE WITH ALL OF THESE LEGAL TERMS, THEN YOU ARE EXPRESSLY PROHIBITED FROM USING THE SERVICES AND YOU MUST DISCONTINUE USE IMMEDIATELY.
                 </p>
                 <p>
-                  Supplemental terms and conditions or documents that may be posted on the Services from time to time are hereby expressly incorporated herein by reference. We reserve the right, in our sole discretion, to make changes or modifications to these Legal Terms at any time and for any reason. We will alert you about any changes by updating the "Last Updated" date of these Legal Terms, and you waive any right to receive specific notice of each such change. It is your responsibility to periodically review these Legal Terms to stay informed of updates.
+                  Supplemental terms and conditions or documents that may be posted on the Services from time to time are hereby expressly incorporated herein by reference. We reserve the right, in our sole discretion, to make changes or modifications to these Legal Terms at any time and for any reason. We will alert you about any changes by updating the &quot;Last Updated&quot; date of these Legal Terms, and you waive any right to receive specific notice of each such change. It is your responsibility to periodically review these Legal Terms to stay informed of updates.
                 </p>
                 <p>
                   You will be subject to, and will be deemed to have been made aware of and to have accepted, the changes in any revised Legal Terms by your continued use of the Services after the date such revised Legal Terms are posted.
@@ -86,20 +86,20 @@ const TermsAndConditions = () => {
                   2. INTELLECTUAL PROPERTY RIGHTS
                 </h3>
                 <p>
-                  Our intellectual property: We are the owner or the licensee of all intellectual property rights in our Services, including all source code, database, functionality, software, website designs, audio, video, text, photographs, and graphics in the Services (collectively, the "Content"), as well as the trademarks, services marks, and logos contained therein (the "Marks").
+                  Our intellectual property: We are the owner or the licensee of all intellectual property rights in our Services, including all source code, database, functionality, software, website designs, audio, video, text, photographs, and graphics in the Services (collectively, the &quot;Content&quot;), as well as the trademarks, services marks, and logos contained therein (the &quot;Marks&quot;).
                 </p>
                 <p>
                   Our contents and marks are protected by copyrights and trademark laws (and various other intellectual property rights and unfair competition laws) and treaties around the world.
                 </p>
                 <p>
-                  The content and Marks are provided in or through the Services "As IS" for your personal, non-commercial use or internal business purpose only.
+                  The content and Marks are provided in or through the Services &quot;As IS&quot; for your personal, non-commercial use or internal business purpose only.
                 </p>
 
                 <h3 className="text-xl font-semibold text-black dark:text-white">
                   Your use of our Services
                 </h3>
                 <p>
-                  Subject to your compliance with these Legal Terms, including the "PROHIBITED ACTIVITIES" section below, we grant you a non-exclusive, non-transferable, revocable license to:
+                  Subject to your compliance with these Legal Terms, including the &quot;PROHIBITED ACTIVITIES&quot; section below, we grant you a non-exclusive, non-transferable, revocable license to:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Access the Services; and</li>
@@ -153,7 +153,7 @@ const TermsAndConditions = () => {
                   5. USER GENERATED CONTRIBUTIONS
                 </h3>
                 <p>
-                  The Services does not offer users to submit or post content. We may provide you with the opportunity to create, submit, post, display, transmit, perform, publish, distribute, photographs, graphics, comments, suggestions, or personal information or other material (Collectively, "contributions"). Contributions may be viewable by other users of the Services and through third-party websites.
+                  The Services does not offer users to submit or post content. We may provide you with the opportunity to create, submit, post, display, transmit, perform, publish, distribute, photographs, graphics, comments, suggestions, or personal information or other material (Collectively, &quot;contributions&quot;). Contributions may be viewable by other users of the Services and through third-party websites.
                 </p>
 
                 <h3 className="text-xl font-semibold text-black dark:text-white">
@@ -229,7 +229,7 @@ const TermsAndConditions = () => {
                   15. INDEMNIFICATION
                 </h3>
                 <p>
-                  You agree to defend, indemnify, and hold us harmless, including our subsidiaries, affiliates, and all of our respective officers, agents, partners, and employees, from any loss, damage, liability, claim, or demand, including reasonable attorney's fees and expenses, made by any third party due to or arising out of: (1) use of the Services; (2) breach of these Legal Terms; (3) any breach of your representations and warranties set forth in these Legal Terms; (4) your violation of the rights of a third party; or (5) any overt harmful act toward any other user of the Services.
+                  You agree to defend, indemnify, and hold us harmless, including our subsidiaries, affiliates, and all of our respective officers, agents, partners, and employees, from any loss, damage, liability, claim, or demand, including reasonable attorney&apos;s fees and expenses, made by any third party due to or arising out of: (1) use of the Services; (2) breach of these Legal Terms; (3) any breach of your representations and warranties set forth in these Legal Terms; (4) your violation of the rights of a third party; or (5) any overt harmful act toward any other user of the Services.
                 </p>
 
                 <h3 className="text-xl font-semibold text-black dark:text-white">
