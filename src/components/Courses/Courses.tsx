@@ -24,12 +24,12 @@ const CoursesPage = () => {
 
   // Fetch categories without passing courseId (which might be causing issues)
   const { data: categoryData, isLoading: categoryLoading, error: categoryError } = useFetchCategoriesQuery(undefined);
-  
+
   // Add explicit debugging for category data
   console.log("Category Data Response:", categoryData);
   console.log("Category Loading:", categoryLoading);
   console.log("Category Error:", categoryError);
-  
+
   // Ensure categories is always an array
   const categories = Array.isArray(categoryData?.data) ? categoryData?.data : [];
   console.log("Processed Categories:", categories);
@@ -46,37 +46,37 @@ const CoursesPage = () => {
 
   const { data: coursesData, error } = useFetchCourcesQuery(undefined);
   const isLoading = !coursesData;
-  
+
   // Add debugging logs
   console.log("Selected Category:", selectedCategory);
   console.log("Courses Data:", coursesData?.data);
-  
+
   // More flexible filtering logic to handle different field names
   const displayedCourses = (coursesData?.data || []).filter((course: any) => {
     // Check multiple possible category field names
     return (
-      (course.category === selectedCategory) || 
+      (course.category === selectedCategory) ||
       (course.courseCategory === selectedCategory) ||
       (course.categoryName === selectedCategory)
     );
   }).slice(0, 3);
-  
+
   console.log("Filtered Courses:", displayedCourses);
 
   // If no courses are displayed after filtering, show all courses
-  const coursesToDisplay = displayedCourses.length > 0 
-    ? displayedCourses 
+  const coursesToDisplay = displayedCourses.length > 0
+    ? displayedCourses
     : (coursesData?.data || []).slice(0, 3);
-  
+
   // Add hardcoded categories if none are coming from the API
-  const displayCategories = categories.length > 0 
-    ? categories 
+  const displayCategories = categories.length > 0
+    ? categories
     : [
-        { _id: "1", name: "Development", description: "Development courses", keywords: [], createdAt: "" },
-        { _id: "2", name: "Business", description: "Business courses", keywords: [], createdAt: "" },
-        { _id: "3", name: "Design", description: "Design courses", keywords: [], createdAt: "" },
-      ];
-  
+      { _id: "1", name: "Development", description: "Development courses", keywords: [], createdAt: "" },
+      { _id: "2", name: "Business", description: "Business courses", keywords: [], createdAt: "" },
+      { _id: "3", name: "Design", description: "Design courses", keywords: [], createdAt: "" },
+    ];
+
   return (
     <SkeletonThemeProvider>
       <div className="main-container px-10 my-14">
@@ -85,7 +85,7 @@ const CoursesPage = () => {
             What Would You Like To <span className="text-blue-500">Learn</span>
           </h2>
           <p className="text-base !leading-relaxed text-body-color md:text-lg">
-            Discover top courses to elevate your skills and unlock new opportunities for personal growth.
+            Explore More and more.
           </p>
         </div>
 
@@ -102,9 +102,8 @@ const CoursesPage = () => {
               <button
                 key={category._id}
                 onClick={() => setSelectedCategory(category.name)}
-                className={`px-4 py-1 text-sm rounded font-medium transition ${
-                  selectedCategory === category.name ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-800 dark:text-gray-200 text-gray-800 hover:bg-blue-500 hover:text-white"
-                }`}
+                className={`px-4 py-1 text-sm rounded font-medium transition ${selectedCategory === category.name ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-800 dark:text-gray-200 text-gray-800 hover:bg-blue-500 hover:text-white"
+                  }`}
               >
                 {category.name}
               </button>
