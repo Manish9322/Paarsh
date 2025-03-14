@@ -17,6 +17,7 @@ import PurchaseModal from "@/components/PurchaseModal";
 import { Provider } from "react-redux";
 import { Toaster } from "sonner";
 
+
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -27,7 +28,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Suspense>
         <Provider store={store}>
           <Providers>
-            <MainLayout>{children}</MainLayout>
+            <MainLayout>{children}
+              <Toaster richColors />
+            </MainLayout>
           </Providers>
         </Provider>
         </Suspense>
@@ -59,13 +62,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const isAuthPage = ["/signin", "/signup"].includes(pathname);
   const isAdminPage = pathname.startsWith("/admin");
   const isDashboardPage = pathname.startsWith("/userdashboard");
-
-  if (isAuthenticated && isAuthPage) {
-    if (typeof window !== "undefined") {
-      window.location.href = "/userdashboard"; // Redirect to dashboard
-    }
-    return null;
-  }
 
   return (
     <>

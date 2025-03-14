@@ -73,6 +73,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
+      message: "Login successful",
       data: {
         accessToken,
         refreshToken,
