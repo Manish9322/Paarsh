@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import _db from "../../../../utils/db";
 import CourseModel from "../../../../models/Courses/Course.model";
 import { authMiddleware } from "../../../../middlewares/auth";
+import { uploadFileToVPS } from "../../../../utils/uploadfile";
 
 _db();
 
@@ -54,6 +55,23 @@ export const POST = authMiddleware(async (request) => {
       );
     }
 
+    const thumbnailUrl = thumbnail
+      ? await uploadFileToVPS(thumbnail, "thumbnail")
+      : null;
+    const syllabusUrl = syllabus
+      ? await uploadFileToVPS(syllabus, "syllabus")
+      : null;
+    const videoUrl = videoLink
+      ? await uploadFileToVPS(videoLink, "videoLink")
+      : null;
+
+    // Upload additional files (if any)
+    const uploadedFiles = [];
+    for (const file of additionalFiles) {
+      const fileUrl = await uploadFileToVPS(file, "additional-file");
+      if (fileUrl) uploadedFiles.push(fileUrl);
+    }
+
     // Create new course
     const newCourse = new CourseModel({
       category,
@@ -64,8 +82,8 @@ export const POST = authMiddleware(async (request) => {
       level,
       languages,
       instructor,
-      thumbnail,
-      syllabus,
+      thumbnail: thumbnailUrl,
+      syllabus: syllabusUrl,
       summaryText,
       editorContent,
       tagline,
@@ -73,7 +91,7 @@ export const POST = authMiddleware(async (request) => {
       overviewTagline,
       finalText,
       tagline_in_the_box,
-      videoLink,
+      videoLink: videoUrl,
       courseIncludes,
       syllabusOverview,
       thoughts,
@@ -127,6 +145,15 @@ export const PUT = authMiddleware(async (request) => {
       );
     }
 
+    // Fetch the existing course first to compare files
+    const existingCourse = await CourseModel.findById(id);
+    if (!existingCourse) {
+      return NextResponse.json(
+        { success: false, error: "Course not found" },
+        { status: 404 },
+      );
+    }
+
     // List of required fields
     const requiredFields = [
       "category",
@@ -177,6 +204,69 @@ export const PUT = authMiddleware(async (request) => {
       featuredCourse = false,
     } = updateData?.formData;
 
+    // Helper function to remove old file from VPS
+    const removeOldFileFromVPS = async (oldFileUrl) => {
+      if (oldFileUrl) {
+        try {
+          // Extract file path from URL
+          const filePathMatch = oldFileUrl.match(/\/uploads\/(.+)$/);
+          if (filePathMatch && filePathMatch[1]) {
+            const filePath = `uploads/${filePathMatch[1]}`;
+            // Call a function to delete the file (you'll need to implement this)
+            await deleteFileFromVPS(filePath);
+          }
+        } catch (error) {
+          console.error("Error removing old file:", error);
+          // Continue with the update even if file removal fails
+        }
+      }
+    };
+
+    // Process thumbnail
+    let thumbnailUrl = existingCourse.thumbnail;
+    if (thumbnail) {
+      if (thumbnail.startsWith('data:')) {
+        // If there's a new thumbnail, remove the old one
+        if (existingCourse.thumbnail) {
+          await removeOldFileFromVPS(existingCourse.thumbnail);
+        }
+        thumbnailUrl = await uploadFileToVPS(thumbnail, "thumbnail");
+      } else if (thumbnail !== existingCourse.thumbnail) {
+        // If thumbnail is a URL but different from existing, update it
+        thumbnailUrl = thumbnail;
+      }
+    }
+    
+    // Process syllabus
+    let syllabusUrl = existingCourse.syllabus;
+    if (syllabus) {
+      if (syllabus.startsWith('data:')) {
+        // If there's a new syllabus, remove the old one
+        if (existingCourse.syllabus) {
+          await removeOldFileFromVPS(existingCourse.syllabus);
+        }
+        syllabusUrl = await uploadFileToVPS(syllabus, "syllabus");
+      } else if (syllabus !== existingCourse.syllabus) {
+        // If syllabus is a URL but different from existing, update it
+        syllabusUrl = syllabus;
+      }
+    }
+    
+    // Process video link
+    let videoUrl = existingCourse.videoLink;
+    if (videoLink) {
+      if (videoLink.startsWith('data:')) {
+        // If there's a new video, remove the old one
+        if (existingCourse.videoLink) {
+          await removeOldFileFromVPS(existingCourse.videoLink);
+        }
+        videoUrl = await uploadFileToVPS(videoLink, "videoLink");
+      } else if (videoLink !== existingCourse.videoLink) {
+        // If video link is a URL but different from existing, update it
+        videoUrl = videoLink;
+      }
+    }
+
     // Find and update course
     const updatedCourse = await CourseModel.findByIdAndUpdate(
       id,
@@ -190,8 +280,8 @@ export const PUT = authMiddleware(async (request) => {
           level,
           languages,
           instructor,
-          thumbnail,
-          syllabus,
+          thumbnail: thumbnailUrl,
+          syllabus: syllabusUrl,
           summaryText,
           tagline,
           taglineIncludes,
@@ -199,7 +289,7 @@ export const PUT = authMiddleware(async (request) => {
           editorContent,
           finalText,
           tagline_in_the_box,
-          videoLink,
+          videoLink: videoUrl,
           courseIncludes,
           syllabusOverview,
           thoughts,
@@ -211,13 +301,6 @@ export const PUT = authMiddleware(async (request) => {
       },
       { new: true, runValidators: true },
     );
-
-    if (!updatedCourse) {
-      return NextResponse.json(
-        { success: false, error: "Course not found" },
-        { status: 404 },
-      );
-    }
 
     return NextResponse.json({
       success: true,
