@@ -70,18 +70,6 @@ function Faq() {
     show: { y: 0, opacity: 1 },
   };
 
-  // Get category color
-  const getCategoryColor = (category) => {
-    const colors = {
-      Account: "blue",
-      Courses: "green",
-      Certificates: "purple",
-      Billing: "orange",
-    };
-    
-    return colors[category] || "blue";
-  };
-
   return (
     <div className="mx-auto px-4 py-8 space-y-8">
       {/* Header Section */}
@@ -195,67 +183,63 @@ function Faq() {
           animate="show"
           className="space-y-4"
         >
-          {filteredFaqs.map((faq, index) => {
-            const categoryColor = getCategoryColor(faq.category);
-            
-            return (
-              <motion.div
-                key={faq.id}
-                variants={item}
-                className={` bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-lg border-l-4 ${
-                  openIndex === index 
-                    ? `border-${categoryColor}-500 dark:border-${categoryColor}-400` 
-                    : 'border-l-transparent'
-                } border border-gray-100 dark:border-gray-700 transition-all duration-300`}
+          {filteredFaqs.map((faq, index) => (
+            <motion.div
+              key={faq.id}
+              variants={item}
+              className={`bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow border-l-4 ${
+                openIndex === index 
+                  ? "border-blue-500 dark:border-blue-400" 
+                  : "border-blue-200 dark:border-blue-800"
+              } border border-y-blue-100 dark:border-gray-700 transition-all duration-300`}
+            >
+              <button
+                onClick={() => toggleFaq(index)}
+                className="flex justify-between items-center w-full p-4 text-left"
               >
-                <button
-                  onClick={() => toggleFaq(index)}
-                  className="flex justify-between items-center w-full p-6 text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`flex-shrink-0 w-2 h-2 rounded-full bg-${categoryColor}-500 dark:bg-${categoryColor}-400`}></span>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {faq.question}
-                    </h3>
-                  </div>
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                    openIndex === index 
-                      ? `bg-${categoryColor}-100 dark:bg-${categoryColor}-900/30` 
-                      : 'bg-gray-100 dark:bg-gray-700'
-                  }`}>
-                    {openIndex === index ? (
-                      <ChevronUp className={`w-5 h-5 text-${categoryColor}-500 dark:text-${categoryColor}-400`} />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                    )}
-                  </div>
-                </button>
-                <AnimatePresence>
-                  {openIndex === index && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 pb-6 pt-0 border-t border-gray-200 dark:border-gray-700">
-                        <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed mt-4">
-                          {faq.answer}
-                        </p>
-                        <div className="flex items-center mt-6">
-                          <span className={`inline-flex items-center gap-1.5 bg-${categoryColor}-100 dark:bg-${categoryColor}-900/30 px-3 py-1.5 rounded-full text-xs font-medium text-${categoryColor}-700 dark:text-${categoryColor}-300`}>
-                            <Tag size={12} />
-                            {faq.category}
-                          </span>
-                        </div>
-                      </div>
-                    </motion.div>
+                <div className="flex items-center gap-3">
+                  <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400"></span>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    {faq.question}
+                  </h3>
+                </div>
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                  openIndex === index 
+                    ? "bg-blue-100 dark:bg-blue-900/30" 
+                    : "bg-gray-100 dark:bg-gray-700"
+                }`}>
+                  {openIndex === index ? (
+                    <ChevronUp className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                   )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+                </div>
+              </button>
+              <AnimatePresence>
+                {openIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 pb-6 pt-0 border-t border-gray-200 dark:border-gray-700">
+                      <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed mt-4">
+                        {faq.answer}
+                      </p>
+                      <div className="flex items-center mt-6">
+                        <span className="inline-flex items-center gap-1.5 bg-blue-100 dark:bg-blue-900/30 px-3 py-1.5 rounded-full text-xs font-medium text-blue-700 dark:text-blue-300">
+                          <Tag size={12} />
+                          {faq.category}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
         </motion.div>
       )}
       
@@ -272,7 +256,7 @@ function Faq() {
                   Still Have Questions?
                 </h3>
                 <p className="text-base text-gray-600 dark:text-gray-400 mt-2 max-w-lg">
-                  If you couldnt find the answer you were looking for, our support team is here to help you with any questions or concerns.
+                  If you couldn't find the answer you were looking for, our support team is here to help you with any questions or concerns.
                 </p>
               </div>
             </div>
