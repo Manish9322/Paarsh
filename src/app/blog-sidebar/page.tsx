@@ -292,7 +292,7 @@ const BlogSidebarPage = () => {
                     ) : (
                       "Loading Summary..."
                     )}
-                  </p>
+                  </p> 
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <VideoPlayer
                       thumbnailUrl={"/images/blog/blog-details-01.jpg"}
