@@ -219,7 +219,7 @@ export default function ReferEarn() {
       {/* Rewards Section */}
       <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl">
         <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-8">
-          Rewards You'll Both Receive
+          Rewards Youll Both Receive
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {rewards.map((reward, index) => (

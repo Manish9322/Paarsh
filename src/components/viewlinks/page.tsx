@@ -475,7 +475,7 @@ function ViewLinks() {
                 Need Technical Help?
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                If you're having trouble joining a meeting or accessing recordings, our support team is here to help.
+                If youre having trouble joining a meeting or accessing recordings, our support team is here to help.
               </p>
             </div>
           </div>

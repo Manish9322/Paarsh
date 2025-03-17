@@ -122,7 +122,7 @@ export default function ProfilePage() {
           </div>
           <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Error Loading Profile</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            We couldn't load your profile information. Please try again later.
+            We couldnt load your profile information. Please try again later.
           </p>
           <button 
             onClick={() => window.location.reload()}
@@ -398,7 +398,7 @@ export default function ProfilePage() {
                 <div className="p-4">
                   <h3 className="font-medium text-gray-800 dark:text-white mb-2">Change Password</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    It's a good idea to use a strong password that you don't use elsewhere
+                    Its a good idea to use a strong password that you dont use elsewhere
                   </p>
                   <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
                     Change Password
