@@ -1,10 +1,11 @@
 "use client";
 import Image from "next/image";
-import React from "react";
-import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
+import React, { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../lib/slices/userAuthSlice";
 import ThemeToggler from "@/components/Header/ThemeToggler";
+import Link from "next/link";
 import {
   X,
   LayoutDashboard,
@@ -16,11 +17,25 @@ import {
   HelpCircle,
   LogOut,
   Menu,
+  BookOpen,
+  GraduationCap,
+  Award,
+  MessageSquare,
+  MoreVertical,
 } from "lucide-react";
 
-const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen, setSelectedCategory }) => {
+const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useDispatch();
+  const [mounted, setMounted] = useState(false);
+  const { user } = useSelector((state) => state.auth);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  // Handle hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = () => {
     dispatch(logout()); // Redux logout
@@ -28,90 +43,193 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen, setSelectedCategory
   };
 
   const menuItems = [
-    { name: "Dashboard", icon: <LayoutDashboard size={20} />, onClick: () => setSelectedCategory(null) },
-    { name: "Home", icon: <Home size={20} />, onClick: () => router.push("/") },
-    { name: "User Profile", icon: <User size={20} />, onClick: () => setSelectedCategory("userprofile") },
-    { name: "Meeting Links", icon: <Video size={20} />,onClick: () => setSelectedCategory("viewlinks") },
-    { name: "Refer & Earn", icon: <Gift size={20} />, onClick: () => setSelectedCategory("referEarn") },
-    { name: "Notifications", icon: <Bell size={20} />,   },
-    { name: "FAQ", icon: <HelpCircle size={20} />, onClick: () => setSelectedCategory("faq")  },
-    { name: "Log Out", icon: <LogOut size={20} />, onClick: handleLogout },
+    { 
+      name: "Dashboard", 
+      icon: <LayoutDashboard size={20} />, 
+      path: "/userdashboard",
+      description: "Overview of your courses and progress"
+    },
+    { 
+      name: "Home", 
+      icon: <Home size={20} />, 
+      path: "/",
+      description: "Return to main website"
+    },
+    { 
+      name: "Meeting Links", 
+      icon: <Video size={20} />, 
+      path: "/view-links",
+      description: "Access your class meeting links"
+    },
+    { 
+      name: "Refer & Earn", 
+      icon: <Gift size={20} />, 
+      path: "/refer-earn",
+      description: "Invite friends and earn rewards"
+    },
+    { 
+      name: "FAQ", 
+      icon: <HelpCircle size={20} />, 
+      path: "/faq",
+      description: "Get answers to common questions"
+    },
+    { 
+      name: "Log Out", 
+      icon: <LogOut size={20} />, 
+      onClick: handleLogout,
+      description: "Sign out of your account"
+    },
   ];
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showDropdown && !event.target.closest('.dropdown-container')) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
+
+  if (!mounted) return null;
 
   return (
     <>
       {/* Mobile Menu Button */}
       <button
-  className="fixed top-4 left-4 z-50 sm:hidden p-2 rounded-md 
-             bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200 
-             hover:bg-gray-300 dark:hover:bg-gray-700 transition"
   onClick={() => setIsSidebarOpen(true)}
+        className="fixed z-40 bottom-4 right-4 p-2 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 transition-all duration-300 lg:hidden flex items-center justify-center"
+        aria-label="Toggle Sidebar"
 >
+        {isSidebarOpen ? (
+          <X size={24} />
+        ) : (
   <Menu size={24} />
+        )}
 </button>
 
-
       {/* Sidebar */}
-      <aside
-        className={`fixed left-0 top-0 z-50 h-screen w-64 bg-gray-50 dark:bg-gray-800 transition-transform shadow-lg border-r border-gray-200 dark:border-gray-700 ${
+      <div
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } sm:translate-x-0`}
+        }`}
       >
-        <div className="relative h-full overflow-y-auto p-5">
-          {/* Sidebar Header with Close Button */}
-          <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col h-full p-4">
+          <div className="flex items-center justify-between mb-6">
+            <Link href="/" className="flex items-center">
            <Image
                              src="/images/logo/PAARSHEDU_LOGO.png"
                              alt="logo"
                              width={120}
                              height={30}
-                             className="w-full dark:hidden pr-2"
+                className="w-32 dark:hidden"
                            />
                            <Image
                              src="/images/logo/PAARSHEDU.png"
                              alt="logo"
                              width={120}
                              height={30}
-                             className="hidden w-full dark:block pr-2"
+                className="hidden w-32 dark:block"
                            />
+            </Link>
+            <div className="flex items-center gap-2">
             <ThemeToggler />
             <button
-              className="sm:hidden text-gray-900 dark:text-white"
               onClick={() => setIsSidebarOpen(false)}
+                className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
+                aria-label="Close Sidebar"
             >
-              <X size={24} />
+                <X size={20} className="text-gray-500 dark:text-gray-400" />
             </button>
+            </div>
           </div>
 
-          {/* Sidebar Menu Items */}
-          <ul className="space-y-4">
-            {menuItems.map((item, index) => (
-              <li key={index}>
-                <a
-                  href={item.link || "#"}
+          {/* Sidebar content with footer */}
+          <div className="flex flex-col h-full">
+            <div className="flex-grow">
+              {/* Existing sidebar menu items */}
+              {menuItems.map((item, index) => {
+                const isActive = pathname === item.path;
+                return (
+                  <div key={index} className="mb-1">
+                    {item.path ? (
+                      <Link
+                        href={item.path}
+                        onClick={() => setIsSidebarOpen(false)}
+                        className={`relative flex items-center gap-3 px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all ${
+                          isActive
+                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium"
+                            : "text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        <span className="text-xl">{item.icon}</span>
+                        <span>{item.name}</span>
+                        {item.description && (
+                          <div className="absolute left-0 top-full mt-1 w-full max-w-xs bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs p-2 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 border border-gray-200 dark:border-gray-700">
+                            {item.description}
+                          </div>
+                        )}
+                      </Link>
+                    ) : (
+                      <button
                   onClick={(e) => {
                     e.preventDefault();
-                    if (item.onClick) item.onClick(); // Execute onClick function if present
-                    setIsSidebarOpen(false); // Close sidebar on mobile
-                  }}
-                  className="flex items-center space-x-3 rounded-lg px-3 py-2 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-                >
-                  {item.icon}
-                  <span className="text-sm font-medium">{item.name}</span>
-                </a>
-                {index !== menuItems.length - 1 && <hr className="border-gray-200 dark:border-gray-700" />}
-              </li>
-            ))}
-          </ul>
+                          item.onClick?.();
+                          setIsSidebarOpen(false);
+                        }}
+                        className={`relative w-full flex items-center gap-3 px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all text-gray-700 dark:text-gray-300`}
+                      >
+                        <span className="text-xl">{item.icon}</span>
+                        <span>{item.name}</span>
+                        {item.description && (
+                          <div className="absolute left-0 top-full mt-1 w-full max-w-xs bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-xs p-2 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 border border-gray-200 dark:border-gray-700">
+                            {item.description}
+                          </div>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Sidebar Footer */}
+            <div className="mt-auto pt-4">
+              <Link
+                href="/profile"
+                onClick={() => setIsSidebarOpen(false)}
+                className="block"
+              >
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl overflow-hidden shadow-sm border border-blue-100 dark:border-blue-800/30 hover:shadow-md transition-all duration-300 transform hover:-translate-y-0.5">
+                  <div className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : <User size={20} />}
+                      </div>
+                      <div className="flex-grow overflow-hidden">
+                        <div className="font-medium truncate text-gray-900 dark:text-white">{user?.name || "Guest User"}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email || "Not signed in"}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="h-1 w-full bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+                </div>
+              </Link>
+            </div>
+          </div>
         </div>
-      </aside>
+      </div>
 
       {/* Overlay for Mobile */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black opacity-50 sm:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
-        ></div>
+          aria-hidden="true"
+        />
       )}
     </>
   );

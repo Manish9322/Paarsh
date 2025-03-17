@@ -61,7 +61,16 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
   const isAuthPage = ["/signin", "/signup"].includes(pathname);
   const isAdminPage = pathname.startsWith("/admin");
-  const isDashboardPage = pathname.startsWith("/userdashboard");
+  const isDashboardPage = pathname.includes("/(dashboard)") || 
+                         pathname.startsWith("/userdashboard") ||
+                         pathname.startsWith("/total-courses") ||
+                         pathname.startsWith("/ongoing-courses") ||
+                         pathname.startsWith("/certificates") ||
+                         pathname.startsWith("/question-bank") ||
+                         pathname.startsWith("/profile") ||
+                         pathname.startsWith("/refer-earn") ||
+                         pathname.startsWith("/view-links") ||
+                         pathname.startsWith("/faq");
 
   return (
     <>
