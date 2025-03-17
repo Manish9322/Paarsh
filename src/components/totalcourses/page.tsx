@@ -6,8 +6,12 @@ import { useRouter } from "next/navigation";
 
 function TotalCourses() {
   const [view, setView] = useState("grid");
-  const { data, isLoading } = useFetchUserCourseQuery(undefined);
-  const courses = data?.purchasedCourses || [];
+  const { data : courseData, isLoading } = useFetchUserCourseQuery(undefined);
+
+  console.log("data from Total ", courseData);
+  const courses = courseData?.purchasedCourses || [];
+
+  console.log("courses from  Total ", courses);
   const router = useRouter();
 
   return (

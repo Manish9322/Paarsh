@@ -7,18 +7,48 @@ import { RAZORPAY_KEY_SECRET } from "../../../../config/config";
 
 export const POST = async (request) => {
   try {
-    const razorpaySignature = request.headers.get("x-razorpay-signature");
+    // Check for signature in headers (webhook style)
+    let razorpaySignature = request.headers.get("x-razorpay-signature");
+    
+    // If not in headers, we'll get it from the body later
+    const body = await request.json();
+    
+    // For client-side verification, the signature will be in the body
+    if (!razorpaySignature && body.razorpay_signature) {
+      razorpaySignature = body.razorpay_signature;
+    }
+    
+    // For webhook style verification
+    if (!razorpaySignature && body.payload?.payment?.entity?.razorpay_signature) {
+      razorpaySignature = body.payload.payment.entity.razorpay_signature;
+    }
 
     if (!razorpaySignature) {
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
+        { success: false, error: "Unauthorized - Missing signature" },
         { status: 401 },
       );
     }
 
-    const body = await request.json();
-    const { order_id, razorpay_payment_id, razorpay_signature } =
-      body.payload.payment.entity;
+    // Get order_id and payment_id from the appropriate location in the payload
+    let order_id, razorpay_payment_id;
+    
+    if (body.payload?.payment?.entity) {
+      // Webhook style payload
+      order_id = body.payload.payment.entity.order_id;
+      razorpay_payment_id = body.payload.payment.entity.razorpay_payment_id;
+    } else {
+      // Client-side verification payload
+      order_id = body.razorpay_order_id;
+      razorpay_payment_id = body.razorpay_payment_id;
+    }
+
+    if (!order_id || !razorpay_payment_id) {
+      return NextResponse.json(
+        { success: false, error: "Invalid payment data" },
+        { status: 400 },
+      );
+    }
 
     const transaction = await TransactionModel.findOne({
       orderId: order_id,
@@ -38,7 +68,7 @@ export const POST = async (request) => {
       .update(order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
-    if (generatedSignature !== razorpay_signature) {
+    if (generatedSignature !== razorpaySignature) {
       return NextResponse.json(
         { success: false, error: "Invalid signature" },
         { status: 401 },
@@ -47,7 +77,7 @@ export const POST = async (request) => {
 
     transaction.status = "SUCCESS";
     transaction.paymentId = razorpay_payment_id;
-    transaction.signature = razorpay_signature;
+    transaction.signature = razorpaySignature;
     await transaction.save();
 
     await UserModel.findByIdAndUpdate(transaction.userId, {
@@ -62,6 +92,7 @@ export const POST = async (request) => {
       message: "Payment successful, access granted",
     });
   } catch (error) {
+    console.error("Payment verification error:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 },
