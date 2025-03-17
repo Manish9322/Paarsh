@@ -188,19 +188,21 @@ const CoursePage: React.FC = () => {
     <div className="flex min-h-screen flex-col bg-gray-100 dark:bg-gray-900">
       {/* Main Layout */}
       <div className="flex">
-        {/* Sidebar - Hidden on mobile, visible on md and up */}
-        <div className="fixed left-0 top-0 z-20 hidden h-full w-64 bg-white shadow-md dark:bg-gray-800 md:block">
-          <div className="pt-16">
-            <Sidebar />
-          </div>
-        </div>
-
-        {/* Mobile Sidebar - Visible on mobile only */}
-        <div className="fixed left-0 top-0 z-20 block h-full w-64 -translate-x-full transform bg-white shadow-md transition-transform dark:bg-gray-800 md:hidden">
-          <div className="pt-16">
-            <Sidebar />
-          </div>
-        </div>
+             {/* Sidebar - fixed position with proper scrolling */}
+                  <aside 
+              className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 
+              }`}
+            >
+              <div className="flex h-full flex-col">
+                         
+                {/* Sidebar Content - Scrollable */}
+                <div className="custom-scrollbar flex-1 overflow-y-auto">
+                  <Sidebar />
+                </div>
+              </div>
+            </aside>
+            
+  
 
         {/* Main Content */}
         <div className="w-full pt-16 md:pl-64">

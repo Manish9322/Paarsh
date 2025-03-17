@@ -190,29 +190,37 @@ const UserPage: React.FC = () => {
         <div className="w-10"></div> {/* Spacer for centering */}
       </div>
 
-      <div className="flex flex-1">
-        {/* Sidebar - responsive with overlay for mobile */}
-        <aside 
-          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:sticky md:top-0 md:translate-x-0 md:h-screen`}
-        >
-          {/* Add padding to the top of sidebar content to prevent it from going under the navbar */}
-          <div className="h-16 md:h-0"></div> {/* Spacer for mobile header */}
-          <Sidebar />
-        </aside>
-        
-        {/* Overlay for mobile when sidebar is open */}
-        {sidebarOpen && (
-          <div 
-            className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden" 
-            onClick={toggleSidebar}
-            aria-hidden="true"
-          ></div>
-        )}
+ 
+            {/* Sidebar - fixed position with proper scrolling */}
+            <aside 
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex h-full flex-col">
+          {/* Sidebar Header */}
+          <div className="flex h-16 items-center justify-between px-4 md:justify-end">
+            <h2 className="text-xl font-bold md:hidden">Dashboard</h2>
+          </div>
+          
+          {/* Sidebar Content - Scrollable */}
+          <div className="custom-scrollbar flex-1 overflow-y-auto">
+            <Sidebar />
+          </div>
+        </div>
+      </aside>
+      
+      {/* Overlay for mobile when sidebar is open */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden" 
+          onClick={toggleSidebar}
+          aria-hidden="true"
+        ></div>
+      )}
 
         {/* Main content area */}
-        <main className="w-full flex-1 overflow-x-hidden pt-16">
+        <main className="flex-1 overflow-y-auto  pt-16 md:ml-64">
           <div className="container mx-auto px-4 py-6">
             <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
               <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-800 p-4 pb-4 pt-6 sm:p-6">
@@ -508,7 +516,7 @@ const UserPage: React.FC = () => {
             </div>
           </div>
         </main>
-      </div>
+      
 
       {/* Custom Scrollbar Styling */}
       <style jsx global>{`
