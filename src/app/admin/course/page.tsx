@@ -17,8 +17,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Eye, Edit, Trash2 } from "lucide-react";
+import { Eye, Edit, Trash2, ChevronLeft, ChevronRight, BookOpen } from "lucide-react";
 import { EditCourse } from "../../../components/Courses/EditCourses";
 import {
   useDeleteCourseMutation,
@@ -28,6 +29,8 @@ import { toast } from "sonner";
 import { AddNewCourse } from "@/components/AddNewCourseModal";
 import AddCourseModal from "@/components/Courses/AddCourseVideo";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 // Define Course type
 interface Course {
@@ -63,6 +66,8 @@ const CoursePage: React.FC = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
   const coursesPerPage = 10;
 
   // Fetch courses data
@@ -71,9 +76,8 @@ const CoursePage: React.FC = () => {
     isLoading,
     error,
   } = useFetchCourcesQuery(undefined);
-  const courses: Course[] = courseData?.data || [];
 
-  console.log("courses", courses);
+  const courses: Course[] = courseData?.data || [];
 
   const [_DELETECOURSE, { isLoading: isDeleteLoading, error: deleteError }] =
     useDeleteCourseMutation();
@@ -85,18 +89,79 @@ const CoursePage: React.FC = () => {
     startIndex + coursesPerPage,
   );
 
-  const handleDeleteCourse = async (courseId: string) => {
+  // Function to generate page numbers for pagination
+  const generatePaginationNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5; // Show at most 5 page numbers
+    
+    if (totalPages <= maxPagesToShow) {
+      // If total pages are less than max to show, display all pages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always include first page
+      pageNumbers.push(1);
+      
+      // Calculate start and end of page numbers to show
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Adjust if we're near the beginning
+      if (currentPage <= 3) {
+        endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
+      }
+      
+      // Adjust if we're near the end
+      if (currentPage >= totalPages - 2) {
+        startPage = Math.max(2, totalPages - maxPagesToShow + 2);
+      }
+      
+      // Add ellipsis if needed before middle pages
+      if (startPage > 2) {
+        pageNumbers.push('...');
+      }
+      
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+      
+      // Add ellipsis if needed after middle pages
+      if (endPage < totalPages - 1) {
+        pageNumbers.push('...');
+      }
+      
+      // Always include last page if there is more than one page
+      if (totalPages > 1) {
+        pageNumbers.push(totalPages);
+      }
+    }
+    
+    return pageNumbers;
+  };
+
+  const confirmDeleteCourse = (courseId: string) => {
+    setCourseToDelete(courseId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!courseToDelete) return;
+    
     try {
-      const response = await _DELETECOURSE({ id: courseId }).unwrap();
+      const response = await _DELETECOURSE({ id: courseToDelete }).unwrap();
 
       if (response?.success) {
-        toast.success("Course updated successfully");
+        toast.success("Course deleted successfully");
+        setDeleteConfirmOpen(false);
+        setCourseToDelete(null);
       }
     } catch (error) {
-      console.error("Error updating course:", error);
+      console.error("Error deleting course:", error);
       toast.error(
         error?.data?.message ||
-          "Failed to Delete the course. Please try again.",
+          "Failed to delete the course. Please try again.",
       );
     }
   };
@@ -104,200 +169,392 @@ const CoursePage: React.FC = () => {
   const handleAddCourse = (newCourse: CourseVideo) => {
     setCourses((prevCourses) => [...prevCourses, newCourse]);
   };
+
+  // Function to get level badge color
+  const getLevelBadgeColor = (level: string) => {
+    switch(level.toLowerCase()) {
+      case 'beginner':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case 'intermediate':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'advanced':
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+    }
+  };
+
   return (
-    <div className="flex h-screen flex-col bg-gray-100">
-    
-      {/* Sidebar & Main Content Wrapper */}
-      <div className="flex flex-1 pt-16">
-        {/* Sidebar */}
-        <div className="fixed bg-white shadow-md md:relative">
-          <Sidebar />
-        </div>
+    <div className="flex min-h-screen flex-col bg-gray-100 dark:bg-gray-900">
+      {/* Main Layout */}
+      <div className="flex">
+             {/* Sidebar - fixed position with proper scrolling */}
+                  <aside 
+              className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 
+              }`}
+            >
+              <div className="flex h-full flex-col">
+                         
+                {/* Sidebar Content - Scrollable */}
+                <div className="custom-scrollbar flex-1 overflow-y-auto">
+                  <Sidebar />
+                </div>
+              </div>
+            </aside>
+            
+  
 
         {/* Main Content */}
-        <div className="ml-64 flex-1 overflow-auto  p-6">
-          <div className="my-6 flex items-center justify-between rounded-lg bg-white p-5 shadow-md">
-            <h2 className="text-2xl font-bold text-gray-600">Courses</h2>
-            <AddNewCourse />
-          </div>
-
-          {/* Courses Table */}
-          <Card className="overflow-hidden border border-gray-300 bg-white hover:shadow-md">
-            <CardContent className="p-4">
-              <div className="custom-scrollbar overflow-x-auto">
-                <Table className="w-full text-black">
-                  <TableHeader>
-                    <TableRow className="border-b border-gray-300 hover:bg-gray-200">
-                      <TableHead>#</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Course Name</TableHead>
-                      <TableHead>Level</TableHead>
-                      <TableHead>Duration</TableHead>
-                      <TableHead>Fees ($)</TableHead>
-                      <TableHead>Languages</TableHead>
-                      <TableHead className="text-center">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                  {isLoading
-                    ? Array.from({ length: 7 }).map((_, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Skeleton className="h-4 w-6" />
-                          </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-4 w-24" />
-                          </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-4 w-24" />
-                          </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-4 w-20" />
-                          </TableCell>
-                          <TableCell className="flex justify-center gap-4">
-                            <Skeleton className="h-6 w-6 rounded-full" />
-                            <Skeleton className="h-6 w-6 rounded-full" />
-                            <Skeleton className="h-6 w-6 rounded-full" />
-                          </TableCell>
-                        </TableRow>
-                      )) : displayedCourses.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={14} className="p-4 text-center">
-                          No courses available
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      displayedCourses.map((course, index) => (
-                        <TableRow
-                          key={course._id}
-                          className="border-b border-gray-300 hover:bg-gray-200"
-                        >
-                          <TableCell>{startIndex + index + 1}</TableCell>
-                          <TableCell>{course.category}</TableCell>
-                          <TableCell>{course.courseName}</TableCell>
-                          <TableCell>{course.level}</TableCell>
-                          <TableCell>{course.duration}</TableCell>
-                          <TableCell>{course.price}</TableCell>
-                          <TableCell>{course.languages}</TableCell>
-                          <TableCell className="flex justify-center gap-4">
-                            <button
-                              className="rounded bg-blue-600 px-3 py-3 text-sm text-white transition hover:bg-blue-700 dark:bg-white dark:text-black"
-                              onClick={() => {
-                                setSelectedCourse(course);
-                                setIsModalOpen(true);
-                              }}
-                            >
-                              Add Lectures
-                            </button>
-                            <button
-                              className="text-green-600  "
-                              onClick={() => {
-                                setSelectedCourse(course);
-                                setViewOpen(true);
-                              }}
-                            >
-                              <Eye size={22} />
-                            </button>
-                            <button
-                              className="text-blue-600"
-                              onClick={() => {
-                                setSelectedCourse(course);
-                                setEditOpen(true);
-                              }}
-                            >
-                              <Edit size={20} />
-                            </button>
-                            <button
-                              className="text-red-600"
-                              onClick={() => {
-                                handleDeleteCourse(course._id);
-                              }}
-                            >
-                              <Trash2 size={20} />
-                            </button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+        <div className="w-full pt-16 md:pl-64">
+          <div className="container mx-auto px-4 py-6">
+            {/* Header */}
+            <div className="mb-6 flex flex-col items-start justify-between gap-4 rounded-lg bg-white p-5 shadow-md dark:bg-gray-800 dark:text-white sm:flex-row sm:items-center">
+              <div className="flex items-center">
+                <BookOpen className="mr-3 h-6 w-6 text-blue-600 dark:text-blue-400" />
+                <h2 className="text-2xl font-bold text-gray-600 dark:text-gray-200">Courses</h2>
               </div>
-            </CardContent>
-          </Card>
+              <AddNewCourse />
+            </div>
 
-          {/* View Course Dialog */}
-          <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Course Details</DialogTitle>
-              </DialogHeader>
-              {selectedCourse && (
-                <div>
-                  <p>
-                    <strong>{selectedCourse.category}</strong>
-                  </p>
-                  <p>Subcategory: {selectedCourse.subcategory}</p>
-                  <p>Course Name: {selectedCourse.courseName}</p>
-                  <p>Instructor: {selectedCourse.instructor}</p>
-                  <p>Duration: {selectedCourse.duration}</p>
-                  <p>Fees: {selectedCourse.price}</p>
-                  <p>Level: {selectedCourse.level}</p>
-                  <p>Featured: {selectedCourse.feturedCourse ? "Yes" : "No"}</p>
-                  <p>Languages: {selectedCourse.languages}</p>
-                  <p>
-                    Created At:{" "}
-                    {new Date(selectedCourse.createdAt).toLocaleDateString()}
-                  </p>
+            {/* Courses Table */}
+            <Card className="mb-6 overflow-hidden border border-gray-300 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+              <CardContent className="p-0 sm:p-4">
+                <div className="overflow-x-auto">
+                  <Table className="w-full min-w-full table-auto text-black dark:text-white">
+                    <TableHeader>
+                      <TableRow className="border-b border-gray-300 hover:bg-gray-200 dark:border-gray-700 dark:hover:bg-gray-700">
+                        <TableHead className="hidden w-12 sm:table-cell">#</TableHead>
+                        <TableHead className="w-1/6">Category</TableHead>
+                        <TableHead className="w-1/4">Course Name</TableHead>
+                        <TableHead className="hidden w-1/6 md:table-cell">Level</TableHead>
+                        <TableHead className="hidden w-1/6 lg:table-cell">Duration</TableHead>
+                        <TableHead className="hidden w-1/6 md:table-cell">Fees ($)</TableHead>
+                        <TableHead className="hidden w-1/6 lg:table-cell">Languages</TableHead>
+                        <TableHead className="w-1/4 text-center">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {isLoading
+                      ? Array.from({ length: 5 }).map((_, index) => (
+                          <TableRow key={index} className="animate-pulse">
+                            <TableCell className="hidden sm:table-cell">
+                              <Skeleton className="h-5 w-6" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-5 w-full max-w-[100px]" />
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-2">
+                                <Skeleton className="h-5 w-full max-w-[150px]" />
+                                <Skeleton className="h-4 w-full max-w-[100px] md:hidden" />
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              <Skeleton className="h-6 w-20 rounded-full" />
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              <Skeleton className="h-5 w-16" />
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              <Skeleton className="h-5 w-12" />
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              <Skeleton className="h-5 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-wrap justify-center gap-2">
+                                <Skeleton className="h-8 w-20 rounded-md" />
+                                <div className="flex gap-1">
+                                  <Skeleton className="h-8 w-8 rounded-full" />
+                                  <Skeleton className="h-8 w-8 rounded-full" />
+                                  <Skeleton className="h-8 w-8 rounded-full" />
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )) : displayedCourses.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="p-4 text-center">
+                            <div className="flex flex-col items-center justify-center py-8">
+                              <BookOpen className="mb-2 h-12 w-12 text-gray-400 dark:text-gray-600" />
+                              <p className="text-lg font-medium text-gray-500 dark:text-gray-400">No courses available</p>
+                              <p className="text-sm text-gray-400 dark:text-gray-500">Add a new course to get started</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        displayedCourses.map((course, index) => (
+                          <TableRow
+                            key={course._id}
+                            className="border-b border-gray-300 hover:bg-gray-200 dark:border-gray-700 dark:hover:bg-gray-700"
+                          >
+                            <TableCell className="hidden whitespace-nowrap sm:table-cell">{startIndex + index + 1}</TableCell>
+                            <TableCell className="max-w-[100px] truncate whitespace-nowrap">{course.category}</TableCell>
+                            <TableCell className="max-w-[150px]">
+                              <div className="space-y-1">
+                                <div className="font-medium line-clamp-1">{course.courseName}</div>
+                                <div className="md:hidden">
+                                  <Badge variant="outline" className={`${getLevelBadgeColor(course.level)} text-xs`}>
+                                    {course.level}
+                                  </Badge>
+                                  <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">${course.price}</span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden whitespace-nowrap md:table-cell">
+                              <Badge variant="outline" className={`${getLevelBadgeColor(course.level)}`}>
+                                {course.level}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="hidden whitespace-nowrap lg:table-cell">{course.duration}</TableCell>
+                            <TableCell className="hidden whitespace-nowrap md:table-cell">${course.price}</TableCell>
+                            <TableCell className="hidden max-w-[120px] truncate lg:table-cell">
+                              {Array.isArray(course.languages) 
+                                ? course.languages.join(', ') 
+                                : course.languages}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-wrap items-center justify-center gap-2">
+                                <Button
+                                  size="sm"
+                                  className="h-8 w-auto rounded bg-blue-600 px-2 text-xs text-white transition hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 sm:px-3 sm:text-sm"
+                                  onClick={() => {
+                                    setSelectedCourse(course);
+                                    setIsModalOpen(true);
+                                  }}
+                                >
+                                  <span className="hidden sm:inline">Add</span> Lectures
+                                </Button>
+                                <div className="flex gap-1 sm:gap-2">
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 rounded-full text-green-600 hover:bg-green-100 hover:text-green-700 dark:text-green-500 dark:hover:bg-green-900/30 dark:hover:text-green-400"
+                                    onClick={() => {
+                                      setSelectedCourse(course);
+                                      setViewOpen(true);
+                                    }}
+                                  >
+                                    <Eye size={18} />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 rounded-full text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
+                                    onClick={() => {
+                                      setSelectedCourse(course);
+                                      setEditOpen(true);
+                                    }}
+                                  >
+                                    <Edit size={18} />
+                                  </Button>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 rounded-full text-red-600 hover:bg-red-100 hover:text-red-700 dark:text-red-500 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+                                    onClick={() => confirmDeleteCourse(course._id)}
+                                  >
+                                    <Trash2 size={18} />
+                                  </Button>
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
-              )}
-            </DialogContent>
-          </Dialog>
+              </CardContent>
+            </Card>
 
-          {/* Edit Course Modal */}
-          {/* <EditCourseModal
-            editOpen={editOpen}
-            setEditOpen={setEditOpen}
-            selectedCourse={selectedCourse}
-          /> */}
-
-          <EditCourse
-            editOpen={editOpen}
-            setEditOpen={setEditOpen}
-            selectedCourse={selectedCourse}
-          />
-
-          {/* Pagination Controls */}
-          <div className="mt-4 flex items-center justify-between">
-            {/* Placeholder div to push "Page X of Y" to the center */}
-            <div className="w-1/3"></div>
-
-            {/* Centered Page Info */}
-            <span className="w-1/3 text-center font-semibold text-gray-800">
-              Page {currentPage} of {totalPages}
-            </span>
-
-            {/* Next & Previous Buttons (Aligned to Right) */}
-            <div className="flex w-1/3 justify-end">
-              <Button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="mr-2 bg-blue-700 text-white"
-              >
-                Previous
-              </Button>
-              <Button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className="ml-2 bg-blue-600 text-white "
-              >
-                Next
-              </Button>
+            {/* Pagination Controls */}
+            <div className="rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
+              <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing <span className="font-medium text-gray-700 dark:text-gray-300">{startIndex + 1}</span> to{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {Math.min(startIndex + coursesPerPage, courses.length)}
+                  </span>{" "}
+                  of <span className="font-medium text-gray-700 dark:text-gray-300">{courses.length}</span> courses
+                </div>
+                
+                <div className="flex items-center space-x-1">
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  {/* Page Numbers */}
+                  <div className="hidden sm:flex sm:items-center sm:space-x-1">
+                    {generatePaginationNumbers().map((page, index) => (
+                      page === '...' ? (
+                        <span key={`ellipsis-${index}`} className="px-1 text-gray-400 dark:text-gray-500">...</span>
+                      ) : (
+                        <Button
+                          key={`page-${page}`}
+                          onClick={() => setCurrentPage(Number(page))}
+                          className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
+                            currentPage === page
+                              ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                              : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                          }`}
+                          aria-label={`Page ${page}`}
+                          aria-current={currentPage === page ? "page" : undefined}
+                        >
+                          {page}
+                        </Button>
+                      )
+                    ))}
+                  </div>
+                  
+                  {/* Mobile Page Indicator */}
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:hidden">
+                    Page {currentPage} of {totalPages || 1}
+                  </span>
+                  
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages || 1))}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {/* Jump to page (desktop only) */}
+                <div className="hidden items-center space-x-2 lg:flex">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Go to page:</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={totalPages || 1}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= 1 && value <= totalPages) {
+                        setCurrentPage(value);
+                      }
+                    }}
+                    className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
+                    aria-label="Go to page"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* View Course Dialog */}
+      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">Course Details</DialogTitle>
+          </DialogHeader>
+          {selectedCourse && (
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="flex flex-col rounded-lg bg-gray-50 p-4 dark:bg-gray-900/50">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">{selectedCourse.courseName}</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Badge className={`${getLevelBadgeColor(selectedCourse.level)}`}>
+                    {selectedCourse.level}
+                  </Badge>
+                  <Badge variant="outline" className="bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                    {selectedCourse.duration}
+                  </Badge>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+                    ${selectedCourse.price}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Category</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">{selectedCourse.category}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Subcategory</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">{selectedCourse.subcategory}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Instructor</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">{selectedCourse.instructor}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Featured</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">{selectedCourse.feturedCourse ? "Yes" : "No"}</p>
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Languages</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">
+                    {Array.isArray(selectedCourse.languages) 
+                      ? selectedCourse.languages.join(', ') 
+                      : selectedCourse.languages}
+                  </p>
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">Created At</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">
+                    {new Date(selectedCourse.createdAt).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <Trash2 className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
+            <p className="text-gray-600 dark:text-gray-300">
+              Are you sure you want to delete this course? This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteConfirmOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteCourse}
+              className="w-full sm:w-auto"
+              disabled={isDeleteLoading}
+            >
+              {isDeleteLoading ? "Deleting..." : "Delete Course"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Course Modal */}
+      <EditCourse
+        editOpen={editOpen}
+        setEditOpen={setEditOpen}
+        selectedCourse={selectedCourse}
+      />
 
       {/* Add Course Modal */}
       <AddCourseModal
@@ -306,20 +563,6 @@ const CoursePage: React.FC = () => {
         onAddCourse={handleAddCourse}
         selectedCourse={selectedCourse}
       />
-      {/* Custom Scrollbar Styling */}
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: WhiteSmoke;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background-color: #ffff;
-        }
-      `}</style>
     </div>
   );
 };

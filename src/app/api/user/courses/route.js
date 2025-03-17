@@ -3,6 +3,8 @@ import UserModel from "../../../../../models/User.model";
 import CourseVideoModel from "../../../../../models/Courses/CouresVideo.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 import _db from "../../../../../utils/db";
+import CourseModel from "../../../../../models/Courses/Course.model";
+
 
 _db();
 
