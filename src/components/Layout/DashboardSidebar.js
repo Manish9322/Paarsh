@@ -2,7 +2,7 @@
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { logout } from "../../lib/slices/userAuthSlice";
 import ThemeToggler from "@/components/Header/ThemeToggler";
 import Link from "next/link";
@@ -13,24 +13,22 @@ import {
   User,
   Video,
   Gift,
-  Bell,
   HelpCircle,
   LogOut,
   Menu,
-  BookOpen,
-  GraduationCap,
-  Award,
-  MessageSquare,
-  MoreVertical,
 } from "lucide-react";
+import { useFetchUserQuery } from "@/services/api";
 
 const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useDispatch();
   const [mounted, setMounted] = useState(false);
-  const { user } = useSelector((state) => state.auth);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  const { data: userData, isLoading, error } = useFetchUserQuery(undefined);
+  const user = userData?.data;
+  console.log("User: ", user);
 
   // Handle hydration mismatch
   useEffect(() => {
@@ -100,16 +98,16 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     <>
       {/* Mobile Menu Button */}
       <button
-  onClick={() => setIsSidebarOpen(true)}
+        onClick={() => setIsSidebarOpen(true)}
         className="fixed z-40 bottom-4 right-4 p-2 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 transition-all duration-300 lg:hidden flex items-center justify-center"
         aria-label="Toggle Sidebar"
->
+      >
         {isSidebarOpen ? (
           <X size={24} />
         ) : (
-  <Menu size={24} />
+          <Menu size={24} />
         )}
-</button>
+      </button>
 
       {/* Sidebar */}
       <div
@@ -120,30 +118,30 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
         <div className="flex flex-col h-full p-4">
           <div className="flex items-center justify-between mb-6">
             <Link href="/" className="flex items-center">
-           <Image
-                             src="/images/logo/PAARSHEDU_LOGO.png"
-                             alt="logo"
-                             width={120}
-                             height={30}
+              <Image
+                src="/images/logo/PAARSHEDU_LOGO.png"
+                alt="logo"
+                width={120}
+                height={30}
                 className="w-32 dark:hidden"
-                           />
-                           <Image
-                             src="/images/logo/PAARSHEDU.png"
-                             alt="logo"
-                             width={120}
-                             height={30}
+              />
+              <Image
+                src="/images/logo/PAARSHEDU.png"
+                alt="logo"
+                width={120}
+                height={30}
                 className="hidden w-32 dark:block"
-                           />
+              />
             </Link>
             <div className="flex items-center gap-2">
-            <ThemeToggler />
-            <button
-              onClick={() => setIsSidebarOpen(false)}
+              <ThemeToggler />
+              <button
+                onClick={() => setIsSidebarOpen(false)}
                 className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 lg:hidden"
                 aria-label="Close Sidebar"
-            >
+              >
                 <X size={20} className="text-gray-500 dark:text-gray-400" />
-            </button>
+              </button>
             </div>
           </div>
 
@@ -175,8 +173,8 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                       </Link>
                     ) : (
                       <button
-                  onClick={(e) => {
-                    e.preventDefault();
+                        onClick={(e) => {
+                          e.preventDefault();
                           item.onClick?.();
                           setIsSidebarOpen(false);
                         }}
