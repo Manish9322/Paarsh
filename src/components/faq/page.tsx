@@ -256,7 +256,7 @@ function Faq() {
                   Still Have Questions?
                 </h3>
                 <p className="text-base text-gray-600 dark:text-gray-400 mt-2 max-w-lg">
-                  If you couldn't find the answer you were looking for, our support team is here to help you with any questions or concerns.
+                  If you couldnt find the answer you were looking for, our support team is here to help you with any questions or concerns.
                 </p>
               </div>
             </div>
