@@ -129,168 +129,171 @@ const SignupPage = () => {
   return (
     <>
       <section className="relative z-10 overflow-hidden pb-16 pt-36 md:pb-20 lg:pb-28 lg:pt-[60px]">
-        <div className="container">
+        <div className="container mx-auto px-4">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4">
-              <div className="mx-auto max-w-[700px] rounded bg-white px-6 py-10 shadow-three dark:bg-dark sm:p-[60px]">
-                <h3 className="mb-3 text-center text-2xl font-bold text-black dark:text-white sm:text-3xl">
+              <div className="mx-auto max-w-[700px] rounded bg-white px-4 py-8 shadow-three dark:bg-dark sm:p-[40px] md:p-[60px]">
+                <h3 className="mb-3 text-center text-xl font-bold text-black dark:text-white sm:text-2xl md:text-3xl">
                   Create your account
                 </h3>
 
                 <form
                   onSubmit={formik.handleSubmit}
-                  className="grid grid-cols-1 gap-6 md:grid-cols-2"
+                  className="flex flex-col gap-6"
                 >
-                  {/* Left Section */}
-                  <div>
-                    <div className="mb-4">
-                      <label className="mb-2 block text-primary text-dark dark:text-white">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        {...formik.getFieldProps("name")}
-                        placeholder="Enter your full name"
-                        onInput={(e) => {
-                          const input = e.target as HTMLInputElement;
-                          input.value = input.value.replace(/[^a-zA-Z\s]/g, ""); // Allow only letters and spaces
-                        }}
-                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
-                      />
-                      {formik.touched.name && formik.errors.name && (
-                        <p className="mx-1 mt-2 text-sm text-red-500">
-                          {formik.errors.name}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Email */}
-                    <div className="mb-4">
-                      <label className="mb-2 block text-primary text-dark dark:text-white">
-                        Work Email
-                      </label>
-                      <input
-                        type="email"
-                        {...formik.getFieldProps("email")}
-                        placeholder="Enter your Email"
-                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
-                      />
-                      {formik.touched.email && formik.errors.email && (
-                        <p className="mx-1 mt-2 text-sm text-red-500">
-                          {formik.errors.email}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Referral Code */}
+                  {/* Form Fields */}
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    {/* Left Section */}
                     <div>
-                      <label className="mb-2 block text-primary text-dark dark:text-white">
-                        Referral Code (Optional)
-                      </label>
-                      <input
-                        type="text"
-                        {...formik.getFieldProps("referralCode")}
-                        placeholder="Enter Referral Code"
-                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
-                        disabled={!!ref} // Disable if referral code is present
-                      />
-                      {formik.touched.referralCode && formik.errors.referralCode && (
-                        <p className="mx-1 mt-2 text-sm text-red-500">
-                          {formik.errors.referralCode}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right Section */}
-                  <div>
-                    {/* Password */}
-                    <div className="relative mb-4">
-                      <label className="mb-2 block text-primary text-dark dark:text-white">
-                        Password
-                      </label>
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        {...formik.getFieldProps("password")}
-                        placeholder="Enter your password"
-                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-4 top-10"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff size={20} />
-                        ) : (
-                          <Eye size={20} />
-                        )}
-                      </button>
-                      {formik.touched.password && formik.errors.password && (
-                        <p className="mx-1 mt-2 text-sm text-red-500">
-                          {formik.errors.password}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Confirm Password */}
-                    <div className="relative mb-4">
-                      <label className="mb-2 block text-primary text-dark dark:text-white">
-                        Confirm Password
-                      </label>
-                      <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        {...formik.getFieldProps("confirmPassword")}
-                        placeholder="Confirm your password"
-                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
-                      />
-                      <button
-                        type="button"
-                        className="absolute right-4 top-10"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff size={20} />
-                        ) : (
-                          <Eye size={20} />
-                        )}
-                      </button>
-                      {formik.touched.confirmPassword &&
-                        formik.errors.confirmPassword && (
+                      <div className="mb-4">
+                        <label className="mb-2 block text-base font-medium text-primary text-dark dark:text-white">
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          {...formik.getFieldProps("name")}
+                          placeholder="Enter your full name"
+                          onInput={(e) => {
+                            const input = e.target as HTMLInputElement;
+                            input.value = input.value.replace(/[^a-zA-Z\s]/g, "");
+                          }}
+                          className="w-full rounded border border-gray-300 bg-gray-100 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800"
+                        />
+                        {formik.touched.name && formik.errors.name && (
                           <p className="mx-1 mt-2 text-sm text-red-500">
-                            {formik.errors.confirmPassword}
+                            {formik.errors.name}
                           </p>
                         )}
+                      </div>
+
+                      {/* Email */}
+                      <div className="mb-4">
+                        <label className="mb-2 block text-base font-medium text-primary text-dark dark:text-white">
+                          Work Email
+                        </label>
+                        <input
+                          type="email"
+                          {...formik.getFieldProps("email")}
+                          placeholder="Enter your Email"
+                          className="w-full rounded border border-gray-300 bg-gray-100 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800"
+                        />
+                        {formik.touched.email && formik.errors.email && (
+                          <p className="mx-1 mt-2 text-sm text-red-500">
+                            {formik.errors.email}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Referral Code */}
+                      <div>
+                        <label className="mb-2 block text-base font-medium text-primary text-dark dark:text-white">
+                          Referral Code (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          {...formik.getFieldProps("referralCode")}
+                          placeholder="Enter Referral Code"
+                          className="w-full rounded border border-gray-300 bg-gray-100 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800"
+                          disabled={!!ref}
+                        />
+                        {formik.touched.referralCode && formik.errors.referralCode && (
+                          <p className="mx-1 mt-2 text-sm text-red-500">
+                            {formik.errors.referralCode}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Mobile */}
-                    <div className="">
-                      <label className="mb-2 block text-primary text-dark dark:text-white">
-                        Mobile Number
-                      </label>
-                      <input
-                        type="tel"
-                        {...formik.getFieldProps("mobile")}
-                        placeholder="Enter 10-digit number"
-                        maxLength={10} // Prevents more than 10 digits
-                        onInput={(e) => {
-                          const input = e.target as HTMLInputElement; // Type assertion
-                          input.value = input.value.replace(/\D/g, ""); // Remove non-numeric characters
-                        }}
-                        className="w-full rounded border bg-gray-100 px-6 py-3 text-sm focus:border-blue-500 dark:bg-gray-800"
-                      />
-                      {formik.touched.mobile && formik.errors.mobile && (
-                        <p className="mx-1 mt-2 text-sm text-red-500">
-                          {formik.errors.mobile}
-                        </p>
-                      )}
+                    {/* Right Section */}
+                    <div>
+                      {/* Password */}
+                      <div className="relative mb-4">
+                        <label className="mb-2 block text-base font-medium text-primary text-dark dark:text-white">
+                          Password
+                        </label>
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          {...formik.getFieldProps("password")}
+                          placeholder="Enter your password"
+                          className="w-full rounded border border-gray-300 bg-gray-100 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800"
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-4 top-10"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                        {formik.touched.password && formik.errors.password && (
+                          <p className="mx-1 mt-2 text-sm text-red-500">
+                            {formik.errors.password}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div className="relative mb-4">
+                        <label className="mb-2 block text-base font-medium text-primary text-dark dark:text-white">
+                          Confirm Password
+                        </label>
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          {...formik.getFieldProps("confirmPassword")}
+                          placeholder="Confirm your password"
+                          className="w-full rounded border border-gray-300 bg-gray-100 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800"
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-4 top-10"
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff size={20} />
+                          ) : (
+                            <Eye size={20} />
+                          )}
+                        </button>
+                        {formik.touched.confirmPassword &&
+                          formik.errors.confirmPassword && (
+                            <p className="mx-1 mt-2 text-sm text-red-500">
+                              {formik.errors.confirmPassword}
+                            </p>
+                          )}
+                      </div>
+
+                      {/* Mobile */}
+                      <div>
+                        <label className="mb-2 block text-base font-medium text-primary text-dark dark:text-white">
+                          Mobile Number
+                        </label>
+                        <input
+                          type="tel"
+                          {...formik.getFieldProps("mobile")}
+                          placeholder="Enter 10-digit number"
+                          maxLength={10}
+                          onInput={(e) => {
+                            const input = e.target as HTMLInputElement;
+                            input.value = input.value.replace(/\D/g, "");
+                          }}
+                          className="w-full rounded border border-gray-300 bg-gray-100 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800"
+                        />
+                        {formik.touched.mobile && formik.errors.mobile && (
+                          <p className="mx-1 mt-2 text-sm text-red-500">
+                            {formik.errors.mobile}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   {/* Terms & Submit */}
-                  <div className="col-span-2">
+                  <div className="w-full">
                     <div className="mb-6 items-center">
                       <input
                         type="checkbox"
