@@ -295,7 +295,7 @@ const BlogSidebarPage = () => {
                   </p> 
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <VideoPlayer
-                      thumbnailUrl={"/images/blog/blog-details-01.jpg"}
+                      thumbnailUrl={course?.thumbnailUrl || "images/blog/blog-details-01.jpg"}
                       videoUrl={course?.videoUrl || ""}
                       title={course?.courseName || "Course Video"}
                     />

@@ -1,11 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { isNull } from "lodash";
 
 const initialState = {
   courseName: "",
   price: "",
   duration: "",
   level: "",
-  videoLink: "",
+  videoLink: null,
   languages: "",
   thumbnail: null,
   summaryText: "",
@@ -74,6 +75,8 @@ const courseSlice = createSlice({
         state.thumbnail = fileData; // Update thumbnail
       } else if (field === "syllabus") {
         state.syllabus = fileData; // Add syllabus file
+      } else if (field === "videoLink") {
+        state.videoLink = fileData; // Add videoLink file
       }
     },
     removeSyllabusFile: (state, action) => {
