@@ -21,9 +21,24 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+
+
+// Service Worker Registration
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js")
+        .then(() => console.log("Service Worker Registered"))
+        .catch((error) => console.log("Service Worker Registration Failed", error));
+    }
+  }, []);
+
+
   return (
     <html suppressHydrationWarning lang="en">
-      <head />
+       <head>
+        <link rel="manifest" href="/manifest.json" />
+      </head>
+      
       <body className={`bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
         <Suspense>
         <Provider store={store}>
