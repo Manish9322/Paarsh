@@ -323,6 +323,7 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
               <Select
                 onValueChange={(value) => {
                   handleSelectChange("level", value);
+                  setValue("level", value);
                 }}
                 value={course.level}
               >
