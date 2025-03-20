@@ -23,7 +23,7 @@ const withPWA = require("next-pwa")({
 const nextConfig = withPWA({
   reactStrictMode: true,
   images: {
-    domains: ["localhost"],
+    domains: ["paarshedu.com"],
     remotePatterns: [
       {
         protocol: "https",

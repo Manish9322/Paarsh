@@ -47,8 +47,8 @@ interface Course {
   courseName: string;
   tagline: string;
   summaryText: string;
-  thumbnailUrl: string;
-  videoUrl: string;
+  thumbnail: string;
+  videoLink: string;
   instructor: string;
   courseType: string;
   duration: string;
@@ -295,8 +295,8 @@ const BlogSidebarPage = () => {
                   </p> 
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <VideoPlayer
-                      thumbnailUrl={course?.thumbnailUrl || "images/blog/blog-details-01.jpg"}
-                      videoUrl={course?.videoUrl || ""}
+                      thumbnailUrl={ course?.thumbnail || "/images/blog/blog-details-01.jpg"}
+                      videoUrl={ course?.videoLink || ""}
                       title={course?.courseName || "Course Video"}
                     />
                   </div>
