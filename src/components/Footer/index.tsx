@@ -32,7 +32,7 @@ const Footer = () => {
                 </p>
                 <div className="flex items-center">
                   <a
-                    href="https://www.facebook.com/Paarsh.Infotech"
+                    href="https://www.facebook.com/PaarshEDU"
                     aria-label="social-link"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -75,7 +75,7 @@ const Footer = () => {
                   </a>
 
                   <a
-                    href="https://www.instagram.com/paarsh_infotech/"
+                    href="https://www.instagram.com/paarsh_edu/"
                     aria-label="social-link"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -98,7 +98,7 @@ const Footer = () => {
                   </a>
 
                   <a
-                    href="https://www.youtube.com/@paarshinfotech"
+                    href="https://www.youtube.com/@PaarshEDU"
                     aria-label="social-link"
                     target="_blank"
                     rel="noopener noreferrer"

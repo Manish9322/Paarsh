@@ -56,17 +56,17 @@ const SigninPage = () => {
   };
 
   return (
-    <section className="relative z-10 flex min-h-screen items-center justify-center p-6">
-      <div className="mx-auto max-w-[500px] rounded-lg bg-white px-6 py-10 shadow-lg dark:bg-dark sm:p-[60px]">
-        <h3 className="mb-3 text-center text-2xl font-bold text-black dark:text-white sm:text-3xl">
+    <section className="relative z-10 flex min-h-screen items-center justify-center p-3 sm:p-6">
+      <div className="mx-auto w-full max-w-[500px] rounded-lg bg-white px-4 py-8 shadow-lg dark:bg-dark xs:px-5 xs:py-9 sm:p-[40px] md:p-[60px]">
+        <h3 className="mb-2 text-center text-xl font-bold text-black dark:text-white sm:mb-3 sm:text-2xl md:text-3xl">
           Admin Sign In
         </h3>
-        <p className="mb-6 text-center text-base font-medium text-body-color">
+        <p className="mb-4 text-center text-sm text-body-color sm:mb-6 sm:text-base">
           Enter your credentials to access the dashboard.
         </p>
 
         <form onSubmit={handleLogin}>
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <label
               htmlFor="email"
               className="block text-sm font-medium text-dark dark:text-white"
@@ -79,11 +79,11 @@ const SigninPage = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 w-full rounded-md border px-4 py-3 focus:ring focus:ring-blue-300"
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:ring focus:ring-blue-300 sm:mt-2 sm:px-4 sm:py-3 sm:text-base"
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <label
               htmlFor="password"
               className="block text-sm font-medium text-dark dark:text-white"
@@ -96,24 +96,25 @@ const SigninPage = () => {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 w-full rounded-md border px-4 py-3 focus:ring focus:ring-blue-300"
+              className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:ring focus:ring-blue-300 sm:mt-2 sm:px-4 sm:py-3 sm:text-base"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-700 px-4 py-3 text-white transition duration-300 hover:bg-blue-600"
+            className="h-10 w-full rounded-md bg-blue-700 px-4 py-2 text-sm text-white transition duration-300 hover:bg-blue-600 sm:h-12 sm:py-3 sm:text-base"
             disabled={isLoading}
           >
             {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
       </div>
-      <div className="absolute -top-44 left-0 z-[-1]">
+      <div className="absolute -top-44 left-0 z-[-1] w-full overflow-hidden">
         <svg
-          width="1440"
+          width="100%"
           height="969"
           viewBox="0 0 1440 969"
+          preserveAspectRatio="xMidYMid meet"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >

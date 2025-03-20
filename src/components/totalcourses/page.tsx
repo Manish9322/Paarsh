@@ -4,13 +4,32 @@ import { List, Grid3x3, Search, Filter, ChevronRight, BookOpen, Clock, Calendar,
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useFetchUserCourseQuery } from "@/services/api";
+
+interface Course {
+  _id: string;
+  courseName: string;
+  duration: string;
+  instructor: string;
+  level: string;
+  price: string;
+  thumbnail: string;
+  progress:string;
+  purchaseDate:string;
+  videos: any[];
+}
 
 function TotalCourses() {
   const [view, setView] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
-  // Example courses for demonstration
+  const { data, error, isLoading } = useFetchUserCourseQuery({});
+  const courses: Course[] = data?.purchasedCourses || [];
+
+  console.log("purchased courses : ", courses);
+
+
   const exampleCourses = [
     {
       id: "1",
@@ -68,7 +87,7 @@ function TotalCourses() {
 
   // Function to get level badge color
   const getLevelColor = (level) => {
-    switch(level?.toLowerCase()) {
+    switch (level?.toLowerCase()) {
       case 'beginner':
         return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
       case 'intermediate':
@@ -92,7 +111,7 @@ function TotalCourses() {
             Browse all your purchased courses
           </p>
         </div>
-        
+
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-64">
@@ -107,27 +126,25 @@ function TotalCourses() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           {/* View Toggle */}
           <div className="flex items-center gap-2 bg-white dark:bg-gray-700 p-1 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
             <button
               onClick={() => setView("grid")}
-              className={`rounded-md p-2 transition-all ${
-                view === "grid"
-                  ? "bg-blue-500 text-white shadow-md"
-                  : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
-              }`}
+              className={`rounded-md p-2 transition-all ${view === "grid"
+                ? "bg-blue-500 text-white shadow-md"
+                : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                }`}
               aria-label="Grid view"
             >
               <Grid3x3 size={18} />
             </button>
             <button
               onClick={() => setView("list")}
-              className={`rounded-md p-2 transition-all ${
-                view === "list"
-                  ? "bg-blue-500 text-white shadow-md"
-                  : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
-              }`}
+              className={`rounded-md p-2 transition-all ${view === "list"
+                ? "bg-blue-500 text-white shadow-md"
+                : "bg-transparent text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                }`}
               aria-label="List view"
             >
               <List size={18} />
@@ -141,19 +158,17 @@ function TotalCourses() {
         variants={container}
         initial="hidden"
         animate="show"
-        className={`grid ${
-          view === "grid"
+        className={`grid ${view === "grid"
             ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
             : "grid-cols-1"
-        } gap-6`}
+          } gap-6`}
       >
-        {exampleCourses.map((course) => (
+        {courses.map((course) => (
           <motion.div
-            key={course.id}
+            key={course._id}
             variants={item}
-            className={`flex ${
-              view === "list" ? "flex-row" : "flex-col"
-            } bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500`}
+            className={`flex ${view === "list" ? "flex-row" : "flex-col"
+              } bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500`}
             style={{ cursor: 'pointer' }}
           >
             <div className={`${view === "list" ? "w-1/3" : "w-full"} relative`}>
@@ -161,23 +176,21 @@ function TotalCourses() {
                 <img
                   src={course.thumbnail}
                   alt={course.courseName}
-                  className={`${
-                    view === "list" ? "h-full w-full" : "h-48 w-full"
-                  } object-cover`}
+                  className={`${view === "list" ? "h-full w-full" : "h-48 w-full"
+                    } object-cover`}
                 />
               ) : (
-                <div className={`${
-                  view === "list" ? "h-full w-full" : "h-48 w-full"
-                } bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center`}>
+                <div className={`${view === "list" ? "h-full w-full" : "h-48 w-full"
+                  } bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center`}>
                   <BookOpen size={48} className="text-white" />
                 </div>
               )}
-              
+
               {/* Play button overlay */}
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity duration-300">
                 <PlayCircle size={48} className="text-white" />
               </div>
-              
+
               {/* Level badge */}
               <div className="absolute top-2 right-2 bg-white dark:bg-gray-800 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
                 <span className={`px-2 py-0.5 rounded-full ${getLevelColor(course.level)}`}>
@@ -185,55 +198,55 @@ function TotalCourses() {
                 </span>
               </div>
             </div>
-            
+
             <div className={`${view === "list" ? "w-2/3" : "w-full"} p-4`}>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
                 {course.courseName}
               </h3>
-              
+
               {/* Course metadata */}
               <div className="flex flex-wrap gap-2 mb-3">
                 <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                   <Users size={12} className="mr-1" />
                   {course.instructor}
                 </div>
-                
+
                 <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                   <Clock size={12} className="mr-1" />
                   {course.duration}
                 </div>
-                
+
                 <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                   <Calendar size={12} className="mr-1" />
                   Purchased: {formatDate(course.purchaseDate)}
                 </div>
               </div>
-              
+
               {/* Course status */}
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center">
-                  {course.progress === 100 ? (
+                  {Number(course.progress) === 100 ? (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                       <Award size={12} className="mr-1" />
-                        Completed
+                      Completed
                     </span>
-                  ) : course.progress > 0 ? (
+                  ) :Number(course.progress) === 100 ? (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                       <Clock size={12} className="mr-1" />
-                        In Progress
+                      In Progress
                     </span>
                   ) : (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                       <BookOpen size={12} className="mr-1" />
-                        Not Started
+                      Not Started
                     </span>
                   )}
                 </div>
-                
+
                 <button
                   className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:shadow transition-all duration-300"
                 >
-                  {course.progress > 0 ? "Continue" : "Start"} 
+                  {Number(course.progress) === 100 ? "Continue" : "Start"}
                   <ChevronRight size={14} className="ml-1" />
                 </button>
               </div>
