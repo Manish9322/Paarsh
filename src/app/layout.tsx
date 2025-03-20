@@ -36,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html suppressHydrationWarning lang="en">
        <head>
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href="../../public/manifest.json" />
       </head>
       
       <body className={`bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
