@@ -4,7 +4,7 @@ export type Course = {
   title: string;
   courseName:string;
   tagline:string;
-  image: string;
+  thumbnail: string;
   paragraph: string;
   level: string;
   tags: string[];

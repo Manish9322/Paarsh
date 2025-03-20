@@ -253,12 +253,12 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
                         {discountApplied ? (
                           <>
                             <span className="mr-2 text-sm line-through opacity-70">
-                              ${coursePrice.toFixed(2)}
+                              {coursePrice.toFixed(2)}
                             </span>
-                            ${finalPrice}
+                            ₹{finalPrice}
                           </>
                         ) : (
-                          `$${finalPrice}`
+                          `₹${finalPrice}`
                         )}
                       </span>
                       {discountApplied && (
@@ -291,20 +291,20 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Course Price</span>
-                    <span>${coursePrice.toFixed(2)}</span>
+                    <span>₹{coursePrice.toFixed(2)}</span>
                   </div>
                   
                   {discountApplied && (
                     <div className="flex justify-between text-green-600 dark:text-green-400">
                       <span>Discount (20%)</span>
-                      <span>-${(coursePrice * 0.2).toFixed(2)}</span>
+                      <span>-₹{(coursePrice * 0.2).toFixed(2)}</span>
                     </div>
                   )}
                   
                   <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
                     <div className="flex justify-between">
                       <span className="text-lg font-medium">Total</span>
-                      <span className="text-xl font-bold text-blue-600 dark:text-blue-400">${finalPrice}</span>
+                      <span className="text-xl font-bold text-blue-600 dark:text-blue-400">₹{finalPrice}</span>
                     </div>
                   </div>
                 </div>

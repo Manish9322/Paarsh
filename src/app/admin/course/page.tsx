@@ -228,7 +228,7 @@ const CoursePage: React.FC = () => {
                         <TableHead className="w-1/4">Course Name</TableHead>
                         <TableHead className="hidden w-1/6 md:table-cell">Level</TableHead>
                         <TableHead className="hidden w-1/6 lg:table-cell">Duration</TableHead>
-                        <TableHead className="hidden w-1/6 md:table-cell">Fees ($)</TableHead>
+                        <TableHead className="hidden w-1/6 md:table-cell">Fees (₹)</TableHead>
                         <TableHead className="hidden w-1/6 lg:table-cell">Languages</TableHead>
                         <TableHead className="w-1/4 text-center">Actions</TableHead>
                       </TableRow>
@@ -297,7 +297,7 @@ const CoursePage: React.FC = () => {
                                   <Badge variant="outline" className={`${getLevelBadgeColor(course.level)} text-xs`}>
                                     {course.level}
                                   </Badge>
-                                  <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">${course.price}</span>
+                                  <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">₹{course.price}</span>
                                 </div>
                               </div>
                             </TableCell>
@@ -307,7 +307,7 @@ const CoursePage: React.FC = () => {
                               </Badge>
                             </TableCell>
                             <TableCell className="hidden whitespace-nowrap lg:table-cell">{course.duration}</TableCell>
-                            <TableCell className="hidden whitespace-nowrap md:table-cell">${course.price}</TableCell>
+                            <TableCell className="hidden whitespace-nowrap md:table-cell">₹{course.price}</TableCell>
                             <TableCell className="hidden max-w-[120px] truncate lg:table-cell">
                               {Array.isArray(course.languages) 
                                 ? course.languages.join(', ') 
@@ -469,7 +469,7 @@ const CoursePage: React.FC = () => {
                     {selectedCourse.duration}
                   </Badge>
                   <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
-                    ${selectedCourse.price}
+                    ₹{selectedCourse.price}
                   </Badge>
                 </div>
               </div>
