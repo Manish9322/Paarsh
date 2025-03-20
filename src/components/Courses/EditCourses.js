@@ -120,10 +120,13 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
 
   useEffect(() => {
     if (selectedCourse) {
-      console.log("Selected Course Editor Content:", selectedCourse?.editorContent);
+      console.log(
+        "Selected Course Editor Content:",
+        selectedCourse?.editorContent,
+      );
       setEditorContent(selectedCourse.editorContent || "");
       console.log("Initialized Editor Content:", editorContent);
-      
+
       Object.keys(selectedCourse).forEach((key) => {
         dispatch(updateField({ field: key, value: selectedCourse[key] }));
       });
@@ -320,8 +323,8 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
               <Select
                 onValueChange={(value) => {
                   handleSelectChange("level", value);
-                  setValue("level", value);
                 }}
+                value={course.level}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select difficulty level" />
@@ -360,7 +363,7 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 onValueChange={(value) =>
                   handleSelectChange("availability", value)
                 }
-                value={String(course.availability)}
+                value={course.availability}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Available?" />
@@ -478,20 +481,17 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
 
           <div className="flex gap-4">
             <div className="w-1/2">
-              <Label htmlFor="videoLink">Introduction Video Link</Label>
+              <Label htmlFor="videoLink">Introduction Video</Label>
               <Input
                 id="videoLink"
                 name="videoLink"
+                type="file"
+                accept="video/*"
                 className="mt-2 w-full"
-                type="text"
-                {...register("videoLink")}
-                onChange={(e) => handleChange("videoLink", e.target.value)}
-                value={course.videoLink}
+                onChange={(e) => handleFileChange(e, "videoLink")}
               />
-              {errors.videoLink && (
-                <p className="text-red-500">{errors.videoLink.message}</p>
-              )}
             </div>
+
             <div className="w-1/2">
               <Label htmlFor="thumbnail">Thumbnail Image</Label>
               <Input

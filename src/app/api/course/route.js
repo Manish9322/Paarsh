@@ -65,12 +65,7 @@ export const POST = authMiddleware(async (request) => {
       ? await uploadFileToVPS(videoLink, "videoLink")
       : null;
 
-    // Upload additional files (if any)
-    const uploadedFiles = [];
-    for (const file of additionalFiles) {
-      const fileUrl = await uploadFileToVPS(file, "additional-file");
-      if (fileUrl) uploadedFiles.push(fileUrl);
-    }
+    
 
     // Create new course
     const newCourse = new CourseModel({

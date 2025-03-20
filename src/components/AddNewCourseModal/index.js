@@ -149,6 +149,7 @@ export function AddNewCourse() {
       syllabusOverview: course.syllabusOverview,
       thoughts: course.thoughts,
       tags: course.tags,
+   
     };
 
     try {
@@ -460,19 +461,17 @@ export function AddNewCourse() {
 
           <div className="flex gap-4">
             <div className="w-1/2">
-              <Label htmlFor="videoLink">Introduction Video Link</Label>
+              <Label htmlFor="videoLink">Introduction Video</Label>
               <Input
                 id="videoLink"
                 name="videoLink"
+                type="file"
+                accept="video/*"
                 className="mt-2 w-full"
-                type="text"
-                {...register("videoLink")}
-                onChange={(e) => handleChange("videoLink", e.target.value)}
+                onChange={(e) => handleFileChange(e, "videoLink")}
               />
-              {errors.videoLink && (
-                <p className="text-red-500">{errors.videoLink.message}</p>
-              )}
             </div>
+
             <div className="w-1/2">
               <Label htmlFor="thumbnail">Thumbnail Image</Label>
               <Input
