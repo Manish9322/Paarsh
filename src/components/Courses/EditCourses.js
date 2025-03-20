@@ -331,9 +331,9 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                   <SelectValue placeholder="Select difficulty level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Beginner">Beginner</SelectItem>
-                  <SelectItem value="Intermediate">Intermediate</SelectItem>
-                  <SelectItem value="Advanced">Advanced</SelectItem>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
                 </SelectContent>
               </Select>
               {errors.level && (
@@ -370,8 +370,9 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                   <SelectValue placeholder="Available?" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="true">Yes</SelectItem>
-                  <SelectItem value="false">No</SelectItem>
+                  <SelectItem value="Available">Available</SelectItem>
+                  <SelectItem value="Unavailable">Unavailable</SelectItem>
+                  <SelectItem value="Upcoming">Upcoming</SelectItem>
                 </SelectContent>
               </Select>
             </div>
