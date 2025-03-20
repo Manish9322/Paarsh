@@ -19,7 +19,7 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
     tagline,
     paragraph,
     level,
-    image,
+    thumbnail,
     duration,
     lang,
     certificate,
@@ -59,7 +59,7 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
                   </span>
 
                   <Image
-                    src={image || (Math.random() < 0.5 ? "/images/blog/blog-details-01.jpg" : "/images/blog/blog-details-02.jpg")}
+                    src={thumbnail || (Math.random() < 0.5 ? "/images/blog/blog-details-01.jpg" : "/images/blog/blog-details-02.jpg")}
                     alt={courseName}
                     fill
                     className="rounded-tl rounded-tr object-cover"
