@@ -11,14 +11,14 @@ const TextEditor = ({ placeholder }) => {
   const editorContent = useSelector((state) => state.course.editorContent);
 
   // Local state for editor
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(editorContent || "");
 
   // Update content when backend data arrives
   useEffect(() => {
-    if (editorContent) {
-      setContent(editorContent);
+    if (editorContent !== content) {
+      setContent(editorContent || "");
     }
-  }, [editorContent]);
+  }, []);
 
   // Editor configuration
   const config = useMemo(
@@ -29,17 +29,23 @@ const TextEditor = ({ placeholder }) => {
     [placeholder],
   );
 
+  // Function to extract plain text from HTML
+  const extractPlainText = (htmlContent) => {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = htmlContent;
+    return tempDiv.innerText.trim(); // Removes extra spaces and line breaks
+  };
+
   // Handle content change
   const handleContentChange = (newContent) => {
     setContent(newContent);
 
-    // Extract plain text
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = newContent;
-    const plainText = tempDiv.innerText;
+    const plainText = extractPlainText(newContent);
 
-    // Dispatch update to Redux
-    dispatch(updateField({ field: "editorContent", value: plainText }));
+    // Update Redux only if content has actually changed
+    if (plainText !== editorContent) {
+      dispatch(updateField({ field: "editorContent", value: plainText }));
+    }
   };
 
   return (
@@ -49,7 +55,7 @@ const TextEditor = ({ placeholder }) => {
       config={config}
       tabIndex={1}
       onBlur={handleContentChange}
-      onChange={() => {}} // Avoid unwanted updates
+      onChange={handleContentChange} // Update in real time
     />
   );
 };

@@ -25,7 +25,7 @@ export function authMiddleware(handler, isAdmin = false) {
 
     if (!token) {
       return NextResponse.json(
-        { error: "Unauthorized", success: false },
+        { error: "Unauthorized Access", success: false },
         { status: 401 },
       );
     }
