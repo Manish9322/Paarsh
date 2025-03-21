@@ -79,6 +79,24 @@ useEffect(() => {
           [data-webview-ready="true"] .webview-modal-anchor {
             display: block !important;
           }
+          
+          /* WebView Button Fixes */
+          button, 
+          .button,
+          [role="button"] {
+            cursor: pointer !important;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
+            touch-action: manipulation !important;
+          }
+          
+          /* Increase hit area for buttons in WebView */
+          [aria-label="Close"] {
+            min-width: 44px !important;
+            min-height: 44px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
         `;
         document.head.appendChild(style);
       }

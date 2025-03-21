@@ -98,19 +98,84 @@ export default function AutoModal() {
     }
   }, [isWebViewApp, open]);
 
+  // Function to handle manual closing of the modal
+  const handleCloseModal = () => {
+    setOpen(false);
+    setForcedModal(false);
+    
+    // For WebView environments, we need to add additional handling
+    if (isWebViewApp) {
+      // Force update DOM to reflect state change
+      document.body.classList.remove('modal-open');
+      // Try to notify the WebView that the modal is closed
+      try {
+        // @ts-ignore - WebView interface
+        if (window.AndroidInterface && window.AndroidInterface.onModalClosed) {
+          // @ts-ignore - WebView interface
+          window.AndroidInterface.onModalClosed();
+        }
+      } catch (e) {
+        console.error('Failed to notify WebView of modal close', e);
+      }
+    }
+  };
+
   return (
     <>
       {/* Extra element to force rendering in WebView */}
-      {isWebViewApp && <div id="webview-modal-anchor" style={{position: 'fixed', bottom: 0, right: 0, width: 1, height: 1, zIndex: 9000}} />}
+      {isWebViewApp && <div id="webview-modal-anchor" className="webview-modal-anchor" style={{position: 'fixed', bottom: 0, right: 0, width: 1, height: 1, zIndex: 9000}} />}
       
       <Dialog 
         open={open || forcedModal} 
         onOpenChange={(isOpen) => {
           // Only allow explicit close actions to change the state
-          if (!isOpen) setOpen(false);
+          if (!isOpen) handleCloseModal();
         }}
+        modal={true}
       >
         <DialogContent className={`w-[95%] sm:w-full max-w-4xl p-0 overflow-hidden rounded-xl shadow-xl bg-white border-0 max-h-[90vh] md:max-h-[85vh] ${isWebViewApp ? 'webview-modal' : ''}`} onClick={(e) => e.stopPropagation()}>
+          {/* WebView helper: Extra-large close button that spans the entire top of modal */}
+          {isWebViewApp && (
+            <div 
+              style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                width: '100%', 
+                height: '50px',
+                zIndex: 99999,
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                padding: '0 10px',
+                boxSizing: 'border-box',
+                touchAction: 'manipulation'
+              }}
+            >
+              <button
+                onClick={handleCloseModal}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '34px',
+                  height: '34px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  touchAction: 'manipulation',
+                  cursor: 'pointer'
+                }}
+                aria-label="Close Modal"
+                type="button"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          )}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -123,9 +188,14 @@ export default function AutoModal() {
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <DialogTitle className="text-xl sm:text-2xl font-bold text-white">Paarsh Edu</DialogTitle>
                   <button 
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleCloseModal();
+                    }}
                     className="bg-white/10 hover:bg-white/20 rounded-full p-1.5 text-white transition-colors md:hidden"
                     aria-label="Close"
+                    type="button"
                   >
                     <X size={18} />
                   </button>
@@ -150,7 +220,12 @@ export default function AutoModal() {
                   <div className="pt-3 sm:pt-4 hidden md:block">
                     <Button 
                       className="w-full bg-white text-blue-700 hover:bg-blue-50 px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg shadow-sm transition-colors text-sm sm:text-base font-medium" 
-                      onClick={() => setOpen(false)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleCloseModal();
+                      }}
+                      type="button"
                     >
                       Close
                     </Button>
@@ -161,9 +236,14 @@ export default function AutoModal() {
               {/* Right column - larger */}
               <div className="md:w-2/3 p-4 sm:p-6 pb-6 sm:pb-8 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] md:max-h-[85vh] relative">
                 <button 
-                  onClick={() => setOpen(false)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCloseModal();
+                  }}
                   className="absolute right-3 sm:right-4 top-3 sm:top-4 bg-blue-100/50 hover:bg-blue-100 rounded-full p-1.5 text-blue-700 transition-colors hidden md:flex"
                   aria-label="Close"
+                  type="button"
                 >
                   <X size={16} />
                 </button>
@@ -291,7 +371,12 @@ export default function AutoModal() {
                 <div className="flex justify-center mt-6 sm:mt-8 md:hidden">
                   <Button 
                     className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 sm:px-8 py-2 sm:py-2.5 rounded-lg shadow-sm transition-colors text-sm sm:text-base font-medium" 
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleCloseModal();
+                    }}
+                    type="button"
                   >
                     Close
                   </Button>
