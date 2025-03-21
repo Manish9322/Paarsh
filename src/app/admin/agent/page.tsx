@@ -165,7 +165,7 @@ const AgentPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-gray-50  dark:bg-gray-900 overflow-hidden">
       {/* Mobile Header with Menu Button */}
       <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
         <button 
@@ -203,7 +203,7 @@ const AgentPage: React.FC = () => {
         {/* Main content area */}
         <main className="w-full flex-1 overflow-x-hidden pt-16">
           <div className="container mx-auto px-4 py-6">
-            <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
+            <Card className="mb-6 overflow-hidden border-none  dark:bg-gray-800  dark:text-white bg-white shadow-md">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
                 <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                   <CardTitle className="text-xl font-bold text-white sm:text-2xl">
@@ -213,7 +213,7 @@ const AgentPage: React.FC = () => {
                     <Input
                       type="text"
                       placeholder="Search agents..."
-                      className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
+                      className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black dark:text-white placeholder:text-gray-500 md:w-64"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -228,9 +228,9 @@ const AgentPage: React.FC = () => {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <Table className="w-full text-black">
+                  <Table className="w-full text-black dark: dark:text-white">
                     <TableHeader>
-                      <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+                      <TableRow className="border-b border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800 bg-gray-50 hover:bg-gray-100">
                         <TableHead className="hidden py-3 text-center sm:table-cell">#</TableHead>
                         <TableHead 
                           className="cursor-pointer py-3"
@@ -303,7 +303,7 @@ const AgentPage: React.FC = () => {
                     <TableBody>
                       {isLoading
                         ? Array.from({ length: 6 }).map((_, index) => (
-                            <TableRow key={index} className="border-b border-gray-100">
+                            <TableRow key={index} className="border-b border-gray-100 dark:bg-gray-900 dark:border-gray-700">
                               <TableCell className="hidden sm:table-cell">
                                 <Skeleton className="h-4 w-6" />
                               </TableCell>
@@ -339,7 +339,7 @@ const AgentPage: React.FC = () => {
                             displayedAgents.map((agent, index) => (
                               <TableRow
                                 key={agent.id}
-                                className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                                className="border-b border-gray-100 dark:hover:bg-gray-800 dark:border-gray-700 transition-colors hover:bg-gray-50"
                               >
                                 <TableCell className="hidden text-center font-medium sm:table-cell">{startIndex + index + 1}</TableCell>
                                 <TableCell>

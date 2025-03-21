@@ -88,7 +88,6 @@ const categories = [
 ];
 
 export function EditCourse({ editOpen, setEditOpen }) {
-
   const dispatch = useDispatch();
   const course = useSelector((state) => state.course);
   const [_UPDATECOURSE, { isLoading }] = useUpdateCourseMutation();
@@ -159,19 +158,26 @@ export function EditCourse({ editOpen, setEditOpen }) {
         id: course._id,
         ...formattedData,
       }).unwrap();
-    
+
       dispatch(resetForm()); // Reset state after successful update
       setEditOpen(false);
-    
+
       if (response?.success) {
         toast.success("Course updated successfully");
       } else {
         toast.error(response?.error || "Failed to update course.");
       }
     } catch (error) {
-      toast.error(error?.data?.message || error?.message || "Failed to update course.");
+      // Extract error message from response
+      const errorMessage =
+        error?.data?.error || // Check if error message exists in response
+        error?.error || // Check for error object
+        error?.data?.message || // Check if message key is present
+        error?.message || // Check for general message
+        "Failed to update course."; // Default message
+
+      toast.error(errorMessage); // Show the exact error message
     }
-    
   };
 
   const handleAddItem = (field, action) => (value, e) => {

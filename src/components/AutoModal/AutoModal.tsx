@@ -20,11 +20,11 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPrimitive.Portal>
-    <DialogPrimitive.Overlay className="fixed inset-0 z-[9999] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+    <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-[10000] grid w-[90%] max-w-[90vw] max-h-[90vh] max-h-[calc(var(--app-height,100vh)*0.9)] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-4 sm:p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-h-[90vh] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-4 sm:p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
         className
       )}
       {...props}
@@ -41,41 +41,23 @@ export default function AutoModal() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // Check if we're in a WebView (approximate detection)
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isWebView = 
-      userAgent.includes('wv') || 
-      userAgent.includes('android') && userAgent.includes('version/') ||
-      userAgent.includes('mobile') && !userAgent.includes('safari');
-    
-    // For WebView, always show modal without checking session storage
-    if (isWebView) {
-      const timer = setTimeout(() => setOpen(true), 1500);
-      return () => clearTimeout(timer);
-    }
-    
-    // Normal browser behavior
     const sessionVisit = sessionStorage.getItem('hasVisited');
     if (!sessionVisit) {
-      const timer = setTimeout(() => setOpen(true), 1500);
+      setTimeout(() => setOpen(true), 500); // Delay for smooth appearance
       sessionStorage.setItem('hasVisited', 'true');
-      return () => clearTimeout(timer);
     }
   }, []);
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      // Only allow explicit close actions to change the state
-      if (!isOpen) setOpen(false);
-    }}>
-      <DialogContent className="w-[95%] sm:w-full max-w-4xl p-0 overflow-hidden rounded-xl shadow-xl bg-white border-0 max-h-[90vh] md:max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
+    <Dialog open={open} onOpenChange={(isOpen) => isOpen && setOpen(true)}>
+      <DialogContent className="w-[95%] sm:w-full max-w-4xl p-0 overflow-hidden rounded-xl shadow-xl bg-white border-0" onClick={(e) => e.stopPropagation()}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="relative w-full h-full"
+          className="relative"
         >
-          <div className="flex flex-col md:flex-row h-full">
+          <div className="flex flex-col md:flex-row">
             {/* Left column - smaller */}
             <div className="md:w-1/3 bg-gradient-to-b from-blue-600 via-blue-700 to-blue-800 p-4 sm:p-6 text-white">
               <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -117,7 +99,7 @@ export default function AutoModal() {
             </div>
             
             {/* Right column - larger */}
-            <div className="md:w-2/3 p-4 sm:p-6 pb-6 sm:pb-8 overflow-y-auto max-h-[50vh] sm:max-h-[60vh] md:max-h-[85vh] relative">
+            <div className="md:w-2/3 p-4 sm:p-6 pb-6 sm:pb-8 overflow-y-auto max-h-[65vh] sm:max-h-[75vh] md:max-h-[85vh] relative">
               <button 
                 onClick={() => setOpen(false)}
                 className="absolute right-3 sm:right-4 top-3 sm:top-4 bg-blue-100/50 hover:bg-blue-100 rounded-full p-1.5 text-blue-700 transition-colors hidden md:flex"
