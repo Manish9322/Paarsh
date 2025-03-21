@@ -24,19 +24,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 
 // Service Worker Registration
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/service-worker.js")
-        .then(() => console.log("Service Worker Registered"))
-        .catch((error) => console.log("Service Worker Registration Failed", error));
-    }
-    
-    // Add WebView compatibility fix for modals
-    if (typeof window !== 'undefined') {
-      // For Android WebView
-      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
-      window.addEventListener('resize', () => {
-        document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+useEffect(() => {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then((registration) => {
+        console.log("Service Worker registered with scope:", registration.scope);
+      })
+      .catch((error) => {
+        console.error("Service Worker registration failed:", error);
       });
       
       // Add global flag for WebView detection
@@ -93,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html suppressHydrationWarning lang="en">
        <head>
-        <link rel="manifest" href="../../public/manifest.json" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       
       <body className={`bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
