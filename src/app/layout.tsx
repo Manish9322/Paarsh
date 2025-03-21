@@ -30,6 +30,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         .then(() => console.log("Service Worker Registered"))
         .catch((error) => console.log("Service Worker Registration Failed", error));
     }
+    
+    // Add WebView compatibility fix for modals
+    if (typeof window !== 'undefined') {
+      // For Android WebView
+      document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+      window.addEventListener('resize', () => {
+        document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+      });
+    }
   }, []);
 
 

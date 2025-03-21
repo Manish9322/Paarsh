@@ -20,11 +20,11 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPrimitive.Portal>
-    <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+    <DialogPrimitive.Overlay className="fixed inset-0 z-[9999] bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-[95vw] max-h-[95vh] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-4 sm:p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        "fixed left-[50%] top-[50%] z-[10000] grid w-[90%] max-w-[90vw] max-h-[90vh] max-h-[calc(var(--app-height,100vh)*0.9)] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-4 sm:p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
         className
       )}
       {...props}
@@ -41,16 +41,33 @@ export default function AutoModal() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    // Check if we're in a WebView (approximate detection)
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isWebView = 
+      userAgent.includes('wv') || 
+      userAgent.includes('android') && userAgent.includes('version/') ||
+      userAgent.includes('mobile') && !userAgent.includes('safari');
+    
+    // For WebView, always show modal without checking session storage
+    if (isWebView) {
+      const timer = setTimeout(() => setOpen(true), 1500);
+      return () => clearTimeout(timer);
+    }
+    
+    // Normal browser behavior
     const sessionVisit = sessionStorage.getItem('hasVisited');
     if (!sessionVisit) {
-      const timer = setTimeout(() => setOpen(true), 1000); // Increased delay for better loading
+      const timer = setTimeout(() => setOpen(true), 1500);
       sessionStorage.setItem('hasVisited', 'true');
       return () => clearTimeout(timer);
     }
   }, []);
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => isOpen && setOpen(true)}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      // Only allow explicit close actions to change the state
+      if (!isOpen) setOpen(false);
+    }}>
       <DialogContent className="w-[95%] sm:w-full max-w-4xl p-0 overflow-hidden rounded-xl shadow-xl bg-white border-0 max-h-[90vh] md:max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
