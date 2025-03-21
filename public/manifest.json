@@ -1,6 +1,6 @@
 {
-  "name": "Parsh Edu",
-  "short_name": "Parsh",
+  "name": "Paarsh Edu",
+  "short_name": "Paarsh",
   
   "start_url": "/",
   "scope": "/",
@@ -20,6 +20,7 @@
   ],
   "screenshots": [
     {
+      
       "src": "/images/1280x720.png",
       "sizes": "1280x720",
       "type": "image/png",

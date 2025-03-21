@@ -10,7 +10,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { Inter } from "next/font/google";
 import "node_modules/react-modal-video/css/modal-video.css";
 import "../styles/index.css";
-// import AutoModal from "@/components/AutoModal/AutoModal";s
+import AutoModal from "@/components/AutoModal/AutoModal";
 import { store } from "../lib/store";
 import { Providers } from "./providers";
 import PurchaseModal from "@/components/PurchaseModal";
@@ -24,11 +24,64 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 
 // Service Worker Registration
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/service-worker.js")
-        .then(() => console.log("Service Worker Registered"))
-        .catch((error) => console.log("Service Worker Registration Failed", error));
+useEffect(() => {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then((registration) => {
+        console.log("Service Worker registered with scope:", registration.scope);
+      })
+      .catch((error) => {
+        console.error("Service Worker registration failed:", error);
+      });
+      
+      // Add global flag for WebView detection
+      const userAgent = navigator.userAgent.toLowerCase();
+      // @ts-ignore - Add a global flag for WebView detection
+      window.isWebViewApp = 
+        userAgent.includes('wv') || 
+        userAgent.includes('android') ||
+        (userAgent.includes('mobile') && !userAgent.includes('safari'));
+      
+      // Force render modal in WebView
+      if (
+        userAgent.includes('wv') || 
+        userAgent.includes('android') ||
+        (userAgent.includes('mobile') && !userAgent.includes('safari'))
+      ) {
+        // Create a global method to force open modals
+        // @ts-ignore - Creating global method
+        window.forceOpenModals = true;
+        
+        // Inject a small script to help with WebView rendering
+        const script = document.createElement('script');
+        script.innerHTML = `
+          // Tell WebView we're fully loaded
+          if (window.AndroidInterface && window.AndroidInterface.onPageLoaded) {
+            window.AndroidInterface.onPageLoaded();
+          }
+          // Mark document as ready for WebView
+          document.documentElement.setAttribute('data-webview-ready', 'true');
+        `;
+        document.head.appendChild(script);
+        
+        // Add WebView-specific CSS
+        const style = document.createElement('style');
+        style.innerHTML = `
+          /* WebView Modal Fix */
+          .webview-modal {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            z-index: 99999 !important;
+          }
+          
+          [data-webview-ready="true"] .webview-modal-anchor {
+            display: block !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }
     }
   }, []);
 
@@ -36,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html suppressHydrationWarning lang="en">
        <head>
-        <link rel="manifest" href="../../public/manifest.json" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       
       <body className={`bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
@@ -93,7 +146,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       {children}
       {!isAdminPage && !isAuthPage && !isDashboardPage && <Footer />}
       <ScrollToTop />
-      {/* <AutoModal /> */}
+      <AutoModal />
       <Toaster richColors />
       <PurchaseModal />
     </>
