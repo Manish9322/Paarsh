@@ -34,74 +34,8 @@ useEffect(() => {
       .catch((error) => {
         console.error("Service Worker registration failed:", error);
       });
-      
-      // Add global flag for WebView detection
-      const userAgent = navigator.userAgent.toLowerCase();
-      // @ts-ignore - Add a global flag for WebView detection
-      window.isWebViewApp = 
-        userAgent.includes('wv') || 
-        userAgent.includes('android') ||
-        (userAgent.includes('mobile') && !userAgent.includes('safari'));
-      
-      // Force render modal in WebView
-      if (
-        userAgent.includes('wv') || 
-        userAgent.includes('android') ||
-        (userAgent.includes('mobile') && !userAgent.includes('safari'))
-      ) {
-        // Create a global method to force open modals
-        // @ts-ignore - Creating global method
-        window.forceOpenModals = true;
-        
-        // Inject a small script to help with WebView rendering
-        const script = document.createElement('script');
-        script.innerHTML = `
-          // Tell WebView we're fully loaded
-          if (window.AndroidInterface && window.AndroidInterface.onPageLoaded) {
-            window.AndroidInterface.onPageLoaded();
-          }
-          // Mark document as ready for WebView
-          document.documentElement.setAttribute('data-webview-ready', 'true');
-        `;
-        document.head.appendChild(script);
-        
-        // Add WebView-specific CSS
-        const style = document.createElement('style');
-        style.innerHTML = `
-          /* WebView Modal Fix */
-          .webview-modal {
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-            z-index: 99999 !important;
-          }
-          
-          [data-webview-ready="true"] .webview-modal-anchor {
-            display: block !important;
-          }
-          
-          /* WebView Button Fixes */
-          button, 
-          .button,
-          [role="button"] {
-            cursor: pointer !important;
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1) !important;
-            touch-action: manipulation !important;
-          }
-          
-          /* Increase hit area for buttons in WebView */
-          [aria-label="Close"] {
-            min-width: 44px !important;
-            min-height: 44px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-          }
-        `;
-        document.head.appendChild(style);
-      }
-    }
-  }, []);
+  }
+}, []);
 
 
   return (
