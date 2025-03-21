@@ -10,7 +10,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { Inter } from "next/font/google";
 import "node_modules/react-modal-video/css/modal-video.css";
 import "../styles/index.css";
-import AutoModal from "@/components/AutoModal/AutoModal";
+// import AutoModal from "@/components/AutoModal/AutoModal";s
 import { store } from "../lib/store";
 import { Providers } from "./providers";
 import PurchaseModal from "@/components/PurchaseModal";
@@ -93,7 +93,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       {children}
       {!isAdminPage && !isAuthPage && !isDashboardPage && <Footer />}
       <ScrollToTop />
-      <AutoModal />
+      {/* <AutoModal /> */}
       <Toaster richColors />
       <PurchaseModal />
     </>
