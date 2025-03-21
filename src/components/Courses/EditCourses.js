@@ -42,6 +42,7 @@ import {
   addTag,
   removeTag,
   setFile,
+  resetForm,
 } from "../../lib/slices/courseSlice";
 import { FaMinus } from "react-icons/fa";
 import {
@@ -52,13 +53,14 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useUpdateCourseMutation } from "../../services/api";
+import { selectRootState } from "@/lib/store";
 
 const formSchema = z.object({
-  courseName: z.string().min(1, "Course name is required"),
-  price: z.string().min(1, "Price is required"),
-  duration: z.string().min(1, "Duration is required"),
-  level: z.string().min(1, "Level is required"),
-  languages: z.string().min(1, "Languages are required"),
+  courseName: z.string().optional(),
+  price: z.string().optional(),
+  duration: z.string().optional(),
+  level: z.string().optional(),
+  languages: z.string().optional(),
   thumbnail: z.string().optional(),
   syllabus: z.string().optional(),
   summaryText: z.string().optional(),
@@ -66,7 +68,7 @@ const formSchema = z.object({
   overviewTagline: z.string().optional(),
   finalText: z.string().optional(),
   tagline_in_the_box: z.string().optional(),
-  tagline: z.string().min(1, "Tagline is required"),
+  tagline: z.string().optional(),
   videoLink: z.string().url("Invalid video link").optional(),
   courseIncludes: z.array(z.string()).optional(),
   syllabusOverview: z.array(z.string()).optional(),
@@ -85,14 +87,13 @@ const categories = [
   { name: "Business", subcategories: ["Marketing", "Finance"] },
 ];
 
-export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
-  const [editorContent, setEditorContent] = useState("");
+export function EditCourse({ editOpen, setEditOpen }) {
+
   const dispatch = useDispatch();
   const course = useSelector((state) => state.course);
   const [_UPDATECOURSE, { isLoading }] = useUpdateCourseMutation();
   const fileInputRef = React.useRef(null);
   const {
-    register,
     handleSubmit,
     formState: { errors },
     setValue,
@@ -100,15 +101,13 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
     resolver: zodResolver(formSchema),
   });
 
+  const editorContent = useSelector((state) => state.course.editorContent);
+
   const { data: categoriesData } = useFetchCategoriesQuery();
   const { data: subCategoriesData } = useFetchSubCategoriesQuery();
 
-  console.log("subCategoriesData", subCategoriesData?.data);
-
   const categories = categoriesData?.data || [];
   const subCategories = subCategoriesData?.data || [];
-
-  console.log("categoies", categories);
 
   const handleChange = (field, value) => {
     dispatch(updateField({ field, value }));
@@ -117,21 +116,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
   const handleSelectChange = (name, value) => {
     dispatch(updateField({ field: name, value }));
   };
-
-  useEffect(() => {
-    if (selectedCourse) {
-      console.log(
-        "Selected Course Editor Content:",
-        selectedCourse?.editorContent,
-      );
-      setEditorContent(selectedCourse.editorContent || "");
-      console.log("Initialized Editor Content:", editorContent);
-
-      Object.keys(selectedCourse).forEach((key) => {
-        dispatch(updateField({ field: key, value: selectedCourse[key] }));
-      });
-    }
-  }, [selectedCourse, dispatch]);
 
   const handleFileChange = (e, field) => {
     const file = e.target.files[0];
@@ -171,15 +155,23 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
     };
 
     try {
-      await _UPDATECOURSE({
-        id: selectedCourse._id,
+      const response = await _UPDATECOURSE({
+        id: course._id,
         ...formattedData,
       }).unwrap();
+    
+      dispatch(resetForm()); // Reset state after successful update
       setEditOpen(false);
-      toast.success("Course Updated successfully");
+    
+      if (response?.success) {
+        toast.success("Course updated successfully");
+      } else {
+        toast.error(response?.error || "Failed to update course.");
+      }
     } catch (error) {
-      toast.error(error?.data?.message || "Failed to Update course.");
+      toast.error(error?.data?.message || error?.message || "Failed to update course.");
     }
+    
   };
 
   const handleAddItem = (field, action) => (value, e) => {
@@ -220,6 +212,7 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
       removeAction: removeTag,
     },
   ];
+
   return (
     <Dialog open={editOpen} onOpenChange={setEditOpen}>
       <DialogContent className="max-h-[75vh] overflow-y-auto p-12 sm:max-w-[950px]">
@@ -291,9 +284,8 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 id="courseName"
                 name="courseName"
                 className="mt-2 w-full"
-                {...register("courseName")}
                 onChange={(e) => handleChange("courseName", e.target.value)}
-                value={course.courseName}
+                defaultValue={course.courseName}
               />
               {errors.courseName && (
                 <p className="text-red-500">{errors.courseName.message}</p>
@@ -307,7 +299,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 name="tagline"
                 className="mt-2 w-full"
                 type="text"
-                {...register("tagline")}
                 onChange={(e) => handleChange("tagline", e.target.value)}
                 value={course.tagline}
               />
@@ -347,7 +338,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 name="duration"
                 className="mt-2 w-full"
                 type="text"
-                {...register("duration")}
                 onChange={(e) => handleChange("duration", e.target.value)}
                 value={course.duration}
               />
@@ -420,7 +410,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 id="instructor"
                 name="instructor"
                 className="mt-2 w-full"
-                {...register("instructor")}
                 onChange={(e) => handleChange("instructor", e.target.value)}
                 value={course.instructor}
               />
@@ -438,7 +427,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 name="languages"
                 className="mt-2 w-full"
                 type="text"
-                {...register("languages")}
                 onChange={(e) => handleChange("languages", e.target.value)}
                 value={course.languages}
               />
@@ -453,7 +441,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 name="price"
                 className="mt-2 w-full"
                 type="text"
-                {...register("price")}
                 onChange={(e) => handleChange("price", e.target.value)}
                 value={course.price}
               />
@@ -471,7 +458,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 name="summaryText"
                 className="mt-2 w-full"
                 type="text"
-                {...register("summaryText")}
                 onChange={(e) => handleChange("summaryText", e.target.value)}
                 value={course.summaryText}
               />
@@ -527,7 +513,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 name="taglineIncludes"
                 className="mt-2 w-full"
                 type="text"
-                {...register("taglineIncludes")}
                 onChange={(e) =>
                   handleChange("taglineIncludes", e.target.value)
                 }
@@ -545,7 +530,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 name="overviewTagline"
                 className="mt-2 w-full"
                 type="text"
-                {...register("overviewTagline")}
                 onChange={(e) =>
                   handleChange("overviewTagline", e.target.value)
                 }
@@ -565,7 +549,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 name="tagline_in_the_box"
                 className="mt-2 w-full"
                 type="text"
-                {...register("tagline_in_the_box")}
                 onChange={(e) =>
                   handleChange("tagline_in_the_box", e.target.value)
                 }
@@ -584,7 +567,6 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
                 name="finalText"
                 className="mt-2 w-full"
                 type="finalText"
-                {...register("finalText")}
                 onChange={(e) => handleChange("finalText", e.target.value)}
                 value={course.finalText}
               />
@@ -615,7 +597,7 @@ export function EditCourse({ editOpen, setEditOpen, selectedCourse }) {
             </div>
           </div>
 
-          <TextEditor onChange={setEditorContent} placeholder={undefined} />
+          <TextEditor placeholder={undefined} />
 
           <div className="grid grid-cols-2 gap-4">
             {cardConfig.map(

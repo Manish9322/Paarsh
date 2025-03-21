@@ -33,6 +33,9 @@ const courseSlice = createSlice({
   name: "course",
   initialState,
   reducers: {
+    setSelectedCourse: (state, action) => {
+      Object.assign(state, action.payload);
+    },
     updateField: (state, action) => {
       state[action.payload.field] = action.payload.value;
     },
@@ -118,6 +121,7 @@ export const {
   setFile,
   resetForm,
   updateInputValue,
+  setSelectedCourse,
 } = courseSlice.actions;
 
 export default courseSlice.reducer;
