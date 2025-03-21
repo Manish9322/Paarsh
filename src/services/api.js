@@ -18,6 +18,7 @@ export const paarshEduApi = createApi({
   }),
 
   tagTypes: [
+    "User",
     "Course",
     "Agent",
     "Category",
@@ -34,6 +35,7 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: credentials,
       }),
+      invalidatesTags: ["User"],
     }),
 
     //-------------------------------For SignUp API-----------------------
@@ -43,6 +45,7 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: userData,
       }),
+      invalidatesTags: ["User"],
     }),
 
     // ----------------------------------------------------Course Apis------------------------------------
@@ -135,6 +138,7 @@ export const paarshEduApi = createApi({
 
     fetchUser: builder.query({
       query: () => "/user",
+      providesTags: ["User"],
     }),
 
     //--------------------------------------------------------------Categories Apis------------------------------------------------
@@ -235,7 +239,7 @@ export const paarshEduApi = createApi({
 
     fetchUserCourse: builder.query({
       query: () => "/user/courses",
-      providesTags: [""],
+      providesTags: ["Course"],
     }),
   }),
 });
