@@ -176,7 +176,7 @@ const UserPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-gray-50  dark:bg-gray-900 overflow-hidden">
       {/* Mobile Header with Menu Button */}
       <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
         <button 
@@ -222,7 +222,7 @@ const UserPage: React.FC = () => {
         {/* Main content area */}
         <main className="flex-1 overflow-y-auto  pt-16 md:ml-64">
           <div className="container mx-auto px-4 py-6">
-            <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
+            <Card className="mb-6 overflow-hidden border-none  dark:bg-gray-800  dark:text-white bg-white shadow-md">
               <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-800 p-4 pb-4 pt-6 sm:p-6">
                 <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                   <CardTitle className="text-xl font-bold text-white sm:text-2xl">
@@ -232,7 +232,7 @@ const UserPage: React.FC = () => {
                     <Input
                       type="text"
                       placeholder="Search users..."
-                      className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
+                      className="h-10 w-full rounded-lg border border-gray-300 dark:text-white bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -241,9 +241,9 @@ const UserPage: React.FC = () => {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <Table className="w-full text-black">
+                  <Table className="w-full dark:text-white text-black">
                     <TableHeader>
-                      <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+                      <TableRow className="border-b  dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800 border-gray-200 bg-gray-50 hover:bg-gray-100">
                         <TableHead className="hidden py-3 text-center sm:table-cell">#</TableHead>
                         <TableHead 
                           className="cursor-pointer py-3"
@@ -290,7 +290,7 @@ const UserPage: React.FC = () => {
                     <TableBody>
                       {isLoading
                         ? Array.from({ length: 7 }).map((_, index) => (
-                            <TableRow key={index} className="border-b border-gray-100">
+                            <TableRow key={index} className="border-b dark:border-gray-700 dark:hover:bg-gray-800 border-gray-100">
                               <TableCell className="hidden sm:table-cell">
                                 <Skeleton className="h-4 w-6" />
                               </TableCell>
@@ -320,7 +320,7 @@ const UserPage: React.FC = () => {
                             displayedUsers.map((user, index) => (
                               <TableRow
                                 key={user.id}
-                                className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                                className="border-b  dark:border-gray-700 dark:hover:bg-gray-800 border-gray-100 transition-colors hover:bg-gray-50"
                               >
                                 <TableCell className="hidden text-center font-medium sm:table-cell">{startIndex + index + 1}</TableCell>
                                 <TableCell>
@@ -372,7 +372,7 @@ const UserPage: React.FC = () => {
             {/* View User Dialog */}
             <Dialog open={viewOpen} onOpenChange={setViewOpen}>
               <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded-lg bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
-                <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
+                <DialogHeader className="sticky top-0 z-10 border-b  bg-white px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
                   <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">User Details</DialogTitle>
                 </DialogHeader>
                 {selectedUser ? (
@@ -436,21 +436,21 @@ const UserPage: React.FC = () => {
             </Dialog>
 
             {/* Enhanced Pagination Controls */}
-            <div className="mt-6 rounded-lg bg-white p-4 shadow-md">
+            <div className="mt-6 rounded-lg bg-white  dark:bg-gray-800 dark:text-white p-4 shadow-md">
               <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-                <div className="text-sm text-gray-500">
-                  Showing <span className="font-medium text-gray-700">{startIndex + 1}</span> to{" "}
-                  <span className="font-medium text-gray-700">
+                <div className="text-sm text-gray-500  dark:text-gray-400">
+                  Showing <span className="font-medium text-gray-700  dark:text-gray-300">{startIndex + 1}</span> to{" "}
+                  <span className="font-medium text-gray-700  dark:text-gray-300">
                     {Math.min(startIndex + agentsPerPage, sortedUsers.length)}
                   </span>{" "}
-                  of <span className="font-medium text-gray-700">{sortedUsers.length}</span> users
+                  of <span className="font-medium text-gray-700  dark:text-gray-300">{sortedUsers.length}</span> users
                 </div>
                 
                 <div className="flex items-center space-x-1">
                   <Button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="h-8 w-8 rounded-md bg-teal-50 p-0 text-teal-600 transition-colors hover:bg-teal-100 disabled:bg-gray-50 disabled:text-gray-400"
+                    className="h-8 w-8 rounded-md bg-teal-50 p-0 text-teal-600 transition-colors hover:bg-teal-100 disabled:bg-gray-50 disabled:text-gray-400  dark:bg-blue-900/20  dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                     aria-label="Previous page"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -467,8 +467,8 @@ const UserPage: React.FC = () => {
                           onClick={() => setCurrentPage(Number(page))}
                           className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
                             currentPage === page
-                              ? "bg-teal-600 text-white hover:bg-teal-700"
-                              : "bg-teal-50 text-teal-600 hover:bg-teal-100"
+                              ? "bg-teal-600 text-white hover:bg-teal-700  dark:bg-blue-700 dark:hover:bg-blue-800"
+                              : "bg-teal-50 text-teal-600 hover:bg-teal-100  dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
                           }`}
                           aria-label={`Page ${page}`}
                           aria-current={currentPage === page ? "page" : undefined}
@@ -480,14 +480,14 @@ const UserPage: React.FC = () => {
                   </div>
                   
                   {/* Mobile Page Indicator */}
-                  <span className="text-sm font-medium text-gray-700 sm:hidden">
+                  <span className="text-sm font-medium text-gray-700  dark:text-gray-300 sm:hidden">
                     Page {currentPage} of {totalPages || 1}
                   </span>
                   
                   <Button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages || 1))}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="h-8 w-8 rounded-md bg-teal-50 p-0 text-teal-600 transition-colors hover:bg-teal-100 disabled:bg-gray-50 disabled:text-gray-400"
+                    className="h-8 w-8 rounded-md bg-teal-50 p-0 text-teal-600 transition-colors hover:bg-teal-100 disabled:bg-gray-50 disabled:text-gray-400  dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                     aria-label="Next page"
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -496,7 +496,7 @@ const UserPage: React.FC = () => {
                 
                 {/* Jump to page (desktop only) */}
                 <div className="hidden items-center space-x-2 lg:flex">
-                  <span className="text-sm text-gray-500">Go to page:</span>
+                  <span className="text-sm text-gray-500  dark:text-gray-400">Go to page:</span>
                   <Input
                     type="number"
                     min={1}
@@ -508,7 +508,7 @@ const UserPage: React.FC = () => {
                         setCurrentPage(value);
                       }
                     }}
-                    className="h-8 w-16 rounded-md border-gray-300 text-center text-sm"
+                    className="h-8 w-16 rounded-md border-gray-300 text-center text-sm  dark:border-gray-700 dark:bg-gray-800"
                     aria-label="Go to page"
                   />
                 </div>
