@@ -31,23 +31,42 @@ import AddCourseModal from "@/components/Courses/AddCourseVideo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedCourse } from "@/lib/slices/courseSlice";
+import { selectRootState } from "@/lib/store";
 
 // Define Course type
 interface Course {
-  id: number;
-  _id: string;
-  availability: string;
+  id: number; // Optional since it's not present in the initial state
+  _id: string; // Optional because it's not in the initial state
+  courseName: string;
+  price: string | number; // Redux state has price as a string, but it should be number
+  duration: string;
+  level: string;
+  videoLink: string | null; // Can be null
+  languages: string | string[]; // Redux has it as a string, but ideally an array
+  thumbnail: string | null; // Can be null
+  summaryText: string;
+  tagline_in_the_box: string;
+  taglineIncludes: string;
+  overviewTagline: string;
+  finalText: string;
+  editorContent: string;
+  courseIncludes: string[]; // Assuming it's an array of strings
+  syllabus: string | null; // Can be null
+  syllabusOverview: string[]; // Assuming it's an array of strings
+  thoughts: string[]; // Assuming it's an array of strings
+  tags: string[]; // Assuming it's an array of strings
   category: string;
   subcategory: string;
-  courseName: string;
+  availability: string | boolean; // Redux has it as a string, but it seems like a boolean
+  certificate: boolean;
   instructor: string;
-  duration: string;
-  price: number;
-  level: string;
-  feturedCourse: boolean;
-  languages: string[];
-  createdAt: string;
+  featuredCourse: boolean;
+  inputValues: Record<string, string>; // Object storing input values dynamically
+  createdAt?: string; // Optional because it's not in initial state
 }
+
 
 interface CourseVideo {
   _id: string;
@@ -60,7 +79,7 @@ interface CourseVideo {
   createdAt: string;
 }
 const CoursePage: React.FC = () => {
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+ 
   const [coursess, setCourses] = useState<CourseVideo[]>([]);
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -69,7 +88,11 @@ const CoursePage: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
   const coursesPerPage = 10;
-
+  const dispatch = useDispatch();
+  const selectedCourse = useSelector(
+    (state) => selectRootState(state).course.selectedCourse,
+  );
+  
   // Fetch courses data
   const {
     data: courseData,
@@ -164,6 +187,14 @@ const CoursePage: React.FC = () => {
           "Failed to delete the course. Please try again.",
       );
     }
+  };
+
+  const handleEditCourse = (course: Course) => {
+    dispatch(setSelectedCourse(course));
+  };
+
+  const handleViewCourse = (course: Course) => {
+    dispatch(setSelectedCourse(course));
   };
 
   const handleAddCourse = (newCourse: CourseVideo) => {
@@ -331,7 +362,7 @@ const CoursePage: React.FC = () => {
                                     variant="ghost"
                                     className="h-8 w-8 rounded-full text-green-600 hover:bg-green-100 hover:text-green-700 dark:text-green-500 dark:hover:bg-green-900/30 dark:hover:text-green-400"
                                     onClick={() => {
-                                      setSelectedCourse(course);
+                                      handleViewCourse(course);
                                       setViewOpen(true);
                                     }}
                                   >
@@ -342,7 +373,8 @@ const CoursePage: React.FC = () => {
                                     variant="ghost"
                                     className="h-8 w-8 rounded-full text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:text-blue-500 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
                                     onClick={() => {
-                                      setSelectedCourse(course);
+                                      handleEditCourse(course);
+                                     
                                       setEditOpen(true);
                                     }}
                                   >
@@ -553,7 +585,6 @@ const CoursePage: React.FC = () => {
       <EditCourse
         editOpen={editOpen}
         setEditOpen={setEditOpen}
-        selectedCourse={selectedCourse}
       />
 
       {/* Add Course Modal */}
