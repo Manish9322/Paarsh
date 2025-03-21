@@ -4,7 +4,6 @@ import generateTokens from "../../../../../utils/generateTokens";
 import AdminModel from "../../../../../models/Admin.model";
 import validator from "validator";
 import _db from "../../../../../utils/db";
-import { cookies } from "next/headers";
 
 _db();
 
@@ -43,8 +42,6 @@ export async function POST(request) {
       );
     }
 
-    console.log("Admin ID :", admin._id);
-
     //  Generate tokens
     const { accessToken, refreshToken } = generateTokens(admin._id, true);
 
@@ -55,24 +52,6 @@ export async function POST(request) {
       message: "Login successful",
       redirect: "/admin",
       admin_access_token: accessToken,
-    });
-
-    const cookieStore = await cookies(); // ✅ Await cookies()
-
-    cookieStore.set("admin_access_token", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 86400,  
-      sameSite: "Strict",
-    });
-
-    cookieStore.set("admin_refresh_token", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 86400,
-      sameSite: "Strict",
     });
 
     return response;

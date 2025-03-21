@@ -9,9 +9,21 @@ export const paarshEduApi = createApi({
       const accessToken =
         localStorage.getItem("accessToken") ||
         sessionStorage.getItem("accessToken");
+
+      // Get admin access token
+      const adminAccessToken =
+        localStorage.getItem("admin_access_token") ||
+        sessionStorage.getItem("admin_access_token");
+
       if (accessToken) {
         headers.set("Authorization", `Bearer ${accessToken}`);
       }
+
+      // Set Admin token in headers separately
+      if (adminAccessToken) {
+        headers.set("Admin-Authorization", `Bearer ${adminAccessToken}`);
+      }
+
       return headers;
     },
     credentials: "include",
