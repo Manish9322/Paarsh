@@ -4,20 +4,18 @@ import { JWT_SECRET_USER, JWT_SECRET_ADMIN } from "../config/config";
 import UserModel from "../models/User.model";
 import AdminModel from "../models/Admin.model";
 import _db from "../utils/db";
-import { cookies } from "next/headers";
 
 _db();
 
 export function authMiddleware(handler, isAdmin = false) {
   return async (req) => {
     // Extract Authorization header
-    const cookieStore = await cookies();
 
     let token;
 
     if (isAdmin) {
-      // Admin token from cookies
-      token = cookieStore.get("admin_access_token")?.value;
+      // First, check for the Admin-Authorization header
+      token = req.headers.get("admin-authorization")?.replace("Bearer ", "");
     } else {
       // User token from Authorization header
       token = req.headers.get("authorization")?.replace("Bearer ", "");
