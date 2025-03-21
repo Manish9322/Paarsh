@@ -38,6 +38,54 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       window.addEventListener('resize', () => {
         document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
       });
+      
+      // Add global flag for WebView detection
+      const userAgent = navigator.userAgent.toLowerCase();
+      // @ts-ignore - Add a global flag for WebView detection
+      window.isWebViewApp = 
+        userAgent.includes('wv') || 
+        userAgent.includes('android') ||
+        (userAgent.includes('mobile') && !userAgent.includes('safari'));
+      
+      // Force render modal in WebView
+      if (
+        userAgent.includes('wv') || 
+        userAgent.includes('android') ||
+        (userAgent.includes('mobile') && !userAgent.includes('safari'))
+      ) {
+        // Create a global method to force open modals
+        // @ts-ignore - Creating global method
+        window.forceOpenModals = true;
+        
+        // Inject a small script to help with WebView rendering
+        const script = document.createElement('script');
+        script.innerHTML = `
+          // Tell WebView we're fully loaded
+          if (window.AndroidInterface && window.AndroidInterface.onPageLoaded) {
+            window.AndroidInterface.onPageLoaded();
+          }
+          // Mark document as ready for WebView
+          document.documentElement.setAttribute('data-webview-ready', 'true');
+        `;
+        document.head.appendChild(script);
+        
+        // Add WebView-specific CSS
+        const style = document.createElement('style');
+        style.innerHTML = `
+          /* WebView Modal Fix */
+          .webview-modal {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            z-index: 99999 !important;
+          }
+          
+          [data-webview-ready="true"] .webview-modal-anchor {
+            display: block !important;
+          }
+        `;
+        document.head.appendChild(style);
+      }
     }
   }, []);
 
