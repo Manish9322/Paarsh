@@ -20,7 +20,7 @@ const ContactPage = () => {
       <div className=" rounded-sm bg-white px-8 py-11 shadow-three dark:bg-gray-dark sm:p-[55px] lg:mb-5 lg:px-8 xl:p-[55px]">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="rounded-lg bg-white bg-opacity-50 p-6 shadow dark:bg-[#2C303B]">
-            <h2 className="mb-4 text-2xl font-semibold">Reach Out to Us</h2>
+            <h1 className="mb-4 text-2xl font-semibold">Reach Out to Us</h1>
             <p className="flex items-center gap-2  font-medium text-body-color mb-4">
               <svg
                 width="25"
@@ -43,7 +43,7 @@ const ContactPage = () => {
                 className="text-gray-500"
               >
                 <path
-                  d="M3 4H21C22.1 4 23 4.9 23 6V18C23 19.1 22.1 20 21 20H3C1.9 20 1 19.1 1 18V6C1 4.9 1.9 4 3 4Z"
+                  d="M3 4h11C22.1 4 23 4.9 23 6V18C23 19.1 22.1 20 21 20H3C1.9 20 1 19.1 1 18V6C1 4.9 1.9 4 3 4Z"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
@@ -74,7 +74,7 @@ const ContactPage = () => {
             </p>
           </div>
           <div className="rounded-lg bg-white bg-opacity-50 p-6 shadow dark:bg-[#2C303B]">
-            <h2 className="mb-4 text-2xl font-semibold">Branding & Collaboration & Services</h2>
+            <h1 className="mb-4 text-2xl font-semibold">Branding & Collaboration & Services</h1>
             <p className="flex items-center gap-2 font-medium text-body-color mb-4">
               <svg
                 width="25"
@@ -97,7 +97,7 @@ const ContactPage = () => {
                 className="text-gray-500"
               >
                 <path
-                  d="M3 4H21C22.1 4 23 4.9 23 6V18C23 19.1 22.1 20 21 20H3C1.9 20 1 19.1 1 18V6C1 4.9 1.9 4 3 4Z"
+                  d="M3 4h11C22.1 4 23 4.9 23 6V18C23 19.1 22.1 20 21 20H3C1.9 20 1 19.1 1 18V6C1 4.9 1.9 4 3 4Z"
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
@@ -134,19 +134,19 @@ const ContactPage = () => {
       <div className="rounded-sm bg-white px-8 py-11 shadow-three dark:bg-gray-dark sm:p-[55px] lg:mb-5 lg:px-8 xl:p-[55px]">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="rounded-lg bg-white bg-opacity-50 p-6 shadow dark:bg-[#2C303B]">
-            <h2 className="text-2xl font-semibold">Nashik Office</h2>
+            <h1 className="text-2xl font-semibold">Nashik Office</h1>
             <h3 className="text-sm mb-5 font-medium text-body-color">Main branch</h3>
             <p className="mb-3 text-body-color">Office No. 1, Bhakti Apartment, near Hotel Rasoi, Suchita Nagar, Mumbai Naka, Nashik, Maharashtra, India PIN - 422009</p>
             <p className="mb-3 text-body-color">Timing: 10:00 AM - 6:30 PM</p>
           </div>
           <div className="rounded-lg bg-white bg-opacity-50 p-6 shadow dark:bg-[#2C303B]">
-            <h2 className="text-2xl font-semibold">Jalgaon Office</h2>
+            <h1 className="text-2xl font-semibold">Jalgaon Office</h1>
             <h3 className="text-sm mb-5 font-medium text-body-color">Sub branch</h3>
             <p className="mb-3 text-body-color">Office No. 1, Shelke Complex, Near Harimandir Mankilla, Dharwad- Karnakata, India PIN - 580001</p>
             <p className="mb-3 text-body-color">Timing: 10:00 AM - 6:30 PM</p>
           </div>
           <div className="rounded-lg bg-white bg-opacity-50 p-6 shadow dark:bg-[#2C303B]">
-            <h2 className="text-2xl font-semibold">Surat Office</h2>
+            <h1 className="text-2xl font-semibold">Surat Office</h1>
             <h3 className="text-sm mb-5 font-medium text-body-color">Sub branch</h3>
             <p className="mb-3 text-body-color">Office No. 1, Shelke Complex, Near Harimandir Mankilla, Dharwad- Karnakata, India PIN - 580001</p>
             <p className="mb-3 text-body-color">Timing: 10:00 AM - 6:30 PM</p>

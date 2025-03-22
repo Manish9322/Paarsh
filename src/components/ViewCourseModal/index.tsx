@@ -91,7 +91,7 @@ export function PreviewCourse() {
                 </div>
               </div>
               <div className="Text">
-                <h2 className="text-xl font-bold py-2">Mastering JavaScript</h2>
+                <h1 className="text-xl font-bold py-2">Mastering JavaScript</h1>
                 <p>Unlock the power of JavaScript and build dynamic, interactive experiences with ease.</p>
 
                 <ul className="stats list-inside font-bold flex flex-wrap py-2">
@@ -109,7 +109,7 @@ export function PreviewCourse() {
 
           <div className="container">
             <div className="Text">
-              <h2 className="text-lg font-bold py-2">Course Description</h2>
+              <h1 className="text-lg font-bold py-2">Course Description</h1>
               <p className="pt-0 py-2">JavaScript plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more.</p>
               <ol className="list-decimal px-4">
                 <li className="pb-4">JavaScript is one of the most essential programming languages for web development, enabling developers to create dynamic and interactive websites. This course will take you from the fundamentals of JavaScript, such as variables, data types, and functions, to advanced topics like asynchronous programming, APIs, and modern ES6+ features.</li>
@@ -126,7 +126,7 @@ export function PreviewCourse() {
                 <div className="boxCardHeader flex items-center justify-between">
                   <div className="cardPart-1">
                     <CardHeader>
-                      <h2 className="text-lg font-bold py-2">{title}</h2>
+                      <h1 className="text-lg font-bold py-2">{title}</h1>
                     </CardHeader>
                   </div>
                   <div className="cardPart-2 ml-4 pr-6">

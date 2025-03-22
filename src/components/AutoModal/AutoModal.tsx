@@ -108,7 +108,7 @@ export default function AutoModal() {
                 <X size={16} />
               </button>
               
-              <h2 className="text-lg sm:text-xl font-bold text-blue-800 mb-3 sm:mb-4">Welcome to Paarsh Edu!</h2>
+              <h1 className="text-lg sm:text-xl font-bold text-blue-800 mb-3 sm:mb-4">Welcome to Paarsh Edu!</h1>
               
               <div className="space-y-4 sm:space-y-5">
                 <p className="text-sm sm:text-base text-gray-700">Your gateway to comprehensive tech education and professional development.</p>

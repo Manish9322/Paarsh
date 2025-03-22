@@ -12,7 +12,7 @@ export default function ReferEarn() {
 
   const { data: userData, isLoading } = useFetchUserQuery(undefined);
   const user = userData?.data;
-  const referralCode = user?.refferalCode || "PAARSH2023";
+  const referralCode = user?.refferalCode || "PAARSh1023";
   const referralLink = `https://www.paarshedu.com/signup?ref=${referralCode}`;
 
   // Simulate fetching referral stats
@@ -84,10 +84,10 @@ export default function ReferEarn() {
     <>
       <div className="flex flex-col items-center justify-between rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 md:flex-row">
         <div className="text-center md:w-1/2 md:text-left">
-          <h2 className="mb-4 flex items-center justify-center gap-2 text-2xl font-bold text-gray-800 dark:text-white md:justify-start md:text-4xl">
+          <h1 className="mb-4 flex items-center justify-center gap-2 text-2xl font-bold text-gray-800 dark:text-white md:justify-start md:text-4xl">
             <Gift className="text-blue-500" size={32} />
             Refer Friends, Earn Rewards!
-          </h2>
+          </h1>
           <p className="mb-4 text-gray-600 dark:text-gray-300 text-lg">
             Share the gift of learning and be rewarded! Invite your friends to PaarshEdu and both of you will receive exclusive benefits.
           </p>
@@ -128,9 +128,9 @@ export default function ReferEarn() {
       <div className="flex flex-col md:flex-row py-6 pt-0 gap-6">
         {/* How It Works Section */}
         <div className="w-full rounded-xl bg-white p-6 shadow-sm border border-gray-100 dark:border-gray-700 dark:bg-gray-800 md:w-1/2">
-          <h2 className="mb-4 text-2xl text-center font-bold text-gray-900 dark:text-white">
+          <h1 className="mb-4 text-2xl text-center font-bold text-gray-900 dark:text-white">
             How It Works
-          </h2>
+          </h1>
           <div className="space-y-6">
             {[
               { step: "1", text: "Share your unique referral code with friends", color: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300" },
@@ -152,9 +152,9 @@ export default function ReferEarn() {
 
         {/* Referral Code Section */}
         <div className="w-full rounded-xl bg-white p-6 shadow-sm border border-gray-100 dark:border-gray-700 dark:bg-gray-800 md:w-1/2">
-          <h2 className="mb-4 text-2xl text-center font-bold text-gray-900 dark:text-white">
+          <h1 className="mb-4 text-2xl text-center font-bold text-gray-900 dark:text-white">
             Your Referral Details
-          </h2>
+          </h1>
           
           {/* Referral Code Box */}
           <div className="mb-6">
@@ -218,9 +218,9 @@ export default function ReferEarn() {
 
       {/* Rewards Section */}
       <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl">
-        <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-8">
+        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-8">
           Rewards Youll Both Receive
-        </h2>
+        </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {rewards.map((reward, index) => (
             <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center text-center">

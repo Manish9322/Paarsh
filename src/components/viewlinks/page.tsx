@@ -309,9 +309,9 @@ function ViewLinks() {
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-6 mb-6">
             <Video className="w-16 h-16 text-blue-500 dark:text-blue-400" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2">
             No Meeting Links Found
-          </h2>
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
             {searchTerm || activeFilter !== "all"
               ? "Try adjusting your search criteria or filter selection."

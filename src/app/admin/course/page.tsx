@@ -242,7 +242,7 @@ const CoursePage: React.FC = () => {
             <div className="mb-6 flex flex-col items-start justify-between gap-4 rounded-lg bg-white p-5 shadow-md dark:bg-gray-800 dark:text-white sm:flex-row sm:items-center">
               <div className="flex items-center">
                 <BookOpen className="mr-3 h-6 w-6 text-blue-600 dark:text-blue-400" />
-                <h2 className="text-2xl font-bold text-gray-600 dark:text-gray-200">Courses</h2>
+                <h1 className="text-2xl font-bold text-gray-600 dark:text-gray-200">Courses</h1>
               </div>
               <AddNewCourse />
             </div>

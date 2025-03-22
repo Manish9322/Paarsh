@@ -2,8 +2,8 @@ import React from 'react';
 
 const SubscribeNewsletter: React.FC = () => {
     return (
-        <aside className="p-8 my-14 w-full  h-auto  flex justify-center flex-col bg-white text-center border-gray-200 shadow-md sm:p-6 xl:p-12 lg:p-8 dark:bg-gray-800 dark:border-gray-800" aria-label="Subscribe to the Flowbite newsletter">
-            <h3 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">Get more updates...</h3>
+        <aside className="p-5 my-10 w-full  h-auto  flex justify-center flex-col bg-white text-center border-gray-200 shadow-md sm:p-6 xl:p-12 lg:p-8 dark:bg-gray-800 dark:border-gray-800" aria-label="Subscribe to the Flowbite newsletter">
+            <h1 className="mb-2 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">Get more updates...</h1>
             <p className="xl:px-48 border-body-color border-opacity-10 pb-7 text-base leading-relaxed text-body-color dark:border-white dark:border-opacity-10 dark:text-white">
             Do you want to get notified when new courses and resources are added to Edu Learning? Sign up for our newsletter and you will be among the first to find out about new features, courses, updates, and tools.
             </p>
@@ -58,9 +58,9 @@ const SubscribeNewsletter: React.FC = () => {
                     </div>
                 </div>
             </form>
-            <div className="xl:px-48 border-body-color border-opacity-10 pb-8 text-base leading-relaxed text-body-color dark:border-white dark:border-opacity-10 dark:text-white">
+            {/* <div className="xl:px-48 border-body-color border-opacity-10 pb-8 text-base leading-relaxed text-body-color dark:border-white dark:border-opacity-10 dark:text-white">
                 By subscribing, you agree with Paarsh Edu Learnings <a rel="nofollow" href="https://convertkit.com/terms" className="text-blue-600 hover:underline dark:text-blue-500">Terms of Service</a> and <a rel="nofollow" className="text-blue-600 hover:underline dark:text-blue-500" href="https://convertkit.com/privacy">Privacy Policy</a>.
-            </div>
+            </div> */}
         </aside>
     );
 };

@@ -60,9 +60,9 @@ const PurchaseModal = () => {
             </div>
 
             {/* Heading */}
-            <h2 className="text-2xl font-bold text-center dark:text-white">
+            <h1 className="text-2xl font-bold text-center dark:text-white">
               Unlock Full Course 🚀
-            </h2>
+            </h1>
             <p className="mt-2 text-center text-gray-700 dark:text-gray-300">
               Get lifetime access to all lessons, projects, and mentorship.
             </p>

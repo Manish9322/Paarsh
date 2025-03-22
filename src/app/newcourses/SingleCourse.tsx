@@ -78,24 +78,24 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
                     {tagline}
                   </p>
                   <div className="flex flex-wrap">
-                    <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
+                    <div className="mr-2 mb-2 w-fit items-center flex text-black bg-gray-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <PiCertificateLight className="mr-1" />
                       <p className="text-xs py-1">{certificate ? "Certificate" : "No Certificate"}</p>
                     </div>
 
-                    <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
+                    <div className="mr-2 mb-2 w-fit items-center flex text-black bg-gray-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <TbClockHour7 className="mr-1" />
                       <p className="text-xs py-1">{duration}</p>
                     </div>
-                    <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
+                    <div className="mr-2 mb-2 w-fit items-center flex text-black bg-gray-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <LiaSignalSolid className="mr-1" />
                       <p className="text-xs py-1">{level}</p>
                     </div>
-                    <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
+                    <div className="mr-2 mb-2 w-fit items-center flex text-black bg-gray-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <HiOutlineUsers className="mr-1" />
                       <p className="text-xs py-1">{student ? student : "1"}</p>
                     </div>
-                    <div className="mr-2 mb-2 w-fit items-center flex text-blue-400 bg-blue-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
+                    <div className="mr-2 mb-2 w-fit items-center flex text-black bg-gray-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <IoLanguage className="mr-1" />
                       <p className="text-xs py-1">
                         {Array.isArray(languages)

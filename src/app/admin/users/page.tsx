@@ -200,7 +200,7 @@ const UserPage: React.FC = () => {
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
           <div className="flex h-16 items-center justify-between px-4 md:justify-end">
-            <h2 className="text-xl font-bold md:hidden">Dashboard</h2>
+            <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
           </div>
           
           {/* Sidebar Content - Scrollable */}

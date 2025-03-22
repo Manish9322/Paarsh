@@ -175,7 +175,7 @@ const SubcategoriesPage: React.FC = () => {
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
           <div className="flex h-16 items-center justify-between px-4 md:justify-end">
-            <h2 className="text-xl font-bold md:hidden">Dashboard</h2>
+            <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
             <button
               onClick={toggleTheme}
               className="rounded-full p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
