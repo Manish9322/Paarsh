@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isApproved: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const UserModel = mongoose.models.User || mongoose.model("User", userSchema);
