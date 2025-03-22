@@ -9,7 +9,7 @@ const Footer = () => {
         <div className="container">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4 md:w-1/2 lg:w-4/12 xl:w-5/12">
-              <div className="mb-12 max-w-[360px] lg:mb-10 ">
+              <div className="mb-12 max-w0-[360px] lg:mb-10 ">
                 <Link href="/" className="mb-4 inline-block">
                   <Image
                     src="/images/logo/PAARSHEDU_LOGO.png"

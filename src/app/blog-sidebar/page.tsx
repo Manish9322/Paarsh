@@ -723,7 +723,7 @@ const BlogSidebarPage = () => {
       <Purchase isOpen={isModalOpen} onClose={modalClose} course={course} />
 
       <SubscribeNewsletter />
-      <DownloadSyllabus />
+      <DownloadSyllabus courseName={course?.courseName || ''} />
     </SkeletonThemeProvider>
   );
 };
