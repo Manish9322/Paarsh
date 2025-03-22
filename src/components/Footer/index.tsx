@@ -144,7 +144,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/contact"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
                       Contact Us
                     </Link>
@@ -153,7 +153,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/blog"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
                       Blogs
                     </Link>
@@ -166,15 +166,31 @@ const Footer = () => {
             <div className="w-full px-4 sm:w-1/2 md:w-1/2 lg:w-2/12 xl:w-2/12">
               <div className="mb-12 lg:mb-10">
                 <h1 className="mb-5 text-xl font-bold text-black dark:text-white">
-                  Courses
+                  Useful Links
                 </h1>
                 <ul>
                   <li>
                     <Link
-                      href="/"
+                     href="/newcourses"
                       className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
-                      FullStack Java Development
+                    Courses
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/carrers"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                    >
+                     Careers
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href="/founders"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                    >
+                     Our Founders
                     </Link>
                   </li>
                   <li>
@@ -182,7 +198,7 @@ const Footer = () => {
                       href="/"
                       className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
-                      FullStack Python Devlopment
+                     Become Partners
                     </Link>
                   </li>
                   <li>
@@ -190,23 +206,7 @@ const Footer = () => {
                       href="/"
                       className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
-                      Mean Stack
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/"
-                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
-                    >
-                      API Development
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="/"
-                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
-                    >
-                      Android App Development
+                      
                     </Link>
                   </li>
                 </ul>
