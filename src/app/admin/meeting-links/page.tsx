@@ -1296,7 +1296,7 @@ const MeetingLinksPage: React.FC = () => {
                   <div>
                     <h4 className="font-medium text-blue-700 dark:text-blue-400">Tips for Sharing</h4>
                     <p className="text-sm text-blue-600 dark:text-blue-300 mt-1">
-                      Share this meeting link with participants via the user dashboard. They'll be able to join directly from their dashboard or copy the link.
+                      Share this meeting link with participants via the user dashboard. Theyll be able to join directly from their dashboard or copy the link.
                     </p>
                   </div>
                 </div>
