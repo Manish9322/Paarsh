@@ -212,15 +212,15 @@ export default function AutoModal() {
                   <div className="space-y-1 sm:space-y-2">
                     <div className="flex flex-col xs:flex-row xs:justify-between text-xs sm:text-sm">
                       <p className="text-gray-700">Web Development (MERN Stack)</p>
-                      <p className="text-blue-700 font-medium">August 15, 2023</p>
+                      <p className="text-blue-700 font-medium">August 15, 2025</p>
                     </div>
                     <div className="flex flex-col xs:flex-row xs:justify-between text-xs sm:text-sm">
                       <p className="text-gray-700">Python Full Stack</p>
-                      <p className="text-blue-700 font-medium">August 22, 2023</p>
+                      <p className="text-blue-700 font-medium">August 22, 2025</p>
                     </div>
                     <div className="flex flex-col xs:flex-row xs:justify-between text-xs sm:text-sm">
                       <p className="text-gray-700">Java Enterprise Development</p>
-                      <p className="text-blue-700 font-medium">September 5, 2023</p>
+                      <p className="text-blue-700 font-medium">September 5, 2025</p>
                     </div>
                   </div>
                 </div>

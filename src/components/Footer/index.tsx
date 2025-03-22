@@ -5,7 +5,7 @@ import Link from "next/link";
 const Footer = () => {
   return (
     <>
-      <footer  className="relative z-10 bg-white pt-16 dark:bg-gray-dark md:pt-20 lg:pt-24">
+      <footer className="relative z-10 bg-white pt-16 dark:bg-gray-dark md:pt-20 lg:pt-24">
         <div className="container">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4 md:w-1/2 lg:w-4/12 xl:w-5/12">
@@ -113,7 +113,6 @@ const Footer = () => {
                     </svg>
                   </a>
 
-
                   {/* <a
                     href="https://www.linkedin.com/company/paarsh-infotech-pvt-ltd/about/"
                     aria-label="social-link"
@@ -158,6 +157,16 @@ const Footer = () => {
                       About Us
                     </Link>
                   </li>
+
+                  <li>
+                    <Link
+                      href="/contact"
+                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                    >
+                      Contact Us
+                    </Link>
+                  </li>
+
                   <li>
                     <Link
                       href="/blog"
@@ -166,14 +175,7 @@ const Footer = () => {
                       Blogs
                     </Link>
                   </li>
-                  <li>
-                    <Link
-                      href="/contact"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
-                    >
-                      Contact
-                    </Link> 
-                  </li>
+
                 </ul>
               </div>
             </div>
@@ -263,7 +265,7 @@ const Footer = () => {
 
                       {/* Email Address */}
                       <a
-                        href="mailto:your-email@example.com"
+                        href="mailto:info@paarshedu.com"
                         className="text-body-color transition duration-300 hover:text-blue-700"
                       >
                         info@paarshedu.com
@@ -321,33 +323,33 @@ const Footer = () => {
 
           <div className="h-px w-full bg-gradient-to-r from-transparent via-[#D2D8E183] to-transparent dark:via-[#959CB183]"></div>
           <div className="py-8 flex justify-between items-center">
-  {/* Left Side - Copyright */}
-  <p className="text-base text-body-color dark:text-white">
-    &copy; 2024-25 Paarsh Edu. All rights reserved.
-  </p>
-  
-  {/* Right Side - Terms & Privacy Policy */}
-  <div className="flex space-x-4 mr-5">
-    <a
-      href="/returnpolicy"
-      className="text-base text-body-color dark:text-white hover:text-primary"
-    >
-      Return Policy
-    </a>
-    <a
-      href="/termscondition"
-      className="text-base text-body-color dark:text-white hover:text-primary"
-    >
-      Terms & Conditions
-    </a>
-    <a
-      href="/privacypolicy"
-      className="text-base text-body-color dark:text-white hover:text-primary"
-    >
-      Privacy Policy
-    </a>
-  </div>
-</div>
+            {/* Left Side - Copyright */}
+            <p className="text-base text-body-color dark:text-white">
+              &copy; 2024-25 Paarsh Edu. All rights reserved.
+            </p>
+
+            {/* Right Side - Terms & Privacy Policy */}
+            <div className="flex space-x-4 mr-5">
+              <a
+                href="/returnpolicy"
+                className="text-base text-body-color dark:text-white hover:text-primary"
+              >
+                Return Policy
+              </a>
+              <a
+                href="/termscondition"
+                className="text-base text-body-color dark:text-white hover:text-primary"
+              >
+                Terms & Conditions
+              </a>
+              <a
+                href="/privacypolicy"
+                className="text-base text-body-color dark:text-white hover:text-primary"
+              >
+                Privacy Policy
+              </a>
+            </div>
+          </div>
         </div>
         <div className="absolute right-0 top-14 z-[-1]">
           <svg

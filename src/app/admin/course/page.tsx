@@ -90,8 +90,10 @@ const CoursePage: React.FC = () => {
   const coursesPerPage = 10;
   const dispatch = useDispatch();
   const selectedCourse = useSelector(
-    (state) => selectRootState(state).course.selectedCourse,
+    (state) => selectRootState(state).course,
   );
+
+  console.log("selected course :",selectedCourse);
   
   // Fetch courses data
   const {

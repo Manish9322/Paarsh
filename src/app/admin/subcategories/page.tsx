@@ -1,5 +1,6 @@
 "use client";
 
+import { RxCross2 } from "react-icons/rx";
 import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Eye, Edit, Trash2, Menu, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
@@ -44,6 +46,8 @@ const SubcategoriesPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [subcategoryToDelete, setSubcategoryToDelete] = useState<string | null>(null);
   const itemsPerPage = 10;
   const { theme, setTheme } = useTheme();
 
@@ -60,11 +64,12 @@ const SubcategoriesPage: React.FC = () => {
   }, []);
 
   const { data: subcategoryData, isLoading, error } = useFetchSubCategoriesQuery(undefined);
-  const subcategories: Subcategory[] = subcategoryData?.data || [];
+  const subcategoriesData: Subcategory[] = subcategoryData?.data || [];
 
-  const [_DELETE_SUBCATEGORY] = useDeleteSubCategoriesMutation();
+  const [_DELETE_SUBCATEGORY, { isLoading: isDeleteLoading }] =
+    useDeleteSubCategoriesMutation();
 
-  const filteredSubcategories = subcategories.filter((subcategory) =>
+  const filteredSubcategories = subcategoriesData.filter((subcategory) =>
     Object.values(subcategory).some((value) =>
       value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
     ),
@@ -74,11 +79,20 @@ const SubcategoriesPage: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const displayedSubcategories = filteredSubcategories.slice(startIndex, startIndex + itemsPerPage);
 
-  const handleDeleteSubcategory = async (subcategoryId: string) => {
+  const confirmDeleteSubcategory = (subcategoryId: string) => {
+    setSubcategoryToDelete(subcategoryId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteSubcategory = async () => {
+    if (!subcategoryToDelete) return;
+    
     try {
-      const response = await _DELETE_SUBCATEGORY({ id: subcategoryId }).unwrap();
+      const response = await _DELETE_SUBCATEGORY({ id: subcategoryToDelete }).unwrap();
       if (response?.success) {
         toast.success("Subcategory deleted successfully");
+        setDeleteConfirmOpen(false);
+        setSubcategoryToDelete(null);
       }
     } catch (error) {
       toast.error(error?.data?.message || "Failed to delete subcategory. Please try again.");
@@ -341,7 +355,7 @@ const SubcategoriesPage: React.FC = () => {
                                 </button>
                                 <button
                                   className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
-                                  onClick={() => handleDeleteSubcategory(subcategory._id)}
+                                  onClick={() => confirmDeleteSubcategory(subcategory._id)}
                                   aria-label="Delete subcategory"
                                 >
                                   <Trash2 size={16} className="transition-transform group-hover:scale-110" />
@@ -362,7 +376,10 @@ const SubcategoriesPage: React.FC = () => {
             <Dialog open={viewOpen} onOpenChange={setViewOpen}>
               <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded-lg bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
                 <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
+                  <div className="flex items-center justify-between cursor-pointer">
                   <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">Subcategory Details</DialogTitle>
+                  <RxCross2 className="text-gray-800 dark:text-white" onClick={() => setViewOpen(false)}/>
+                  </div>
                 </DialogHeader>
                 {selectedSubcategory && (
                   <div className="p-6">
@@ -521,6 +538,38 @@ const SubcategoriesPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+              <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">Confirm Deletion</DialogTitle>
+                </DialogHeader>
+                <div className="py-4 text-center">
+                  <Trash2 className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
+                  <p className="text-gray-600 dark:text-gray-300">
+                    Are you sure you want to delete this subcategory? This action cannot be undone.
+                  </p>
+                </div>
+                <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setDeleteConfirmOpen(false)}
+                    className="w-full sm:w-auto"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDeleteSubcategory}
+                    className="w-full sm:w-auto"
+                    disabled={isDeleteLoading}
+                  >
+                    {isDeleteLoading ? "Deleting..." : "Delete Subcategory"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </main>

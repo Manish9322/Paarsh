@@ -60,7 +60,7 @@ const formSchema = z.object({
   price: z.string().optional(),
   duration: z.string().optional(),
   level: z.string().optional(),
-  languages: z.string().optional(),
+  languages: z.array(z.string()).optional(),
   thumbnail: z.string().optional(),
   syllabus: z.string().optional(),
   summaryText: z.string().optional(),
@@ -92,6 +92,22 @@ export function EditCourse({ editOpen, setEditOpen }) {
   const course = useSelector((state) => state.course);
   const [_UPDATECOURSE, { isLoading }] = useUpdateCourseMutation();
   const fileInputRef = React.useRef(null);
+  const [newLanguage, setNewLanguage] = useState("");
+  
+  // Common languages list
+  const commonLanguages = [
+    "English",
+    "Spanish",
+    "French",
+    "German",
+    "Chinese",
+    "Japanese",
+    "Hindi",
+    "Arabic",
+    "Portuguese",
+    "Russian",
+  ];
+  
   const {
     handleSubmit,
     formState: { errors },
@@ -144,6 +160,11 @@ export function EditCourse({ editOpen, setEditOpen }) {
   console.log("Courseseeese", course);
 
   const onSubmit = async (e) => {
+    // Convert languages array to comma-separated string
+    const languagesString = Array.isArray(course.languages) 
+      ? course.languages.join(', ') 
+      : course.languages || '';
+
     const formattedData = {
       ...course,
       courseIncludes: course.courseIncludes,
@@ -151,6 +172,7 @@ export function EditCourse({ editOpen, setEditOpen }) {
       thoughts: course.thoughts,
       tags: course.tags,
       editorContent,
+      languages: languagesString, // Use the comma-separated string instead of the array
     };
 
     try {
@@ -218,6 +240,18 @@ export function EditCourse({ editOpen, setEditOpen }) {
       removeAction: removeTag,
     },
   ];
+
+  // Convert string languages to array for backward compatibility
+  useEffect(() => {
+    if (course.languages && typeof course.languages === 'string') {
+      // Split the string by commas and trim spaces
+      const languagesArray = course.languages.split(',').map(lang => lang.trim()).filter(Boolean);
+      handleChange("languages", languagesArray);
+    } else if (!Array.isArray(course.languages)) {
+      // Initialize as empty array if not already an array
+      handleChange("languages", []);
+    }
+  }, [editOpen, course._id]); // Re-run when the edit modal opens or course changes
 
   return (
     <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -428,17 +462,88 @@ export function EditCourse({ editOpen, setEditOpen }) {
           <div className="flex gap-4">
             <div className="w-1/2">
               <Label htmlFor="languages">Languages</Label>
-              <Input
-                id="languages"
-                name="languages"
-                className="mt-2 w-full"
-                type="text"
-                onChange={(e) => handleChange("languages", e.target.value)}
-                value={course.languages}
-              />
-              {errors.languages && (
-                <p className="text-red-500">{errors.languages.message}</p>
-              )}
+              <div className="mt-2 flex flex-col space-y-2">
+                <div className="flex flex-wrap gap-2 rounded-md border border-gray-300 bg-white p-2">
+                  {Array.isArray(course.languages) && course.languages.length > 0 ? (
+                    course.languages.map((lang, index) => (
+                      <div 
+                        key={index} 
+                        className="flex items-center rounded bg-blue-100 px-2 py-1 text-sm"
+                      >
+                        <span>{lang}</span>
+                        <button 
+                          type="button"
+                          className="ml-1 text-gray-500 hover:text-gray-700"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const updatedLangs = [...course.languages];
+                            updatedLangs.splice(index, 1);
+                            handleChange("languages", updatedLangs);
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-sm text-gray-500">Select languages...</span>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Select
+                    onValueChange={(value) => {
+                      if (value && (!Array.isArray(course.languages) || !course.languages.includes(value))) {
+                        handleChange("languages", [...(Array.isArray(course.languages) ? course.languages : []), value]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-1/2">
+                      <SelectValue placeholder="Select a language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {commonLanguages.map((language) => (
+                        <SelectItem key={language} value={language}>
+                          {language}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex flex-1">
+                    <Input
+                      id="languageInput"
+                      className="flex-1"
+                      placeholder="Or type a custom language"
+                      value={newLanguage}
+                      onChange={(e) => setNewLanguage(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          const value = newLanguage.trim();
+                          if (value && (!Array.isArray(course.languages) || !course.languages.includes(value))) {
+                            handleChange("languages", [...(Array.isArray(course.languages) ? course.languages : []), value]);
+                            setNewLanguage("");
+                          }
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button"
+                      variant="secondary"
+                      className="ml-2" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const value = newLanguage.trim();
+                        if (value && (!Array.isArray(course.languages) || !course.languages.includes(value))) {
+                          handleChange("languages", [...(Array.isArray(course.languages) ? course.languages : []), value]);
+                          setNewLanguage("");
+                        }
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="w-1/2">
               <Label htmlFor="price">Course Price</Label>

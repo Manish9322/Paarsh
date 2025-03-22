@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
@@ -12,8 +12,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { updateField, resetForm } from "../../lib/slices/subCategorySlice";
-import { useAddSubCategoryMutation } from "../../services/api";
+import { 
+  useAddSubCategoryMutation,
+  useFetchCategoriesQuery 
+} from "../../services/api";
 import { DialogTrigger } from "@radix-ui/react-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const AddSubCategoryModal = () => {
   const dispatch = useDispatch();
@@ -21,6 +31,8 @@ const AddSubCategoryModal = () => {
   const [open, setOpen] = useState(false);
 
   const [_ADDSUBCATEGORY, { isLoading }] = useAddSubCategoryMutation();
+  const { data: categoriesData, isLoading: isCategoriesLoading } = useFetchCategoriesQuery();
+  console.log(categoriesData);
 
   // Handle input change using Redux actions
   const handleChange = (e) => {
@@ -36,6 +48,11 @@ const AddSubCategoryModal = () => {
     } else {
       dispatch(updateField({ field: name, value }));
     }
+  };
+
+  // Handle select change for category
+  const handleCategoryChange = (value) => {
+    dispatch(updateField({ field: "categoryName", value }));
   };
 
   // Handle form submission
@@ -69,18 +86,34 @@ const AddSubCategoryModal = () => {
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            name="categoryName"
-            placeholder="Category Name"
-            value={subcategory.categoryName}
-            onChange={handleChange}
-            required
-            className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"
-          />
+          <Select
+
+            onValueChange={handleCategoryChange}
+          >
+            <SelectTrigger className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500">
+              <SelectValue placeholder="Select Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {isCategoriesLoading ? (
+                <SelectItem value="loading" disabled>
+                  Loading...
+                </SelectItem>
+              ) : categoriesData?.data && categoriesData.data.length > 0 ? (
+                categoriesData.data.map((category) => (
+                  <SelectItem key={category._id} value={category.name}>
+                    {category.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-categories" disabled>
+                  No categories found
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
           <Input
             name="subcategoryName"
             placeholder="SubCategory Name"
-            value={subcategory.subcategoryName}
             onChange={handleChange}
             required
             className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"
@@ -88,7 +121,6 @@ const AddSubCategoryModal = () => {
           <Input
             name="description"
             placeholder="Description"
-            value={subcategory.description}
             onChange={handleChange}
             required
             className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"
@@ -96,7 +128,6 @@ const AddSubCategoryModal = () => {
           <Input
             name="keywords"
             placeholder="Keywords (comma-separated)"
-            value={subcategory.keywords?.join(", ")}
             onChange={handleChange}
             className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"
           />

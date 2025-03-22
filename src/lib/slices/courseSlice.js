@@ -7,7 +7,7 @@ const initialState = {
   duration: "",
   level: "",
   videoLink: null,
-  languages: "",
+  languages: [],
   thumbnail: null,
   summaryText: "",
   tagline_in_the_box: "",

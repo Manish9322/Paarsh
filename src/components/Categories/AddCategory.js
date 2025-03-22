@@ -59,7 +59,7 @@ const AddCategoryModal = () => {
           <Input
             name="name"
             placeholder="Category Name"
-            value={category.name}
+            
             onChange={handleChange}
             required
             className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"
@@ -67,7 +67,7 @@ const AddCategoryModal = () => {
           <Input
             name="description"
             placeholder="Description"
-            value={category.description}
+            
             onChange={handleChange}
             required
             className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"
@@ -75,7 +75,7 @@ const AddCategoryModal = () => {
           <Input
             name="keywords"
             placeholder="Keywords (comma separated)"
-            value={category.keywords}
+            
             onChange={handleChange}
             required
             className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"
