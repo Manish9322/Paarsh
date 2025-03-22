@@ -98,7 +98,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
       {children}
       {!isAdminPage && !isAuthPage && !isDashboardPage && <Footer />}
       <ScrollToTop />
-      <AutoModal />
+      {!isAdminPage && !isAuthPage && <AutoModal />}
       <Toaster richColors />
       <PurchaseModal />
     </>

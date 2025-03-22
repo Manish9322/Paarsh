@@ -146,12 +146,27 @@ export const paarshEduApi = createApi({
 
     fetchUsers: builder.query({
       query: () => "/users",
+      providesTags: ["User"],
     }),
 
     fetchUser: builder.query({
       query: () => "/user",
       providesTags: ["User"],
     }),
+
+    updateUser: builder.mutation({
+      query: (formData) => ({
+        url: "/user",
+        method: "PUT",
+        body: formData,
+      }),
+      invalidatesTags: ["User"],
+    }),
+
+    deleteUser: builder.mutation({
+      query: (id) => ({ url: "/user", method: "DELETE", body: id }),
+      invalidatesTags: ["User"],
+    }), 
 
     //--------------------------------------------------------------Categories Apis------------------------------------------------
 
@@ -273,6 +288,8 @@ export const {
   useFetchAgentQuery,
 
   useFetchUserQuery,
+  useUpdateUserMutation,
+  useDeleteUserMutation,
   useFetchUsersQuery,
 
   useAddCategoryMutation,

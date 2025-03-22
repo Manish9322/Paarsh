@@ -1,6 +1,7 @@
-"use client";
-
-import React from "react";
+import React, { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
@@ -12,103 +13,164 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAddAgentMutation } from "../../services/api";
-import { updateField, resetForm } from "../../lib/slices/agentSlice";
+import { resetForm } from "../../lib/slices/agentSlice";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+
+// ✅ Define Validation Schema using Zod
+const agentSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  mobile: z
+    .string()
+    .length(10, "Mobile number must be exactly 10 digits.")
+    .regex(/^\d{10}$/, "Only numbers are allowed."),
+  gender: z.enum(["Male", "Female", "Other"], { message: "Select a gender" }),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State is required"),
+});
 
 const AddAgentModal = ({ open, setOpen }) => {
   const dispatch = useDispatch();
-  const agent = useSelector((state) => state.agent); // Get agent state from Redux
-
   const [addAgent, { isLoading }] = useAddAgentMutation();
 
-  // Handle input change using Redux actions
-  const handleChange = (e) => {
-    dispatch(updateField({ field: e.target.name, value: e.target.value }));
-  };
+  // ✅ Use react-hook-form with Zod validation
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: zodResolver(agentSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      mobile: "",
+      gender: "",
+      city: "",
+      state: "",
+    },
+  });
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // ✅ Reset form when the modal opens
+  useEffect(() => {
+    if (open) {
+      reset();
+      dispatch(resetForm()); // Reset Redux state if needed
+    }
+  }, [open, reset, dispatch]);
+
+  // ✅ Handle form submission
+  const onSubmit = async (data) => {
     try {
-      const response = await addAgent(agent).unwrap();
+      const response = await addAgent(data).unwrap();
       if (response?.success) {
         toast.success("Agent added successfully");
         setOpen(false);
-        dispatch(resetForm()); // Reset the form after successful submission
+        reset(); // Reset form fields
+        dispatch(resetForm()); // Reset Redux state
       }
     } catch (error) {
-      toast.error(error?.data?.message || "Failed to add agent. Please try again.");
+      toast.error(
+        error?.data?.message || "Failed to add agent. Please try again.",
+      );
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="bg-white text-black rounded-lg p-6 shadow-lg w-[400px]">
+      <DialogContent className="w-[400px] rounded-lg bg-white p-6 text-black shadow-lg">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-semibold">Add Agent</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* First Name */}
+          <Input {...register("firstName")} placeholder="First Name" />
+          {errors.firstName && (
+            <p className="text-sm text-red-500">{errors.firstName.message}</p>
+          )}
+
+          {/* Last Name */}
+          <Input {...register("lastName")} placeholder="Last Name" />
+          {errors.lastName && (
+            <p className="text-sm text-red-500">{errors.lastName.message}</p>
+          )}
+
+          {/* Email */}
           <Input
-            name="firstName"
-            placeholder="First Name"
-            value={agent.firstName}
-            onChange={handleChange}
-            required
-            className="bg-white text-black border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-          />
-          <Input
-            name="lastName"
-            placeholder="Last Name"
-            value={agent.lastName}
-            onChange={handleChange}
-            required
-            className="bg-white text-black border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-          />
-          <Input
-            name="email"
+            {...register("email")}
             placeholder="Email Address"
             type="email"
-            value={agent.email}
-            onChange={handleChange}
-            required
-            className="bg-white text-black border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
           />
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email.message}</p>
+          )}
+
+          {/* Mobile Number */}
           <Input
-            name="mobile"
+            {...register("mobile")}
             placeholder="Phone Number"
             type="tel"
-            value={agent.mobile}
-            onChange={handleChange}
-            required
-            className="bg-white text-black border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+            maxLength={10}
+            inputMode="numeric" // Enables number keypad on mobile devices
+            pattern="[0-9]*" // Ensures only numbers can be entered
+            onKeyDown={(e) => {
+              if (!/[0-9]/.test(e.key) && e.key !== "Backspace") {
+                e.preventDefault(); // Prevent non-numeric input
+              }
+            }}
+            className="input-style"
           />
-          <Input
+          {errors.mobile && (
+            <p className="text-sm text-red-500">{errors.mobile.message}</p>
+          )}
+
+          {/* Gender (Using React Hook Form Select) */}
+          <Controller
             name="gender"
-            placeholder="Gender"
-            value={agent.gender}
-            onChange={handleChange}
-            required
-            className="bg-white text-black border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+            control={control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} value={field.value}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           />
-          <Input
-            name="city"
-            placeholder="City"
-            value={agent.city}
-            onChange={handleChange}
-            required
-            className="bg-white text-black border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-          />
-          <Input
-            name="state"
-            placeholder="State"
-            value={agent.state}
-            onChange={handleChange}
-            required
-            className="bg-white text-black border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-          />
+          {errors.gender && (
+            <p className="text-sm text-red-500">{errors.gender.message}</p>
+          )}
+
+          {/* City */}
+          <Input {...register("city")} placeholder="City" />
+          {errors.city && (
+            <p className="text-sm text-red-500">{errors.city.message}</p>
+          )}
+
+          {/* State */}
+          <Input {...register("state")} placeholder="State" />
+          {errors.state && (
+            <p className="text-sm text-red-500">{errors.state.message}</p>
+          )}
+
+          {/* Submit Button */}
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-500 text-white hover:bg-blue-600 p-2 rounded-lg font-medium"
+            className="w-full rounded-lg bg-blue-500 p-2 text-white"
           >
             {isLoading ? "Adding..." : "Add Agent"}
           </Button>
