@@ -7,16 +7,19 @@ import _db from "../utils/db";
 
 _db();
 
-export function authMiddleware(handler, isAdmin = false) {
+export function authMiddleware(handler) {
   return async (req) => {
     // Extract Authorization header
-
+   let isAdmin = false
     let token;
 
-    if (isAdmin) {
+    
       // First, check for the Admin-Authorization header
       token = req.headers.get("admin-authorization")?.replace("Bearer ", "");
-    } else {
+      if (token){
+        isAdmin = true
+      }
+   else {
       // User token from Authorization header
       token = req.headers.get("authorization")?.replace("Bearer ", "");
     }
@@ -47,7 +50,7 @@ export function authMiddleware(handler, isAdmin = false) {
 
       // Remove sensitive data before attaching to request
       const { password, ...sanitizedUser } = user;
-      req.user = sanitizedUser;
+      req.user = { ...sanitizedUser, isAdmin };;
 
       // Proceed with the request
       return handler(req);
