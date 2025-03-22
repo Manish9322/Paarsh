@@ -20,9 +20,9 @@ const ReturnPolicy = () => {
                 <div className="container">
                     <div className="flex flex-col gap-8">
                         <div className="rounded-lg bg-white p-8 dark:bg-gray-dark">
-                            <h2 className="mb-6 text-3xl font-bold text-black dark:text-white sm:text-4xl">
+                            <h1 className="mb-6 text-3xl font-bold text-black dark:text-white sm:text-4xl">
                                 RETURN POLICY
-                            </h2>
+                            </h1>
                             <p className="mb-8 text-base text-body-color dark:text-body-color-dark">
                             LAST UPDATED January 01, 2025
                             </p>

@@ -8,12 +8,14 @@ import subCategoryReducer from "../lib/slices/subCategorySlice";
 import userAuthReducer from "../lib/slices/userAuthSlice";
 import courseVideoReducer from "../lib/slices/courseVideoSlice";
 import paymentReducer from "../lib/slices/paymentSlice";
+import userReducer from "../lib/slices/userSlice";
 
 // Combine all reducers
 const rootReducer = combineReducers({
   course: courseReducer,
   auth: authReducer,
   agent: agentReducer,
+  user: userReducer,
   category: categoryReducer,
   subcategory: subCategoryReducer,
   userAuth: userAuthReducer,

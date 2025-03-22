@@ -40,9 +40,17 @@ const agentSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    referralCode: {
+    agentCode: {
       type: String,
       unique: true,
+    },
+    totalSale: {
+      type: Number,
+      default: 0,
+    },
+    countSale: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true },

@@ -6,6 +6,7 @@ import ModelOne from "@/components/View-Models/modelOne";
 import { Metadata } from "next";
 import RelatedPost from "@/components/Blog/RelatedPost";
 import ModelTwo from "@/components/View-Models/modelTwo";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Blog Details Page | Free Next.js Template for Startup and SaaS",
@@ -21,9 +22,9 @@ const BlogDetailsPage = () => {
           <div className="-mx-4 flex flex-wrap justify-center">
             <div className="w-full lg:w-2/3">
               <div className="p-8">
-                <h2 className="mb-8 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
+                <h1 className="mb-8 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
                   Demystifying MVC Framework in PHP
-                </h2>
+                </h1>
                 <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
                   <div className="flex flex-wrap items-center">
                     <div className="mb-5 mr-10 flex items-center">
@@ -96,12 +97,12 @@ const BlogDetailsPage = () => {
                     </div>
                   </div>
                   <div className="mb-5">
-                    <a
-                      href="#0"
-                      className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
-                    >
-                      Get In Touch
-                    </a>
+                  <Link
+    href="/contact"
+    className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
+  >
+    Get In Touch
+  </Link>
                   </div>
                 </div>
                 <div>

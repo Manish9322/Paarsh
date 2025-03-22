@@ -148,9 +148,9 @@ function Faq() {
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-full p-8 mb-6">
             <HelpCircle className="w-16 h-16 text-blue-500 dark:text-blue-400" />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-3">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-3">
             No FAQs Found
-          </h2>
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-8 text-lg">
             {searchTerm || activeCategory !== "All" 
               ? "Try adjusting your search or filter criteria."

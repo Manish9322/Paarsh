@@ -92,9 +92,9 @@ export default function UserDashboard() {
                     className="w-8 h-7 flex justify-center items-center object-contain filter brightness-0 invert"
                   />
                 </div>
-                <h2 className="text-xl font-bold text-white mb-2 group-hover:scale-105 transition-transform duration-300">
+                <h1 className="text-xl font-bold text-white mb-2 group-hover:scale-105 transition-transform duration-300">
                   {card.title}
-                </h2>
+                </h1>
                 <p className="text-white/80 text-sm">
                   {card.description}
                 </p>
@@ -111,9 +111,9 @@ export default function UserDashboard() {
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Recent Activity
-          </h2>
+          </h1>
           <div className="space-y-3">
             <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
               <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
@@ -145,9 +145,9 @@ export default function UserDashboard() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+          <h1 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Upcoming Classes
-          </h2>
+          </h1>
           <div className="space-y-3">
             <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
               <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mr-3">
@@ -186,8 +186,8 @@ export default function UserDashboard() {
 function BookIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17h10"></path>
+      <path d="M6.5 2h10v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
     </svg>
   );
 }

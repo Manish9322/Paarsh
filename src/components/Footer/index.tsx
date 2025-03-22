@@ -5,11 +5,12 @@ import Link from "next/link";
 const Footer = () => {
   return (
     <>
+      <footer  className="relative z-10 bg-white pt-14 dark:bg-gray-dark md:pt-10 lg:pt-10">
       <footer className="relative z-10 bg-white pt-16 dark:bg-gray-dark md:pt-20 lg:pt-24">
         <div className="container">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4 md:w-1/2 lg:w-4/12 xl:w-5/12">
-              <div className="mb-12 max-w-[360px] lg:mb-16">
+              <div className="mb-12 max-w-[360px] lg:mb-10 ">
                 <Link href="/" className="mb-4 inline-block">
                   <Image
                     src="/images/logo/PAARSHEDU_LOGO.png"
@@ -67,7 +68,7 @@ const Footer = () => {
                       <path
                         fillRule="evenodd"
                         clipRule="evenodd"
-                        d="M13.9831 19.25L9.82094 13.3176L4.61058 19.25H2.40625L8.843 11.9233L2.40625 2.75H8.06572L11.9884 8.34127L16.9034 2.75H19.1077L12.9697 9.73737L19.6425 19.25H13.9831ZM16.4378 17.5775H14.9538L5.56249 4.42252H7.04674L10.808 9.6899L11.4584 10.6039L16.4378 17.5775Z"
+                        d="M13.9831 19.25L9.82094 13.3176L4.61058 19.25h1.40625L8.843 11.9233L2.40625 2.75H8.06572L11.9884 8.34127L16.9034 2.75H19.1077L12.9697 9.73737L19.6425 19.25H13.9831ZM16.4378 17.5775H14.9538L5.56249 4.42252H7.04674L10.808 9.6899L11.4584 10.6039L16.4378 17.5775Z"
                         fill="currentColor"
                       />
                     </svg>
@@ -136,15 +137,15 @@ const Footer = () => {
             </div>
 
             <div className="w-full px-4 sm:w-1/2 md:w-1/2 lg:w-2/12 xl:w-2/12">
-              <div className="mb-12 lg:mb-16">
-                <h2 className="mb-10 text-xl font-bold text-black dark:text-white">
+              <div className="mb-12 lg:mb-10">
+                <h1 className="mb-5 text-xl font-bold text-black dark:text-white">
                   Useful Links
-                </h2>
+                </h1>
                 <ul>
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
                       Home
                     </Link>
@@ -152,7 +153,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/about"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
                       About Us
                     </Link>
@@ -181,15 +182,15 @@ const Footer = () => {
             </div>
 
             <div className="w-full px-4 sm:w-1/2 md:w-1/2 lg:w-2/12 xl:w-2/12">
-              <div className="mb-12 lg:mb-16">
-                <h2 className="mb-10 text-xl font-bold text-black dark:text-white">
+              <div className="mb-12 lg:mb-10">
+                <h1 className="mb-5 text-xl font-bold text-black dark:text-white">
                   Courses
-                </h2>
+                </h1>
                 <ul>
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
                       FullStack Java Development
                     </Link>
@@ -197,7 +198,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
                       FullStack Python Devlopment
                     </Link>
@@ -205,7 +206,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
                       Mean Stack
                     </Link>
@@ -213,7 +214,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
                       API Development
                     </Link>
@@ -221,7 +222,7 @@ const Footer = () => {
                   <li>
                     <Link
                       href="/"
-                      className="mb-4 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
+                      className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
                       Android App Development
                     </Link>
@@ -231,13 +232,13 @@ const Footer = () => {
             </div>
 
             <div className="w-full px-4 md:w-1/2 lg:w-4/12 xl:w-3/12">
-              <div className="mb-12 lg:mb-16">
-                <h2 className="mb-10 text-xl font-bold text-black dark:text-white">
+              <div className="mb-12 lg:mb-10">
+                <h1 className="mb-5 text-xl font-bold text-black dark:text-white">
                   Get In Touch
-                </h2>
+                </h1>
                 <ul>
                   <li>
-                    <div className="mb-4 flex items-center space-x-3">
+                    <div className="mb-2 flex items-center space-x-3">
                       {/* Mail Icon */}
                       <svg
                         width="18"
@@ -248,7 +249,7 @@ const Footer = () => {
                         className="text-gray-500"
                       >
                         <path
-                          d="M3 4H21C22.1 4 23 4.9 23 6V18C23 19.1 22.1 20 21 20H3C1.9 20 1 19.1 1 18V6C1 4.9 1.9 4 3 4Z"
+                          d="M3 4h11C22.1 4 23 4.9 23 6V18C23 19.1 22.1 20 21 20H3C1.9 20 1 19.1 1 18V6C1 4.9 1.9 4 3 4Z"
                           stroke="currentColor"
                           strokeWidth="2"
                           strokeLinecap="round"
@@ -273,7 +274,7 @@ const Footer = () => {
                     </div>
                   </li>
                   <li>
-                    <div className="mb-4 flex items-center space-x-3">
+                    <div className="mb-2 flex items-center space-x-3">
                       {/*phone */}
                       <svg
                         width="24"
@@ -295,7 +296,7 @@ const Footer = () => {
                     </div>
                   </li>
                   <li>
-                    <div className="mb-4 flex space-x-2">
+                    <div className="mb-2 flex space-x-2">
                       {/* address */}
                       <svg
                         width="40"

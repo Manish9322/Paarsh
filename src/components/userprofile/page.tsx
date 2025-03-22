@@ -120,7 +120,7 @@ export default function ProfilePage() {
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
             <X className="w-8 h-8 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Error Loading Profile</h2>
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Error Loading Profile</h1>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
             We couldnt load your profile information. Please try again later.
           </p>
@@ -159,7 +159,7 @@ export default function ProfilePage() {
               </button>
             </div>
             
-            <h2 className="text-2xl font-bold mt-4">{userData.name}</h2>
+            <h1 className="text-2xl font-bold mt-4">{userData.name}</h1>
             <p className="text-blue-200 text-sm">{userData.occupation}</p>
             
             {/* Navigation Tabs */}

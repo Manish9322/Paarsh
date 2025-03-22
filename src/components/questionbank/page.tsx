@@ -178,9 +178,9 @@ function QuestionBank() {
               className="w-16 h-16 filter brightness-0 invert-[.25] dark:invert"
             />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2">
             No Question Sets Found
-          </h2>
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
             {searchTerm || selectedCategory !== "All" 
               ? "Try adjusting your search or filter criteria."

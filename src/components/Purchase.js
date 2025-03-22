@@ -177,9 +177,9 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
               </div>
               
               {/* Course title */}
-              <h2 className="mb-4 text-2xl font-bold tracking-tight text-white md:text-3xl">
+              <h1 className="mb-4 text-2xl font-bold tracking-tight text-white md:text-3xl">
                 {course?.title || "Course Title"}
-              </h2>
+              </h1>
               
               {/* Instructor info */}
               <div className="mb-6 flex items-center space-x-2">
@@ -281,7 +281,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
           {/* Right panel (payment details) */}
           <div className="flex flex-grow flex-col justify-between p-8 text-gray-800 dark:text-white md:w-3/5">
             <div>
-              <h2 className="text-2xl font-bold">Complete Your Purchase</h2>
+              <h1 className="text-2xl font-bold">Complete Your Purchase</h1>
               <p className="mt-1 text-gray-600 dark:text-gray-400">Unlock access to this course in just a few steps</p>
               
               {/* Price summary */}

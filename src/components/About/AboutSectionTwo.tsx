@@ -18,13 +18,13 @@ const AboutSectionTwo = () => {
               data-wow-delay=".15s"
             >
               <Image
-                src="/images/about/ABOUT2.jpg"
+                src="/images/about/about-new2.png"
                 alt="about image"
                 fill
                 className="drop-shadow-three rounded dark:hidden dark:drop-shadow-none"
               />
               <Image
-                src="/images/about/ABOUT2-DARK.png"
+                src="/images/about/about-new2.png"
                 alt="about image"
                 fill
                 className="hidden drop-shadow-three rounded dark:block dark:drop-shadow-none"
@@ -53,7 +53,7 @@ const AboutSectionTwo = () => {
               </div>
               <div className="mb-1">
                 <h3 className="mb-4 text-xl font-bold text-black dark:text-white sm:text-2xl lg:text-xl xl:text-2xl">
-                  Paarsh E-Learn
+                  Paarsh Edu
                 </h3>
                 <p className="text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed">
                   Provide video, documents, or external links like Youtube-based
