@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/dbConnect";
+import _db from "../../../../utils/db";
 import MeetingLink from "../../../../models/MeetingLink.model";
-import { authMiddleware } from "../../../../middlewares/authMiddleware";
+import { authMiddleware } from "../../../../middlewares/auth";
 
 // GET all meeting links
 export async function GET(req) {
   try {
-    await dbConnect();
-    
+  
     // Extract query parameters for filtering
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
@@ -89,8 +88,6 @@ export async function POST(req) {
       );
     }
     
-    await dbConnect();
-    
     const body = await req.json();
     
     // Validate required fields
@@ -147,8 +144,6 @@ export async function DELETE(req) {
         { status: 400 }
       );
     }
-    
-    await dbConnect();
     
     // Soft delete all meeting links
     await MeetingLink.updateMany({}, { isDeleted: true });

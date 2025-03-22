@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/dbConnect";
+import _db from "../../../../../utils/db";
 import MeetingLink from "../../../../../models/MeetingLink.model";
-import { authMiddleware } from "../../../../../middlewares/authMiddleware";
+import { authMiddleware } from "../../../../../middlewares/auth";
+
+_db();
 
 // GET a single meeting link by ID
 export async function GET(req, { params }) {
   try {
-    await dbConnect();
     const id = params.id;
     
     const meetingLink = await MeetingLink.findOne({ _id: id, isDeleted: false });
