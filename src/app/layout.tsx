@@ -90,7 +90,8 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                          pathname.startsWith("/profile") ||
                          pathname.startsWith("/refer-earn") ||
                          pathname.startsWith("/view-links") ||
-                         pathname.startsWith("/faq");
+                         pathname.startsWith("/faq") ||
+                         pathname.startsWith("/course-lecture");
 
   return (
     <>
