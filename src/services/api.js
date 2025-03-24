@@ -37,6 +37,7 @@ export const paarshEduApi = createApi({
     "SubCategory",
     "CourseVideo",
     "Payment",
+    "Contact",
   ],
 
   endpoints: (builder) => ({
@@ -268,6 +269,42 @@ export const paarshEduApi = createApi({
       query: () => "/user/courses",
       providesTags: ["Course"],
     }),
+
+    // --------------------------------------------------------------------------------------------------------------
+
+    addContact: builder.mutation({
+      query: (formData) => ({
+        url: "/contactus",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Contact"],
+    }),
+    
+    fetchContacts: builder.query({
+      query: () => "/contactus",
+      providesTags: ["Contact"],
+    }),
+
+    updateContactStatus: builder.mutation({
+      query: (formData) => ({
+        url: "/contactus",
+        method: "PATCH",
+        body: formData,
+      }),
+      invalidatesTags: ["Contact"],
+    }), 
+
+    deleteContact: builder.mutation({
+      query: (id) => ({
+        url: "/contactus",
+        method: "DELETE",
+        body: {id},
+      }),
+      invalidatesTags: ["Contact"],
+    }),
+
+
   }),
 });
 
@@ -308,4 +345,10 @@ export const {
 
   useCreateOrderMutation,
   useVerifyPaymentMutation,
+
+  useFetchContactsQuery,
+  useUpdateContactStatusMutation,
+  useDeleteContactMutation,
+  useAddContactMutation,
+
 } = paarshEduApi;

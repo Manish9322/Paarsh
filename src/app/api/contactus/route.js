@@ -25,7 +25,10 @@ export const POST = authMiddleware(async (request) => {
     return NextResponse.json({
       success: true,
       message: "Contact created successfully",
-      data: newContact,
+      data: {
+        success: true,
+        newContact,
+       },
     });
   } catch (error) {
     console.error("Error while creating contact:", error);
@@ -52,5 +55,47 @@ export const GET = authMiddleware(async (request) => {
       { success: false, error: "Internal server error" },
       { status: 500 },
     );
+  }
+  }, true);
+
+// Update Contact Status
+
+  export const PATCH   = authMiddleware(async (request) => {
+  try {
+    const { id, status } = await request.json();
+
+    const updatedContact = await ContactUs.findByIdAndUpdate(id, { status }, { new: true });
+
+    return NextResponse.json({
+      success: true,
+      message: "Contact status updated successfully",
+    });
+  } catch (error) {
+    console.error("Error while updating contact status:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}, true);
+
+// Delete Contact
+
+export const DELETE = authMiddleware(async (request) => {
+  try {
+    const { id } = await request.json();
+
+    await ContactUs.findByIdAndDelete(id);
+
+    return NextResponse.json({
+      success: true,
+      message: "Contact deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error while deleting contact:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 },
+    );    
   }
 }, true);

@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useDeleteContactMutation, useFetchContactsQuery, useUpdateContactStatusMutation } from "@/services/api";
 
 // Define ContactRequest type
 interface ContactRequest {
@@ -62,59 +63,14 @@ const ContactRequestsPage: React.FC = () => {
   const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data for UI demonstration
-  const mockContactRequests: ContactRequest[] = [
-    {
-      _id: "1",
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      message: "I have a question about your courses. Can you provide more details?",
-      mobile: "+91 98765 43210",
-      status: "pending",
-      createdAt: "2023-06-15T10:30:00Z",
-    },
-    {
-      _id: "2",
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      message: "I'm interested in enrolling for the AI course but need more information.",
-      subject: "Course Inquiry",
-      status: "resolved",
-      createdAt: "2023-06-14T15:45:00Z",
-    },
-    {
-      _id: "3",
-      id: 3,
-      name: "Raj Kumar",
-      email: "raj.kumar@example.com",
-      message: "I'm having trouble accessing the course materials. Can you help?",
-      mobile: "+91 87654 32109",
-      status: "in-progress",
-      createdAt: "2023-06-16T09:15:00Z",
-    },
-    {
-      _id: "4",
-      id: 4,
-      name: "Priya Singh",
-      email: "priya.singh@example.com",
-      message: "I want to know about the certification process for your courses.",
-      subject: "Certification Query",
-      status: "pending",
-      createdAt: "2023-06-16T14:20:00Z",
-    },
-    {
-      _id: "5",
-      id: 5,
-      name: "Alex Johnson",
-      email: "alex.johnson@example.com",
-      message: "Could you provide information about your corporate training programs?",
-      mobile: "+91 76543 21098",
-      status: "pending",
-      createdAt: "2023-06-17T11:10:00Z",
-    },
-  ];
+  const { data: contacts, isLoading: isContactsLoading } = useFetchContactsQuery(undefined);
+  console.log(contacts);
+  const mockContactRequests = contacts?.data || [];
+
+
+  const [_DELETECONTACT, { isLoading: isDeleting }] = useDeleteContactMutation();
+  const [_UPDATECONTACTSTATUS, { isLoading: isUpdating }] = useUpdateContactStatusMutation();
+
 
   // Close sidebar when screen size changes to desktop
   useEffect(() => {
@@ -175,13 +131,27 @@ const ContactRequestsPage: React.FC = () => {
   const handleDeleteRequest = async () => {
     try {
       if (!requestToDelete) return;
-      // Mock successful deletion
-      toast.success("Contact request deleted successfully");
-      setDeleteConfirmOpen(false);
-      setRequestToDelete(null);
+      const response = await _DELETECONTACT(requestToDelete);
+      if (response.data.success) {
+        toast.success("Contact request deleted successfully");
+        setDeleteConfirmOpen(false);
+        setRequestToDelete(null);
+      } else {
+        toast.error("Failed to delete the contact request. Please try again.");
+      }
     } catch (error) {
       console.error("Error deleting contact request:", error);
       toast.error("Failed to delete the contact request. Please try again.");
+    }
+  };
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    const response = await _UPDATECONTACTSTATUS({id, status});
+    if (response.data.success) {
+      setViewOpen(false);
+      toast.success("Contact request status updated successfully");
+    } else {
+      toast.error("Failed to update the contact request status. Please try again.");
     }
   };
 
@@ -211,7 +181,7 @@ const ContactRequestsPage: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge className="bg-yellow-500">Pending</Badge>;
+        return <Badge className="bg-yellow">Pending</Badge>;
       case "resolved":
         return <Badge className="bg-green-500">Resolved</Badge>;
       case "in-progress":
@@ -220,6 +190,9 @@ const ContactRequestsPage: React.FC = () => {
         return <Badge className="bg-gray-500">Unknown</Badge>;
     }
   };
+
+  const startIndex = (currentPage - 1) * contactRequestsPerPage;
+  const endIndex = startIndex + contactRequestsPerPage;
 
   // Function to generate page numbers for pagination
   const generatePaginationNumbers = () => {
@@ -290,9 +263,8 @@ const ContactRequestsPage: React.FC = () => {
 
       {/* Sidebar - fixed position with proper scrolling */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
@@ -457,6 +429,14 @@ const ContactRequestsPage: React.FC = () => {
                           </TableHead>
                           <TableHead
                             className="cursor-pointer"
+                            onClick={() => handleSort("message")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Message
+                            </div>
+                          </TableHead>
+                          <TableHead
+                            className="cursor-pointer"
                             onClick={() => handleSort("status")}
                           >
                             <div className="flex items-center gap-2">
@@ -490,13 +470,14 @@ const ContactRequestsPage: React.FC = () => {
                       </TableHeader>
                       <TableBody>
                         {displayedRequests.length > 0 ? (
-                          displayedRequests.map((request) => (
+                          displayedRequests.map((request, index) => (
                             <TableRow key={request._id}>
                               <TableCell className="font-medium">
-                                {request.id}
+                                {startIndex + index + 1}
                               </TableCell>
                               <TableCell>{request.name}</TableCell>
                               <TableCell>{request.email}</TableCell>
+                              <TableCell>{request.message}</TableCell>
                               <TableCell>
                                 {getStatusBadge(request.status)}
                               </TableCell>
@@ -636,12 +617,12 @@ const ContactRequestsPage: React.FC = () => {
             </div>
             <DialogFooter className="flex justify-between">
               <div className="flex space-x-2">
-                <Button variant="outline">Mark as Resolved</Button>
-                <Button variant="outline">In Progress</Button>
+                <Button variant="outline" onClick={() => handleUpdateStatus(selectedRequest._id, "resolved")}>Mark as Resolved</Button>
+                <Button variant="outline" onClick={() => handleUpdateStatus(selectedRequest._id, "in-progress")}>In Progress</Button>
               </div>
               <Button variant="outline" onClick={() => setViewOpen(false)}>
                 Close
-              </Button>
+              </Button>           
             </DialogFooter>
           </DialogContent>
         </Dialog>
