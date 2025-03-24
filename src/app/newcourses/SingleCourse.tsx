@@ -53,8 +53,8 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
                 style={{ cursor: "pointer" }}
               >
 
-                <div className={`relative ${isGrid ? 'w-full h-56' : 'w-1/2 h-64 mr-4'}`}>
-                  <span className="absolute right-3 top-3 z-20 inline-flex items-center justify-center rounded-full bg-primary px-3 py-1.5 text-xs font-semibold capitalize text-white dark:text-black">
+                <div className={`relative ${isGrid ? 'rounded-t-md w-full h-56' : 'w-1/2 h-64 mr-4'}`}>
+                  <span className="absolute right-3 top-3 z-20 inline-flex items-center justify-center rounded-full bg-primary px-3 py-1.5 text-xs font-semibold capitalize text-white dark:text-white dark:bg-blue-600">
                     {category ? category : "No Tag"}
                   </span>
 
@@ -62,7 +62,7 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
                     src={thumbnail || (Math.random() < 0.5 ? "/images/blog/blog-details-01.jpg" : "/images/blog/blog-details-02.jpg")}
                     alt={courseName}
                     fill
-                    className="rounded-tl rounded-tr object-cover"
+                    className={` ${isGrid ? 'rounded-t' : 'rounded-l w-1/2 h-64 mr-4'}`}
                     priority
                   />
                 </div>
