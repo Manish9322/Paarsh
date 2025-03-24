@@ -244,8 +244,8 @@ const Courses = () => {
         </section>
 
         {/* ASIDE SECTION */}
-        <aside className="part-2 w-full md:w-1/3 my-8 mr-8 lg:ml-1 sticky top-20 h-fit">
-          {/*TOGGLE BUTTON FOR LIST VIEW */}
+        <aside className="part-2 w-full md:w-1/3 my-8 mr-4 lg:ml-1 sticky top-20 h-fit">
+          
           <div className="w-full flex lg:justify-start sm:justify-center mb-6">
             <div className="sm:w-fit rounded mb-4 flex p-2 border items-center justify-center sm:justify-start sm:p-1">
               <button
@@ -263,7 +263,7 @@ const Courses = () => {
             </div>
           </div>
 
-          {/* Search Bar */}
+          
           <div className="shadow-three dark:bg-gray-dark mb-6 rounded-sm bg-white dark:shadow-none">
             <div className="px-4 py-4 sm:px-6">
               <div className="relative w-full">
@@ -308,7 +308,7 @@ const Courses = () => {
             </div>
           </div>
 
-          {/* POPULAR CATEGORIES */}
+          
           <div className="shadow-three dark:bg-gray-dark mb-10 rounded-sm bg-white dark:shadow-none w-full sm:w-auto">
             <h3 className="border-b border-body-color border-opacity-10 px-4 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white text-center sm:text-left sm:px-8 sm:py-4">
               Popular Categories
