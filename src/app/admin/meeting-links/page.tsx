@@ -188,7 +188,7 @@ const MeetingLinksPage: React.FC = () => {
       setIsLoading(true);
       try {
         // Construct the API URL with query parameters
-        const apiUrl = `/api/meetings?page=${currentPage}&limit=${itemsPerPage}&search=${searchTerm}${selectedFilter !== 'all' ? `&status=${selectedFilter}` : ''}`;
+        let apiUrl = `/api/meetings?page=${currentPage}&limit=${itemsPerPage}&search=${searchTerm}${selectedFilter !== 'all' ? `&status=${selectedFilter}` : ''}`;
         
         if (sortField) {
           apiUrl += `&sortField=${sortField}&sortOrder=${sortOrder}`;
