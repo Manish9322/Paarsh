@@ -27,6 +27,10 @@ function TotalCourses() {
   const { data, error, isLoading } = useFetchUserCourseQuery({});
   const courses: Course[] = data?.purchasedCourses || [];
 
+  const handleStartCourse = (courseId: string) => {
+    router.push(`/course-lecture?courseId=${courseId}`);
+  };
+
   console.log("purchased courses : ", courses);
 
 
@@ -245,6 +249,7 @@ function TotalCourses() {
 
                 <button
                   className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:shadow transition-all duration-300"
+                  onClick={() => handleStartCourse(course._id)}
                 >
                   {Number(course.progress) === 100 ? "Continue" : "Start"}
                   <ChevronRight size={14} className="ml-1" />
