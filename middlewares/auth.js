@@ -8,18 +8,16 @@ import _db from "../utils/db";
 _db();
 
 export function authMiddleware(handler) {
-  return async (req) => {
+  return async (req, context) => {
     // Extract Authorization header
-   let isAdmin = false
+    let isAdmin = false;
     let token;
 
-    
-      // First, check for the Admin-Authorization header
-      token = req.headers.get("admin-authorization")?.replace("Bearer ", "");
-      if (token){
-        isAdmin = true
-      }
-   else {
+    // First, check for the Admin-Authorization header
+    token = req.headers.get("admin-authorization")?.replace("Bearer ", "");
+    if (token) {
+      isAdmin = true;
+    } else {
       // User token from Authorization header
       token = req.headers.get("authorization")?.replace("Bearer ", "");
     }
@@ -27,7 +25,7 @@ export function authMiddleware(handler) {
     if (!token) {
       return NextResponse.json(
         { error: "Unauthorized Access", success: false },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
@@ -44,16 +42,16 @@ export function authMiddleware(handler) {
       if (!user) {
         return NextResponse.json(
           { error: "User not found", success: false },
-          { status: 404 },
+          { status: 404 }
         );
       }
 
       // Remove sensitive data before attaching to request
       const { password, ...sanitizedUser } = user;
-      req.user = { ...sanitizedUser, isAdmin };;
+      req.user = { ...sanitizedUser, isAdmin };
 
-      // Proceed with the request
-      return handler(req);
+      // Pass both request and context to the handler
+      return handler(req, context);
     } catch (error) {
       const errName = error.name;
       const message =
@@ -65,7 +63,7 @@ export function authMiddleware(handler) {
 
       return NextResponse.json(
         { error: message, success: false },
-        { status: 401 },
+        { status: 401 }
       );
     }
   };

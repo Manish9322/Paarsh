@@ -54,6 +54,14 @@ import {
   Check,
   AlertCircle,
 } from "lucide-react";
+import { 
+  useFetchMeetingLinksQuery, 
+  useAddMeetingLinkMutation,
+  useUpdateMeetingLinkMutation,
+  useDeleteMeetingLinkMutation,
+  useGenerateMeetingLinkMutation,
+  useUpdateMeetingStatusMutation
+} from "@/services/api";
 
 // Define Meeting Link type
 interface MeetingLink {
@@ -68,18 +76,24 @@ interface MeetingLink {
   status: "upcoming" | "past" | "cancelled";
   recording?: string;
   createdAt: string;
+  meetingId?: string;
+  passcode?: string;
+  duration?: number;
+  hostUrl?: string;
+  participantUrl?: string;
+  startUrl?: string;
+  joinUrl?: string;
 }
 
 const MeetingLinksPage: React.FC = () => {
-  const [meetingLinks, setMeetingLinks] = useState<MeetingLink[]>([]);
   const [sortField, setSortField] = useState<keyof MeetingLink | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
+  const [itemsPerPage] = useState(10);
   
   // Meeting dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -99,77 +113,39 @@ const MeetingLinksPage: React.FC = () => {
     platform: "Zoom",
     instructor: "",
     recording: "",
+    duration: 60,
   });
   
+  // RTK Query hooks
+  const { data: meetingLinksData, isLoading, refetch } = useFetchMeetingLinksQuery({
+    page: currentPage,
+    limit: itemsPerPage,
+    search: searchTerm,
+    status: selectedFilter !== 'all' ? selectedFilter : undefined,
+    sortField: sortField || undefined,
+    sortOrder: sortOrder
+  });
+
+  console.log("meetingLinksData",meetingLinksData);
+  
+  const [addMeetingLink, { isLoading: isAddingMeeting }] = useAddMeetingLinkMutation();
+  const [updateMeetingLink, { isLoading: isUpdatingMeeting }] = useUpdateMeetingLinkMutation();
+  const [deleteMeetingLink, { isLoading: isDeletingMeeting }] = useDeleteMeetingLinkMutation();
+  const [generateMeetingLink, { isLoading: isGeneratingLink }] = useGenerateMeetingLinkMutation();
+  const [updateMeetingStatus] = useUpdateMeetingStatusMutation();
+  
   const router = useRouter();
-  const itemsPerPage = 10;
-
-  // Mock data for UI demonstration - will be replaced with API calls
-  const mockMeetingLinks: MeetingLink[] = [
-    {
-      _id: "1",
-      title: "JavaScript Fundamentals - Week 1",
-      description: "Introduction to JavaScript variables, functions, and control flow",
-      date: "2023-12-15",
-      time: "10:00 AM - 11:30 AM",
-      link: "https://meet.google.com/abc-defg-hij",
-      platform: "Google Meet",
-      instructor: "John Doe",
-      status: "upcoming",
-      createdAt: "2023-11-01T10:30:00Z",
-    },
-    {
-      _id: "2",
-      title: "React Components Workshop",
-      description: "Hands-on workshop on building reusable React components",
-      date: "2023-12-17",
-      time: "2:00 PM - 4:00 PM",
-      link: "https://zoom.us/j/123456789",
-      platform: "Zoom",
-      instructor: "Jane Smith",
-      status: "upcoming",
-      createdAt: "2023-11-05T15:45:00Z",
-    },
-    {
-      _id: "3",
-      title: "Node.js API Development",
-      description: "Building RESTful APIs with Node.js and Express",
-      date: "2023-11-20",
-      time: "11:00 AM - 12:30 PM",
-      link: "https://teams.microsoft.com/l/meetup-join/abc123",
-      platform: "Microsoft Teams",
-      instructor: "Robert Johnson",
-      status: "past",
-      recording: "https://example.com/recordings/nodejs-api",
-      createdAt: "2023-10-15T11:00:00Z",
-    },
-    {
-      _id: "4",
-      title: "CSS Grid & Flexbox Masterclass",
-      description: "Deep dive into modern CSS layout techniques",
-      date: "2023-10-10",
-      time: "1:00 PM - 2:30 PM",
-      link: "https://zoom.us/j/987654321",
-      platform: "Zoom",
-      instructor: "Sarah Williams",
-      status: "cancelled",
-      createdAt: "2023-09-25T13:00:00Z",
-    },
-    {
-      _id: "5",
-      title: "TypeScript Fundamentals",
-      description: "Introduction to TypeScript types, interfaces, and generics",
-      date: "2023-09-05",
-      time: "10:00 AM - 11:30 AM",
-      link: "https://meet.google.com/xyz-abcd-efg",
-      platform: "Google Meet",
-      instructor: "Michael Brown",
-      status: "past",
-      recording: "https://example.com/recordings/typescript-fundamentals",
-      createdAt: "2023-08-20T10:00:00Z",
-    },
-  ];
-
+  
+  // Extract meeting links and pagination from data
+  const meetingLinks = meetingLinksData?.data?.meetings || [];
+  
+  // Update totalPages when data changes
+  useEffect(() => {
+    if (meetingLinksData?.data?.pagination) {
+      setTotalPages(meetingLinksData.data.pagination.totalPages);
+    }
+  }, [meetingLinksData]);
+  
   // Close sidebar when screen size changes to desktop
   useEffect(() => {
     const handleResize = () => {
@@ -182,71 +158,6 @@ const MeetingLinksPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Simulate API fetch with loading state
-  useEffect(() => {
-    const fetchMeetingLinks = async () => {
-      setIsLoading(true);
-      try {
-        // Construct the API URL with query parameters
-        let apiUrl = `/api/meetings?page=${currentPage}&limit=${itemsPerPage}&search=${searchTerm}${selectedFilter !== 'all' ? `&status=${selectedFilter}` : ''}`;
-        
-        if (sortField) {
-          apiUrl += `&sortField=${sortField}&sortOrder=${sortOrder}`;
-        }
-        
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch meeting links');
-        }
-        
-        setMeetingLinks(data.meetings);
-        setTotalPages(data.pagination.totalPages);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching meeting links:", error);
-        
-        // Fallback to mock data for demo/development
-        setTimeout(() => {
-          let filteredLinks = [...mockMeetingLinks];
-          
-          // Apply filter
-          if (selectedFilter !== "all") {
-            filteredLinks = filteredLinks.filter(link => link.status === selectedFilter);
-          }
-          
-          // Apply search
-          if (searchTerm) {
-            filteredLinks = filteredLinks.filter(
-              link => 
-                link.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                link.instructor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                link.description.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-          }
-          
-          // Apply sorting
-          if (sortField) {
-            filteredLinks.sort((a, b) => {
-              if (a[sortField] < b[sortField]) return sortOrder === "asc" ? -1 : 1;
-              if (a[sortField] > b[sortField]) return sortOrder === "asc" ? 1 : -1;
-              return 0;
-            });
-          }
-          
-          setMeetingLinks(filteredLinks);
-          setTotalPages(Math.ceil(filteredLinks.length / itemsPerPage));
-          setIsLoading(false);
-          
-          toast.error("Using mock data: Failed to connect to the server");
-        }, 1500);
-      }
-    };
-
-    fetchMeetingLinks();
-  }, [currentPage, searchTerm, selectedFilter, sortField, sortOrder, itemsPerPage]);
-
   // Helper functions
   const handleSort = (field: keyof MeetingLink) => {
     if (sortField === field) {
@@ -257,42 +168,31 @@ const MeetingLinksPage: React.FC = () => {
     }
   };
   
-  // Replace the generateMeetingLink function with a proper API call
-  const generateMeetingLink = async (platform: string) => {
+  // Function to generate real-time meeting link
+  const generateRealTimeMeetingLink = async (platform: string) => {
     try {
-      setIsLoading(true);
-      // Make API call to create a real meeting on the backend
-      const response = await fetch('/api/meetings/create-link', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          platform,
-          date: formData.date || new Date().toISOString().split('T')[0],
-          time: formData.time || '10:00 AM - 11:30 AM',
-          title: formData.title || 'Untitled Meeting',
-        }),
-      });
-
-      const data = await response.json();
+      const response = await generateMeetingLink({
+        platform,
+        title: formData.title || 'Untitled Meeting',
+        date: formData.date || new Date().toISOString().split('T')[0],
+        time: formData.time || '10:00',
+        duration: formData.duration || 60
+      }).unwrap();
       
-      if (!response.ok) {
-        toast.error(data.message || 'Failed to generate meeting link');
+      if (response.success && response.meetingLink) {
+        return response.meetingLink;
+      } else {
+        toast.error(response.message || 'Failed to generate meeting link');
         return formData.link || '';
       }
-      
-      setIsLoading(false);
-      return data.meetingLink;
     } catch (error) {
       console.error('Error generating meeting link:', error);
       toast.error('Failed to connect to meeting service. Using placeholder link instead.');
-      setIsLoading(false);
       
       // Fallback to placeholder if API fails
       const placeholderInfo = {
         id: Math.floor(100000000 + Math.random() * 900000000),
-        passcode: crypto.randomUUID().substring(0, 8)
+        passcode: Math.random().toString(36).substring(2, 10)
       };
       
       switch(platform) {
@@ -310,7 +210,6 @@ const MeetingLinksPage: React.FC = () => {
 
   // Update handleSelectChange to handle async function
   const handleSelectChange = async (value: string) => {
-    setIsLoading(true);
     // Update platform immediately for better UX
     setFormData(prev => ({
       ...prev,
@@ -318,21 +217,18 @@ const MeetingLinksPage: React.FC = () => {
     }));
     
     // Generate a new link based on the selected platform
-    const newLink = await generateMeetingLink(value);
+    const newLink = await generateRealTimeMeetingLink(value);
     
     // Update link in form data
     setFormData(prev => ({
       ...prev,
       link: newLink
     }));
-    
-    setIsLoading(false);
   };
 
   // Update handleCreateMeeting to be async
   const handleCreateMeeting = async () => {
     const defaultPlatform = "Zoom";
-    setIsLoading(true);
     
     // Reset form data with default values
     setFormData({
@@ -344,21 +240,20 @@ const MeetingLinksPage: React.FC = () => {
       platform: defaultPlatform,
       instructor: "",
       recording: "",
+      duration: 60,
     });
     
     // Open dialog right away for better UX
     setCreateDialogOpen(true);
     
     // Generate link in background
-    const newLink = await generateMeetingLink(defaultPlatform);
+    const newLink = await generateRealTimeMeetingLink(defaultPlatform);
     
     // Update form with the generated link
     setFormData(prev => ({
       ...prev,
       link: newLink
     }));
-    
-    setIsLoading(false);
   };
   
   const handleEditMeeting = (meeting: MeetingLink) => {
@@ -366,12 +261,13 @@ const MeetingLinksPage: React.FC = () => {
     setFormData({
       title: meeting.title,
       description: meeting.description,
-      date: meeting.date,
+      date: new Date(meeting.date).toISOString().split('T')[0],
       time: meeting.time,
       link: meeting.link,
       platform: meeting.platform,
       instructor: meeting.instructor,
       recording: meeting.recording || "",
+      duration: meeting.duration || 60,
     });
     setEditDialogOpen(true);
   };
@@ -391,32 +287,14 @@ const MeetingLinksPage: React.FC = () => {
     if (!selectedMeeting) return;
     
     try {
-      setIsLoading(true);
+      await deleteMeetingLink(selectedMeeting._id).unwrap();
       
-      const response = await fetch(`/api/meetings/${selectedMeeting._id}`, {
-        method: "DELETE",
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete meeting link');
-      }
-      
-      setMeetingLinks(prevLinks => prevLinks.filter(link => link._id !== selectedMeeting._id));
       toast.success("Meeting link deleted successfully");
       setDeleteDialogOpen(false);
-      setIsLoading(false);
+      refetch();
     } catch (error) {
       console.error("Error deleting meeting link:", error);
-      
-      // Fallback behavior for demo/development
-      setTimeout(() => {
-        setMeetingLinks(prevLinks => prevLinks.filter(link => link._id !== selectedMeeting._id));
-        toast.success("Meeting link deleted successfully");
-        setDeleteDialogOpen(false);
-        setIsLoading(false);
-      }, 800);
+      toast.error("Failed to delete meeting link");
     }
   };
   
@@ -424,15 +302,13 @@ const MeetingLinksPage: React.FC = () => {
   const handleSubmitMeeting = async (isEditing: boolean = false) => {
     try {
       // Validate form
-      const requiredFields = ["title", "description", "date", "time", "link", "platform", "instructor"];
+      const requiredFields = ["title", "description", "date", "time", "platform", "instructor"];
       const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
       
       if (missingFields.length > 0) {
         toast.error(`Please fill in all required fields: ${missingFields.join(", ")}`);
         return;
       }
-      
-      setIsLoading(true);
       
       // Format the data with proper typing
       const meetingData = {
@@ -441,51 +317,28 @@ const MeetingLinksPage: React.FC = () => {
         status: isEditing ? selectedMeeting?.status : "upcoming",
       };
       
-      // Make API call to save the meeting
-      const url = isEditing 
-        ? `/api/meetings/${selectedMeeting?._id}` 
-        : "/api/meetings";
-      
-      const method = isEditing ? "PUT" : "POST";
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(meetingData),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        toast.error(data.message || `Failed to ${isEditing ? "update" : "create"} meeting link`);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Update the UI with the new data
       if (isEditing && selectedMeeting) {
-        setMeetingLinks(prevLinks => 
-          prevLinks.map(link => 
-            link._id === selectedMeeting._id 
-              ? { ...data.meeting } as MeetingLink
-              : link
-          )
-        );
+        // Update existing meeting
+        await updateMeetingLink({
+          id: selectedMeeting._id,
+          ...meetingData
+        }).unwrap();
+        
         toast.success("Meeting link updated successfully");
         setEditDialogOpen(false);
       } else {
-        setMeetingLinks(prevLinks => [data.meeting as MeetingLink, ...prevLinks]);
+        // Create new meeting
+        await addMeetingLink(meetingData).unwrap();
+        
         toast.success("Meeting link created successfully");
         setCreateDialogOpen(false);
       }
       
-      setIsLoading(false);
+      // Refresh the meeting list
+      refetch();
     } catch (error) {
       console.error(`Error ${isEditing ? "updating" : "creating"} meeting link:`, error);
       toast.error(`Failed to ${isEditing ? "update" : "create"} meeting link. Please try again.`);
-      setIsLoading(false);
     }
   };
   
@@ -634,9 +487,19 @@ const MeetingLinksPage: React.FC = () => {
               <Button 
                 onClick={handleCreateMeeting}
                 className="w-full md:w-auto"
+                disabled={isGeneratingLink}
               >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Meeting Link
+                {isGeneratingLink ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Meeting Link
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -651,12 +514,22 @@ const MeetingLinksPage: React.FC = () => {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {mockMeetingLinks.length}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  +2 from last week
-                </p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-20" />
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">
+                      {meetingLinksData?.data?.pagination?.totalItems || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {meetingLinksData?.data?.stats?.growth?.total > 0
+                        ? `+${meetingLinksData.data.stats.growth.total} from last week`
+                        : meetingLinksData?.data?.stats?.growth?.total < 0
+                        ? `${meetingLinksData.data.stats.growth.total} from last week`
+                        : "No change from last week"}
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
             <Card>
@@ -667,12 +540,22 @@ const MeetingLinksPage: React.FC = () => {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {mockMeetingLinks.filter(m => m.status === "upcoming").length}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  +1 from yesterday
-                </p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-20" />
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">
+                      {meetingLinksData?.data?.stats?.upcoming || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {meetingLinksData?.data?.stats?.growth?.upcoming > 0
+                        ? `+${meetingLinksData.data.stats.growth.upcoming} from last week`
+                        : meetingLinksData?.data?.stats?.growth?.upcoming < 0
+                        ? `${meetingLinksData.data.stats.growth.upcoming} from last week`
+                        : "No change from last week"}
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
             <Card>
@@ -683,12 +566,22 @@ const MeetingLinksPage: React.FC = () => {
                 <Video className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {mockMeetingLinks.filter(m => m.status === "past" && m.recording).length}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  +3 this month
-                </p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-20" />
+                ) : (
+                  <>
+                    <div className="text-2xl font-bold">
+                      {meetingLinksData?.data?.stats?.recordings || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {meetingLinksData?.data?.stats?.growth?.recordings > 0
+                        ? `+${meetingLinksData.data.stats.growth.recordings} this month`
+                        : meetingLinksData?.data?.stats?.growth?.recordings < 0
+                        ? `${meetingLinksData.data.stats.growth.recordings} this month`
+                        : "No change this month"}
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -1030,29 +923,50 @@ const MeetingLinksPage: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="link">Meeting Link* (Auto-generated)</Label>
-                <Input
-                  id="link"
-                  name="link"
-                  placeholder="Meeting link will be auto-generated"
-                  value={formData.link}
-                  readOnly
-                />
+                {isGeneratingLink ? (
+                  <div className="flex h-10 items-center rounded-md border border-input bg-gray-100 px-3">
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin text-gray-500" />
+                    <span className="text-sm text-gray-500">Generating link...</span>
+                  </div>
+                ) : (
+                  <Input
+                    id="link"
+                    name="link"
+                    placeholder="Meeting link will be auto-generated"
+                    value={formData.link}
+                    readOnly
+                  />
+                )}
               </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="duration">Duration (minutes)*</Label>
+              <Input
+                id="duration"
+                name="duration"
+                type="number"
+                min="15"
+                max="240"
+                placeholder="60"
+                value={formData.duration}
+                onChange={handleInputChange}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setCreateDialogOpen(false)}
-              disabled={isLoading}
+              disabled={isAddingMeeting || isGeneratingLink}
             >
               Cancel
             </Button>
             <Button 
               onClick={() => handleSubmitMeeting(false)}
-              disabled={isLoading}
+              disabled={isAddingMeeting || isGeneratingLink}
             >
-              {isLoading ? (
+              {isAddingMeeting ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   Creating...
@@ -1151,14 +1065,35 @@ const MeetingLinksPage: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-link">Meeting Link* (Auto-generated)</Label>
-                <Input
-                  id="edit-link"
-                  name="link"
-                  placeholder="Meeting link will be auto-generated"
-                  value={formData.link}
-                  readOnly
-                />
+                {isGeneratingLink ? (
+                  <div className="flex h-10 items-center rounded-md border border-input bg-gray-100 px-3">
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin text-gray-500" />
+                    <span className="text-sm text-gray-500">Generating link...</span>
+                  </div>
+                ) : (
+                  <Input
+                    id="edit-link"
+                    name="link"
+                    placeholder="Meeting link will be auto-generated"
+                    value={formData.link}
+                    readOnly
+                  />
+                )}
               </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-duration">Duration (minutes)*</Label>
+              <Input
+                id="edit-duration"
+                name="duration"
+                type="number"
+                min="15"
+                max="240"
+                placeholder="60"
+                value={formData.duration}
+                onChange={handleInputChange}
+              />
             </div>
             
             {selectedMeeting?.status === "past" && (
@@ -1178,15 +1113,15 @@ const MeetingLinksPage: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => setEditDialogOpen(false)}
-              disabled={isLoading}
+              disabled={isUpdatingMeeting || isGeneratingLink}
             >
               Cancel
             </Button>
             <Button 
               onClick={() => handleSubmitMeeting(true)}
-              disabled={isLoading}
+              disabled={isUpdatingMeeting || isGeneratingLink}
             >
-              {isLoading ? (
+              {isUpdatingMeeting ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   Updating...
@@ -1239,7 +1174,7 @@ const MeetingLinksPage: React.FC = () => {
                   {selectedMeeting.status === "upcoming" && (
                     <Button
                       size="sm"
-                      onClick={() => window.open(selectedMeeting.link, "_blank")}
+                      onClick={() => window.open(selectedMeeting.joinUrl || selectedMeeting.link, "_blank")}
                     >
                       <LinkIcon size={16} className="mr-2" />
                       Open Link
@@ -1265,8 +1200,8 @@ const MeetingLinksPage: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Meeting Link</p>
                     <p className="font-medium text-blue-600 hover:underline">
-                      <a href={selectedMeeting.link} target="_blank" rel="noopener noreferrer">
-                        {selectedMeeting.link}
+                      <a href={selectedMeeting.joinUrl || selectedMeeting.link} target="_blank" rel="noopener noreferrer">
+                        {selectedMeeting.joinUrl || selectedMeeting.link}
                       </a>
                     </p>
                   </div>
@@ -1303,23 +1238,49 @@ const MeetingLinksPage: React.FC = () => {
               )}
             </div>
             <DialogFooter>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setViewDialogOpen(false)}
-                >
-                  Close
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setViewDialogOpen(false);
-                    handleEditMeeting(selectedMeeting);
-                  }}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
+              <div className="flex gap-2 justify-between w-full">
+                <div>
+                  {selectedMeeting.status === "upcoming" && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={async () => {
+                        try {
+                          await updateMeetingStatus({
+                            id: selectedMeeting._id,
+                            status: "cancelled"
+                          }).unwrap();
+                          toast.success("Meeting cancelled successfully");
+                          setViewDialogOpen(false);
+                          refetch();
+                        } catch (error) {
+                          console.error("Error cancelling meeting:", error);
+                          toast.error("Failed to cancel meeting");
+                        }
+                      }}
+                    >
+                      Cancel Meeting
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setViewDialogOpen(false)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setViewDialogOpen(false);
+                      handleEditMeeting(selectedMeeting);
+                    }}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                </div>
               </div>
             </DialogFooter>
           </DialogContent>
@@ -1349,16 +1310,16 @@ const MeetingLinksPage: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
-              disabled={isLoading}
+              disabled={isDeletingMeeting}
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={confirmDelete}
-              disabled={isLoading}
+              disabled={isDeletingMeeting}
             >
-              {isLoading ? (
+              {isDeletingMeeting ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   Deleting...

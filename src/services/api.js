@@ -38,6 +38,7 @@ export const paarshEduApi = createApi({
     "CourseVideo",
     "Payment",
     "Contact",
+    "MeetingLink",
   ],
 
   endpoints: (builder) => ({
@@ -304,7 +305,66 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Contact"],
     }),
 
+    // ------------------------------------------------------------Meeting Links Apis------------------------------------------------
 
+    addMeetingLink: builder.mutation({
+      query: (formData) => ({
+        url: "/meeting-links",
+        method: "POST", 
+        body: formData,
+      }),
+      invalidatesTags: ["MeetingLink"],
+    }),
+
+    updateMeetingLink: builder.mutation({
+      query: (formData) => ({
+        url: `/meeting-links/${formData.id}`,
+        method: "PUT",
+        body: formData,
+      }),
+      invalidatesTags: ["MeetingLink"],
+    }),
+
+    deleteMeetingLink: builder.mutation({
+      query: (id) => ({
+        url: `/meeting-links/${id}`,
+        method: "DELETE",
+        body: {id}, 
+      }),
+      invalidatesTags: ["MeetingLink"],
+    }),
+
+    fetchMeetingLinks: builder.query({
+      query: (params) => ({
+        url: "/meeting-links",
+        params: params,
+      }),
+      providesTags: ["MeetingLink"],
+    }),
+
+    fetchMeetingLinkById: builder.query({
+      query: (id) => `/meeting-links/${id}`,
+      providesTags: ["MeetingLink"],
+    }),
+
+    // Endpoint for generating real-time meeting links
+    generateMeetingLink: builder.mutation({
+      query: (meetingData) => ({
+        url: "/meeting-links/generate",
+        method: "POST",
+        body: meetingData,
+      }),
+    }),
+
+    // Endpoint for updating meeting status
+    updateMeetingStatus: builder.mutation({
+      query: (data) => ({
+        url: `/meeting-links/${data.id}`,
+        method: "PATCH",
+        body: { status: data.status },
+      }),
+      invalidatesTags: ["MeetingLink"],
+    }),
   }),
 });
 
@@ -350,5 +410,13 @@ export const {
   useUpdateContactStatusMutation,
   useDeleteContactMutation,
   useAddContactMutation,
+
+  useAddMeetingLinkMutation,
+  useUpdateMeetingLinkMutation,
+  useDeleteMeetingLinkMutation,
+  useFetchMeetingLinksQuery,
+  useFetchMeetingLinkByIdQuery,
+  useGenerateMeetingLinkMutation,
+  useUpdateMeetingStatusMutation,
 
 } = paarshEduApi;
