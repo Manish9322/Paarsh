@@ -267,7 +267,7 @@ export const paarshEduApi = createApi({
 
     fetchUserCourse: builder.query({
       query: () => "/user/courses",
-      providesTags: ["Course"],
+      providesTags: ["Course", "User"],
     }),
 
     // --------------------------------------------------------------------------------------------------------------
