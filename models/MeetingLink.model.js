@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
 
-const meetingLinkSchema = new Schema(
+const meetingLinkSchema = new mongoose.Schema(
   {
     title: {
       type: String,
@@ -57,21 +56,77 @@ const meetingLinkSchema = new Schema(
       ref: "Admin",
       required: true,
     },
+    meetingId: {
+      type: String,
+      trim: true,
+    },
+    passcode: {
+      type: String,
+      trim: true,
+    },
+    duration: {
+      type: Number, // in minutes
+      default: 60,
+    },
+    hostUrl: {
+      type: String,
+      trim: true,
+    },
+    participantUrl: {
+      type: String,
+      trim: true,
+    },
+    startUrl: {
+      type: String,
+      trim: true,
+    },
+    joinUrl: {
+      type: String,
+      trim: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );
 
-// Virtual property to automatically determine if meeting is upcoming or past
 meetingLinkSchema.virtual("computedStatus").get(function () {
   const meetingDate = new Date(this.date);
+  meetingDate.setHours(
+    parseInt(this.time.split(":"[0])),
+    parseInt(this.time.split(":"[1] || 0))
+  );
+  
   const today = new Date();
   
   if (this.status === "cancelled") return "cancelled";
-  return meetingDate >= today ? "upcoming" : "past";
+  
+  const meetingEndTime = new Date(meetingDate);
+  meetingEndTime.setMinutes(meetingEndTime.getMinutes() + (this.duration || 60));
+  
+  return meetingEndTime < today ? "past" : "upcoming";
 });
 
-// Set the virtuals on toJSON
-meetingLinkSchema.set("toJSON", { virtuals: true });
-meetingLinkSchema.set("toObject", { virtuals: true });
+meetingLinkSchema.pre("save", function (next) {
+  if (this.status !== "cancelled") {
+    const meetingDate = new Date(this.date);
+    const today = new Date();
+    
+    if (meetingDate < today) {
+      this.status = "past";
+    } else {
+      this.status = "upcoming";
+    }
+  }
+  next();
+});
 
-module.exports = mongoose.model("MeetingLink", meetingLinkSchema); 
+const MeetingLinkModel = mongoose.models.MeetingLink || mongoose.model("MeetingLink", meetingLinkSchema);
+
+module.exports = MeetingLinkModel;

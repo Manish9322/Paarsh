@@ -3,187 +3,207 @@ import _db from "../../../../../utils/db";
 import MeetingLink from "../../../../../models/MeetingLink.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 
+
 _db();
 
-// GET a single meeting link by ID
-export async function GET(req, { params }) {
+// GET single meeting link
+export const GET = authMiddleware(async (req, { params }) => {
   try {
-    const id = params.id;
-    
-    const meetingLink = await MeetingLink.findOne({ _id: id, isDeleted: false });
-    
+    await dbConnect();
+    const meetingLink = await MeetingLink.findOne({
+      _id: params.id,
+      isDeleted: false,
+    });
+
     if (!meetingLink) {
       return NextResponse.json(
-        { success: false, message: "Meeting link not found" },
+        { success: false, error: "Meeting link not found" },
         { status: 404 }
       );
     }
-    
-    // Update status based on date if needed
+
+    // Update status if needed
+    const now = new Date();
     const meetingDate = new Date(meetingLink.date);
-    const today = new Date();
-    
-    if (meetingLink.status !== "cancelled" && meetingDate < today && meetingLink.status !== "past") {
+    const meetingTime = meetingLink.time.split(" - ")[0];
+    const [hours, minutes] = meetingTime.split(":");
+    meetingDate.setHours(parseInt(hours), parseInt(minutes), 0);
+
+    if (now > meetingDate && meetingLink.status === "upcoming") {
       meetingLink.status = "past";
       await meetingLink.save();
     }
-    
-    return NextResponse.json({ success: true, data: meetingLink });
+
+    return NextResponse.json({
+      success: true,
+      message: "Meeting link fetched successfully",
+      data: meetingLink,
+    });
   } catch (error) {
     console.error("Error fetching meeting link:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to fetch meeting link", error: error.message },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
-}
+});
 
 // PUT update a meeting link (admin only)
-export async function PUT(req, { params }) {
+export const PUT = authMiddleware(async (req, { params }) => {
   try {
-    // Verify admin authentication
-    const authResult = await authMiddleware(req, ["admin"]);
-    if (!authResult.success) {
+    const { user } = req;
+    if (!user.isAdmin) {
       return NextResponse.json(
-        { success: false, message: authResult.message },
-        { status: authResult.status }
+        { success: false, error: "Unauthorized access" },
+        { status: 403 }
       );
     }
+
     
-    await dbConnect();
-    const id = params.id;
-    const body = await req.json();
-    
-    const meetingLink = await MeetingLink.findOne({ _id: id, isDeleted: false });
-    
+    const meetingLink = await MeetingLink.findOne({
+      _id: params.id,
+      isDeleted: false,
+    });
+
     if (!meetingLink) {
       return NextResponse.json(
-        { success: false, message: "Meeting link not found" },
+        { success: false, error: "Meeting link not found" },
         { status: 404 }
       );
     }
-    
-    // Update fields
+
+    const body = await req.json();
     const updatedFields = [
-      "title", "description", "date", "time", "link", 
-      "platform", "instructor", "status", "recording"
+      "title",
+      "description",
+      "date",
+      "time",
+      "link",
+      "platform",
+      "instructor",
+      "status",
+      "recording",
+      "duration",
+      "meetingId",
+      "passcode",
+      "hostUrl",
+      "participantUrl",
+      "startUrl",
+      "joinUrl"
     ];
-    
-    updatedFields.forEach(field => {
+
+    updatedFields.forEach((field) => {
       if (body[field] !== undefined) {
         meetingLink[field] = body[field];
       }
     });
-    
+
     await meetingLink.save();
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: "Meeting link updated successfully", 
-      data: meetingLink 
+
+    return NextResponse.json({
+      success: true,
+      message: "Meeting link updated successfully",
+      data: meetingLink,
     });
   } catch (error) {
     console.error("Error updating meeting link:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to update meeting link", error: error.message },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
-}
+});
 
-// PATCH to update the status (admin only)
-export async function PATCH(req, { params }) {
+// PATCH update meeting status (admin only)
+export const PATCH = authMiddleware(async (req, { params }) => {
   try {
-    // Verify admin authentication
-    const authResult = await authMiddleware(req, ["admin"]);
-    if (!authResult.success) {
+    const { user } = req;
+    if (!user.isAdmin) {
       return NextResponse.json(
-        { success: false, message: authResult.message },
-        { status: authResult.status }
+        { success: false, error: "Unauthorized access" },
+        { status: 403 }
       );
     }
-    
-    await dbConnect();
-    const id = params.id;
-    const body = await req.json();
-    
-    if (!body.status || !["upcoming", "past", "cancelled"].includes(body.status)) {
+
+    const meetingLink = await MeetingLink.findOne({
+      _id: params.id,
+      isDeleted: false,
+    });
+
+    if (!meetingLink) {
       return NextResponse.json(
-        { success: false, message: "Invalid status provided" },
+        { success: false, error: "Meeting link not found" },
+        { status: 404 }
+      );
+    }
+
+    const { status, recording } = await req.json();
+
+    if (!["upcoming", "past", "cancelled"].includes(status)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid status" },
         { status: 400 }
       );
     }
-    
-    const meetingLink = await MeetingLink.findOne({ _id: id, isDeleted: false });
-    
-    if (!meetingLink) {
-      return NextResponse.json(
-        { success: false, message: "Meeting link not found" },
-        { status: 404 }
-      );
+
+    meetingLink.status = status;
+    if (recording) {
+      meetingLink.recording = recording;
     }
-    
-    // Update status
-    meetingLink.status = body.status;
-    
-    // If adding a recording for past meetings
-    if (body.recording && meetingLink.status === "past") {
-      meetingLink.recording = body.recording;
-    }
-    
+
     await meetingLink.save();
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: "Meeting link status updated successfully", 
-      data: meetingLink 
+
+    return NextResponse.json({
+      success: true,
+      message: "Meeting status updated successfully",
+      data: meetingLink,
     });
   } catch (error) {
-    console.error("Error updating meeting link status:", error);
+    console.error("Error updating meeting status:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to update meeting link status", error: error.message },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
-}
+});
 
-// DELETE a meeting link (soft delete) (admin only)
-export async function DELETE(req, { params }) {
+// DELETE meeting link (admin only)
+export const DELETE = authMiddleware(async (req, { params }) => {
   try {
-    // Verify admin authentication
-    const authResult = await authMiddleware(req, ["admin"]);
-    if (!authResult.success) {
+    const { user } = req;
+    if (!user.isAdmin) {
       return NextResponse.json(
-        { success: false, message: authResult.message },
-        { status: authResult.status }
+        { success: false, error: "Unauthorized access" },
+        { status: 403 }
       );
     }
-    
-    await dbConnect();
-    const id = params.id;
-    
-    const meetingLink = await MeetingLink.findOne({ _id: id, isDeleted: false });
-    
+
+
+    const meetingLink = await MeetingLink.findOne({
+      _id: params.id,
+      isDeleted: false,
+    });
+
     if (!meetingLink) {
       return NextResponse.json(
-        { success: false, message: "Meeting link not found" },
+        { success: false, error: "Meeting link not found" },
         { status: 404 }
       );
     }
-    
-    // Soft delete
+
     meetingLink.isDeleted = true;
     await meetingLink.save();
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: "Meeting link deleted successfully" 
+
+    return NextResponse.json({
+      success: true,
+      message: "Meeting link deleted successfully",
+      data: meetingLink,
     });
   } catch (error) {
     console.error("Error deleting meeting link:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to delete meeting link", error: error.message },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
-} 
+}); 
