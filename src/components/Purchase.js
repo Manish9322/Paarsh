@@ -143,10 +143,10 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm dark:bg-black/70">
-      <div className="relative w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-gray-900">
+      <div className="relative w-full md:max-w-5xl max-h-[85vh] overflow-auto md:overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-gray-900">
         {/* Close button */}
         <button 
-          className="absolute right-4 top-4 z-10 rounded-full bg-gray-100 p-2 text-gray-600 transition-all hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          className="absolute right-4 top-4 z-50 rounded-full bg-gray-100 p-2 text-gray-600 transition-all hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           onClick={handleClose}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

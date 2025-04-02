@@ -281,7 +281,7 @@ const DownloadSyllabus: React.FC<DownloadSyllabusProps> = ({ courseName }) => {
     };
 
     return (
-        <div className="fixed bottom-8 right-20 z-[50]">
+        <div className="fixed bottom-8 right-20 z-[20]">
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                     <Button 
