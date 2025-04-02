@@ -17,11 +17,13 @@ import {
 import { useAddCourseVideoMutation } from "@/services/api";
 import { useState } from "react";
 
-const AddCourseModal = ({ isOpen, onClose, onAddCourse, selectedCourse }) => {
+const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   const dispatch = useDispatch();
+  const selectedCourse = useSelector((state) => state.course);
   const courseData = useSelector((state) => state.coursevideo);
   const [createCourse, { isLoading }] = useAddCourseVideoMutation();
   const [videoUploads, setVideoUploads] = useState({});
+  console.log("selected course is for the video : ", selectedCourse);
 
   // Function to convert file to base64
   const convertToBase64 = (file) => {

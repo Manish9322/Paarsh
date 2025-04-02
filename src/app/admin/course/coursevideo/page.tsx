@@ -551,8 +551,7 @@ const CourseVideoPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddCourse={handleAddCourse} // Pass the callback to the modal
-        selectedCourse={undefined}
-      />
+             />
     </div>
   );
 };

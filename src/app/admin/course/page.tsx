@@ -195,6 +195,10 @@ const CoursePage: React.FC = () => {
     dispatch(setSelectedCourse(course));
   };
 
+  const handleAddlecture = (course: Course) => {
+    dispatch(setSelectedCourse(course));
+  }
+
   const handleViewCourse = (course: Course) => {
     dispatch(setSelectedCourse(course));
   };
@@ -352,7 +356,7 @@ const CoursePage: React.FC = () => {
                                   size="sm"
                                   className="h-8 w-auto rounded bg-blue-600 px-2 text-xs text-white transition hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 sm:px-3 sm:text-sm"
                                   onClick={() => {
-                                    setSelectedCourse(course);
+                                    handleAddlecture(course);
                                     setIsModalOpen(true);
                                   }}
                                 >
@@ -594,7 +598,6 @@ const CoursePage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAddCourse={handleAddCourse}
-        selectedCourse={selectedCourse}
       />
     </div>
   );
