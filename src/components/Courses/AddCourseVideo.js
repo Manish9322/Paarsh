@@ -132,7 +132,6 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
               <Input
                 type="text"
                 placeholder="Topic Name"
-                value={topic.topicName}
                 onChange={(e) =>
                   dispatch(
                     updateTopicName({
@@ -150,7 +149,6 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                   <Input
                     type="text"
                     placeholder="Video Name"
-                    value={video.videoName}
                     onChange={(e) =>
                       dispatch(
                         updateVideoName({

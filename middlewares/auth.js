@@ -7,20 +7,20 @@ import _db from "../utils/db";
 
 _db();
 
-export function authMiddleware(handler) {
+export function authMiddleware(handler , isAdmin = false) {
   return async (req, context) => {
-    // Extract Authorization header
-    let isAdmin = false;
-    let token;
+      // Extract Authorization header
 
-    // First, check for the Admin-Authorization header
-    token = req.headers.get("admin-authorization")?.replace("Bearer ", "");
-    if (token) {
-      isAdmin = true;
-    } else {
-      // User token from Authorization header
-      token = req.headers.get("authorization")?.replace("Bearer ", "");
-    }
+      let token;
+  
+      if (isAdmin) {
+        // Admin token from cookies
+        token = req.headers.get("admin-authorization")?.replace("Bearer ", "");
+      } else {
+        // User token from Authorization header
+        token = req.headers.get("authorization")?.replace("Bearer ", "");
+      }
+  
 
     if (!token) {
       return NextResponse.json(
