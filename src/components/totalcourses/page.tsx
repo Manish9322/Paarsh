@@ -28,7 +28,8 @@ function TotalCourses() {
   const courses: Course[] = data?.purchasedCourses || [];
 
   const handleStartCourse = (courseId: string) => {
-    router.push(`/course-lecture?courseId=${courseId}`);
+    // router.push(`/course-lecture?courseId=${courseId}`);
+    router.push(`/course-lecture/${courseId}`);
   };
 
   console.log("purchased courses : ", courses);
