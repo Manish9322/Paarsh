@@ -248,6 +248,21 @@ export const paarshEduApi = createApi({
       }),
     }),
 
+    fetchCourseVideo: builder.query({
+       query: () => "/course/videos",
+       providesTags: ["CourseVideo"],             
+    }),
+
+    fetchCourseVideoById: builder.query({
+      query: (params) => `/course/videos?courseId=${params.courseId}`,
+      providesTags: ['CourseVideo'],
+    }),
+
+    deleteCourseVideo: builder.mutation({
+      query: (id) => ({ url: "/course/videos", method: "DELETE", body: id }),
+      invalidatesTags: ["CourseVideo"],
+    }),
+
     //----------------------------------Payment ------------------------------------------------------------------------------
     createOrder: builder.mutation({
       query: ({ userId, courseId, amount }) => ({
@@ -400,6 +415,9 @@ export const {
   useDeleteSubCategoriesMutation,
 
   useAddCourseVideoMutation,
+  useFetchCourseVideoQuery,
+  useFetchCourseVideoByIdQuery,
+  useDeleteCourseVideoMutation,
 
   useFetchUserCourseQuery,
 

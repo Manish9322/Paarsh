@@ -6,8 +6,8 @@ const initialState = {
   topics: [],
 };
 
-const courseSlice = createSlice({
-  name: "course",
+const courseVideoSlice = createSlice({
+  name: "courseVideo",
   initialState,
   reducers: {
     setCourseField: (state, action) => {
@@ -78,6 +78,6 @@ export const {
   updateVideoId,
   removeVideoFromTopic,
   removeTopic,
-} = courseSlice.actions;
+} = courseVideoSlice.actions;
 
-export default courseSlice.reducer;
+export default courseVideoSlice.reducer;

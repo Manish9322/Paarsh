@@ -19,7 +19,7 @@ const rootReducer = combineReducers({
   category: categoryReducer,
   subcategory: subCategoryReducer,
   userAuth: userAuthReducer,
-  coursevideo: courseVideoReducer,
+  courseVideo: courseVideoReducer,
   payment: paymentReducer,
 
   [paarshEduApi.reducerPath]: paarshEduApi.reducer, // Include RTK Query API slice
