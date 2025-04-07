@@ -1,3 +1,11 @@
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '100mb', // Adjust this limit as needed
+    },
+  },
+};
+
 import { NextResponse } from "next/server";
 import CourseVideoModel from "../../../../../models/Courses/CouresVideo.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
