@@ -83,7 +83,7 @@ export const POST = authMiddleware(async (req) => {
   }
 }, true);
 
-export const GET = authMiddleware(async (req) => {
+export const GET = async (req) => {
   try {
     const { user } = req;
     
@@ -119,4 +119,4 @@ export const GET = authMiddleware(async (req) => {
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-});
+};
