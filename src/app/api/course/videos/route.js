@@ -1,11 +1,3 @@
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '100mb', // Adjust this limit as needed
-    },
-  },
-};
-
 import { NextResponse } from "next/server";
 import CourseVideoModel from "../../../../../models/Courses/CouresVideo.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
@@ -83,7 +75,7 @@ export const POST = authMiddleware(async (req) => {
   }
 }, true);
 
-export const GET = async (req) => {
+export const GET = authMiddleware(async (req) => {
   try {
     const { user } = req;
     
@@ -119,4 +111,4 @@ export const GET = async (req) => {
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-};
+});
