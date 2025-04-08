@@ -4,6 +4,14 @@ import { authMiddleware } from "../../../../../middlewares/auth";
 import _db from "../../../../../utils/db";
 import { uploadFileToVPS } from "../../../../../utils/uploadfile"; // Import the VPS upload function
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '500mb' // Increase size limit for large video uploads
+    }
+  }
+};
+
 _db();
 
 export const POST = authMiddleware(async (req) => {
