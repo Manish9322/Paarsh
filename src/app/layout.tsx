@@ -42,6 +42,10 @@ useEffect(() => {
     <html suppressHydrationWarning lang="en">
        <head>
         <link rel="manifest" href="/manifest.json" />
+        <meta
+          name="google-site-verification"
+          content="SJK3Jxq1TFmLKiRR9oEByekMdQJn4xaK8OAW0xfij1g"
+        />
       </head>
       
       <body className={`bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
