@@ -177,103 +177,122 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   };
 
   // Handle file upload and conversion to base64
-  const handleFileUpload = async (e, topicId, videoId) => {
-    try {
-      const file = e.target.files[0];
-      if (!file) return;
-      
-      // Check if file is a video
-      if (!file.type.startsWith('video/')) {
-        toast.error("Please upload a video file");
-        return;
-      }
-      
-      // Check file size (limit to 100MB)
-      if (file.size > 100 * 1024 * 1024) {
-        toast.error("File size should be less than 100MB");
-        return;
-      }
-
-      // Show loading toast
-      const toastId = toast.loading("Converting video...");
-      
-      // Convert to base64
-      const base64 = await convertToBase64(file);
-      
-      // Update state with file name for display
-      setVideoUploads(prev => ({
-        ...prev,
-        [`${topicId}-${videoId}`]: {
-          name: file.name,
-          preview: base64
-        }
-      }));
-      
-      // Update Redux store with base64 data
-      dispatch(
-        updateVideoId({
-          topicId,
-          videoId,
-          value: base64,
-        })
-      );
-      
-      toast.dismiss(toastId);
-      toast.success("Video uploaded successfully");
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      toast.dismiss();
-      toast.error("Failed to upload video");
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!courseData || !courseData.topics) {
-      toast.error("No course data to save");
+// Replace base64 conversion with chunked uploads
+// Updated handleFileUpload function
+const handleFileUpload = async (e, topicId, videoId) => {
+  try {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check if file is a video
+    if (!file.type.startsWith('video/')) {
+      toast.error("Please upload a video file");
       return;
     }
     
-    // Format the data for the API
-    const formattedData = {
-      courseId: selectedCourse._id,
-      courseName: selectedCourse.courseName,
-      topics: courseData.topics.map(topic => ({
-        topicName: topic.topicName || topic.name || "",
-        videos: (topic.videos || []).map(video => ({
-          videoName: video.videoName || video.name || "",
-          videoId: video.videoId || video.id || "",
-        })).filter(video => video.videoName && video.videoId) // Filter out incomplete videos
-      })).filter(topic => topic.topicName && topic.videos && topic.videos.length > 0) // Filter out incomplete topics
-    };
-
-    // Check if data is valid
-    if (formattedData.topics.length === 0) {
-      toast.error("Please add at least one topic with videos");
+    // Check file size (limit to 100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error("File size should be less than 100MB");
       return;
     }
 
-    try {
-      const response = await createCourse(formattedData).unwrap();
-      if (response.success) {
-        toast.success("Course videos saved successfully!");
-        if (onAddCourse) onAddCourse(response.data);
-        refetch(); // Refresh data
-        onClose();
-      } else {
-        toast.error(response.message || "Failed to save course videos");
-      }
-    } catch (error) {
-      console.error("Error adding course videos:", error);
-      toast.error("Failed to add course videos. Please try again.");
+    // Show loading toast
+    const toastId = toast.loading("Uploading video...");
+    
+    // Create a video preview for the UI
+    const previewUrl = URL.createObjectURL(file);
+    
+    // Upload using fetch with blob/stream body
+    const uploadResponse = await fetch('/api/uploads/video', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      body: file, // Send the file directly
+    });
+    
+    const uploadResult = await uploadResponse.json();
+    
+    if (!uploadResponse.ok) {
+      throw new Error(uploadResult.message || "Failed to upload video");
     }
+    
+    // Store the file URL
+    setVideoUploads(prev => ({
+      ...prev,
+      [`${topicId}-${videoId}`]: {
+        name: file.name,
+        preview: previewUrl,
+        url: uploadResult.fileUrl
+      }
+    }));
+    
+    // Update Redux store with URL
+    dispatch(
+      updateVideoId({
+        topicId,
+        videoId,
+        value: uploadResult.fileUrl,
+      })
+    );
+    
+    toast.dismiss(toastId);
+    toast.success("Video uploaded successfully");
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    toast.dismiss();
+    toast.error("Failed to upload video: " + (error.message || "Unknown error"));
+  }
+};
+
+const handleSubmit = async () => {
+  if (!courseData || !courseData.topics) {
+    toast.error("No course data to save");
+    return;
+  }
+  
+  // Format the data for the API - now we're sending URLs, not base64 data
+  const formattedData = {
+    courseId: selectedCourse._id,
+    courseName: selectedCourse.courseName,
+    topics: courseData.topics.map(topic => ({
+      topicName: topic.topicName || topic.name || "",
+      videos: (topic.videos || []).map(video => ({
+        videoName: video.videoName || video.name || "",
+        videoId: video.videoId || video.id || "", // This is now a URL
+      })).filter(video => video.videoName && video.videoId)
+    })).filter(topic => topic.topicName && topic.videos && topic.videos.length > 0)
   };
+
+  // Check if data is valid
+  if (formattedData.topics.length === 0) {
+    toast.error("Please add at least one topic with videos");
+    return;
+  }
+
+  try {
+    const response = await createCourse(formattedData).unwrap();
+    if (response.success) {
+      toast.success("Course videos saved successfully!");
+      if (onAddCourse) onAddCourse(response.data);
+      refetch(); // Refresh data
+      onClose();
+    } else {
+      toast.error(response.message || "Failed to save course videos");
+    }
+  } catch (error) {
+    console.error("Error adding course videos:", error);
+    toast.error("Failed to add course videos. Please try again.");
+  }
+};
 
   // Function to open the video preview modal
-  const openVideoPreview = (videoData) => {
-    setVideoPreview(videoData);
-    setPreviewOpen(true);
-  };
-
+// Function to open the video preview modal
+const openVideoPreview = (videoData) => {
+  // videoData will be either a local preview URL or a remote URL
+  setVideoPreview(videoData);
+  setPreviewOpen(true);
+};
   // Function to close the video preview modal
   const closeVideoPreview = () => {
     setPreviewOpen(false);

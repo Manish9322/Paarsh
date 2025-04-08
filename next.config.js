@@ -1,19 +1,3 @@
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {
-//   images: {
-//     domains: ["localhost"],
-//     remotePatterns: [
-//       {
-//         protocol: "https",
-//         hostname: "cdn.sanity.io",
-//         port: "",
-//       },
-//     ],
-//   },
-// };
-
-// module.exports = nextConfig;
-
 /** @type {import('next').NextConfig} */
 const withPWA = require("next-pwa")({
   dest: "public",
@@ -31,6 +15,13 @@ const nextConfig = withPWA({
         port: "",
       },
     ],
+  },
+  // Configure body size limit for server actions and API routes
+  serverActions: {
+    bodySizeLimit: '500mb', // Increase this limit for large uploads
+  },
+  experimental: {
+    serverComponentsExternalPackages: ['sharp'], // For image processing if needed
   },
 });
 
