@@ -2,15 +2,6 @@ import { NextResponse } from "next/server";
 import CourseVideoModel from "../../../../../models/Courses/CouresVideo.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 import _db from "../../../../../utils/db";
-import { uploadFileToVPS } from "../../../../../utils/uploadfile"; // Import the VPS upload function
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '500mb' // Increase size limit for large video uploads
-    }
-  }
-};
 
 _db();
 
@@ -21,7 +12,7 @@ export const POST = authMiddleware(async (req) => {
     console.log("courseId", courseId);
     console.log("courseName", courseName);
     console.log("topics", topics);
-
+    
     // Prepare the topics array with correctly named fields
     const formattedTopics = topics.map(topic => ({
       topicName: topic.topicName || topic.name,
@@ -30,27 +21,6 @@ export const POST = authMiddleware(async (req) => {
         videoId: video.videoId || video.id,
       }))
     }));
-
-    // Iterate over topics and upload videos
-    for (const topic of formattedTopics) {
-      for (const video of topic.videos) {
-        if (video.videoId && video.videoId.startsWith("data:video/")) {
-          // Upload the video to VPS
-          const videoUrl = await uploadFileToVPS(
-            video.videoId,
-            video.videoName,
-          );
-          if (!videoUrl) {
-            return NextResponse.json(
-              { success: false, message: "Video upload failed" },
-              { status: 500 },
-            );
-          }
-          // Replace Base64 with the video URL
-          video.videoId = videoUrl;
-        }
-      }
-    }
     
     // Find existing course video or create new one
     let courseVideo = await CourseVideoModel.findOne({ courseId });
@@ -72,13 +42,13 @@ export const POST = authMiddleware(async (req) => {
     return NextResponse.json(
       {
         success: true,
-        message: "Course videos uploaded successfully",
+        message: "Course videos saved successfully",
         data: courseVideo,
       },
       { status: 201 },
     );
   } catch (error) {
-    console.error("Error while uploading course videos:", error);
+    console.error("Error while saving course videos:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }, true);
