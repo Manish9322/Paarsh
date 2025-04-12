@@ -40,7 +40,7 @@ const founders: Founder[] = [
     id: 2,
     name: "Kalpana K. Pagare",
     role: "Co-Founder",
-    image:  "/images/founders/kalpana-maam2.jpeg",
+    image:  "/images/founders/Kalpana-Maam.png",
     bio: "​Kalpana Pagare, Co-founder of Paarsh Edu, leads with vision and dedication, creating innovative learning spaces and inspiring students to realize their true potential and succeed.",
     social: {
       instagram: "https://instagram.com/tushar",
