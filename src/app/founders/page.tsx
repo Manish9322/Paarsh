@@ -40,7 +40,7 @@ const founders: Founder[] = [
     id: 2,
     name: "Kalpana K. Pagare",
     role: "Co-Founder",
-    image:  "/images/founders/kalpana-maam3.jpg",
+    image:  "/images/founders/kalpana-maam2.jpeg",
     bio: "​Kalpana Pagare, Co-founder of Paarsh Edu, leads with vision and dedication, creating innovative learning spaces and inspiring students to realize their true potential and succeed.",
     social: {
       instagram: "https://instagram.com/tushar",
@@ -53,7 +53,7 @@ const founders: Founder[] = [
     id: 3,
     name: "Tushar K. Pagare",
     role: "Chief Technical Officer (CTO)",
-    image: "/images/founders/tushar-sir.jpg",
+    image: "/images/founders/tushar-sir2.jpg",
     bio: "Tushar Pagare, CEO of Paarsh Infotech, inspires young minds to dream big, work hard, and innovate with passion, proving dedication turns dreams into reality.",
     social: {
      
