@@ -295,8 +295,8 @@ export default function Careers() {
             <p
               className="mx-auto mb-8 max-w-2xl text-lg text-black dark:text-gray-300"
             >
-              Be part of a team that's revolutionizing education through technology.
-              We're looking for passionate individuals who dare to innovate.
+              Be part of a team thats revolutionizing education through technology.
+              We are looking for passionate individuals who dare to innovate.
             </p>
 
             {/* CTA Buttons - Reduced padding */}
@@ -613,7 +613,7 @@ export default function Careers() {
             </span>
             <h2 className="mb-5 text-3xl font-bold leading-tight text-gray-900 dark:text-white 
                    sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight">
-              Why You'll Love Working <br />
+              Why You will Love Working <br />
               <span className="text-blue-600 dark:text-blue-400">With Us</span>
             </h2>
             <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-300">
@@ -805,7 +805,7 @@ export default function Careers() {
               <span className="text-blue-600 dark:text-blue-400">With Us Today</span>
             </h2>
             <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-              Take the first step towards an exciting career opportunity. We're excited to learn more about you.
+              Take the first step towards an exciting career opportunity. We are excited to learn more about you.
             </p>
           </div>
 
@@ -1278,9 +1278,9 @@ export default function Careers() {
                   <div className="relative">
                     {/* Quote Text */}
                     <p className="mb-8 text-lg text-gray-600 dark:text-gray-300 italic leading-relaxed">
-                      <span className="text-3xl text-blue-500/20">"</span>
+                      <span className="text-3xl text-blue-500/20">&quot;</span>
                       {testimonial.quote}
-                      <span className="text-3xl text-blue-500/20">"</span>
+                      <span className="text-3xl text-blue-500/20">&quot;</span>
                     </p>
 
                     {/* Profile Section */}
