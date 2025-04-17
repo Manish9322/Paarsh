@@ -380,6 +380,20 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["MeetingLink"],
     }),
+
+
+
+
+    // Endpoint for Creating Job Application
+    CreateJobApplication: builder.mutation({
+      query: (data) => ({
+        url: `/JobApplication`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    
   }),
 });
 
@@ -436,5 +450,7 @@ export const {
   useFetchMeetingLinkByIdQuery,
   useGenerateMeetingLinkMutation,
   useUpdateMeetingStatusMutation,
+
+  useCreateJobApplicationMutation,
 
 } = paarshEduApi;
