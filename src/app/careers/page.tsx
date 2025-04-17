@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import SubscribeNewsletter from "@/components/SubscribeStripe/SubscribeStripe";
 import Image from "next/image";
-import { ArrowRight, Briefcase, Users, Globe } from "lucide-react";
+import { ArrowRight, Briefcase, Users, Globe, CheckCircle2, XCircle } from "lucide-react";
 
 import { FaLightbulb, FaHospitalAlt, FaHome, } from "react-icons/fa";
 import { FaHandshakeSimple, FaUmbrellaBeach } from "react-icons/fa6";
@@ -20,9 +20,8 @@ import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import { useCreateJobApplicationMutation } from '@/services/api';
-// import ComingSoonModal from '@/components/CommingSoonModal';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import TeamModal from '@/components/TeamModal';
-
 
 interface JobListing {
   id: number;
@@ -197,15 +196,16 @@ const companyStats = [
   { label: "Global Offices", value: "5", icon: Globe },
 ];
 
-
 export default function Careers() {
   const [selectedFaq, setSelectedFaq] = useState<number | null>(null);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isComingSoonModalOpen, setIsComingSoonModalOpen] = useState(false);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState({
-
     fullName: '',
     email: '',
     phoneNumber: '',
@@ -224,8 +224,28 @@ export default function Careers() {
       const response = await _CreateJob(formData).unwrap();
       console.log(formData);
       console.log(response);
-    } catch (error) {
+
+      // Show success dialog and reset form
+      setSuccessDialogOpen(true);
+      setFormData({
+        fullName: '',
+        email: '',
+        phoneNumber: '',
+        desiredRole: '',
+        portfolioUrl: '',
+        resume: '',
+        coverLetter: ''
+      });
+      setSelectedFile(null);
+
+      // Reset file input
+      const fileInput = document.getElementById('resume-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+
+    } catch (error: any) {
       console.error(error);
+      setErrorMessage(error?.data?.message || "Failed to submit application. Please try again.");
+      setErrorDialogOpen(true);
     }
   };
 
@@ -1053,6 +1073,52 @@ export default function Careers() {
           </motion.div>
         </div>
       </section>
+
+      {/* Success Dialog */}
+      <Dialog open={successDialogOpen} onOpenChange={setSuccessDialogOpen}>
+        <DialogContent className="max-w-md">
+          <div className="p-6 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+              <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+              Application Submitted Successfully!
+            </h3>
+            <p className="mb-6 text-gray-600 dark:text-gray-300">
+              Thank you for your interest! We will review your application and get back to you soon.
+            </p>
+            <Button
+              onClick={() => setSuccessDialogOpen(false)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <DialogContent className="max-w-md">
+          <div className="p-6 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+              <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+            </div>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+              Submission Failed
+            </h3>
+            <p className="mb-6 text-gray-600 dark:text-gray-300">
+              {errorMessage}
+            </p>
+            <Button
+              onClick={() => setErrorDialogOpen(false)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* FAQ Section */}
       <section className="py-16 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
