@@ -833,9 +833,9 @@ export default function Founders() {
             {/* Quote Text */}
             <p className="mb-6 text-gray-600 dark:text-gray-300 italic leading-relaxed 
                        text-lg relative">
-              <span className="text-3xl text-blue-500/20">"</span>
+              <span className="text-3xl text-blue-500/20">&quot;</span>
               {testimonial.quote}
-              <span className="text-3xl text-blue-500/20">"</span>
+              <span className="text-3xl text-blue-500/20">&quot;</span>
             </p>
 
             {/* Author Info */}
