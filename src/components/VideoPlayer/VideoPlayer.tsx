@@ -1,18 +1,48 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 
 interface VideoPlayerProps {
   thumbnailUrl: string;
   videoUrl: string;
   title: string;
+  onProgress?: (progress: number) => void;
+  onComplete?: () => void;
+  initialProgress?: number;
 }
 
-const VideoPlayer = ({ thumbnailUrl, videoUrl, title }: VideoPlayerProps) => {
+const VideoPlayer = ({ 
+  thumbnailUrl, 
+  videoUrl, 
+  title, 
+  onProgress, 
+  onComplete,
+  initialProgress = 0 
+}: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [progress, setProgress] = useState(initialProgress);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const currentProgress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+      setProgress(currentProgress);
+      onProgress?.(currentProgress);
+
+      if (currentProgress >= 95 || (videoRef.current.ended && currentProgress > 90)) {
+        onComplete?.();
+      }
+    }
+  };
 
   const handleThumbnailClick = () => {
     setIsPlaying(true);
   };
+
+  useEffect(() => {
+    if (videoRef.current && initialProgress > 0) {
+      videoRef.current.currentTime = (initialProgress / 100) * videoRef.current.duration;
+    }
+  }, [initialProgress]);
 
   return (
     <div className="relative w-full rounded-lg overflow-hidden">
@@ -40,20 +70,35 @@ const VideoPlayer = ({ thumbnailUrl, videoUrl, title }: VideoPlayerProps) => {
             </div>
           </div>
           <div className="absolute inset-0 bg-black opacity-20 group-hover:opacity-30 transition-opacity"></div>
+          {progress > 0 && (
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-200">
+              <div 
+                className="h-full bg-blue-600 transition-all duration-300" 
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          )}
         </div>
       ) : (
-        <div className="aspect-video">
-          <iframe
+        <div className="aspect-video relative">
+          <video
+            ref={videoRef}
             src={videoUrl}
-            title={title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
             className="w-full h-full"
+            controls
+            onTimeUpdate={handleTimeUpdate}
+            onEnded={() => onComplete?.()}
           />
+          <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-200">
+            <div 
+              className="h-full bg-blue-600 transition-all duration-300" 
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-export default VideoPlayer; 
+export default VideoPlayer;
