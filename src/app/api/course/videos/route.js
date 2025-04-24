@@ -9,16 +9,13 @@ export const POST = authMiddleware(async (req) => {
   try {
     const { courseId, courseName, topics } = await req.json();
     
-    console.log("courseId", courseId);
-    console.log("courseName", courseName);
-    console.log("topics", topics);
-    
-    // Prepare the topics array with correctly named fields
+    // Prepare the topics array with correctly named fields, including resourceId
     const formattedTopics = topics.map(topic => ({
       topicName: topic.topicName || topic.name,
       videos: topic.videos.map(video => ({
         videoName: video.videoName || video.name,
         videoId: video.videoId || video.id,
+        resourceId: video.resourceId || null, // Include resourceId in the data
       }))
     }));
     
@@ -26,11 +23,9 @@ export const POST = authMiddleware(async (req) => {
     let courseVideo = await CourseVideoModel.findOne({ courseId });
     
     if (courseVideo) {
-      // Update existing document
       courseVideo.topics = formattedTopics;
       await courseVideo.save();
     } else {
-      // Create new document
       courseVideo = new CourseVideoModel({
         courseId,
         courseName,

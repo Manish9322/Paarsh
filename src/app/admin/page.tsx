@@ -58,7 +58,7 @@ export default function AdminPage() {
           size="icon"
           className={`rounded-full p-2 transition-all duration-200 ${
             isSidebarOpen 
-              ? "bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30" 
+              ? "bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30" 
               : "bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
           }`}
           onClick={toggleSidebar}
@@ -98,55 +98,55 @@ export default function AdminPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-gray-800 dark:text-white">1,250</p>
-                <p className="mt-1 text-sm text-green-500 flex items-center">
+                <p className="mt-1 text-sm text-blue-500 flex items-center">
                   <TrendingUp className="mr-1 inline h-4 w-4" />
                   <span>12% increase</span>
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-t-4 border-t-purple-500 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+            <Card className="border-t-4 border-t-blue-500 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-lg font-medium">
                   <span>Orders</span>
-                  <ShoppingCart className="h-5 w-5 text-purple-500" />
+                  <ShoppingCart className="h-5 w-5 text-blue-500" />
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-gray-800 dark:text-white">320</p>
-                <p className="mt-1 text-sm text-green-500 flex items-center">
+                <p className="mt-1 text-sm text-blue-500 flex items-center">
                   <TrendingUp className="mr-1 inline h-4 w-4" />
                   <span>8% increase</span>
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-t-4 border-t-green-500 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+            <Card className="border-t-4 border-t-blue-500 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-lg font-medium">
                   <span>Revenue</span>
-                  <DollarSign className="h-5 w-5 text-green-500" />
+                  <DollarSign className="h-5 w-5 text-blue-500" />
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-gray-800 dark:text-white">$45,000</p>
-                <p className="mt-1 text-sm text-green-500 flex items-center">
+                <p className="mt-1 text-sm text-blue-500 flex items-center">
                   <TrendingUp className="mr-1 inline h-4 w-4" />
                   <span>15% increase</span>
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="border-t-4 border-t-amber-500 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+            <Card className="border-t-4 border-t-blue-500 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center justify-between text-lg font-medium">
                   <span>Pending Tasks</span>
-                  <CheckSquare className="h-5 w-5 text-amber-500" />
+                  <CheckSquare className="h-5 w-5 text-blue-500" />
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-2xl font-bold text-gray-800 dark:text-white">12</p>
-                <p className="mt-1 text-sm text-red-500 flex items-center">
+                <p className="mt-1 text-sm text-blue-500 flex items-center">
                   <TrendingUp className="mr-1 inline h-4 w-4 rotate-180 transform" />
                   <span>3 new tasks</span>
                 </p>

@@ -22,7 +22,7 @@ const AboutSectionThree = () => {
 
               <div className="mb-12 max-w-[570px] lg:mb-0" data-wow-delay=".15s">
                 <p className="mb-5 text-lg text-body-color">
-                  <span className="text-blue-600 font-bold">Paarsh Edu. </span> is a leading online learning platform based in Nashik, India, established in 2023.
+                  <span className="text-blue-600 font-bold">Paarsh Edu </span> is a leading online learning platform based in Nashik, India, established in 2023.
                   We offer high-quality web development and IT training solutions designed to empower learners in the digital world.
                   Our mission is not just to provide knowledge but to create an engaging and transformative learning experience.
                   We believe in building lasting relationships with our learners and fostering a strong foundation for personal and professional growth.

@@ -17,6 +17,16 @@ import {
   LogOut,
   Menu,
 } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
 import { useFetchUserQuery } from "@/services/api";
 
 const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
@@ -25,6 +35,7 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const dispatch = useDispatch();
   const [mounted, setMounted] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const { data: userData, isLoading, error } = useFetchUserQuery(undefined);
   const user = userData?.data;
@@ -38,6 +49,15 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const handleLogout = () => {
     dispatch(logout()); // Redux logout
     router.push("/"); // Redirect to home
+  };
+
+  const handleLogoutClick = () => {
+    setLogoutConfirmOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setLogoutConfirmOpen(false);
+    handleLogout();
   };
 
   const menuItems = [
@@ -74,7 +94,7 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
     { 
       name: "Log Out", 
       icon: <LogOut size={20} />, 
-      onClick: handleLogout,
+      onClick: handleLogoutClick, // Changed from handleLogout to handleLogoutClick
       description: "Sign out of your account"
     },
   ];
@@ -229,6 +249,41 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
           aria-hidden="true"
         />
       )}
+
+
+<Dialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+              Confirm Logout
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <LogOut className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
+            <p className="text-gray-600 dark:text-gray-300">
+              Are you sure you want to log out of your account?
+            </p>
+          </div>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setLogoutConfirmOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleLogoutConfirm}
+              className="w-full sm:w-auto"
+            >
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
     </>
   );
 };

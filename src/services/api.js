@@ -407,7 +407,15 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["JobApplication"],
     }),
 
-    
+    // Endpoint for uploading resources
+    uploadResource: builder.mutation({
+      query: (formData) => ({
+        url: "/uploads/resource",
+        method: "POST",
+        body: formData,
+      }),
+    }),
+
   }),
 });
 
@@ -468,5 +476,5 @@ export const {
   useCreateJobApplicationMutation,
   useFetchJobApplicationsQuery,
   useDeleteJobApplicationMutation,
-
+  useUploadResourceMutation,
 } = paarshEduApi;

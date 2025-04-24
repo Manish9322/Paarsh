@@ -305,7 +305,7 @@ const JobApplicationPage: React.FC = () => {
                                                         <TableCell>
                                                             <div className="flex items-center justify-center gap-2">
                                                                 <button
-                                                                    className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-purple-50 text-purple-600 transition-all duration-200 hover:bg-purple-100 hover:text-purple-700 hover:shadow-md dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/30 dark:hover:text-purple-300"
+                                                                    className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                                                     onClick={() => {
                                                                         setSelectedApplication(application);
                                                                         setViewOpen(true);
@@ -375,7 +375,7 @@ const JobApplicationPage: React.FC = () => {
                                                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Portfolio:</span>
                                                             <a
                                                                 href={selectedApplication.portfolioUrl}
-                                                                className="ml-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                                                                className="ml-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                             >
@@ -386,7 +386,7 @@ const JobApplicationPage: React.FC = () => {
                                                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Resume:</span>
                                                             <a
                                                                 href={selectedApplication.resume}
-                                                                className="ml-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+                                                                className="ml-2 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                             >
@@ -459,7 +459,7 @@ const JobApplicationPage: React.FC = () => {
                                     <Button
                                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                                         disabled={currentPage === 1}
-                                        className="h-8 w-8 rounded bg-purple-50 p-0 text-purple-600 transition-colors hover:bg-purple-100 disabled:bg-gray-50 disabled:text-gray-400"
+                                        className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400"
                                         aria-label="Previous page"
                                     >
                                         <ChevronLeft className="h-4 w-4" />
@@ -472,8 +472,8 @@ const JobApplicationPage: React.FC = () => {
                                                     key={index}
                                                     onClick={() => setCurrentPage(page)}
                                                     className={`h-8 w-8 rounded p-0 text-sm font-medium ${currentPage === page
-                                                            ? "bg-purple-600 text-white hover:bg-purple-700"
-                                                            : "bg-purple-50 text-purple-600 hover:bg-purple-100"
+                                                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                                                            : "bg-blue-50 text-blue-600 hover:bg-blue-100"
                                                         }`}
                                                 >
                                                     {page}
@@ -489,7 +489,7 @@ const JobApplicationPage: React.FC = () => {
                                     <Button
                                         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                                         disabled={currentPage === totalPages}
-                                        className="h-8 w-8 rounded bg-purple-50 p-0 text-purple-600 transition-colors hover:bg-purple-100 disabled:bg-gray-50 disabled:text-gray-400"
+                                        className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400"
                                         aria-label="Next page"
                                     >
                                         <ChevronRight className="h-4 w-4" />

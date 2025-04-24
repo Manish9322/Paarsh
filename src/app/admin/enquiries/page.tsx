@@ -240,7 +240,7 @@ const EnquiriesPage: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge className="bg-yellow-500">Pending</Badge>;
+        return <Badge className="bg-black/80">Pending</Badge>;
       case "resolved":
         return <Badge className="bg-green-500">Resolved</Badge>;
       case "in-progress":
@@ -303,354 +303,356 @@ const EnquiriesPage: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full min-h-screen w-full">
-      {/* Sidebar for larger screens */}
-      <div className="hidden md:block">
-        <Sidebar />
+    <div className="flex min-h-screen flex-col bg-gray-50 overflow-hidden">
+      {/* Mobile Header */}
+      <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
+        <button
+          onClick={toggleSidebar}
+          className="rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          aria-label="Toggle sidebar"
+        >
+          <Menu size={24} />
+        </button>
+        <h1 className="text-lg font-bold text-gray-800">Enquiries</h1>
+        <div className="w-10"></div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-x-hidden">
-        {/* Mobile Header with Menu Toggle */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 md:hidden">
-          <button
-            onClick={toggleSidebar}
-            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-          >
-            <Menu size={24} />
-          </button>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">Enquiries</h1>
-          <div className="w-8"></div> {/* Empty space for balance */}
-        </div>
+      <div className="flex flex-1">
+        {/* Sidebar */}
+        <aside
+          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } md:sticky md:top-0 md:translate-x-0 md:h-screen`}
+        >
+          <div className="h-16 md:h-0"></div>
+          <Sidebar />
+        </aside>
 
-        {/* Mobile Sidebar */}
+        {/* Overlay */}
         {sidebarOpen && (
-          <div className="fixed inset-0 z-50 md:hidden">
-            <div
-              className="absolute inset-0 bg-gray-900 bg-opacity-50"
-              onClick={toggleSidebar}
-            ></div>
-            <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-lg dark:bg-gray-800">
-              <Sidebar />
-            </div>
-          </div>
+          <div
+            className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
+            onClick={toggleSidebar}
+            aria-hidden="true"
+          ></div>
         )}
 
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8 hidden md:block">
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Enquiries</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Manage and respond to customer enquiries
-            </p>
-          </div>
-
-          {/* Search & Filter */}
-          <div className="mb-6 flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 sm:space-x-4">
-            <div className="relative w-full sm:max-w-xs">
-              <Input
-                type="text"
-                placeholder="Search enquiries..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
-              />
-            </div>
-          </div>
-
-          {/* Enquiries Card */}
-          <Card>
-            <CardHeader className="px-6 py-4">
-              <CardTitle>All Enquiries</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {isLoading ? (
-                <AdminSkeletonWrapper>
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex items-center p-4">
-                      <div className="grow">
-                        <Skeleton className="mb-2 h-4 w-1/3" />
-                        <Skeleton className="h-3 w-1/2" />
-                      </div>
-                      <div className="flex shrink-0 space-x-2">
-                        <Skeleton className="h-9 w-9 rounded" />
-                        <Skeleton className="h-9 w-9 rounded" />
-                      </div>
-                    </div>
-                  ))}
-                </AdminSkeletonWrapper>
-              ) : (
-                <>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("name")}
-                          >
-                            <div className="flex items-center">
-                              Name
-                              {sortField === "name" && (
-                                <span className="ml-1">
-                                  {sortOrder === "asc" ? (
-                                    <ChevronUp size={16} />
-                                  ) : (
-                                    <ChevronDown size={16} />
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("email")}
-                          >
-                            <div className="flex items-center">
-                              Email
-                              {sortField === "email" && (
-                                <span className="ml-1">
-                                  {sortOrder === "asc" ? (
-                                    <ChevronUp size={16} />
-                                  ) : (
-                                    <ChevronDown size={16} />
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead>Subject</TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("status")}
-                          >
-                            <div className="flex items-center">
-                              Status
-                              {sortField === "status" && (
-                                <span className="ml-1">
-                                  {sortOrder === "asc" ? (
-                                    <ChevronUp size={16} />
-                                  ) : (
-                                    <ChevronDown size={16} />
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("createdAt")}
-                          >
-                            <div className="flex items-center">
-                              Date
-                              {sortField === "createdAt" && (
-                                <span className="ml-1">
-                                  {sortOrder === "asc" ? (
-                                    <ChevronUp size={16} />
-                                  ) : (
-                                    <ChevronDown size={16} />
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          </TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {displayedEnquiries.length > 0 ? (
-                          displayedEnquiries.map((enquiry) => (
-                            <TableRow
-                              key={enquiry._id}
-                              className="group hover:bg-gray-50 dark:hover:bg-gray-800"
-                            >
-                              <TableCell className="font-medium">{enquiry.name}</TableCell>
-                              <TableCell>{enquiry.email}</TableCell>
-                              <TableCell className="max-w-[200px] truncate">
-                                {enquiry.subject}
-                              </TableCell>
-                              <TableCell>{getStatusBadge(enquiry.status)}</TableCell>
-                              <TableCell>
-                                {formatDate(enquiry.createdAt)}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex items-center justify-end space-x-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleView(enquiry)}
-                                    title="View"
-                                  >
-                                    <Eye size={16} />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => openStatusUpdate(enquiry)}
-                                    title="Change Status"
-                                  >
-                                    <Clock size={16} />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => confirmDeleteEnquiry(enquiry._id)}
-                                    className="text-red-500 hover:text-red-700"
-                                    title="Delete"
-                                  >
-                                    <Trash2 size={16} />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell
-                              colSpan={6}
-                              className="h-24 text-center text-gray-500"
-                            >
-                              {searchTerm
-                                ? "No enquiries found matching your search criteria"
-                                : "No enquiries found"}
+        {/* Main Content */}
+        <main className="w-full flex-1 overflow-x-hidden pt-16">
+          <div className="container mx-auto px-4 py-6">
+            <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
+              <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
+                <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+                  <CardTitle className="text-xl font-bold text-white sm:text-2xl">
+                    Enquiries Management
+                  </CardTitle>
+                  <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
+                    <Input
+                      type="text"
+                      placeholder="Search enquiries..."
+                      className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+                        <TableHead className="py-3">
+                          <div className="flex items-center">
+                            Name
+                            {sortField === "name" && (
+                              <span className="ml-1">
+                                {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </span>
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead className="py-3">
+                          <div className="flex items-center">
+                            Email
+                            {sortField === "email" && (
+                              <span className="ml-1">
+                                {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </span>
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead className="hidden py-3 lg:table-cell">Subject</TableHead>
+                        <TableHead className="hidden py-3 xl:table-cell">Status</TableHead>
+                        <TableHead className="py-3">
+                          <div className="flex items-center">
+                            Date
+                            {sortField === "createdAt" && (
+                              <span className="ml-1">
+                                {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                              </span>
+                            )}
+                          </div>
+                        </TableHead>
+                        <TableHead className="py-3 text-center">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {isLoading ? (
+                        Array.from({ length: 7 }).map((_, index) => (
+                          <TableRow key={index} className="border-b border-gray-100">
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell className="hidden xl:table-cell">
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-4 w-24" />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-center gap-2">
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                              </div>
                             </TableCell>
                           </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
+                        ))
+                      ) : displayedEnquiries.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="py-6 text-center text-gray-500">
+                            No enquiries found.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        displayedEnquiries.map((enquiry) => (
+                          <TableRow
+                            key={enquiry._id}
+                            className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                          >
+                            <TableCell>
+                              <div className="md:hidden">
+                                <p className="font-medium">{enquiry.name}</p>
+                                <p className="mt-1 text-xs text-gray-500">{enquiry.email}</p>
+                                <p className="mt-1 text-xs text-gray-500">{enquiry.subject}</p>
+                              </div>
+                              <span className="hidden font-medium md:inline">{enquiry.name}</span>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">{enquiry.email}</TableCell>
+                            <TableCell className="hidden lg:table-cell">{enquiry.subject}</TableCell>
+                            <TableCell className="hidden xl:table-cell">{getStatusBadge(enquiry.status)}</TableCell>
+                            <TableCell>{formatDate(enquiry.createdAt)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
+                                  onClick={() => handleView(enquiry)}
+                                  aria-label="View enquiry details"
+                                >
+                                  <Eye size={16} className="transition-transform group-hover:scale-110" />
+                                </button>
+                                <button
+                                  className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
+                                  onClick={() => openStatusUpdate(enquiry)}
+                                  aria-label="Update enquiry status"
+                                >
+                                  <Clock size={16} className="transition-transform group-hover:scale-110" />
+                                </button>
+                                <button
+                                  className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                                  onClick={() => confirmDeleteEnquiry(enquiry._id)}
+                                  aria-label="Delete enquiry"
+                                >
+                                  <Trash2 size={16} className="transition-transform group-hover:scale-110" />
+                                </button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pagination */}
+            <div className="mt-6 rounded bg-white p-4 shadow-md">
+              <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+                <div className="text-sm text-gray-500">
+                  Showing <span className="font-medium text-gray-700">{(currentPage - 1) * enquiriesPerPage + 1}</span> to{" "}
+                  <span className="font-medium text-gray-700">
+                    {Math.min(currentPage * enquiriesPerPage, sortedEnquiries.length)}
+                  </span>{" "}
+                  of <span className="font-medium text-gray-700">{sortedEnquiries.length}</span> enquiries
+                </div>
+
+                <div className="flex items-center space-x-1">
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+
+                  <div className="hidden sm:flex sm:items-center sm:space-x-1">
+                    {generatePaginationNumbers().map((page, index) => (
+                      typeof page === 'number' ? (
+                        <Button
+                          key={index}
+                          onClick={() => setCurrentPage(page)}
+                          className={`h-8 w-8 rounded p-0 text-sm font-medium ${
+                            currentPage === page
+                              ? "bg-blue-600 text-white hover:bg-blue-700"
+                              : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                          }`}
+                        >
+                          {page}
+                        </Button>
+                      ) : (
+                        <span key={index} className="px-2 text-gray-400">
+                          {page}
+                        </span>
+                      )
+                    ))}
                   </div>
 
-                  {/* Pagination */}
-                  {totalPages > 0 && (
-                    <div className="flex items-center justify-between border-t px-4 py-4 sm:px-6">
-                      <div className="hidden sm:block">
-                        <p className="text-sm text-gray-700 dark:text-gray-400">
-                          Showing <span className="font-medium">{(currentPage - 1) * enquiriesPerPage + 1}</span> to{" "}
-                          <span className="font-medium">
-                            {Math.min(currentPage * enquiriesPerPage, sortedEnquiries.length)}
-                          </span>{" "}
-                          of <span className="font-medium">{sortedEnquiries.length}</span> results
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          disabled={currentPage === 1}
-                        >
-                          <ChevronLeft size={16} />
-                        </Button>
-                        <div className="hidden sm:flex sm:items-center sm:space-x-2">
-                          {generatePaginationNumbers().map((page, index) => (
-                            <React.Fragment key={index}>
-                              {page === "..." ? (
-                                <span className="px-2 text-gray-500 dark:text-gray-400">...</span>
-                              ) : (
-                                <Button
-                                  variant={currentPage === page ? "default" : "outline"}
-                                  size="sm"
-                                  className={`w-9 ${currentPage === page ? "bg-blue-500" : "bg-transparent"}`}
-                                  onClick={() => typeof page === "number" && setCurrentPage(page)}
-                                >
-                                  {page}
-                                </Button>
-                              )}
-                            </React.Fragment>
-                          ))}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                          disabled={currentPage === totalPages}
-                        >
-                          <ChevronRight size={16} />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="hidden items-center space-x-2 lg:flex">
+                  <span className="text-sm text-gray-500">Go to page:</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={totalPages}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= 1 && value <= totalPages) {
+                        setCurrentPage(value);
+                      }
+                    }}
+                    className="h-8 w-16 rounded border-gray-300 text-center text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
 
-      {/* View Enquiry Dialog */}
+      {/* View Dialog */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Enquiry Details</DialogTitle>
+        <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
+          <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
+            <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
+              Enquiry Details
+            </DialogTitle>
           </DialogHeader>
           {selectedEnquiry && (
-            <div className="space-y-4">
-              <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-                <h3 className="mb-2 font-semibold">{selectedEnquiry.subject}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{selectedEnquiry.message}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <span className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-500 dark:bg-blue-900 dark:text-blue-300">
-                    {selectedEnquiry.name.charAt(0).toUpperCase()}
-                  </span>
-                  <div>
-                    <p className="font-medium">{selectedEnquiry.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(selectedEnquiry.createdAt)}</p>
+            <div className="p-6 space-y-4">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <h3 className="font-medium text-gray-500 dark:text-gray-400">Personal Information</h3>
+                  <div className="rounded border p-4 dark:border-gray-700">
+                    <div className="grid gap-2">
+                      <div>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Name:</span>
+                        <span className="ml-2 text-gray-900 dark:text-white">{selectedEnquiry.name}</span>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Email:</span>
+                        <span className="ml-2 text-gray-900 dark:text-white">{selectedEnquiry.email}</span>
+                      </div>
+                      {selectedEnquiry.mobile && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Phone:</span>
+                          <span className="ml-2 text-gray-900 dark:text-white">{selectedEnquiry.mobile}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-2 text-sm">
-                  <Mail size={16} className="text-gray-500 dark:text-gray-400" />
-                  <span>{selectedEnquiry.email}</span>
-                </div>
-                
-                {selectedEnquiry.mobile && (
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Phone size={16} className="text-gray-500 dark:text-gray-400" />
-                    <span>{selectedEnquiry.mobile}</span>
+
+                <div className="space-y-2">
+                  <h3 className="font-medium text-gray-500 dark:text-gray-400">Enquiry Details</h3>
+                  <div className="rounded border p-4 dark:border-gray-700">
+                    <div className="grid gap-2">
+                      <div>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Subject:</span>
+                        <span className="ml-2 text-gray-900 dark:text-white">{selectedEnquiry.subject}</span>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Status:</span>
+                        <span className="ml-2">{getStatusBadge(selectedEnquiry.status)}</span>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Date:</span>
+                        <span className="ml-2 text-gray-900 dark:text-white">{formatDate(selectedEnquiry.createdAt)}</span>
+                      </div>
+                    </div>
                   </div>
-                )}
-                
-                <div className="flex items-center space-x-2 text-sm">
-                  <span className="font-medium">Status:</span>
-                  <span>{getStatusBadge(selectedEnquiry.status)}</span>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="font-medium text-gray-500 dark:text-gray-400">Message</h3>
+                  <div className="rounded border p-4 dark:border-gray-700">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                      {selectedEnquiry.message}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter className="flex space-x-2 sm:space-x-0">
-            <Button variant="outline" onClick={() => setViewOpen(false)}>
-              Close
-            </Button>
-            <Button onClick={() => {
-              setViewOpen(false);
-              selectedEnquiry && openStatusUpdate(selectedEnquiry);
-            }}>
-              Update Status
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+              Confirm Deletion
+            </DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p>Are you sure you want to delete this enquiry? This action cannot be undone.</p>
+          <div className="py-4 text-center">
+            <Trash2 className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
+            <p className="text-gray-600 dark:text-gray-300">
+              Are you sure you want to delete this enquiry? This action cannot be undone.
+            </p>
           </div>
-          <DialogFooter className="flex space-x-2 sm:space-x-0">
-            <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmOpen(false)}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeleteEnquiry}
+              className="w-full sm:w-auto"
             >
-              Delete
+              Delete Enquiry
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -658,36 +660,81 @@ const EnquiriesPage: React.FC = () => {
 
       {/* Status Update Dialog */}
       <Dialog open={statusUpdateOpen} onOpenChange={setStatusUpdateOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
-            <DialogTitle>Update Enquiry Status</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">Update Enquiry Status</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <label className="mb-2 block text-sm font-medium">Status</label>
-            <Select 
-              value={newStatus} 
-              onValueChange={(value) => setNewStatus(value as "pending" | "resolved" | "in-progress")}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="resolved">Resolved</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="py-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Current Status</h3>
+                <div className="w-fit">{selectedEnquiry && getStatusBadge(selectedEnquiry.status)}</div>
+              </div>
+              
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">New Status</h3>
+                <Select 
+                  value={newStatus} 
+                  onValueChange={(value) => setNewStatus(value as "pending" | "resolved" | "in-progress")}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select new status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-black/80">Pending</Badge>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="in-progress">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-blue-500">In Progress</Badge>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="resolved">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-green-500">Resolved</Badge>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-          <DialogFooter className="flex space-x-2 sm:space-x-0">
+          <DialogFooter className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setStatusUpdateOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleStatusUpdate}>
+            <Button onClick={handleStatusUpdate} className="bg-blue-600 hover:bg-blue-700">
               Update Status
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Custom Scrollbar Styling */}
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #d1d5db;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background-color: #f9fafb;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #1f2937;
+          }
+        }
+      `}</style>
     </div>
   );
 };

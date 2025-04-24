@@ -7,6 +7,13 @@ import { useDispatch } from "react-redux";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { Moon, Sun, LogOut } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const Navbar = () => {
   const dispatch = useDispatch();
@@ -14,6 +21,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   // Prevent hydration mismatch
   useEffect(() => {
@@ -24,6 +32,16 @@ const Navbar = () => {
     dispatch(adminLogout()); // Redux logout
     router.push("/");
   };
+
+  const handleLogoutClick = () => {
+    setLogoutConfirmOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setLogoutConfirmOpen(false);
+    handleLogout();
+  };
+
 
   // Hide on sign-in page
   if (pathname === "/admin/signin") return null;
@@ -57,7 +75,7 @@ const Navbar = () => {
 
           {/* Logout Button */}
           <Button
-            onClick={handleLogout}
+            onClick={handleLogoutClick}
             variant="default"
             className="flex items-center gap-2"
           >
@@ -66,6 +84,39 @@ const Navbar = () => {
           </Button>
         </div>
       </div>
+
+      <Dialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+              Confirm Logout
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <LogOut className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
+            <p className="text-gray-600 dark:text-gray-300">
+              Are you sure you want to log out of your account?
+            </p>
+          </div>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setLogoutConfirmOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleLogoutConfirm}
+              className="w-full sm:w-auto"
+            >
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
     </nav>
   );
 };

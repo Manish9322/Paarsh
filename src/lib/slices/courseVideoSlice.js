@@ -55,6 +55,14 @@ const courseVideoSlice = createSlice({
         if (video) video.videoId = value;
       }
     },
+    updateResourceId: (state, action) => {
+      const { topicId, videoId, value } = action.payload;
+      const topic = state.topics.find((t) => t._id === topicId);
+      if (topic) {
+        const video = topic.videos.find((v) => v._id === videoId);
+        if (video) video.resourceId = value;
+      }
+    },
     removeVideoFromTopic: (state, action) => {
       const { topicId, videoId } = action.payload;
       const topic = state.topics.find((t) => t._id === topicId);
@@ -76,6 +84,7 @@ export const {
   addVideoToTopic,
   updateVideoName,
   updateVideoId,
+  updateResourceId,
   removeVideoFromTopic,
   removeTopic,
 } = courseVideoSlice.actions;
