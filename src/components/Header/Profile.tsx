@@ -13,14 +13,25 @@ import {
   MessageSquare,
   Camera,
 } from "lucide-react";
-import Image from "next/image";
+import { PiUserCircleThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
 import { logout } from "../../lib/slices/userAuthSlice";
 import { useDispatch } from "react-redux";
 import { useFetchUserQuery } from "@/services/api";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+
 export default function Profile() {
   const { data: userData, error, isLoading } = useFetchUserQuery(undefined);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const user = userData?.data;
 
@@ -30,9 +41,31 @@ export default function Profile() {
   const dispatch = useDispatch();
   const router = useRouter();
 
+  // Function to get user initials
+  const getUserInitials = () => {
+    if (!user?.name) return "?";
+
+    const nameParts = user.name.split(" ");
+    // Get first letter of first name
+    const firstInitial = nameParts[0][0];
+    // Get first letter of last name if it exists
+    const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "";
+
+    return (firstInitial + lastInitial).toUpperCase();
+  };
+
   const handleLogout = () => {
-    dispatch(logout()); // Redux  logout
+    dispatch(logout()); // Redux logout
     router.push("/"); // Redirect to Sign In page
+  };
+
+  const handleLogoutClick = () => {
+    setLogoutConfirmOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    setLogoutConfirmOpen(false);
+    handleLogout();
   };
 
   const toggleMenu = () => {
@@ -55,17 +88,28 @@ export default function Profile() {
     };
   }, [isOpen]);
 
+  // Render profile content based on loading state
+  const renderProfileContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-200 text-gray-500 shadow-md transition-transform hover:scale-105">
+          <PiUserCircleThin className="h-8 w-8" />
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-transform hover:scale-105">
+        {getUserInitials()}
+      </div>
+    );
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Profile Image Trigger */}
+      {/* Profile Initials Trigger */}
       <div className="cursor-pointer p-2" onClick={toggleMenu}>
-        <Image
-          src="/images/profile/profile.png"
-          alt="Profile Picture"
-          width={40}
-          height={40}
-          className="h-10 w-10 rounded-full border-2 border-gray-300 shadow-md transition-transform hover:scale-105"
-        />
+        {renderProfileContent()}
       </div>
 
       {/* Dropdown Menu */}
@@ -73,12 +117,15 @@ export default function Profile() {
         <div className="absolute right-0 z-50 mt-2 w-56 rounded-md border border-gray-200 bg-white p-4 shadow-lg">
           {/* Loading State */}
           {isLoading ? (
-            <p className="text-center text-gray-500">Loading...</p>
+            <div className="flex items-center justify-center py-2">
+              <PiUserCircleThin className="h-6 w-6 text-blue-600" />
+              <p className="ml-2 text-gray-500">Loading user data...</p>
+            </div>
           ) : error ? (
             <p className="text-center text-red-500">Failed to load user</p>
           ) : (
             <>
-              {/* User Info */}
+              {/* User sInfo */}
               <div className="mb-4 flex items-center gap-3">
                 <User size={24} className="text-gray-600" />
                 <div>
@@ -91,7 +138,7 @@ export default function Profile() {
 
               {/* Logout Button */}
               <button
-                onClick={handleLogout}
+                onClick={handleLogoutClick}
                 className="flex w-full items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-white hover:bg-red-700"
               >
                 <LogOut size={18} />
@@ -101,6 +148,39 @@ export default function Profile() {
           )}
         </div>
       )}
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+              Confirm Logout
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <LogOut className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
+            <p className="text-gray-600 dark:text-gray-300">
+              Are you sure you want to log out of your account?
+            </p>
+          </div>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setLogoutConfirmOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleLogoutConfirm}
+              className="w-full sm:w-auto"
+            >
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

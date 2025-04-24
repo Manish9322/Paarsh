@@ -3,6 +3,8 @@ import Breadcrumb from "@/components/Common/Breadcrumb";
 import Contact from "@/components/Contact";
 import { Metadata } from "next";
 import { FaPhone, FaEnvelope, FaClock, FaMapMarkerAlt, FaLinkedin, FaTwitter, FaInstagram, FaYoutube, FaArrowRight } from 'react-icons/fa';
+import { Phone, Mail, MapPin, Building, ExternalLink, Clock, Users } from 'lucide-react';
+
 import { MdBusiness } from 'react-icons/md';
 
 export const metadata: Metadata = {
@@ -20,88 +22,133 @@ const ContactPage = () => {
       />
 
       {/* Contact Cards */}
-      <div className="container mx-auto px-4 mb-16">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Reach Out Card */}
-          <div className="group overflow-hidden rounded-xl bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-2xl dark:bg-gray-dark">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30">
-              <FaPhone size={32} />
+      <div className="container mx-auto px-4 pt-12 pb-0 md:pt-16">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Contact Card */}
+          <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-md overflow-hidden shadow-xl transform transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <div className="absolute right-0 top-0 w-32 h-32 opacity-10">
+              <div className="w-full h-full bg-white rounded-full transform translate-x-1/2 -translate-y-1/2"></div>
             </div>
-            <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Reach Out to Us</h2>
-            
-            <div className="mb-6 space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/20">
-                  <FaPhone size={18} />
+
+            <div className="p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="bg-white p-3 rounded-full shadow-lg">
+                  <Phone className="w-7 h-7 text-blue-600" />
                 </div>
-                <a href="tel:+919075201035" className="text-lg font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">
-                  +91 90752 01035
-                </a>
+                <h2 className="text-2xl font-bold text-white">Reach Out to Us</h2>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/20">
-                  <FaEnvelope size={18} />
+              <div className="space-y-5">
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-blue-100 bg-opacity-20 p-2 rounded-full">
+                    <Phone className="w-5 h-5 text-white" />
+                  </div>
+                  <a href="tel:+919075201035" className="text-white group-hover:text-blue-100 transition-colors font-medium flex items-center gap-2">
+                    +91 90752 01035
+                    <ExternalLink className="w-4 h-4 opacity-70" />
+                  </a>
                 </div>
-                <a href="mailto:paarshedu@gmail.com" className="text-lg font-medium text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">
-                  paarshedu@gmail.com
-                </a>
-              </div>
 
-              <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/20">
-                  <FaMapMarkerAlt size={18} />
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-blue-100 bg-opacity-20 p-2 rounded-full">
+                    <Mail className="w-5 h-5 text-white" />
+                  </div>
+                  <a href="mailto:paarshedu@gmail.com" className="text-white group-hover:text-blue-100 transition-colors font-medium flex items-center gap-2">
+                    paarshedu@gmail.com
+                    <ExternalLink className="w-4 h-4 opacity-70" />
+                  </a>
                 </div>
-                <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                  Paarsh Infotech Pvt Ltd.<br />
-                  Office no 1 Bhakti Apartment,<br />
-                  Near Rasoi Hotel Suchita Nagar,<br />
-                  Mumbai Naka, Nashik 422001.
-                </p>
+
+                <div className="flex items-start gap-4">
+                  <div className="bg-blue-100 bg-opacity-20 p-2 rounded-full mt-1">
+                    <MapPin className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">
+                      Paarsh Infotech Pvt Ltd.<br />
+                      Office no 1 Bhakti Apartment,<br />
+                      Near Rasoi Hotel Suchita Nagar,<br />
+                      Mumbai Naka, Nashik 422001.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-blue-100 bg-opacity-20 p-2 rounded-full">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
+                  <p className="text-white font-medium">
+                    Monday - Friday: 9:00 AM - 6:00 PM
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Business Card */}
-          <div className="group overflow-hidden rounded-xl bg-white p-8 shadow-lg transition-all duration-300 hover:shadow-2xl dark:bg-gray-dark">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30">
-              <MdBusiness size={32} />
+          <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-md overflow-hidden shadow-xl transform transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <div className="absolute right-0 top-0 w-32 h-32 opacity-10">
+              <div className="w-full h-full bg-white rounded-full transform translate-x-1/2 -translate-y-1/2"></div>
             </div>
-            <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Business & Partnerships</h2>
-            
-            <div className="mb-6 space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20">
-                  <FaPhone size={18} />
+
+            <div className="p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="bg-white p-3 rounded-full shadow-lg">
+                  <Building className="w-7 h-7 text-blue-600" />
                 </div>
-                <a href="tel:+919860988343" className="text-lg font-medium text-gray-700 transition-colors hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400">
-                  +91 98609 88343
-                </a>
+                <h2 className="text-2xl font-bold text-white">Business & Partnerships</h2>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20">
-                  <FaEnvelope size={18} />
+              <div className="space-y-5">
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-blue-100 bg-opacity-20 p-2 rounded-full">
+                    <Phone className="w-5 h-5 text-white" />
+                  </div>
+                  <a href="tel:+919860988343" className="text-white group-hover:text-blue-100 transition-colors font-medium flex items-center gap-2">
+                    +91 98609 88343
+                    <ExternalLink className="w-4 h-4 opacity-70" />
+                  </a>
                 </div>
-                <a href="mailto:info@paarshinfotech.com" className="text-lg font-medium text-gray-700 transition-colors hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400">
-                  info@paarshinfotech.com
-                </a>
-              </div>
 
-              <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20">
-                  <FaMapMarkerAlt size={18} />
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-blue-100 bg-opacity-20 p-2 rounded-full">
+                    <Mail className="w-5 h-5 text-white" />
+                  </div>
+                  <a href="mailto:info@paarshinfotech.com" className="text-white group-hover:text-blue-100 transition-colors font-medium flex items-center gap-2">
+                    info@paarshinfotech.com
+                    <ExternalLink className="w-4 h-4 opacity-70" />
+                  </a>
                 </div>
-                <p className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                  Corporate Headquarters<br />
-                  Paarsh Infotech Pvt Ltd.<br />
-                  Office no 1 Bhakti Apartment,<br />
-                  Near Rasoi Hotel, Mumbai Naka, Nashik 422001.
-                </p>
+
+                <div className="flex items-start gap-4">
+                  <div className="bg-blue-100 bg-opacity-20 p-2 rounded-full mt-1">
+                    <MapPin className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">Corporate Headquarters</h3>
+                    <p className="text-white font-medium mt-1">
+                      Paarsh Infotech Pvt Ltd.<br />
+                      Office no 1 Bhakti Apartment,<br />
+                      Near Rasoi Hotel, Mumbai Naka, Nashik 422001.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 group">
+                  <div className="bg-blue-100 bg-opacity-20 p-2 rounded-full">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <a href="#" className="text-white group-hover:text-blue-100 transition-colors font-medium flex items-center gap-2">
+                    Schedule a consultation
+                    <ExternalLink className="w-4 h-4 opacity-70" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
       </div>
 
       {/* Contact Form Section */}
@@ -114,7 +161,7 @@ const ContactPage = () => {
         <h2 className="mb-12 text-center text-3xl font-bold text-gray-900 dark:text-white">Our Office Locations</h2>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Nashik Office */}
-          <div className="group overflow-hidden rounded-xl bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl dark:bg-gray-dark">
+          <div className="group overflow-hidden rounded-md bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl dark:bg-gray-dark">
             <div className="h-40 bg-gradient-to-r from-blue-500 to-blue-700 p-6">
               <h3 className="mb-1 text-2xl font-bold text-white">Nashik Office</h3>
               <div className="flex items-center text-white/80">
@@ -133,9 +180,9 @@ const ContactPage = () => {
                 Mumbai Naka, Nashik, Maharashtra,<br />
                 India PIN - 422009
               </p>
-              <a 
-                href="https://maps.google.com/?q=Paarsh+Infotech+Pvt+Ltd+Nashik" 
-                target="_blank" 
+              <a
+                href="https://maps.google.com/?q=Paarsh+Infotech+Pvt+Ltd+Nashik"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
@@ -146,15 +193,15 @@ const ContactPage = () => {
           </div>
 
           {/* Jalgaon Office */}
-          <div className="group overflow-hidden rounded-xl bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl dark:bg-gray-dark">
-            <div className="h-40 bg-gradient-to-r from-indigo-500 to-indigo-700 p-6">
+          <div className="group overflow-hidden rounded-md bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl dark:bg-gray-dark">
+            <div className="h-40 bg-gradient-to-r from-blue-500 to-blue-700 p-6">
               <h3 className="mb-1 text-2xl font-bold text-white">Jalgaon Office</h3>
               <div className="flex items-center text-white/80">
                 <FaMapMarkerAlt size={16} className="mr-2" />
                 <span className="font-medium">Regional Office</span>
               </div>
             </div>
-            <div className ="p-6">
+            <div className="p-6">
               <div className="mb-4 flex items-center text-sm text-gray-500 dark:text-gray-400">
                 <FaClock size={16} className="mr-2" />
                 10:00 AM - 6:30 PM
@@ -165,11 +212,11 @@ const ContactPage = () => {
                 Gurukul Colony, Ramdas Colony,<br />
                 Jalgaon, Maharashtra 425001
               </p>
-              <a 
-                href="https://maps.google.com/?q=Paarsh+Infotech+Jalgaon" 
-                target="_blank" 
+              <a
+                href="https://maps.google.com/?q=Paarsh+Infotech+Jalgaon"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+                className="mt-4 inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Get directions
                 <FaArrowRight size={16} className="ml-1" />
@@ -178,8 +225,8 @@ const ContactPage = () => {
           </div>
 
           {/* Surat Office */}
-          <div className="group overflow-hidden rounded-xl bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl dark:bg-gray-dark">
-            <div className="h-40 bg-gradient-to-r from-purple-500 to-purple-700 p-6">
+          <div className="group overflow-hidden rounded-md bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl dark:bg-gray-dark">
+            <div className="h-40 bg-gradient-to-r from-blue-500 to-blue-700 p-6">
               <h3 className="mb-1 text-2xl font-bold text-white">Surat Office</h3>
               <div className="flex items-center text-white/80">
                 <FaMapMarkerAlt size={16} className="mr-2" />
@@ -197,11 +244,11 @@ const ContactPage = () => {
                 Dharwad- Karnakata,<br />
                 India PIN - 580001
               </p>
-              <a 
-                href="https://maps.google.com/?q=Paarsh+Infotech+Surat" 
-                target="_blank" 
+              <a
+                href="https://maps.google.com/?q=Paarsh+Infotech+Surat"
+                target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center font-medium text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
+                className="mt-4 inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Get directions
                 <FaArrowRight size={16} className="ml-1" />
@@ -212,15 +259,15 @@ const ContactPage = () => {
       </div>
 
       {/* Google Map with enhanced styling */}
-        <div className="h-96 w-full overflow-hidden">
-          <iframe
-            className="h-full w-full"
-            src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d239977.2208696996!2d73.7818331!3d19.9814652!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bddebee73f7beb3%3A0x180f540ccce09ace!2sPAARSH%20INFOTECH%20PVT%20LTD!5e0!3m2!1sen!2sin!4v1734090742917!5m2!1sen!2sin"
-            allowFullScreen={true}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          ></iframe>
-        </div>
+      <div className="h-96 w-full overflow-hidden">
+        <iframe
+          className="h-full w-full"
+          src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d239977.2208696996!2d73.7818331!3d19.9814652!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bddebee73f7beb3%3A0x180f540ccce09ace!2sPAARSH%20INFOTECH%20PVT%20LTD!5e0!3m2!1sen!2sin!4v1734090742917!5m2!1sen!2sin"
+          allowFullScreen={true}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        ></iframe>
+      </div>
     </>
   );
 };

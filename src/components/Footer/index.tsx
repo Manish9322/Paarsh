@@ -249,7 +249,7 @@ const Footer = () => {
                       {/* Email Address */}
                       <a
                         href="mailto:info@paarshedu.com"
-                        className="text-body-color transition duration-300 hover:text-blue-700"
+                        className="text-body-color transition duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                       >
                         info@paarshedu.com
                       </a>
@@ -270,8 +270,8 @@ const Footer = () => {
 
                       {/* phone*/}
                       <a
-                        href="mailto:your-email@example.com"
-                        className="text-body-color transition duration-300 hover:text-blue-700"
+                        href="tel:+919075201035"
+                        className="text-body-color transition duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                       >
                         +91 90752 01035
                       </a>
@@ -293,7 +293,7 @@ const Footer = () => {
                       {/* Address */}
                       <a
                         href="mailto:your-email@example.com"
-                        className="text-body-color transition duration-300 hover:text-blue-700"
+                        className="text-body-color transition duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                       >
                         Paarsh Infotech Pvt Ltd. Mumbai Naka, Nashik - 422001
                       </a>

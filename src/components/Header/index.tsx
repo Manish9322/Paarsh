@@ -227,24 +227,22 @@ const Header = () => {
           </div>
         </ul>
       </div>
-     
+
 
 
       <header
-        className={`header pt-16 md:pt-0 left-0 top-0 z-40 flex w-full  ${
-          sticky
-            ? "fixed z-[9999] !pt-0 md:pt-0 bg-white !bg-opacity-80 shadow-sticky backdrop-blur-sm transition dark:bg-gray-dark dark:shadow-sticky-dark"
-            : "absolute mt-16 bg-transparent"
-        }`}
+        className={`header pt-16 md:pt-0 left-0 top-0 z-40 flex w-full  ${sticky
+          ? "fixed z-[9999] !pt-0 md:pt-0 bg-white !bg-opacity-80 shadow-sticky backdrop-blur-sm transition dark:bg-gray-dark dark:shadow-sticky-dark"
+          : "absolute mt-16 bg-transparent"
+          }`}
       >
         <div className="container">
           <div className="relative -mx-4 flex items-center justify-between">
             <div className="w-60 max-w-full px-4 xl:mr-12">
               <Link
-                 href="/"
-                 className={`header-logo block w-full transition-transform duration-300 hover:scale-110 ${
-                   sticky ? "py-5 lg:py-2" : "py-8"
-                 }`}
+                href="/"
+                className={`header-logo block w-full transition-transform duration-300 hover:scale-110 ${sticky ? "py-5 lg:py-2" : "py-8"
+                  }`}
               >
                 <Image
                   src="/images/logo/PAARSHEDU_LOGO.png"
@@ -288,11 +286,10 @@ const Header = () => {
                 </button> */}
                 <nav
                   id="navbarCollapse"
-                  className={`navbar absolute right-0 z-30 w-[250px] rounded border-[.5px] border-body-color/50 bg-white px-6 py-4 duration-300 dark:border-body-color/20 dark:bg-dark lg:visible lg:static lg:w-auto lg:border-none lg:!bg-transparent lg:p-0 lg:opacity-100 ${
-                    navbarOpen
-                      ? "visibility top-full opacity-100"
-                      : "invisible top-[120%] opacity-0"
-                  }`}
+                  className={`navbar absolute right-0 z-30 w-[250px] rounded border-[.5px] border-body-color/50 bg-white px-6 py-4 duration-300 dark:border-body-color/20 dark:bg-dark lg:visible lg:static lg:w-auto lg:border-none lg:!bg-transparent lg:p-0 lg:opacity-100 ${navbarOpen
+                    ? "visibility top-full opacity-100"
+                    : "invisible top-[120%] opacity-0"
+                    }`}
                 >
                   <ul className="block lg:flex lg:space-x-12">
                     {menuData.map((menuItem, index) => (
@@ -300,11 +297,10 @@ const Header = () => {
                         {menuItem.path ? (
                           <Link
                             href={menuItem.path}
-                            className={`flex py-2 text-base lg:mr-0 lg:inline-flex lg:px-0 lg:py-6 ${
-                              usePathName === menuItem.path
-                                ? "text-primary dark:text-white"
-                                : "text-dark hover:text-primary dark:text-white/70 dark:hover:text-white"
-                            }`}
+                            className={`flex py-2 text-base lg:mr-0 lg:inline-flex lg:px-0 lg:py-6 ${usePathName === menuItem.path
+                              ? "text-primary dark:text-white"
+                              : "text-dark hover:text-primary dark:text-white/70 dark:hover:text-white"
+                              }`}
                           >
                             {menuItem.title}
                           </Link>
@@ -327,9 +323,8 @@ const Header = () => {
                               </span>
                             </p>
                             <div
-                              className={`submenu relative left-0 top-full rounded-sm bg-white transition-[top] duration-300 group-hover:opacity-100 dark:bg-dark lg:invisible lg:absolute lg:top-[110%] lg:block lg:w-[250px] lg:p-4 lg:opacity-0 lg:shadow-lg lg:group-hover:visible lg:group-hover:top-full ${
-                                openIndex === index ? "block" : "hidden"
-                              }`}
+                              className={`submenu relative left-0 top-full rounded-sm bg-white transition-[top] duration-300 group-hover:opacity-100 dark:bg-dark lg:invisible lg:absolute lg:top-[110%] lg:block lg:w-[250px] lg:p-4 lg:opacity-0 lg:shadow-lg lg:group-hover:visible lg:group-hover:top-full ${openIndex === index ? "block" : "hidden"
+                                }`}
                             >
                               {menuItem.submenu.map((submenuItem, index) => (
                                 <Link
@@ -352,27 +347,27 @@ const Header = () => {
                 <div>
                   <ThemeToggler />
                 </div>
-            
+
 
                 {isAuthenticated ? (
-                      <>
-                  <div>
-                 
-                  <button 
-                   onClick={handleClick}
-                  className="flex items-center justify-center gap-1 px-4 py-2 rounded-3xl bg-[#1E2A47] text-white shadow-md hover:bg-[#16203A] transition duration-300 dark:bg-[#1B1F3B] dark:hover:bg-[#13172E] 
-      text-sm sm:text-base w-full sm:w-auto">
-      
-      <span className="hidden sm:inline font-medium">Dashboard</span>
-      
-      <Rocket size={16} />
-    </button>
+                  <>
+                    <div>
 
-                  </div>
-                  <div>
-                    <Profile />
-                 
-                  </div>
+                      <button
+                        onClick={handleClick}
+                        className="flex items-center justify-center gap-2 px-4 py-2 rounded-3xl bg-[#1E2A47] text-white shadow-md hover:bg-[#16203A] transition duration-300 dark:bg-[#1B1F3B] dark:hover:bg-[#13172E] 
+      text-sm sm:text-base w-full sm:w-auto">
+
+                        <span className="hidden sm:inline font-medium">Dashboard</span>
+
+                        <Rocket size={16} />
+                      </button>
+
+                    </div>
+                    <div>
+                      <Profile />
+
+                    </div>
                   </>
                 ) : (<>
                   <Link
@@ -381,10 +376,10 @@ const Header = () => {
                   >
                     Sign In
                   </Link>
-             
-                  </>
+
+                </>
                 )}
-                
+
               </div>
             </div>
           </div>
