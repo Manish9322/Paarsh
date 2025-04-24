@@ -402,6 +402,34 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["MeetingLink"],
     }),
+
+
+    // Endpoint for Creating Job Application
+    CreateJobApplication: builder.mutation({
+      query: (data) => ({
+        url: `/JobApplication`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    // Endpoint for Fetching Job Application
+    fetchJobApplications: builder.query({
+      query: () => "/JobApplication",
+      providesTags: ["JobApplication"],
+    }),
+    
+    // Endpoint for deleting Job Application by ID
+    deleteJobApplication: builder.mutation({
+      query: (id) => ({
+        url: "/JobApplication",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["JobApplication"],
+    }),
+
+    
   }),
 });
 
@@ -458,6 +486,11 @@ export const {
   useFetchMeetingLinkByIdQuery,
   useGenerateMeetingLinkMutation,
   useUpdateMeetingStatusMutation,
+
+  useCreateJobApplicationMutation,
+  useFetchJobApplicationsQuery,
+  useDeleteJobApplicationMutation,
+
   useUpdateVideoProgressMutation,
   useGetVideoProgressQuery,
 } = paarshEduApi;

@@ -136,3 +136,55 @@
 .swiper-button-prev:after, .swiper-button-next:after{
   opacity: 0 !important;
 }
+
+
+.testimonials-swiper .swiper-pagination-bullet {
+  background: rgba(59, 130, 246, 0.5);
+  width: 10px;
+  height: 10px;
+  transition: all 0.3s;
+}
+
+.testimonials-swiper .swiper-pagination-bullet-active {
+  background: #3B82F6;
+  width: 24px;
+  border-radius: 4px;
+}
+
+.testimonials-swiper .swiper-button-next,
+.testimonials-swiper .swiper-button-prev {
+  color: #3B82F6;
+  transition: all 0.3s;
+}
+
+.testimonials-swiper .swiper-button-next:hover,
+.testimonials-swiper .swiper-button-prev:hover {
+  color: #2563EB;
+}
+
+
+@keyframes reverse-spin {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+@keyframes ping-slow {
+  75%, 100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+.animate-reverse-spin {
+  animation: reverse-spin 8s linear infinite;
+}
+.animate-ping-slow {
+  animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}

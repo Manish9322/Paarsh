@@ -142,7 +142,7 @@ export function AddNewCourse() {
     }
   };
 
-  console.log("Courseseeese", course);
+  console.log("Course : ", course);
 
   const onSubmit = async (e) => {
     // Get the editor content from the Redux state
