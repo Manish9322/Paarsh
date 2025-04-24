@@ -39,9 +39,31 @@ export const paarshEduApi = createApi({
     "Payment",
     "Contact",
     "MeetingLink",
+    "Progress",
   ],
 
   endpoints: (builder) => ({
+    // Video Progress Endpoints
+    updateVideoProgress: builder.mutation({
+      query: ({ videoId, courseId, progress, completed }) => ({
+        url: "/video-progress",
+        method: 'POST',
+        body: { videoId, courseId, progress, completed },
+      }),
+      invalidatesTags: (result, error, { courseId }) => [{ type: 'Progress', id: courseId }],
+    }),
+
+    getVideoProgress: builder.query({
+      query: (courseId) => `/video-progress?courseId=${courseId}`,
+      providesTags: (result, error, courseId) => [{ type: 'Progress', id: courseId }],
+      transformResponse: (response) => {
+        // Transform the response to match the expected format
+        return {
+          success: true,
+          data: response.data || {}
+        };
+      },
+    }),
     // ----------------------------------------------------User Apis---------------------------------------------
     login: builder.mutation({
       query: (credentials) => ({
@@ -436,5 +458,6 @@ export const {
   useFetchMeetingLinkByIdQuery,
   useGenerateMeetingLinkMutation,
   useUpdateMeetingStatusMutation,
-
+  useUpdateVideoProgressMutation,
+  useGetVideoProgressQuery,
 } = paarshEduApi;
