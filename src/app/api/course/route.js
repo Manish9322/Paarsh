@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import _db from "../../../../utils/db";
 import CourseModel from "../../../../models/Courses/Course.model";
 import { authMiddleware } from "../../../../middlewares/auth";
-import { uploadFileToVPS } from "../../../../utils/uploadfile";
+import { uploadBase64ToVPS } from "../../../../utils/uploadfile";
 
 _db();
 
@@ -56,13 +56,13 @@ export const POST = authMiddleware(async (request) => {
     }
 
     const thumbnailUrl = thumbnail
-      ? await uploadFileToVPS(thumbnail, "thumbnail")
+      ? await uploadBase64ToVPS(thumbnail, "thumbnail")
       : null;
     const syllabusUrl = syllabus
-      ? await uploadFileToVPS(syllabus, "syllabus")
+      ? await uploadBase64ToVPS(syllabus, "syllabus")
       : null;
     const videoUrl = videoLink
-      ? await uploadFileToVPS(videoLink, "videoLink")
+      ? await uploadBase64ToVPS(videoLink, "videoLink")
       : null;
 
     
@@ -225,7 +225,7 @@ export const PUT = authMiddleware(async (request) => {
         if (existingCourse.thumbnail) {
           await removeOldFileFromVPS(existingCourse.thumbnail);
         }
-        thumbnailUrl = await uploadFileToVPS(thumbnail, "thumbnail");
+        thumbnailUrl = await uploadBase64ToVPS(thumbnail, "thumbnail");
       } else if (thumbnail !== existingCourse.thumbnail) {
         // If thumbnail is a URL but different from existing, update it
         thumbnailUrl = thumbnail;
@@ -240,7 +240,7 @@ export const PUT = authMiddleware(async (request) => {
         if (existingCourse.syllabus) {
           await removeOldFileFromVPS(existingCourse.syllabus);
         }
-        syllabusUrl = await uploadFileToVPS(syllabus, "syllabus");
+        syllabusUrl = await uploadBase64ToVPS(syllabus, "syllabus");
       } else if (syllabus !== existingCourse.syllabus) {
         // If syllabus is a URL but different from existing, update it
         syllabusUrl = syllabus;
@@ -255,7 +255,7 @@ export const PUT = authMiddleware(async (request) => {
         if (existingCourse.videoLink) {
           await removeOldFileFromVPS(existingCourse.videoLink);
         }
-        videoUrl = await uploadFileToVPS(videoLink, "videoLink");
+        videoUrl = await uploadBase64ToVPS(videoLink, "videoLink");
       } else if (videoLink !== existingCourse.videoLink) {
         // If video link is a URL but different from existing, update it
         videoUrl = videoLink;

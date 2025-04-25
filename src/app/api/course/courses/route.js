@@ -6,11 +6,10 @@ import { authMiddleware } from "../../../../../middlewares/auth";
 _db();
 
 // Add Multiple Courses
-export const POST = authMiddleware(async (request) => {
+export const POST = async (request) => {
   try {
     const courses = await request.json(); // Expecting an array of objects
 
-    // Validate if the input is an array and not empty
     if (!Array.isArray(courses) || courses.length === 0) {
       return NextResponse.json(
         { success: false, error: "Input must be a non-empty array of courses" },
@@ -18,45 +17,57 @@ export const POST = authMiddleware(async (request) => {
       );
     }
 
-    // Validate required fields for each course
     for (const course of courses) {
       const {
-        category,
-        subcategory,
         courseName,
-        duration,
         price,
+        duration,
         level,
         languages,
-        instructor,
         thumbnail,
         syllabus,
         summaryText,
-        tagline,
+        editorContent,
         taglineIncludes,
         overviewTagline,
-        editorContent,
         finalText,
         tagline_in_the_box,
+        tagline,
         videoLink,
         courseIncludes = [],
         syllabusOverview = [],
         thoughts = [],
         tags = [],
+        category,
+        subcategory,
         availability,
         certificate = false,
+        instructor,
         featuredCourse = false,
+        enrolledUsers = [],
       } = course;
 
-      if (!category || !courseName || !duration || !price || !languages || !level || !instructor || !tagline) {
+      // Validate required fields
+      if (
+        !courseName ||
+        !price ||
+        !duration ||
+        !level ||
+        !languages ||
+        !tagline
+      ) {
         return NextResponse.json(
-          { success: false, error: "All required fields must be provided for each course" },
+          {
+            success: false,
+            error:
+              "Missing required fields: courseName, price, duration, level, languages, tagline",
+          },
           { status: 400 }
         );
       }
     }
 
-    // Insert multiple courses at once
+    // Save all valid courses to the DB
     const newCourses = await CourseModel.insertMany(courses);
 
     return NextResponse.json({
@@ -72,4 +83,4 @@ export const POST = authMiddleware(async (request) => {
       { status: 500 }
     );
   }
-}, true);
+};

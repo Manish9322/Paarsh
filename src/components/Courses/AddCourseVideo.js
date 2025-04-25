@@ -489,9 +489,10 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                                   )
                                 }
                               />
-
+                                  <h2 className="font-semibold">Video</h2>
                               {/* Video Upload Section */}
                               <div className="flex items-center gap-2">
+                          
                                 <div className="flex-1">
                                   <Input
                                     type="file"
@@ -535,7 +536,9 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                               </div>
 
                               {/* Resource Upload Section */}
+                              <h2 className="font-semibold">Resource</h2>
                               <div className="mt-2 flex items-center gap-2">
+                           
                                 <div className="flex-1">
                                   <Input
                                     type="file"

@@ -25,8 +25,6 @@ const courseVideoSchema = new mongoose.Schema(
             videoName: { type: String, required: true },
             videoId: { type: String, required: true },
             resourceId: { type: String }, // Optional resource file for each video
-            progress: { type: Number, default: 0 },       // New field
-            completed: { type: Boolean, default: false },  // New field
           },
         ],
       },
