@@ -5,7 +5,7 @@ import Link from "next/link";
 const Footer = () => {
   return (
     <>
-      <footer  className="relative z-10 bg-white pt-14 dark:bg-gray-dark md:pt-10 lg:pt-10">
+      <footer className="relative z-10 bg-white pt-14 dark:bg-gray-dark md:pt-10 lg:pt-10">
         <div className="container">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4 md:w-1/2 lg:w-4/12 xl:w-5/12">
@@ -171,10 +171,10 @@ const Footer = () => {
                 <ul>
                   <li>
                     <Link
-                     href="/newcourses"
+                      href="/newcourses"
                       className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
-                    Courses
+                      Courses
                     </Link>
                   </li>
                   <li>
@@ -182,7 +182,7 @@ const Footer = () => {
                       href="/careers"
                       className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
-                     Careers
+                      Careers
                     </Link>
                   </li>
                   <li>
@@ -190,7 +190,7 @@ const Footer = () => {
                       href="/founders"
                       className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
-                     Our Founders
+                      Our Founders
                     </Link>
                   </li>
                   <li>
@@ -198,7 +198,7 @@ const Footer = () => {
                       href="/"
                       className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
-                     Become Partners
+                      Become Partners
                     </Link>
                   </li>
                   <li>
@@ -206,7 +206,7 @@ const Footer = () => {
                       href="/"
                       className="mb-2 inline-block text-base text-body-color duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                     >
-                      
+
                     </Link>
                   </li>
                 </ul>
@@ -228,7 +228,7 @@ const Footer = () => {
                         viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="text-gray-500"
+                        className="text-gray-500 mt-1"
                       >
                         <path
                           d="M3 4h11C22.1 4 23 4.9 23 6V18C23 19.1 22.1 20 21 20H3C1.9 20 1 19.1 1 18V6C1 4.9 1.9 4 3 4Z"
@@ -249,7 +249,7 @@ const Footer = () => {
                       {/* Email Address */}
                       <a
                         href="mailto:info@paarshedu.com"
-                        className="text-body-color transition duration-300 hover:text-blue-700"
+                        className="text-body-color transition duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                       >
                         info@paarshedu.com
                       </a>
@@ -259,19 +259,20 @@ const Footer = () => {
                     <div className="mb-2 flex items-center space-x-3">
                       {/*phone */}
                       <svg
-                        width="24"
-                        height="24"
+                        width="18"
+                        height="18"
                         viewBox="0 0 24 24"
                         fill="gray"
                         xmlns="http://www.w3.org/2000/svg"
+                        className="mt-1"
                       >
                         <path d="M6.6 10.8C8 13.7 10.3 16 13.2 17.4L15.4 15.2C15.7 14.9 16.1 14.8 16.5 14.9L20.8 15.9C21.4 16.1 21.8 16.6 21.8 17.2V21C21.8 21.6 21.3 22.1 20.7 22C15.4 21.4 10.7 18.7 7.3 15.3C3.9 11.9 1.2 7.2 0.6 2C0.5 1.4 1 0.9 1.6 0.9H5.4C6 0.9 6.5 1.3 6.6 1.9L7.6 6.2C7.7 6.6 7.6 7 7.3 7.3L5.1 9.5C5.4 9.9 6 10.4 6.6 10.8Z" />
                       </svg>
 
                       {/* phone*/}
                       <a
-                        href="mailto:your-email@example.com"
-                        className="text-body-color transition duration-300 hover:text-blue-700"
+                        href="tel:+919075201035"
+                        className="text-body-color transition duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                       >
                         +91 90752 01035
                       </a>
@@ -281,19 +282,22 @@ const Footer = () => {
                     <div className="mb-2 flex space-x-2">
                       {/* address */}
                       <svg
-                        width="40"
-                        height="40"
+                        width="38"
+                        height="38"
                         viewBox="0 0 24 24"
                         fill="gray"
                         xmlns="http://www.w3.org/2000/svg"
+                        className="mt-1"
                       >
                         <path d="M12 2C8.1 2 5 5.1 5 9C5 13.2 9.9 19.3 11.6 21.2C11.8 21.4 12.2 21.4 12.4 21.2C14.1 19.3 19 13.2 19 9C19 5.1 15.9 2 12 2ZM12 11C10.3 11 9 9.7 9 8C9 6.3 10.3 5 12 5C13.7 5 15 6.3 15 8C15 9.7 13.7 11 12 11Z" />
                       </svg>
 
                       {/* Address */}
                       <a
-                        href="mailto:your-email@example.com"
-                        className="text-body-color transition duration-300 hover:text-blue-700"
+                        href="https://maps.google.com/?q=Paarsh+Infotech+Pvt+Ltd+Nashik"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-body-color transition duration-300 hover:text-primary dark:text-body-color-dark dark:hover:text-primary"
                       >
                         Paarsh Infotech Pvt Ltd. Mumbai Naka, Nashik - 422001
                       </a>

@@ -251,7 +251,7 @@ const AdminPage: React.FC = () => {
             </div>
             
             <Card className="mb-6 overflow-hidden border-none bg-white shadow-xl dark:bg-gray-800 dark:text-white">
-              <CardHeader className="bg-gradient-to-r from-purple-600 to-indigo-800 p-4 pb-4 pt-6 sm:p-6">
+              <CardHeader className="bg-blue-600 p-4 pb-4 pt-6 sm:p-6">
                 <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                   <CardTitle className="text-xl font-bold text-white sm:text-2xl">
                     Categories Management
@@ -261,7 +261,7 @@ const AdminPage: React.FC = () => {
                       <Input
                         type="text"
                         placeholder="Search categories..."
-                        className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 pl-9 text-black placeholder:text-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700/90 dark:text-white dark:placeholder:text-gray-400 md:w-64"
+                        className="h-10 w-full rounded-md border border-gray-300 bg-white/90 p-2 pl-9 text-black placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/90 dark:text-white dark:placeholder:text-gray-400 md:w-64"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -347,11 +347,11 @@ const AdminPage: React.FC = () => {
                                 {category.keywords.map((keyword, i) => (
                                   <span 
                                     key={i} 
-                                    className="group relative inline-flex items-center overflow-hidden rounded-md bg-gradient-to-r from-indigo-50 to-blue-50 px-3 py-1.5 text-xs font-medium text-indigo-800 shadow-sm transition-all duration-300 hover:translate-y-[-1px] hover:shadow-md dark:from-indigo-900/40 dark:to-blue-900/40 dark:text-indigo-200"
+                                    className="group relative inline-flex items-center overflow-hidden rounded-md bg-gradient-to-r from-blue-50 to-blue-50 px-3 py-1.5 text-xs font-medium text-blue-800 shadow-sm transition-all duration-300 hover:translate-y-[-1px] hover:shadow-md dark:from-blue-900/40 dark:to-blue-900/40 dark:text-blue-200"
                                   >
-                                    <span className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+                                    <span className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-blue-500/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
                                     <span className="relative z-10 flex items-center">
-                                      <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500"></span>
+                                      <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-500"></span>
                                       {keyword}
                                     </span>
                                   </span>
@@ -364,7 +364,7 @@ const AdminPage: React.FC = () => {
                             <TableCell>
                               <div className="flex items-center justify-center gap-2">
                                 <button
-                                  className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-600 transition-all duration-200 hover:bg-green-100 hover:text-green-700 hover:shadow-md dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30 dark:hover:text-green-300"
+                                  className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                   onClick={() => {
                                     setSelectedCategory(category);
                                     setViewOpen(true);
@@ -375,7 +375,7 @@ const AdminPage: React.FC = () => {
                                   <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">View details</span>
                                 </button>
                                 <button
-                                  className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 transition-all duration-200 hover:bg-indigo-100 hover:text-indigo-700 hover:shadow-md dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-300"
+                                  className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                   onClick={() => {
                                     setSelectedCategory(category);
                                     setEditOpen(true);
@@ -418,7 +418,7 @@ const AdminPage: React.FC = () => {
                 {selectedCategory && (
                   <div className="p-6">
                     <div className="mb-6 flex items-center justify-center">
-                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
                         <span className="text-2xl font-bold">{selectedCategory.name.charAt(0)}</span>
                       </div>
                     </div>
@@ -464,11 +464,11 @@ const AdminPage: React.FC = () => {
                             {selectedCategory.keywords.map((keyword, i) => (
                               <span 
                                 key={i} 
-                                className="group relative inline-flex items-center overflow-hidden rounded-md bg-gradient-to-r from-indigo-50 to-blue-50 px-3 py-1.5 text-xs font-medium text-indigo-800 shadow-sm transition-all duration-300 hover:translate-y-[-1px] hover:shadow-md dark:from-indigo-900/40 dark:to-blue-900/40 dark:text-indigo-200"
+                                className="group relative inline-flex items-center overflow-hidden rounded-md bg-gradient-to-r from-blue-50 to-blue-50 px-3 py-1.5 text-xs font-medium text-blue-800 shadow-sm transition-all duration-300 hover:translate-y-[-1px] hover:shadow-md dark:from-blue-900/40 dark:to-blue-900/40 dark:text-blue-200"
                               >
-                                <span className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+                                <span className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-blue-500/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
                                 <span className="relative z-10 flex items-center">
-                                  <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500"></span>
+                                  <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-500"></span>
                                   {keyword}
                                 </span>
                               </span>
@@ -504,7 +504,7 @@ const AdminPage: React.FC = () => {
                   <Button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="h-8 w-8 rounded-md bg-indigo-50 p-0 text-indigo-600 transition-colors hover:bg-indigo-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                     aria-label="Previous page"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -521,8 +521,8 @@ const AdminPage: React.FC = () => {
                           onClick={() => setCurrentPage(Number(page))}
                           className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
                             currentPage === page
-                              ? "bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-800"
-                              : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/30"
+                              ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                              : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
                           }`}
                           aria-label={`Page ${page}`}
                           aria-current={currentPage === page ? "page" : undefined}
@@ -541,7 +541,7 @@ const AdminPage: React.FC = () => {
                   <Button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages || 1))}
                     disabled={currentPage === totalPages || totalPages === 0}
-                    className="h-8 w-8 rounded-md bg-indigo-50 p-0 text-indigo-600 transition-colors hover:bg-indigo-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                     aria-label="Next page"
                   >
                     <ChevronRight className="h-4 w-4" />

@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
+import { useFetchCourcebyIdQuery } from "@/services/api"; // Adjust the import path as needed
 
 interface DownloadSyllabusProps {
     courseName?: string;
@@ -46,39 +47,12 @@ const DownloadSyllabus: React.FC<DownloadSyllabusProps> = ({ courseName }) => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    // Get course name from URL or props - use useCallback to prevent unnecessary re-renders
-    const fetchCourseDetails = useCallback(async (courseId) => {
-        try {
-            // Fetch course details from the API
-            const response = await fetch(`/api/course/${courseId}`);
-            const result = await response.json();
-            
-            if (result.success && result.data) {
-                const course = result.data;
-                return {
-                    courseName: course.courseName || `Course from ID ${courseId}`,
-                    courseId: courseId,
-                    courseInfo: course
-                };
-            } else {
-                // Fallback
-                return {
-                    courseName: `Course from ID ${courseId}`,
-                    courseId: courseId,
-                    courseInfo: null
-                };
-            }
-        } catch (error) {
-            console.error("Error fetching course details:", error);
-            // Fallback
-            return {
-                courseName: `Course from ID ${courseId}`,
-                courseId: courseId,
-                courseInfo: null
-            };
-        }
-    }, []);
+    // Get course ID from URL for the API query
+    const courseId = searchParams.get("courseId") || "";
+    const { data: courseData } = useFetchCourcebyIdQuery(courseId);
 
+    console.log("Course Data:", courseData); // Debugging line to check course data
+    
     useEffect(() => {
         // Try to get course name from props first
         if (courseName) {
@@ -90,26 +64,18 @@ const DownloadSyllabus: React.FC<DownloadSyllabusProps> = ({ courseName }) => {
             return;
         }
         
-        // Try to get course ID from URL and fetch course details
-        const courseId = searchParams.get("courseId");
-        
-        if (courseId) {
-            // Set loading state
+        // Use course data from useFetchCourcebyIdQuery
+        if (courseData?.data) {
             setIsSubmitting(true);
-            
-            // Fetch course details
-            fetchCourseDetails(courseId)
-                .then((courseDetails) => {
-                    setFormData(prev => ({ 
-                        ...prev, 
-                        ...courseDetails
-                    }));
-                })
-                .finally(() => {
-                    setIsSubmitting(false);
-                });
+            setFormData(prev => ({ 
+                ...prev, 
+                courseName: courseData.data.courseName || `Course from ID ${courseId}`,
+                courseId: courseId,
+                courseInfo: courseData.data
+            }));
+            setIsSubmitting(false);
         }
-    }, [courseName, searchParams, fetchCourseDetails]);
+    }, [courseName, searchParams, courseData]);
 
     // Handle input changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -260,21 +226,8 @@ const DownloadSyllabus: React.FC<DownloadSyllabusProps> = ({ courseName }) => {
 
     // This Code is handling the PDF Downloading on the browser.
     const handleDownload = () => {
-        // Check if there's a course-specific syllabus available
-        let pdfPath = "pdf/Manish-Sonawane-FSD.pdf"; // Default syllabus
-        
-        if (formData.courseId) {
-            // Try to use a course-specific syllabus if available
-            // Format: pdf/course-{courseId}-syllabus.pdf
-            // You can customize this logic based on your file naming convention
-            const courseSpecificPath = `pdf/course-${formData.courseId}-syllabus.pdf`;
-            
-            // For simplicity, we're not checking if this file exists
-            // In a real application, you might check if the file exists or use a mapping
-            
-            // For demonstration, we'll stick with the default for now
-            // pdfPath = courseSpecificPath;
-        }
+        // Use syllabus from courseData if available, otherwise fallback to default
+        let pdfPath = courseData?.data?.syllabus || "pdf/Manish-Sonawane-FSD.pdf"; // Default syllabus
         
         // Start the download
         window.location.href = pdfPath;

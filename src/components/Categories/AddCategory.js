@@ -45,7 +45,7 @@ const AddCategoryModal = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-green-600 text-white hover:bg-green-700">
+        <Button className="bg-blue-500 text-white hover:bg-blue-700 rounded-md p-2 font-medium shadow-md transition duration-300 ease-in-out">
           Add Category
         </Button>
       </DialogTrigger>
