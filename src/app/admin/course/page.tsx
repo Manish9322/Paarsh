@@ -102,6 +102,8 @@ const CoursePage: React.FC = () => {
     error,
   } = useFetchCourcesQuery(undefined);
 
+  console.log("courseData :", courseData);
+
   const courses: Course[] = courseData?.data || [];
 
   const [_DELETECOURSE, { isLoading: isDeleteLoading, error: deleteError }] =

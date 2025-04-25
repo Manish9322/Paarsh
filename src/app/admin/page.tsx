@@ -18,11 +18,21 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useFetchUserQuery } from "@/services/api";
 
 export default function AdminPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const { theme } = useTheme();
+
+  const {
+      data: userData,
+      isLoading,
+      error,
+    } = useFetchUserQuery(undefined);
+
+    console.log("User Data:", userData);
+
 
   useEffect(() => {
     const checkMobile = () => {

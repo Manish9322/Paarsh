@@ -75,11 +75,11 @@ const AddSubCategoryModal = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-green-600 text-white hover:bg-green-700">
+        <Button className="bg-blue-500 text-white hover:bg-blue-700">
           Add SubCategory
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[400px] rounded-lg bg-white p-6 text-black shadow-lg">
+      <DialogContent className="w-[400px] rounded-md bg-white p-6 text-black shadow-lg">
         <DialogHeader className="mb-4">
           <DialogTitle className="text-xl font-semibold">
             Add SubCategory
@@ -90,7 +90,7 @@ const AddSubCategoryModal = () => {
 
             onValueChange={handleCategoryChange}
           >
-            <SelectTrigger className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500">
+            <SelectTrigger className="rounded-md border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500">
               <SelectValue placeholder="Select Category" />
             </SelectTrigger>
             <SelectContent>

@@ -1,39 +1,32 @@
-import { CiChat1 } from "react-icons/ci";
-import { FaHome, FaRegUser } from "react-icons/fa";
-import { LuUsers } from "react-icons/lu";
-import { FaVideo } from "react-icons/fa";
-import { RiFilePaperLine } from "react-icons/ri";
-
+import { FaHome, FaUser, FaVideo, FaBook, FaQuestion, FaPhone } from "react-icons/fa";
+import { RiFilePaperLine, RiSpyFill, RiArticleFill } from "react-icons/ri";
 
 const sidebarConfig = [
   { name: "Dashboard", path: "/admin/dashboard", icon: <FaHome /> },
-  { name: "Agent", path: "/admin/agent", icon: <FaRegUser /> },
-  { name: "Users", path: "/admin/users", icon: <FaRegUser /> },
-
+  { name: "Agent", path: "/admin/agent", icon: <RiSpyFill /> },
+  { name: "Users", path: "/admin/users", icon: <FaUser /> },
   {
     name: "Courses",
-    icon: <LuUsers />,
+    icon: <FaBook />,
     children: [
       { name: "Courses", path: "/admin/course" },
       { name: "Categories", path: "/admin/categories" },
       { name: "Subcategories", path: "/admin/subcategories" },
     ],
   },
-
   {
     name: "Blogs",
-    icon: <LuUsers />,
+    icon: <RiArticleFill />,
     children: [
       { name: "Posts", path: "/admin/posts" },
       { name: "Categories", path: "/admin/categories" },
       { name: "Tags", path: "/admin/tags" },
     ],
   },
-  
   { name: "Job Applications", path: "/admin/job-applications", icon: <RiFilePaperLine /> },
-  { name: "Enquiries", path: "/admin/enquiries", icon: <CiChat1 /> },
+  { name: "Enquiries", path: "/admin/enquiries", icon: <FaQuestion /> },
   { name: "Meeting Links", path: "/admin/meeting-links", icon: <FaVideo /> },
-  { name: "Contact Requests", path: "/admin/contacts", icon: <CiChat1 /> },
+  { name: "Contact Requests", path: "/admin/contacts", icon: <FaPhone /> },
 ];
 
 export default sidebarConfig;
