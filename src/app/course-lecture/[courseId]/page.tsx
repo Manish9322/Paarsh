@@ -62,7 +62,7 @@ interface VideoItem {
   completed?: boolean;
   description: string;
   resource: string;
-  notes?: string;
+  notes: string;
   difficulty: "Beginner" | "Intermediate" | "Advanced";
   estimatedTime: string;
   learningObjectives?: string[];
@@ -205,6 +205,7 @@ export default function CourseLecturePage() {
           thumbnail: video.thumbnail || "/video-thumb-1.jpg",
           completed: video.completed || false,
           description: video.description || "No description available.",
+          notes: video.notesId || "",
           resource: video.resourceId || "",
           difficulty: video.difficulty || "Beginner",
           estimatedTime: video.estimatedTime || video.duration || "15 minutes",
@@ -236,9 +237,11 @@ export default function CourseLecturePage() {
         setVideoProgress(newTopics[0].videos[0].progress || 0);
       }
 
-      const allVideos = newTopics.flatMap((t) => t.videos);
-      const completedVideos = allVideos.filter((v) => v.completed).length;
-      setCourseProgress((completedVideos / allVideos.length) * 100 || 0);
+    // Make sure this calculation in your useEffect is correct
+const allVideos = newTopics.flatMap((t) => t.videos);
+const completedVideos = allVideos.filter((v) => v.completed).length;
+const totalProgress = (completedVideos / allVideos.length) * 100;
+setCourseProgress(totalProgress || 0);
     }
   }, [courseVideoData, currentVideo]);
 
@@ -318,7 +321,7 @@ export default function CourseLecturePage() {
     );
   }, [currentVideo?.transcript, transcriptSearch]);
 
-  console.log("Filtered Topics:", filteredTopics);  
+  console.log("Filtered Topics:", filteredTopics);
 
   const handlePreviousVideo = () => {
     if (!hasPrevious || currentTopicIndex < 0 || currentVideoIndex < 0) return;
@@ -599,7 +602,7 @@ export default function CourseLecturePage() {
         });
         if (currentVideo?.id === videoId) {
           setCurrentVideo((prev) => ({
-            ...prev,
+            ...prev!,
             progress,
             completed,
           }));
@@ -648,9 +651,9 @@ export default function CourseLecturePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gray-100">
       {/* Navbar */}
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b bg-white/95 backdrop-blur-md">
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b bg-white shadow-sm">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-4 sm:gap-8">
@@ -661,23 +664,11 @@ export default function CourseLecturePage() {
               >
                 <ChevronLeft className="h-6 w-6 text-gray-700" />
               </button>
-              <div className="max-w-[200px] sm:max-w-[400px] truncate text-xl font-medium text-gray-700">
+              <div className="max-w-[200px] sm:max-w-[400px] truncate text-xl font-semibold text-gray-800">
                 Course / {currentVideo?.title || "Loading..."}
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                onClick={handleGenerateCertificate}
-                className={`${
-                  courseProgress === 100
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : "bg-gray-400 cursor-not-allowed"
-                } text-white text-sm px-3 py-1 sm:px-4 sm:py-2 flex items-center gap-2`}
-                disabled={courseProgress !== 100}
-              >
-                <GraduationCap className="h-4 w-4" />
-                Generate Certificate
-              </Button>
               {/* <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -714,7 +705,7 @@ export default function CourseLecturePage() {
       </nav>
 
       {/* Notification Toast */}
-      {/* {notification && (
+      {notification && (
         <div
           className="animate-slide-in fixed right-4 top-20 z-50 flex items-center gap-2 rounded-lg bg-teal-600 p-3 text-white shadow-lg"
           aria-live="polite"
@@ -722,395 +713,400 @@ export default function CourseLecturePage() {
           <Sparkles className="h-4 w-4" />
           <span>{notification}</span>
         </div>
-      )} */}
+      )}
 
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)] pt-16">
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)] pt-16">
         {/* Video Section */}
-        <div className="h-full w-full lg:w-[70%]">
-          <div className="h-full p-3 sm:p-4">
-            <div className="mx-auto w-full max-w-[900px] space-y-4">
-              {/* Video Player */}
-              {isLoading ? (
-                <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-gray-100 shadow-xl">
-                  <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-500"></div>
-                  <span className="ml-3 text-gray-600">Loading video...</span>
+        <div className="w-full lg:w-3/4 p-4 sm:p-6">
+          <div className="mx-auto w-full max-w-5xl space-y-6">
+            {/* Video Player */}
+            {isLoading ? (
+              <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-gray-200 shadow-lg">
+                <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+                <span className="ml-3 text-gray-600">Loading video...</span>
+              </div>
+            ) : isError ? (
+              <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-gray-200 shadow-lg">
+                <div className="text-red-500">
+                  Error loading video. Please try again.
                 </div>
-              ) : isError ? (
-                <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-gray-100 shadow-xl">
-                  <div className="text-red-500">
-                    Error loading video. Please try again.
-                  </div>
-                </div>
-              ) : !currentVideo ? (
-                <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-gray-100 shadow-xl">
-                  <div className="text-gray-500">No video selected</div>
-                </div>
-              ) : (
+              </div>
+            ) : !currentVideo ? (
+              <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-gray-200 shadow-lg">
+                <div className="text-gray-500">No video selected</div>
+              </div>
+            ) : (
+              <div
+                className="group relative aspect-video w-full overflow-hidden rounded-xl bg-black shadow-xl"
+                onMouseMove={handleMouseMove}
+              >
+                <video
+                  ref={setVideoRef}
+                  className="h-full w-full object-cover"
+                  src={getVideoUrl(currentVideo)}
+                  onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={(e) => {
+                    const videoElement = e.currentTarget;
+                    const duration = videoElement.duration;
+                    setDynamicDuration(formatDuration(duration));
+                  }}
+                  onEnded={() => {
+                    setIsPlaying(false);
+                    if (!currentVideo.completed) {
+                      syncVideoProgress(currentVideo.id, 100, true);
+                    }
+                  }}
+                  aria-label="Course video player"
+                />
+
+                {/* Video Controls Overlay */}
                 <div
-                  className="group relative aspect-video w-full overflow-hidden rounded-2xl bg-black shadow-xl"
-                  onMouseMove={handleMouseMove}
+                  className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 ${
+                    showControls ? "opacity-100" : "opacity-0"
+                  }`}
                 >
-                  <video
-                    ref={setVideoRef}
-                    className="h-full w-full object-cover"
-                    src={getVideoUrl(currentVideo)}
-                    onTimeUpdate={handleTimeUpdate}
-                    onLoadedMetadata={(e) => {
-                      const videoElement = e.currentTarget;
-                      const duration = videoElement.duration;
-                      setDynamicDuration(formatDuration(duration));
-                    }}
-                    onEnded={() => {
-                      setIsPlaying(false);
-                      if (!currentVideo.completed) {
-                        syncVideoProgress(currentVideo.id, 100, true);
-                      }
-                    }}
-                    aria-label="Course video player"
-                  />
-
-                  {/* Video Controls Overlay */}
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 ${
-                      showControls ? "opacity-100" : "opacity-0"
-                    }`}
-                  >
-                    <div className="absolute bottom-0 left-0 right-0 flex flex-col gap-4 p-4">
-                      {/* Progress Bar */}
+                  <div className="absolute bottom-0 left-0 right-0 flex flex-col gap-4 p-4">
+                    {/* Progress Bar */}
+                    <div
+                      className="relative h-1 cursor-pointer rounded-full bg-white/30 transition-all group-hover:h-2"
+                      onClick={handleProgressClick}
+                    >
                       <div
-                        className="relative h-1 cursor-pointer rounded-full bg-white/30 transition-all group-hover:h-2"
-                        onClick={handleProgressClick}
-                      >
-                        <div
-                          className="absolute h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
-                          style={{ width: `${videoProgress}%` }}
-                        />
-                        <div
-                          className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-md transition-opacity group-hover:opacity-100"
-                          style={{ left: `calc(${videoProgress}% - 6px)` }}
-                        />
-                      </div>
-
-                      {/* Controls */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={handlePlayPause}
-                            className="text-white transition-colors hover:text-blue-300"
-                            aria-label={
-                              isPlaying ? "Pause video" : "Play video"
-                            }
-                          >
-                            {isPlaying ? (
-                              <svg
-                                className="h-8 w-8"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <rect x="6" y="4" width="4" height="16" />
-                                <rect x="14" y="4" width="4" height="16" />
-                              </svg>
-                            ) : (
-                              <Play className="h-8 w-8" />
-                            )}
-                          </button>
-                          <button
-                            onClick={handleRewind}
-                            className="text-white hover:text-blue-300"
-                            aria-label="Rewind 10 seconds"
-                          >
-                            <Rewind className="h-6 w-6" />
-                          </button>
-                          <button
-                            onClick={handleFastForward}
-                            className="text-white hover:text-blue-300"
-                            aria-label="Fast forward 10 seconds"
-                          >
-                            <FastForward className="h-6 w-6" />
-                          </button>
-                          <div
-                            className="relative flex items-center"
-                            onMouseEnter={() => setShowVolumeSlider(true)}
-                            onMouseLeave={() => setShowVolumeSlider(false)}
-                          >
-                            <button
-                              onClick={toggleMute}
-                              className="text-white hover:text-blue-300"
-                              aria-label={isMuted ? "Unmute" : "Mute"}
-                            >
-                              {isMuted || volume === 0 ? (
-                                <VolumeX className="h-6 w-6" />
-                              ) : (
-                                <Volume2 className="h-6 w-6" />
-                              )}
-                            </button>
-                            {showVolumeSlider && (
-                              <div className="absolute bottom-full mb-2 w-24 rounded-lg bg-black/90 p-2">
-                                <input
-                                  type="range"
-                                  min="0"
-                                  max="1"
-                                  step="0.1"
-                                  value={volume}
-                                  onChange={handleVolumeChange}
-                                  className="w-full accent-blue-500"
-                                  aria-label="Volume control"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <button
-                              onClick={() =>
-                                setShowSpeedOptions(!showSpeedOptions)
-                              }
-                              className="text-sm text-white hover:text-blue-300"
-                              aria-label="Change playback speed"
-                            >
-                              {playbackSpeed}x
-                            </button>
-                            {showSpeedOptions && (
-                              <div className="absolute bottom-full mb-2 w-24 rounded-lg bg-black/90 p-2">
-                                {[0.5, 1, 1.25, 1.5, 2].map((speed) => (
-                                  <button
-                                    key={speed}
-                                    onClick={() => handleSpeedChange(speed)}
-                                    className={`block w-full rounded px-2 py-1 text-left text-sm hover:bg-blue-500/20 ${
-                                      playbackSpeed === speed
-                                        ? "bg-blue-500/30 text-blue-300"
-                                        : "text-white"
-                                    }`}
-                                  >
-                                    {speed}x
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-
-                          <button
-                            onClick={toggleFullscreen}
-                            className="text-white hover:text-blue-300"
-                            aria-label={
-                              isFullscreen
-                                ? "Exit fullscreen"
-                                : "Enter fullscreen"
-                            }
-                          >
-                            {isFullscreen ? (
-                              <Minimize className="h-6 w-6" />
-                            ) : (
-                              <Maximize className="h-6 w-6" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
+                        className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+                        style={{ width: `${videoProgress}%` }}
+                      />
+                      <div
+                        className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full bg-white opacity-0 shadow-md transition-opacity group-hover:opacity-100"
+                        style={{ left: `calc(${videoProgress}% - 6px)` }}
+                      />
                     </div>
-                  </div>
 
-                  {/* Video Info Overlay */}
-                  <div className="absolute left-4 right-4 top-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3 rounded-full bg-black/70 px-3 py-1.5 text-xs text-white backdrop-blur-md">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="h-4 w-4" />
-                        <span>{dynamicDuration}</span>
-                      </div>
-                      {currentVideo?.completed && (
-                        <div className="animate-scale-in flex items-center gap-1.5 text-green-400">
-                          <CheckCircle2
-                            className="h-4 w-4"
-                            aria-label="Video completed"
-                          />
-                          <span>Completed</span>
-                        </div>
-                      )}
-                      {/* {isSaving && (
-                        <div className="flex items-center gap-1.5">
-                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
-                          <span>Saving...</span>
-                        </div>
-                      )} */}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Video Details */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-                <Tabs defaultValue="description" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 rounded-full bg-gray-100 p-1">
-                    <TabsTrigger value="description" className="rounded-full text-xs sm:text-sm">
-                      Description
-                    </TabsTrigger>
-                    <TabsTrigger value="transcript" className="rounded-full text-xs sm:text-sm">
-                      Transcript
-                    </TabsTrigger>
-                    <TabsTrigger value="resource" className="rounded-full text-xs sm:text-sm">
-                      Resources
-                    </TabsTrigger>
-                    <TabsTrigger value="notes" className="rounded-full text-xs sm:text-sm">
-                      Notes
-                    </TabsTrigger>
-                    <TabsTrigger value="qa" className="rounded-full text-xs sm:text-sm">
-                      Q&A
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="description" className="mt-4">
-                    <h2 className="mb-2 text-lg font-semibold text-gray-900">
-                      {currentVideo?.title}
-                    </h2>
-                    <div className="mb-4 rounded-lg bg-blue-50 p-3">
-                      <h3 className="flex items-center gap-2 text-sm font-medium text-blue-700">
-                        <Sparkles className="h-4 w-4" />
-                        AI-Powered Summary
-                      </h3>
-                      <p className="text-sm text-gray-700">
-                        {generateAISummary(currentVideo)}
-                      </p>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      {currentVideo?.description}
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Clock className="h-4 w-4" />
-                        {dynamicDuration}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <Timer className="h-4 w-4" />
-                        {currentVideo?.estimatedTime}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            currentVideo?.difficulty === "Beginner"
-                              ? "bg-green-100 text-green-700"
-                              : currentVideo?.difficulty === "Intermediate"
-                                ? "bg-blue-100 text-blue-700"
-                                : "bg-purple-100 text-purple-700"
-                          }`}
+                    {/* Controls */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={handlePlayPause}
+                          className="text-white transition-colors hover:text-indigo-300"
+                          aria-label={
+                            isPlaying ? "Pause video" : "Play video"
+                          }
                         >
-                          {currentVideo?.difficulty}
-                        </span>
-                      </div>
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="transcript" className="mt-4">
-                    {currentVideo?.transcript?.length ? (
-                      <>
-                        <div className="relative mb-3">
-                          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-                          <Input
-                            type="text"
-                            placeholder="Search transcript..."
-                            value={transcriptSearch}
-                            onChange={(e) =>
-                              setTranscriptSearch(e.target.value)
-                            }
-                            className="rounded-full border-none bg-gray-100 pl-10 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                        <ScrollArea className="h-64">
-                          {filteredTranscript.length === 0 ? (
-                            <p className="text-sm text-gray-500">
-                              No transcript lines match your search.
-                            </p>
+                          {isPlaying ? (
+                            <svg
+                              className="h-8 w-8"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <rect x="6" y="4" width="4" height="16" />
+                              <rect x="14" y="4" width="4" height="16" />
+                            </svg>
                           ) : (
-                            <div ref={transcriptRef} className="space-y-2">
-                              {filteredTranscript.map((line, index) => (
+                            <Play className="h-8 w-8" />
+                          )}
+                        </button>
+                        <button
+                          onClick={handleRewind}
+                          className="text-white hover:text-indigo-300"
+                          aria-label="Rewind 10 seconds"
+                        >
+                          <Rewind className="h-6 w-6" />
+                        </button>
+                        <button
+                          onClick={handleFastForward}
+                          className="text-white hover:text-indigo-300"
+                          aria-label="Fast forward 10 seconds"
+                        >
+                          <FastForward className="h-6 w-6" />
+                        </button>
+                        <div
+                          className="relative flex items-center"
+                          onMouseEnter={() => setShowVolumeSlider(true)}
+                          onMouseLeave={() => setShowVolumeSlider(false)}
+                        >
+                          <button
+                            onClick={toggleMute}
+                            className="text-white hover:text-indigo-300"
+                            aria-label={isMuted ? "Unmute" : "Mute"}
+                          >
+                            {isMuted || volume === 0 ? (
+                              <VolumeX className="h-6 w-6" />
+                            ) : (
+                              <Volume2 className="h-6 w-6" />
+                            )}
+                          </button>
+                          {showVolumeSlider && (
+                            <div className="absolute bottom-full mb-2 w-24 rounded-lg bg-black/90 p-2">
+                              <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.1"
+                                value={volume}
+                                onChange={handleVolumeChange}
+                                className="w-full accent-indigo-500"
+                                aria-label="Volume control"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <button
+                            onClick={() =>
+                              setShowSpeedOptions(!showSpeedOptions)
+                            }
+                            className="text-sm text-white hover:text-indigo-300"
+                            aria-label="Change playback speed"
+                          >
+                            {playbackSpeed}x
+                          </button>
+                          {showSpeedOptions && (
+                            <div className="absolute bottom-full mb-2 w-24 rounded-lg bg-black/90 p-2">
+                              {[0.5, 1, 1.25, 1.5, 2].map((speed) => (
                                 <button
-                                  key={index}
-                                  onClick={() =>
-                                    handleTranscriptClick(line.timestamp)
-                                  }
-                                  className="w-full rounded p-2 text-left text-sm text-gray-600 transition-colors hover:bg-blue-100"
+                                  key={speed}
+                                  onClick={() => handleSpeedChange(speed)}
+                                  className={`block w-full rounded px-2 py-1 text-left text-sm hover:bg-indigo-500/20 ${
+                                    playbackSpeed === speed
+                                      ? "bg-indigo-500/30 text-indigo-300"
+                                      : "text-white"
+                                  }`}
                                 >
-                                  <span className="text-xs text-gray-400">
-                                    {new Date(line.timestamp * 1000)
-                                      .toISOString()
-                                      .substr(14, 5)}
-                                  </span>
-                                  <span className="ml-2">{line.text}</span>
+                                  {speed}x
                                 </button>
                               ))}
                             </div>
                           )}
-                        </ScrollArea>
-                      </>
-                    ) : (
-                      <p className="text-sm text-gray-500">
-                        Transcript not available for this video.
-                      </p>
-                    )}
-                  </TabsContent>
-                  <TabsContent value="resource" className="mt-4">
-                    {currentVideo?.resource ? (
-                      <div className="space-y-2">
-                        <a
-                          href={currentVideo.resource}
-                          className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                        </div>
+
+                        <button
+                          onClick={toggleFullscreen}
+                          className="text-white hover:text-indigo-300"
+                          aria-label={
+                            isFullscreen
+                              ? "Exit fullscreen"
+                              : "Enter fullscreen"
+                          }
                         >
-                          <Download className="h-4 w-4" />
-                          {currentVideo.resource}
-                        </a>
+                          {isFullscreen ? (
+                            <Minimize className="h-6 w-6" />
+                          ) : (
+                            <Maximize className="h-6 w-6" />
+                          )}
+                        </button>
                       </div>
-                    ) : (
-                      <p className="text-sm text-gray-500">
-                        No resource available.
-                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Video Info Overlay */}
+                <div className="absolute left-4 right-4 top-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3 rounded-full bg-black/70 px-3 py-1.5 text-xs text-white backdrop-blur-md">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-4 w-4" />
+                      <span>{dynamicDuration}</span>
+                    </div>
+                    {currentVideo?.completed && (
+                      <div className="animate-scale-in flex items-center gap-1.5 text-green-400">
+                        <CheckCircle2
+                          className="h-4 w-4"
+                          aria-label="Video completed"
+                        />
+                        <span>Completed</span>
+                      </div>
                     )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-4 flex items-center gap-2 border-gray-300 text-xs hover:bg-blue-50"
-                    >
-                      <Code className="h-3.5 w-3.5" />
-                      AR Preview (Coming Soon)
-                    </Button>
-                  </TabsContent>
-                  <TabsContent value="notes" className="mt-4">
-                    <textarea
-                      className="h-32 w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900"
-                      placeholder="Add your notes here..."
-                      defaultValue={currentVideo?.notes}
-                    />
-                    <Button className="mt-2 bg-blue-600 text-white hover:bg-blue-700">
-                      Save Notes
-                    </Button>
-                  </TabsContent>
-                  <TabsContent value="qa" className="mt-4">
-                    <p className="text-sm text-gray-500">
-                      Q&A section coming soon!
-                    </p>
-                  </TabsContent>
-                </Tabs>
+                    {/* {isSaving && (
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                        <span>Saving...</span>
+                      </div>
+                    )} */}
+                  </div>
+                </div>
               </div>
+            )}
+
+            {/* Video Details */}
+            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+              <Tabs defaultValue="description" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 rounded-full bg-gray-100 p-1">
+                  <TabsTrigger value="description" className="rounded-full text-xs sm:text-sm">
+                    Description
+                  </TabsTrigger>
+                  <TabsTrigger value="transcript" className="rounded-full text-xs sm:text-sm">
+                    Transcript
+                  </TabsTrigger>
+                  <TabsTrigger value="resource" className="rounded-full text-xs sm:text-sm">
+                    Resources
+                  </TabsTrigger>
+                  <TabsTrigger value="notes" className="rounded-full text-xs sm:text-sm">
+                    Notes
+                  </TabsTrigger>
+                  <TabsTrigger value="qa" className="rounded-full text-xs sm:text-sm">
+                    Q&A
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="description" className="mt-4">
+                  <h2 className="mb-2 text-xl font-semibold text-gray-900">
+                    {currentVideo?.title}
+                  </h2>
+                  <div className="mb-4 rounded-lg bg-indigo-50 p-3">
+                    <h3 className="flex items-center gap-2 text-sm font-medium text-indigo-700">
+                      <Sparkles className="h-4 w-4" />
+                      AI-Powered Summary
+                    </h3>
+                    <p className="text-sm text-gray-700">
+                      {generateAISummary(currentVideo)}
+                    </p>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {currentVideo?.description}
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Clock className="h-4 w-4" />
+                      {dynamicDuration}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Timer className="h-4 w-4" />
+                      {currentVideo?.estimatedTime}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          currentVideo?.difficulty === "Beginner"
+                            ? "bg-green-100 text-green-700"
+                            : currentVideo?.difficulty === "Intermediate"
+                              ? "bg-indigo-100 text-indigo-700"
+                              : "bg-purple-100 text-purple-700"
+                        }`}
+                      >
+                        {currentVideo?.difficulty}
+                      </span>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="transcript" className="mt-4">
+                  {currentVideo?.transcript?.length ? (
+                    <>
+                      <div className="relative mb-3">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
+                        <Input
+                          type="text"
+                          placeholder="Search transcript..."
+                          value={transcriptSearch}
+                          onChange={(e) =>
+                            setTranscriptSearch(e.target.value)
+                          }
+                          className="rounded-full border-none bg-gray-100 pl-10 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+                      <ScrollArea className="h-64">
+                        {filteredTranscript.length === 0 ? (
+                          <p className="text-sm text-gray-500">
+                            No transcript lines match your search.
+                          </p>
+                        ) : (
+                          <div ref={transcriptRef} className="space-y-2">
+                            {filteredTranscript.map((line, index) => (
+                              <button
+                                key={index}
+                                onClick={() =>
+                                  handleTranscriptClick(line.timestamp)
+                                }
+                                className="w-full rounded p-2 text-left text-sm text-gray-600 transition-colors hover:bg-indigo-100"
+                              >
+                                <span className="text-xs text-gray-400">
+                                  {new Date(line.timestamp * 1000)
+                                    .toISOString()
+                                    .substr(14, 5)}
+                                </span>
+                                <span className="ml-2">{line.text}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      Transcript not available for this video.
+                    </p>
+                  )}
+                </TabsContent>
+                <TabsContent value="resource" className="mt-4">
+                  {currentVideo?.resource ? (
+                    <div className="space-y-2">
+                      <a
+                        href={currentVideo.resource}
+                        className="flex items-center gap-2 text-sm text-indigo-600 hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download Resource
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      No resource available.
+                    </p>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-4 flex items-center gap-2 border-gray-300 text-xs hover:bg-indigo-50"
+                  >
+                    <Code className="h-3.5 w-3.5" />
+                    AR Preview (Coming Soon)
+                  </Button>
+                </TabsContent>
+                <TabsContent value="notes" className="mt-4">
+                  <textarea
+                    className="h-32 w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900"
+                    placeholder="Add your notes here..."
+                    defaultValue={currentVideo?.notes}
+                  />
+                  <Button className="mt-2 bg-indigo-600 text-white hover:bg-indigo-700">
+                    Save Notes
+                  </Button>
+                </TabsContent>
+                <TabsContent value="qa" className="mt-4">
+                  <p className="text-sm text-gray-500">
+                    Q&A section coming soon!
+                  </p>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>
 
         {/* Playlist Section */}
-        <div className="w-full lg:w-[30%] h-[calc(100vh-20rem)] lg:h-full border-t lg:border-t-0 lg:border-l bg-gradient-to-b from-teal-50 to-indigo-100">
-          <div className="sticky top-16 z-10 bg-white/95 backdrop-blur-md p-4">
-            {/* Course Progress */}
-            <div className="mb-4 flex items-center gap-3 rounded-lg bg-gradient-to-r from-teal-600 to-blue-600 p-3 text-white shadow-md">
-              <Trophy className="h-5 w-5 text-yellow-300" />
-              <div className="flex-1">
-                <div className="text-sm font-semibold">
-                  Course Progress: {Math.round(courseProgress)}%
-                </div>
-                <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-white/30">
-                  <div
-                    className="h-full bg-yellow-300 transition-all duration-500"
-                    style={{ width: `${courseProgress}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="mb-3 flex items-center justify-between">
+        <div className="fixed top-16 right-0 w-full lg:w-1/4 h-[calc(100vh-4rem)] bg-white shadow-lg z-40 flex flex-col overflow-hidden">
+          {/* Sidebar Header (Fixed) */}
+          <div className="p-4 space-y-4 flex-shrink-0">
+
+
+{/* Course Progress */}
+{/* Course Progress */}
+<div className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 p-3 text-white shadow-md">
+  <Trophy className="h-5 w-5 text-yellow-300" />
+  <div className="flex-1">
+    <div className="text-sm font-semibold">
+      Course Progress: {Math.round(courseProgress)}%
+    </div>
+    <div className="relative mt-1 h-2 w-full overflow-hidden rounded-full bg-white/30">
+      <div
+        className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500 ease-out"
+        style={{ width: `${Math.round(courseProgress)}%` }}
+      />
+    </div>
+  </div>
+</div>
+
+            <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">
                 Course Content
               </h2>
@@ -1118,6 +1114,7 @@ export default function CourseLecturePage() {
                 {topics.reduce((acc, topic) => acc + topic.videos.length, 0)} lectures
               </span>
             </div>
+
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
               <Input
@@ -1125,12 +1122,12 @@ export default function CourseLecturePage() {
                 placeholder="Search lectures..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="rounded-full border-none bg-gray-100 pl-10 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-teal-500"
+                className="rounded-full border-none bg-gray-100 pl-10 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500"
               />
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 transform text-gray-700 hover:text-teal-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 transform text-gray-700 hover:text-indigo-600"
                 aria-label="Voice control (coming soon)"
                 disabled
               >
@@ -1139,325 +1136,359 @@ export default function CourseLecturePage() {
             </div>
           </div>
 
-          <ScrollArea className="h-[calc(100vh-28rem)] lg:h-[calc(100vh-20rem)] p-4">
-            {isLoading ? (
-              <div className="flex h-32 items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-teal-500"></div>
-                <span className="ml-3 text-gray-600">Loading videos...</span>
-              </div>
-            ) : isError ? (
-              <div className="flex h-32 items-center justify-center text-red-500">
-                Error loading videos. Please try again.
-              </div>
-            ) : filteredTopics.length === 0 ? (
-              <div className="flex h-32 items-center justify-center text-gray-500">
-                {searchQuery
-                  ? "No videos match your search."
-                  : "No videos available for this course."}
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredTopics.map((topic) => (
-                  <div
-                    key={topic._id}
-                    className="rounded-xl border border-gray-200/50 bg-white/30 backdrop-blur-md"
-                  >
-                    <button
-                      className="flex w-full items-center justify-between p-4 text-left"
-                      onClick={() => toggleTopic(topic._id)}
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
+            <ScrollArea className="h-[calc(100vh-16rem)] p-4">
+              {isLoading ? (
+                <div className="flex h-32 items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+                  <span className="ml-3 text-gray-600">Loading videos...</span>
+                </div>
+              ) : isError ? (
+                <div className="flex h-32 items-center justify-center text-red-500">
+                  Error loading videos. Please try again.
+                </div>
+              ) : filteredTopics.length === 0 ? (
+                <div className="flex h-32 items-center justify-center text-gray-500">
+                  {searchQuery
+                    ? "No videos match your search."
+                    : "No videos available for this course."}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {filteredTopics.map((topic) => (
+                    <div
+                      key={topic._id}
+                      className="rounded-xl border border-gray-200 bg-white shadow-sm"
                     >
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        {topic.topicName}
-                      </h3>
-                      <ChevronDown
-                        className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
-                          expandedTopicId === topic._id ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-                    {expandedTopicId === topic._id && (
-                      <div className="space-y-2 px-4 pb-4">
-                        {topic.videos.map((video) => (
-                          <div
-                            key={video.id}
-                            className={`group overflow-hidden rounded-lg border border-gray-200/50 bg-white/50 transition-all duration-300 hover:-translate-y-1 hover:border-teal-400 hover:shadow-lg ${
-                              currentVideo?.id === video.id
-                                ? "border-teal-400 bg-teal-100/50 shadow-lg"
-                                : ""
-                            }`}
-                          >
-                            <button
-                              className="flex w-full items-center justify-between p-3 text-left"
-                              onClick={() => handleVideoClick(video)}
+                      <button
+                        className="flex w-full items-center justify-between p-4 text-left"
+                        onClick={() => toggleTopic(topic._id)}
+                      >
+                        <h3 className="text-sm font-semibold text-gray-900">
+                          {topic.topicName}
+                        </h3>
+                        <ChevronDown
+                          className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+                            expandedTopicId === topic._id ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                      {expandedTopicId === topic._id && (
+                        <div className="space-y-2 px-4 pb-4">
+                          {topic.videos.map((video) => (
+                            <div
+                              key={video.id}
+                              className={`group overflow-hidden rounded-lg border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400 hover:shadow-lg ${
+                                currentVideo?.id === video.id
+                                  ? "border-indigo-400 bg-indigo-50 shadow-lg"
+                                  : ""
+                              }`}
                             >
-                              <div className="flex min-w-0 flex-grow items-center gap-3">
-                                <div className="relative h-8 w-8 flex-shrink-0">
-                                  {video.completed ? (
-                                    <CheckCircle2
-                                      className="animate-scale-in h-8 w-8 text-teal-600"
-                                      aria-label="Video completed"
-                                    />
-                                  ) : (
-                                    <>
-                                      <svg
-                                        className="absolute inset-0"
-                                        viewBox="0 0 36 36"
-                                        aria-label={`Video progress: ${Math.round(video.progress || 0)}%`}
-                                      >
-                                        <path
-                                          className="fill-none stroke-gray-200 stroke-2"
-                                          d="M18 2.0845
-                                            a 15.9155 15.9155 0 0 1 0 31.831
-                                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                                        />
-                                        <path
-                                          className="fill-none stroke-teal-600 stroke-2 transition-all duration-500"
-                                          strokeDasharray={`${video.progress || 0}, 100`}
-                                          d="M18 2.0845
-                                            a 15.9155 15.9155 0 0 1 0 31.831
-                                            a 15.9155 15.9155 0 0 1 0 -31.831"
-                                        />
-                                      </svg>
-                                      <Play className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-gray-600" />
-                                    </>
-                                  )}
-                                </div>
-                                <div className="min-w-0">
-                                  <h4 className="truncate text-sm font-medium text-gray-900">
-                                    {video.title}
-                                  </h4>
-                                  <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
-                                    <span className="rounded bg-teal-100 px-1.5 py-0.5 text-teal-700">
-                                      {video.difficulty}
-                                    </span>
-                                    {/* {video.progress &&
-                                      video.progress > 0 &&
-                                      !video.completed && (
-                                        <span className="text-teal-600">
-                                          {Math.round(video.progress)}% watched
-                                        </span>
-                                      )} */}
-                                  </div>
-                                </div>
-                              </div>
-                              <ChevronDown
-                                className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
-                                  expandedVideoId === video.id ? "rotate-180" : ""
-                                }`}
-                              />
-                            </button>
-
-                            {/* Hover Actions */}
-                            <div className="hidden items-center gap-2 px-3 pb-2 group-hover:flex">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-teal-600 hover:bg-teal-100"
+                              <button
+                                className="flex w-full items-center justify-between p-3 text-left"
                                 onClick={() => handleVideoClick(video)}
                               >
-                                <Play className="mr-1 h-4 w-4" />
-                                Play Now
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-teal-600 hover:bg-teal-100"
-                                onClick={() => handleFavorite(video)}
-                              >
-                                <Heart className="mr-1 h-4 w-4" />
-                                Favorite
-                              </Button>
-                            </div>
-
-                            {expandedVideoId === video.id && (
-                              <div className="bg-white/20 p-3 backdrop-blur-sm">
-                                <div className="mb-4 flex flex-wrap gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex items-center gap-2 border-teal-300 text-xs text-teal-700 hover:bg-teal-100"
-                                    disabled={!video.resource}
-                                    onClick={() =>
-                                      video.resource &&
-                                      window.open(
-                                        video.resource,
-                                        "_blank",
-                                        "noopener,noreferrer",
-                                      )
-                                    }
-                                  >
-                                    <FileText className="h-3.5 w-3.5" />
-                                    View Resource
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex items-center gap-2 border-teal-300 text-xs text-teal-700 hover:bg-teal-100"
-                                  >
-                                    <PenLine className="h-3.5 w-3.5" />
-                                    Notes
-                                  </Button>
-                                </div>
-
-                                <div className="mb-4 grid grid-cols-2 gap-3">
-                                  <div className="rounded-lg bg-white/30 p-3 backdrop-blur-sm">
-                                    <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
-                                      <Timer className="h-3.5 w-3.5" />
-                                      Duration
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {dynamicDuration}
-                                    </div>
+                                <div className="flex min-w-0 flex-grow items-center gap-3">
+                                  <div className="relative h-8 w-8 flex-shrink-0">
+                                    {video.completed ? (
+                                      <CheckCircle2
+                                        className="animate-scale-in h-8 w-8 text-indigo-600"
+                                        aria-label="Video completed"
+                                      />
+                                    ) : (
+                                      <>
+                                        <svg
+                                          className="absolute inset-0"
+                                          viewBox="0 0 36 36"
+                                          aria-label={`Video progress: ${Math.round(video.progress || 0)}%`}
+                                        >
+                                          <path
+                                            className="fill-none stroke-gray-200 stroke-2"
+                                            d="M18 2.0845
+                                              a 15.9155 15.9155 0 0 1 0 31.831
+                                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                                          />
+                                          <path
+                                            className="fill-none stroke-indigo-600 stroke-2 transition-all duration-500"
+                                            strokeDasharray={`${video.progress || 0}, 100`}
+                                            d="M18 2.0845
+                                              a 15.9155 15.9155 0 0 1 0 31.831
+                                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                                          />
+                                        </svg>
+                                        <Play className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 text-gray-600" />
+                                      </>
+                                    )}
                                   </div>
-                                  <div className="rounded-lg bg-white/30 p-3 backdrop-blur-sm">
-                                    <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
-                                      <GraduationCap className="h-3.5 w-3.5" />
-                                      Level
-                                    </div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {video.difficulty}
+                                  <div className="min-w-0">
+                                    <h4 className="truncate text-sm font-medium text-gray-900">
+                                      {video.title}
+                                    </h4>
+                                    <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                                      <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-indigo-700">
+                                        {video.difficulty}
+                                      </span>
+                                      {/* {video.progress &&
+                                        video.progress > 0 &&
+                                        !video.completed && (
+                                          <span className="text-indigo-600">
+                                            {Math.round(video.progress)}% watched
+                                          </span>
+                                        )} */}
                                     </div>
                                   </div>
                                 </div>
+                                <ChevronDown
+                                  className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
+                                    expandedVideoId === video.id ? "rotate-180" : ""
+                                  }`}
+                                />
+                              </button>
 
-                                {video.learningObjectives &&
-                                  video.learningObjectives.length > 0 && (
-                                    <div className="mb-4 rounded-lg bg-white/30 p-3 backdrop-blur-sm">
-                                      <div className="mb-2 flex items-center gap-2">
-                                        <BookOpenCheck className="h-4 w-4 text-teal-600" />
-                                        <h4 className="text-sm font-medium text-gray-900">
-                                          Learning Objectives
-                                        </h4>
-                                      </div>
-                                      <ul className="space-y-2">
-                                        {video.learningObjectives.map(
-                                          (objective, index) => (
-                                            <li
-                                              key={index}
-                                              className="flex items-start gap-2 text-sm text-gray-600"
-                                            >
-                                              <div className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-400"></div>
-                                              <span>{objective}</span>
-                                            </li>
-                                          ),
-                                        )}
-                                      </ul>
-                                    </div>
-                                  )}
-
-                                {video.codeExamples &&
-                                  video.codeExamples.length > 0 && (
-                                    <div className="mb-4 rounded-lg bg-white/30 p-3 backdrop-blur-sm">
-                                      <div className="mb-2 flex items-center gap-2">
-                                        <Code className="h-4 w-4 text-teal-600" />
-                                        <h4 className="text-sm font-medium text-gray-900">
-                                          Code Examples
-                                        </h4>
-                                      </div>
-                                      <div className="space-y-1.5 rounded bg-gray-100/50 p-2.5">
-                                        {video.codeExamples.map((example, index) => (
-                                          <div
-                                            key={index}
-                                            className="font-mono text-sm text-gray-700"
-                                          >
-                                            {example}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                {video.resource && (
-                                  <div className="rounded-lg bg-white/30 p-3 backdrop-blur-sm">
-                                    <div className="mb-2 flex items-center gap-2">
-                                      <FileText className="h-4 w-4 text-teal-600" />
-                                      <h4 className="text-sm font-medium text-gray-900">
-                                        Resource
-                                      </h4>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="w-full justify-start text-sm text-teal-700 hover:bg-teal-100 hover:text-teal-900"
-                                      >
-                                        <Download className="mr-2 h-4 w-4" />
-                                        {video.resource}
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )}
+                              {/* Hover Actions */}
+                              <div className="hidden items-center gap-2 px-3 pb-2 group-hover:flex">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-indigo-600 hover:bg-indigo-100"
+                                  onClick={() => handleVideoClick(video)}
+                                >
+                                  <Play className="mr-1 h-4 w-4" />
+                                  Play Now
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-indigo-600 hover:bg-indigo-100"
+                                  onClick={() => handleFavorite(video)}
+                                >
+                                  <Heart className="mr-1 h-4 w-4" />
+                                  Favorite
+                                </Button>
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {/* Recommended Next Video */}
-                {/* <div className="mt-4 rounded-xl bg-purple-100 p-4">
-                  <h3 className="flex items-center gap-2 text-sm font-medium text-purple-800">
-                    <Sparkles className="h-4 w-4" />
-                    Recommended Next
-                  </h3>
-                  <p className="text-sm text-gray-700">
-                    Explore the next video in your learning path (personalized
-                    suggestions coming soon).
-                  </p>
-                </div> */}
-              </div>
-            )}
-          </ScrollArea>
-        </div>
-      </div>
 
-      {/* Inline CSS for Animations */}
-      <style jsx>{`
-        .animate-pulse-slow {
-          animation: pulse-slow 3s ease-in-out infinite;
-        }
-        @keyframes pulse-slow {
-          0%,
-          100% {
-            transform: scale(1);
-            opacity: 1;
+                              {expandedVideoId === video.id && (
+                                <div className="bg-gray-50 p-3">
+                                  <div className="mb-4 flex flex-wrap gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex items-center gap-2 border-indigo-300 text-xs text-indigo-700 hover:bg-indigo-100"
+                                      disabled={!video.resource}
+                                      onClick={() =>
+                                        video.resource &&
+                                        window.open(
+                                          video.resource,
+                                          "_blank",
+                                          "noopener,noreferrer",
+                                        )
+                                      }
+                                    >
+                                      <FileText className="h-3.5 w-3.5" />
+                                      View Resource
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex items-center gap-2 border-indigo-300 text-xs text-indigo-700 hover:bg-indigo-100"
+                                      onClick={() =>
+                                        video.notes &&
+                                        window.open(
+                                          video.notes,
+                                          "_blank",
+                                          "noopener,noreferrer",
+                                        )
+                                      }
+                                    >
+                                      <PenLine className="h-3.5 w-3.5" />
+                                      Notes
+                                    </Button>
+                                  </div>
+
+                                  <div className="mb-4 grid grid-cols-2 gap-3">
+                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                      <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
+                                        <Timer className="h-3.5 w-3.5" />
+                                        Duration
+                                      </div>
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {dynamicDuration}
+                                      </div>
+                                    </div>
+                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                      <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
+                                        <GraduationCap className="h-3.5 w-3.5" />
+                                        Level
+                                      </div>
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {video.difficulty}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {video.learningObjectives &&
+                                    video.learningObjectives.length > 0 && (
+                                      <div className="mb-4 rounded-lg bg-white p-3 shadow-sm">
+                                        <div className="mb-2 flex items-center gap-2">
+                                          <BookOpenCheck className="h-4 w-4 text-indigo-600" />
+                                          <h4 className="text-sm font-medium text-gray-900">
+                                            Learning Objectives
+                                          </h4>
+                                        </div>
+                                        <ul className="space-y-2">
+                                          {video.learningObjectives.map(
+                                            (objective, index) => (
+                                              <li
+                                                key={index}
+                                                className="flex items-start gap-2 text-sm text-gray-600"
+                                              >
+                                                <div className="mt-2 h-1.5 w-1.5 rounded-full bg-indigo-400"></div>
+                                                <span>{objective}</span>
+                                              </li>
+                                            ),
+                                          )}
+                                        </ul>
+                                      </div>
+                                    )}
+
+                                  {video.codeExamples &&
+                                    video.codeExamples.length > 0 && (
+                                      <div className="mb-4 rounded-lg bg-white p-3 shadow-sm">
+                                        <div className="mb-2 flex items-center gap-2">
+                                          <Code className="h-4 w-4 text-indigo-600" />
+                                          <h4 className="text-sm font-medium text-gray-900">
+                                            Code Examples
+                                          </h4>
+                                        </div>
+                                        <div className="space-y-1.5 rounded bg-gray-100 p-2.5">
+                                          {video.codeExamples.map((example, index) => (
+                                            <div
+                                              key={index}
+                                              className="font-mono text-sm text-gray-700"
+                                            >
+                                              {example}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                  {video.resource && (
+                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                      <div className="mb-2 flex items-center gap-2">
+                                        <FileText className="h-4 w-4 text-indigo-600" />
+                                        <h4 className="text-sm font-medium text-gray-900">
+                                          Resource
+                                        </h4>
+                                      </div>
+                                      <div className="space-y-1.5">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="w-full justify-start text-sm text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900"
+                                          onClick={() =>
+                                            window.open(
+                                              video.resource,
+                                              "_blank",
+                                              "noopener,noreferrer",
+                                            )
+                                          }
+                                        >
+                                          <Download className="mr-2 h-4 w-4" />
+                                          Download Resource
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {/* Recommended Next Video */}
+                  {/* <div className="mt-4 rounded-xl bg-purple-100 p-4">
+                    <h3 className="flex items-center gap-2 text-sm font-medium text-purple-800">
+                      <Sparkles className="h-4 w-4" />
+                      Recommended Next
+                    </h3>
+                    <p className="text-sm text-gray-700">
+                      Explore the next video in your learning path (personalized
+                      suggestions coming soon).
+                    </p>
+                  </div> */}
+                </div>
+              )}
+              </ScrollArea>
+            </div>
+
+            {/* Sidebar Footer (Fixed) */}
+            <div className="p-4 border-t bg-gray-50 flex-shrink-0">
+              <Button
+                onClick={handleGenerateCertificate}
+                className={`w-full flex items-center justify-center gap-2 text-sm py-2 ${
+                  courseProgress === 100
+                    ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                    : "bg-gray-300 cursor-not-allowed text-gray-600"
+                }`}
+                disabled={courseProgress !== 100}
+              >
+                <GraduationCap className="h-4 w-4" />
+                Generate Certificate
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Inline CSS for Animations */}
+        <style jsx>{`
+          .animate-pulse-slow {
+            animation: pulse-slow 3s ease-in-out infinite;
           }
-          50% {
-            transform: scale(1.05);
-            opacity: 0.9;
+          @keyframes pulse-slow {
+            0%,
+            100% {
+              transform: scale(1);
+              opacity: 1;
+            }
+            50% {
+              transform: scale(1.05);
+              opacity: 0.9;
+            }
           }
-        }
-        .animate-scale-in {
-          animation: scale-in 0.3s ease-out;
-        }
-        @keyframes scale-in {
-          0% {
-            transform: scale(0.5);
-            opacity: 0;
+          .animate-scale-in {
+            animation: scale-in 0.3s ease-out;
           }
-          100% {
-            transform: scale(1);
-            opacity: 1;
+          @keyframes scale-in {
+            0% {
+              transform: scale(0.5);
+              opacity: 0;
+            }
+            100% {
+              transform: scale(1);
+              opacity: 1;
+            }
           }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-        @keyframes slide-in {
-          0% {
-            transform: translateX(100%);
-            opacity: 0;
+          .animate-slide-in {
+            animation: slide-in 0.3s ease-out;
           }
-          100% {
-            transform: translateX(0);
-            opacity: 1;
+          @keyframes slide-in {
+            0% {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+            100% {
+              transform: translateX(0);
+              opacity: 1;
+            }
           }
-        }
-        .group:hover .group-hover\\:flex {
-          display: flex;
-        }
-      `}</style>
-    </div>
-  );
+          .group:hover .group-hover\\:flex {
+            display: flex;
+          }
+        `}</style>
+      </div>
+    );
 }

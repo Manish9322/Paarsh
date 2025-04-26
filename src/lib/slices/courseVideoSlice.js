@@ -19,7 +19,13 @@ const courseVideoSlice = createSlice({
         _id: new ObjectId().toString(),
         topicName: "",
         videos: [
-          { _id: new ObjectId().toString(), videoName: "", videoId: "" },
+          {
+            _id: new ObjectId().toString(),
+            videoName: "",
+            videoId: "",
+            resourceId: "",
+            notesId: "", // Add notesId
+          },
         ],
       });
     },
@@ -36,6 +42,8 @@ const courseVideoSlice = createSlice({
           _id: new ObjectId().toString(),
           videoName: "",
           videoId: "",
+          resourceId: "",
+          notesId: "", // Add notesId
         });
       }
     },
@@ -63,6 +71,14 @@ const courseVideoSlice = createSlice({
         if (video) video.resourceId = value;
       }
     },
+    updateNotesId: (state, action) => {
+      const { topicId, videoId, value } = action.payload;
+      const topic = state.topics.find((t) => t._id === topicId);
+      if (topic) {
+        const video = topic.videos.find((v) => v._id === videoId);
+        if (video) video.notesId = value;
+      }
+    },
     removeVideoFromTopic: (state, action) => {
       const { topicId, videoId } = action.payload;
       const topic = state.topics.find((t) => t._id === topicId);
@@ -85,6 +101,7 @@ export const {
   updateVideoName,
   updateVideoId,
   updateResourceId,
+  updateNotesId, // Export new action
   removeVideoFromTopic,
   removeTopic,
 } = courseVideoSlice.actions;

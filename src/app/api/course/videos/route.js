@@ -18,6 +18,7 @@ export const POST = authMiddleware(async (req) => {
         videoName: video.videoName || video.name,
         videoId: video.videoId || video.id,
         resourceId: video.resourceId || null, // Include resourceId in the data
+        notesId: video.notesId || null,
       }))
     }));
 
