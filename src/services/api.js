@@ -285,6 +285,11 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["CourseVideo"],
     }),
 
+    fetchCourseVideosById: builder.query({
+      query: (params) => `/user/courses/videos?courseId=${params.courseId}`,
+      providesTags: ["CourseVideo"],
+    }),
+
     //----------------------------------Payment ------------------------------------------------------------------------------
     createOrder: builder.mutation({
       query: ({ userId, courseId, amount }) => ({
@@ -476,6 +481,7 @@ export const {
   useFetchCourseVideoQuery,
   useFetchCourseVideoByIdQuery,
   useDeleteCourseVideoMutation,
+  useFetchCourseVideosByIdQuery,
 
   useFetchUserCourseQuery,
 
