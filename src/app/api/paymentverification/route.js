@@ -9,17 +9,20 @@ export const POST = async (request) => {
   try {
     // Check for signature in headers (webhook style)
     let razorpaySignature = request.headers.get("x-razorpay-signature");
-    
+
     // If not in headers, we'll get it from the body later
     const body = await request.json();
-    
+
     // For client-side verification, the signature will be in the body
     if (!razorpaySignature && body.razorpay_signature) {
       razorpaySignature = body.razorpay_signature;
     }
-    
+
     // For webhook style verification
-    if (!razorpaySignature && body.payload?.payment?.entity?.razorpay_signature) {
+    if (
+      !razorpaySignature &&
+      body.payload?.payment?.entity?.razorpay_signature
+    ) {
       razorpaySignature = body.payload.payment.entity.razorpay_signature;
     }
 
@@ -32,7 +35,7 @@ export const POST = async (request) => {
 
     // Get order_id and payment_id from the appropriate location in the payload
     let order_id, razorpay_payment_id;
-    
+
     if (body.payload?.payment?.entity) {
       // Webhook style payload
       order_id = body.payload.payment.entity.order_id;
@@ -62,7 +65,7 @@ export const POST = async (request) => {
       );
     }
 
-    const secret = RAZORPAY_KEY_SECRET; 
+    const secret = RAZORPAY_KEY_SECRET;
     const generatedSignature = crypto
       .createHmac("sha256", secret)
       .update(order_id + "|" + razorpay_payment_id)
@@ -79,6 +82,26 @@ export const POST = async (request) => {
     transaction.paymentId = razorpay_payment_id;
     transaction.signature = razorpaySignature;
     await transaction.save();
+
+    // Fetch user and course details
+
+    const user = await UserModel.findById(transaction.userId);
+
+    const isFirstPurchase = user.purchasedCourses.length === 0;
+
+    // If first purchase and referredBy exists and reward not given
+    if (isFirstPurchase && user.referredBy && !user.firstPurchaseRewardGiven) {
+      const referrer = await UserModel.findById(user.referredBy);
+      if (referrer) {
+        // Reward logic: e.g., add ₹100 to walletBalance (you need walletBalance field in user model)
+        referrer.walletBalance = (referrer.walletBalance || 0) + 100;
+        await referrer.save();
+
+        user.firstPurchaseRewardGiven = true; // Important to not give reward twice
+      }
+    }
+
+    await user.save();
 
     await UserModel.findByIdAndUpdate(transaction.userId, {
       $push: { purchasedCourses: transaction.courseId },

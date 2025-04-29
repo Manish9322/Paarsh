@@ -441,7 +441,6 @@ export const paarshEduApi = createApi({
         body: formData,
       }),
     }),
-
     fetchCourseProgress: builder.query({
       query: (params) => ({
         url: "/course/courseprogress",
@@ -514,6 +513,8 @@ export const {
 
   useUpdateVideoProgressMutation,
   useGetVideoProgressQuery,
+
+  useFetchUserRefferalsQuery,
   useFetchCourseProgressQuery,
 
 } = paarshEduApi;

@@ -10,16 +10,16 @@ _db();
 export const POST = authMiddleware(async (req) => {
   try {
     const { courseId, courseName, topics } = await req.json();
-    
+
     // Prepare the topics array with correctly named fields, including resourceId
-    const formattedTopics = topics.map(topic => ({
+    const formattedTopics = topics.map((topic) => ({
       topicName: topic.topicName || topic.name,
       videos: topic.videos.map((video) => ({
         videoName: video.videoName || video.name,
         videoId: video.videoId || video.id,
         resourceId: video.resourceId || null, // Include resourceId in the data
         notesId: video.notesId || null,
-      }))
+      })),
     }));
 
     // Find existing course video or create new one
@@ -58,7 +58,7 @@ export const GET = authMiddleware(async (req) => {
     if (!user) {
       return NextResponse.json(
         { error: "User is not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -68,27 +68,14 @@ export const GET = authMiddleware(async (req) => {
     if (!courseId) {
       return NextResponse.json(
         { error: "Course ID is required" },
-        { status: 400 }
-      );
-    }
-
-    // Await user data from DB
-    const userData = await UserModel.findById(user._id).select("purchasedCourses");
-
-    // Check if courseId is among purchased courses
-    const hasPurchased = userData.purchasedCourses.some((purchasedCourseId) =>
-      purchasedCourseId.equals(new mongoose.Types.ObjectId(courseId))
-    );
-
-    if (!hasPurchased) {
-      return NextResponse.json(
-        { error: "You have not purchased this course" },
-        { status: 403 }
+        { status: 400 },
       );
     }
 
     // Fetch course videos
-    const courseVideos = await CourseVideoModel.findOne({ courseId }).populate("courseId");
+    const courseVideos = await CourseVideoModel.findOne({ courseId }).populate(
+      "courseId",
+    );
 
     if (!courseVideos) {
       return NextResponse.json({ success: false, data: null }, { status: 200 });
@@ -96,10 +83,9 @@ export const GET = authMiddleware(async (req) => {
 
     return NextResponse.json(
       { success: true, data: courseVideos },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-});
-
+}, true);
