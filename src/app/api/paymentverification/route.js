@@ -94,7 +94,7 @@ export const POST = async (request) => {
       const referrer = await UserModel.findById(user.referredBy);
       if (referrer) {
         // Reward logic: e.g., add ₹100 to walletBalance (you need walletBalance field in user model)
-        referrer.walletBalance = (referrer.walletBalance || 0) + 100;
+        referrer.walletBalance = (referrer.walletBalance || 0) + 500;
         await referrer.save();
 
         user.firstPurchaseRewardGiven = true; // Important to not give reward twice

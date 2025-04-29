@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { updateWith } from "lodash";
 
 export const paarshEduApi = createApi({
   reducerPath: "paarshEduApi",
@@ -89,6 +90,10 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["User"],
     }),
 
+    fetchUserRefferals: builder.query({
+      query: () => "/user/user-refferals",
+      providesTags: ["User"],
+    }),
     // ----------------------------------------------------Course Apis------------------------------------
 
     addCourse: builder.mutation({
@@ -449,6 +454,42 @@ export const paarshEduApi = createApi({
       providesTags: ["Progress"],
     }),
 
+    fetchWithdrawalRequest: builder.query({
+      query: () => "/admin/withdrawal",
+      providesTags: ["User"],
+    }),
+
+    fetchUserWithdrawalRequest: builder.query({
+      query: () => "/user/withdrawal",
+      providesTags: ["User"],
+    }),
+    
+    createWithdrawalRequest: builder.mutation({
+      query: (formData) => ({
+        url: "/user/withdrawal",
+        method: "POST",
+        body: formData,
+      }),
+    }),
+
+    updateWithdrawalRequest: builder.mutation({
+      query: (formData) => ({
+        url: "/admin/withdrawal",
+        method: "PATCH",
+        body: formData,
+      }),
+    }),
+
+    deleteWithdrawalRequest: builder.mutation({
+      query: (id) => ({
+        url: "/user/withdrawal",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["User"],
+    }),
+
+
   }),
 });
 
@@ -516,5 +557,10 @@ export const {
 
   useFetchUserRefferalsQuery,
   useFetchCourseProgressQuery,
+
+  useFetchWithdrawalRequestQuery,
+  useCreateWithdrawalRequestMutation,
+  useUpdateWithdrawalRequestMutation,
+  useDeleteWithdrawalRequestMutation,
 
 } = paarshEduApi;
