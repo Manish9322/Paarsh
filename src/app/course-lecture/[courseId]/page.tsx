@@ -157,6 +157,7 @@ export default function CourseLecturePage() {
     pollingInterval: 0, // Disable polling to avoid frequent refetches
   });
 
+  console.log("Progress Data:", progressData);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [currentVideo, setCurrentVideo] = useState<VideoItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1444,7 +1445,7 @@ setCourseProgress(totalProgress || 0);
         </div>
 
         {/* Inline CSS for Animations */}
-        <style jsx>{`
+        <style>{`
           .animate-pulse-slow {
             animation: pulse-slow 3s ease-in-out infinite;
           }

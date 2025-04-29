@@ -64,7 +64,7 @@ const ContactRequestsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: contacts, isLoading: isContactsLoading } = useFetchContactsQuery(undefined);
-  console.log(contacts);
+  console.log( "Contacts logged inside ContactRequestsPage : " , contacts);
   const mockContactRequests = contacts?.data || [];
 
 

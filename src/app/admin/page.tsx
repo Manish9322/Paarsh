@@ -31,7 +31,7 @@ export default function AdminPage() {
       error,
     } = useFetchUserQuery(undefined);
 
-    console.log("User Data:", userData);
+    console.log("User Data logged inside AdminPage:", userData);
 
 
   useEffect(() => {

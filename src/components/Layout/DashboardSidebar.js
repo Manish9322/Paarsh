@@ -16,6 +16,7 @@ import {
   HelpCircle,
   LogOut,
   Menu,
+  Wallet,
 } from "lucide-react";
 
 import {
@@ -83,6 +84,12 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       name: "Refer & Earn", 
       icon: <Gift size={20} />, 
       path: "/refer-earn",
+      description: "Invite friends and earn rewards"
+    },
+    { 
+      name: "Wallet", 
+      icon: <Wallet size={20} />, 
+      path: "/user-wallet",
       description: "Invite friends and earn rewards"
     },
     { 
