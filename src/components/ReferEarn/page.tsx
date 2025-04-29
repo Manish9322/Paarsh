@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Copy, Share2, CheckCircle, Gift, Award, Users, CreditCard, Zap } from "lucide-react";
-import { useFetchUserQuery } from "@/services/api";
+import { useFetchUserQuery, useFetchUserRefferalsQuery } from "@/services/api";
 
 export default function ReferEarn() {
   const [copiedText, setCopiedText] = useState("");
+  const [activeTab, setActiveTab] = useState("pending"); // Add state for active tab
   const [referralStats, setReferralStats] = useState({
     totalReferred: 0,
     totalEarned: 0,
@@ -15,19 +16,25 @@ export default function ReferEarn() {
   const referralCode = user?.refferalCode || "PAARSh1023";
   const referralLink = `https://www.paarshedu.com/signup?ref=${referralCode}`;
 
-  // Simulate fetching referral stats
+  const { data: userRefferalList } = useFetchUserRefferalsQuery(undefined);
+
+  console.log("userRefferalList: ", userRefferalList);
+
+  // Update referral stats based on API response
   useEffect(() => {
-    // This would be replaced with an actual API call
-    const timer = setTimeout(() => {
+    if (userRefferalList) {
+      // Assume each completed referral earns ₹500
+      const completedEarnings = userRefferalList.completedCount * 500;
+      // Assume each pending referral is worth ₹500 when completed
+      const pendingRewards = userRefferalList.pendingCount * 500;
+      
       setReferralStats({
-        totalReferred: 3,
-        totalEarned: 1500,
-        pendingRewards: 500
+        totalReferred: userRefferalList.totalReferrals || 0,
+        totalEarned: completedEarnings || 0,
+        pendingRewards: pendingRewards || 0
       });
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    }
+  }, [userRefferalList]);
 
   const handleCopy = async (text) => {
     try {
@@ -79,6 +86,16 @@ export default function ReferEarn() {
       icon: <Zap className="text-blue-500" size={24} />
     }
   ];
+
+  // Format date to readable format
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   return (
     <>
@@ -216,10 +233,130 @@ export default function ReferEarn() {
         </div>
       </div>
 
+      {/* Referrals Table */}
+      {userRefferalList && (userRefferalList.pendingCount > 0 || userRefferalList.completedCount > 0) && (
+        <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-100 dark:border-gray-700 dark:bg-gray-800 mb-6">
+          <h1 className="mb-4 text-2xl text-center font-bold text-gray-900 dark:text-white">
+            Your Referrals
+          </h1>
+          
+          {/* Tabs for Pending and Completed */}
+          <div className="flex mb-4 border-b border-gray-200 dark:border-gray-700">
+            <button 
+              className={`px-4 py-2 font-medium ${activeTab === "pending" ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"}`}
+              onClick={() => setActiveTab("pending")}
+            >
+              Pending ({userRefferalList.pendingCount})
+            </button>
+            <button 
+              className={`px-4 py-2 font-medium ${activeTab === "completed" ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"}`}
+              onClick={() => setActiveTab("completed")}
+            >
+              Completed ({userRefferalList.completedCount})
+            </button>
+          </div>
+          
+          {/* Pending Referrals Table */}
+          {activeTab === "pending" && userRefferalList.pendingCount > 0 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined Date</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {userRefferalList.pendingReferrals.map((referral, index) => (
+                    <tr key={index}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{referral.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{referral.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(referral.joinedAt)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                          Pending
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          {/* Completed Referrals Table */}
+          {activeTab === "completed" && userRefferalList.completedCount > 0 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Joined Date</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Reward</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {userRefferalList.completedReferrals.map((referral, index) => (
+                    <tr key={index}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{referral.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{referral.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{formatDate(referral.joinedAt)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                          Completed
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400 font-medium">₹500</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          {/* Empty state for Completed tab */}
+          {activeTab === "completed" && userRefferalList.completedCount === 0 && (
+            <div className="text-center py-8">
+              <CheckCircle className="mx-auto mb-4 text-gray-400" size={48} />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No completed referrals yet</h3>
+              <p className="text-gray-500 dark:text-gray-400">When your friends complete a course, they'll appear here</p>
+            </div>
+          )}
+          
+          {/* Empty state for Pending tab */}
+          {activeTab === "pending" && userRefferalList.pendingCount === 0 && (
+            <div className="text-center py-8">
+              <Users className="mx-auto mb-4 text-gray-400" size={48} />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No pending referrals</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">Share your referral link with friends to see them here!</p>
+            </div>
+          )}
+          
+          {/* Empty State - No referrals at all */}
+          {userRefferalList.totalReferrals === 0 && (
+            <div className="text-center py-8">
+              <Users className="mx-auto mb-4 text-gray-400" size={48} />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No referrals yet</h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-4">Share your referral link with friends to start earning rewards!</p>
+              <button
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                onClick={handleShare}
+              >
+                <Share2 size={18} /> Share Now
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Rewards Section */}
       <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl">
         <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-8">
-          Rewards Youll Both Receive
+          Rewards You'll Both Receive
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {rewards.map((reward, index) => (

@@ -47,20 +47,24 @@ export const paarshEduApi = createApi({
     updateVideoProgress: builder.mutation({
       query: ({ videoId, courseId, progress, completed }) => ({
         url: "/video-progress",
-        method: 'POST',
+        method: "POST",
         body: { videoId, courseId, progress, completed },
       }),
-      invalidatesTags: (result, error, { courseId }) => [{ type: 'Progress', id: courseId }],
+      invalidatesTags: (result, error, { courseId }) => [
+        { type: "Progress", id: courseId },
+      ],
     }),
 
     getVideoProgress: builder.query({
       query: (courseId) => `/video-progress?courseId=${courseId}`,
-      providesTags: (result, error, courseId) => [{ type: 'Progress', id: courseId }],
+      providesTags: (result, error, courseId) => [
+        { type: "Progress", id: courseId },
+      ],
       transformResponse: (response) => {
         // Transform the response to match the expected format
         return {
           success: true,
-          data: response.data || {}
+          data: response.data || {},
         };
       },
     }),
@@ -82,6 +86,11 @@ export const paarshEduApi = createApi({
         body: userData,
       }),
       invalidatesTags: ["User"],
+    }),
+
+    fetchUserRefferals: builder.query({
+      query: () => "/user/user-refferals",
+      providesTags: ["User"],
     }),
 
     // ----------------------------------------------------Course Apis------------------------------------
@@ -190,7 +199,7 @@ export const paarshEduApi = createApi({
     deleteUser: builder.mutation({
       query: (id) => ({ url: "/user", method: "DELETE", body: id }),
       invalidatesTags: ["User"],
-    }), 
+    }),
 
     //--------------------------------------------------------------Categories Apis------------------------------------------------
 
@@ -271,13 +280,13 @@ export const paarshEduApi = createApi({
     }),
 
     fetchCourseVideo: builder.query({
-       query: () => "/course/videos",
-       providesTags: ["CourseVideo"],             
+      query: () => "/course/videos",
+      providesTags: ["CourseVideo"],
     }),
 
     fetchCourseVideoById: builder.query({
       query: (params) => `/course/videos?courseId=${params.courseId}`,
-      providesTags: ['CourseVideo'],
+      providesTags: ["CourseVideo"],
     }),
 
     deleteCourseVideo: builder.mutation({
@@ -323,7 +332,7 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["Contact"],
     }),
-    
+
     fetchContacts: builder.query({
       query: () => "/contactus",
       providesTags: ["Contact"],
@@ -336,13 +345,13 @@ export const paarshEduApi = createApi({
         body: formData,
       }),
       invalidatesTags: ["Contact"],
-    }), 
+    }),
 
     deleteContact: builder.mutation({
       query: (id) => ({
         url: "/contactus",
         method: "DELETE",
-        body: {id},
+        body: { id },
       }),
       invalidatesTags: ["Contact"],
     }),
@@ -352,7 +361,7 @@ export const paarshEduApi = createApi({
     addMeetingLink: builder.mutation({
       query: (formData) => ({
         url: "/meeting-links",
-        method: "POST", 
+        method: "POST",
         body: formData,
       }),
       invalidatesTags: ["MeetingLink"],
@@ -371,7 +380,7 @@ export const paarshEduApi = createApi({
       query: (id) => ({
         url: `/meeting-links/${id}`,
         method: "DELETE",
-        body: {id}, 
+        body: { id },
       }),
       invalidatesTags: ["MeetingLink"],
     }),
@@ -408,7 +417,6 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["MeetingLink"],
     }),
 
-
     // Endpoint for Creating Job Application
     CreateJobApplication: builder.mutation({
       query: (data) => ({
@@ -423,7 +431,7 @@ export const paarshEduApi = createApi({
       query: () => "/JobApplication",
       providesTags: ["JobApplication"],
     }),
-    
+
     // Endpoint for deleting Job Application by ID
     deleteJobApplication: builder.mutation({
       query: (id) => ({
@@ -442,7 +450,6 @@ export const paarshEduApi = createApi({
         body: formData,
       }),
     }),
-
   }),
 });
 
@@ -508,4 +515,6 @@ export const {
 
   useUpdateVideoProgressMutation,
   useGetVideoProgressQuery,
+
+  useFetchUserRefferalsQuery
 } = paarshEduApi;

@@ -20,6 +20,19 @@ const userSchema = new mongoose.Schema({
   refferalCode: {
     type: String,
   },
+  referredBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  walletBalance: {
+    type: Number,
+    default: 0,
+  },
+  firstPurchaseRewardGiven: {
+    type: Boolean,
+    default: false,
+  },
+
   password: {
     type: String,
     required: true,
