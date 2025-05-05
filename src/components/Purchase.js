@@ -13,6 +13,7 @@ import {
 import { RAZORPAY_KEY_ID } from "../../config/config";
 import { set } from "mongoose";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
 
 const PurchaseModal = ({ isOpen, onClose, course }) => {
@@ -28,6 +29,10 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
 
   const user = userData?.data;
 
+  const params = useSearchParams();
+  const agentRefCode = params.get("refCode"); // Get the referral code from URL
+   
+  console.log("Agent Referral Code:", agentRefCode); // Log the referral code for debugging
   useEffect(() => {
     if (course?.price) {
       setFinalPrice(Number(course.price)); // Update once course data is available
@@ -78,13 +83,14 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
 
   const handlePayment = async () => {
     dispatch(setLoading(true));
-
+    
     try {
       // Step 1: Request backend to create order
       const orderResponse = await createOrder({
         userId: user._id,
         courseId: course._id,
         amount: finalPrice * 100, // Convert to smallest currency unit
+        agentRefCode: agentRefCode, // Pass the referral code to the backend
       });
 
       const orderData = orderResponse.data; // ✅ Extract actual data

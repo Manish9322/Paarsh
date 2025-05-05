@@ -297,10 +297,10 @@ export const paarshEduApi = createApi({
 
     //----------------------------------Payment ------------------------------------------------------------------------------
     createOrder: builder.mutation({
-      query: ({ userId, courseId, amount }) => ({
+      query: ({ userId, courseId, amount , agentRefCode }) => ({
         url: "/createorder",
         method: "POST",
-        body: { userId, courseId, amount },
+        body: { userId, courseId, amount , agentRefCode },
       }),
     }),
     verifyPayment: builder.mutation({
@@ -489,6 +489,11 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["User"],
     }),
 
+    fetchAgentStats: builder.query({
+      query: () => "/agent/stats",
+      providesTags: ["Agent"],
+    }),
+
 
   }),
 });
@@ -562,5 +567,7 @@ export const {
   useCreateWithdrawalRequestMutation,
   useUpdateWithdrawalRequestMutation,
   useDeleteWithdrawalRequestMutation,
+
+  useFetchAgentStatsQuery,
 
 } = paarshEduApi;

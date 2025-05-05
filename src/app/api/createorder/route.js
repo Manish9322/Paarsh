@@ -8,7 +8,7 @@ import { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } from "../../../../config/config"
 
 export const POST = authMiddleware(async (request) => {
   try {
-    const { userId, courseId } = await request.json();
+    const { userId, courseId, agentRefCode } = await request.json();
 
     if (!userId || !courseId) {
       return NextResponse.json(
@@ -51,6 +51,7 @@ export const POST = authMiddleware(async (request) => {
       courseId,
       orderId: order.id,
       amount: parseInt(course.price),
+      agentRefCode,
       status: "PENDING",
     });
 
@@ -62,6 +63,7 @@ export const POST = authMiddleware(async (request) => {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
+      agentRefCode,
     });
   } catch (error) {
     return NextResponse.json(

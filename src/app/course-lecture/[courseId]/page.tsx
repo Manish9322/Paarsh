@@ -10,10 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  useFetchCourseVideosByIdQuery,
+  useFetchCourseVideoByIdQuery,
   useGetVideoProgressQuery,
   useUpdateVideoProgressMutation,
-} from "@/services/api";
+} from "../../../services/api";
 import {
   ChevronLeft,
   Play,
@@ -141,7 +141,7 @@ export default function CourseLecturePage() {
     data: courseVideoData,
     isLoading,
     isError,
-  } = useFetchCourseVideosByIdQuery(
+  } = useFetchCourseVideoByIdQuery(
     {
       courseId,
     },

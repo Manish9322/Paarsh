@@ -9,6 +9,7 @@ import userAuthReducer from "../lib/slices/userAuthSlice";
 import courseVideoReducer from "../lib/slices/courseVideoSlice";
 import paymentReducer from "../lib/slices/paymentSlice";
 import userReducer from "../lib/slices/userSlice";
+import withdrawalReducer from "../lib/slices/withdrawalSlice";
 
 // Combine all reducers
 const rootReducer = combineReducers({
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
   userAuth: userAuthReducer,
   courseVideo: courseVideoReducer,
   payment: paymentReducer,
+  withdrawal: withdrawalReducer,
 
   [paarshEduApi.reducerPath]: paarshEduApi.reducer, // Include RTK Query API slice
 });
