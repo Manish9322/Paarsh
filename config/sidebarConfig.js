@@ -1,4 +1,4 @@
-import { FaHome, FaUser, FaVideo, FaBook, FaQuestion, FaPhone, FaGift } from "react-icons/fa";
+import { FaHome, FaUser, FaVideo, FaBook, FaQuestion, FaPhone, FaGift, FaMoneyBill } from "react-icons/fa";
 import { RiFilePaperLine, RiSpyFill, RiArticleFill } from "react-icons/ri";
 
 const sidebarConfig = [
@@ -28,6 +28,7 @@ const sidebarConfig = [
   { name: "Enquiries", path: "/admin/enquiries", icon: <FaQuestion /> },
   { name: "Meeting Links", path: "/admin/meeting-links", icon: <FaVideo /> },
   { name: "Contact Requests", path: "/admin/contacts", icon: <FaPhone /> },
+  { name: "Withdrawal Requests", path: "/admin/withdrwal", icon: <FaMoneyBill /> },
 ];
 
 export default sidebarConfig;

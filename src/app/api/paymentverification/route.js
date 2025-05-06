@@ -82,6 +82,22 @@ export const POST = async (request) => {
     transaction.paymentId = razorpay_payment_id;
     transaction.signature = razorpaySignature;
     await transaction.save();
+    
+    // Handle agent referral code if present
+    if (transaction.agentRefCode) {
+      // Logic to handle agent referral code
+      const agent = await AgentModel.findOne({
+        agentCode: transaction.agentRefCode,
+      });
+
+      if (agent) {
+        // Reward logic for agent
+       agent.totalSale =
+          (agent.totalSale || 0) + transaction.amount;
+        agent.countSale = (agent.countSale || 0) + 1;
+        await agent.save();
+      }
+    }
 
     // Fetch user and course details
 
@@ -94,7 +110,7 @@ export const POST = async (request) => {
       const referrer = await UserModel.findById(user.referredBy);
       if (referrer) {
         // Reward logic: e.g., add ₹100 to walletBalance (you need walletBalance field in user model)
-        referrer.walletBalance = (referrer.walletBalance || 0) + 100;
+        referrer.walletBalance = (referrer.walletBalance || 0) + 500;
         await referrer.save();
 
         user.firstPurchaseRewardGiven = true; // Important to not give reward twice

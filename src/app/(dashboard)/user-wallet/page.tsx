@@ -1,6 +1,17 @@
 "use client";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  setUpiId,
+  saveUpiId,
+  setAmount,
+  setIsSubmitting,
+  resetUpiId,
+} from "../../../lib/slices/withdrawalSlice";
+import { selectRootState } from "@/lib/store";
+import { useCreateWithdrawalRequestMutation } from "@/services/api";
+import { toast } from "sonner";
 
 const transactionData = [
   {
@@ -42,30 +53,6 @@ const transactionData = [
     date: "2025-04-25",
     status: "Completed",
     description: "Refund for canceled course",
-  },
-];
-
-const referralData = [
-  {
-    id: 1,
-    friendName: "John Doe",
-    date: "2025-04-20",
-    status: "Accepted",
-    reward: "₹10.00",
-  },
-  {
-    id: 2,
-    friendName: "Jane Smith",
-    date: "2025-04-18",
-    status: "Pending",
-    reward: "₹0.00",
-  },
-  {
-    id: 3,
-    friendName: "Alice Johnson",
-    date: "2025-04-15",
-    status: "Accepted",
-    reward: "₹10.00",
   },
 ];
 
@@ -122,7 +109,7 @@ const item = {
 
 // Main Wallet Component
 export default function UserWallet() {
-  const [view, setView] = useState("main"); // main, withdraw, referral, payment, pending
+  const [view, setView] = useState("main"); // main, withdraw, payment, pending
   const [showFullHistory, setShowFullHistory] = useState(false);
 
   const handleViewFullHistory = () => {
@@ -146,8 +133,6 @@ export default function UserWallet() {
         />
       ) : view === "withdraw" ? (
         <WithdrawFundsView handleBack={handleBack} />
-      ) : view === "referral" ? (
-        <ReferralProgramView handleBack={handleBack} />
       ) : view === "payment" ? (
         <PaymentMethodsView handleBack={handleBack} />
       ) : view === "pending" ? (
@@ -174,7 +159,8 @@ function MainWalletView({ setView, handleViewFullHistory }) {
         </div>
         <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            <span className="font-semibold">Pro Tip:</span> Add funds to enroll in premium courses
+            <span className="font-semibold">Pro Tip:</span> Add funds to enroll in
+            premium courses
           </p>
         </div>
       </div>
@@ -183,7 +169,7 @@ function MainWalletView({ setView, handleViewFullHistory }) {
         variants={container}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
       >
         <motion.div variants={item} className="h-full">
           <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm p-6 border border-gray-100 dark:border-gray-700 h-full flex flex-col justify-between">
@@ -219,25 +205,6 @@ function MainWalletView({ setView, handleViewFullHistory }) {
               className="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 text-center"
             >
               View Details
-            </button>
-          </div>
-        </motion.div>
-
-        <motion.div variants={item} className="h-full">
-          <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm p-6 border border-gray-100 dark:border-gray-700 h-full flex flex-col justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-                Referral Rewards
-              </h2>
-              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                ₹20.00
-              </p>
-            </div>
-            <button
-              onClick={() => setView("referral")}
-              className="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 text-center"
-            >
-              Invite Friends
             </button>
           </div>
         </motion.div>
@@ -318,21 +285,50 @@ function MainWalletView({ setView, handleViewFullHistory }) {
 
 // Withdraw Funds View
 function WithdrawFundsView({ handleBack }) {
-  const [amount, setAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("card");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dispatch = useDispatch();
+  const { hasAccountDetails, storedUpiId, upiId, amount, isSubmitting } =
+    useSelector((state) => selectRootState(state).withdrawal);
+    const [_CREATE_WITHDRAWAL] = useCreateWithdrawalRequestMutation();
 
-  const handleSubmit = (e) => {
+  const handleSubmitUpi = (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    // Placeholder for backend API call to process withdrawal
-    setTimeout(() => {
-      alert(`Withdrawal of ₹${amount} to ${paymentMethod} initiated!`);
-      setIsSubmitting(false);
-      setAmount("");
-    }, 1000);
+    dispatch(saveUpiId(upiId));
   };
 
+  const handleSubmitWithdrawal = async (e) => {
+    try {
+      e.preventDefault();
+      dispatch(setIsSubmitting(true));
+      // Log withdrawal data to console
+      console.log("Withdrawal Data:", { amount, upiId: storedUpiId });
+
+      const response = await _CREATE_WITHDRAWAL({
+        amount: parseFloat(amount),
+        upiId: storedUpiId,
+      });
+      console.log("Withdrawal Response:", response);
+      console.log("Withdrawal Data:", response?.data);
+
+      console.log("Error Data:", response?.error);
+    
+      if (!response.data?.success) {
+        const errorData = await response?.error;
+
+
+        toast.error(errorData?.message || "Something went wrong");
+        dispatch(setIsSubmitting(false));
+        return;
+      }
+    
+      const data = await response.data;
+      toast.success(data?.message || "Withdrawal request submitted successfully!");
+      dispatch(setAmount(""));
+      dispatch(resetUpiId());
+    } catch (error) {
+      toast.error("Server Error");
+      dispatch(setIsSubmitting(false));
+    }
+  };    
   return (
     <>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -346,7 +342,8 @@ function WithdrawFundsView({ handleBack }) {
         </div>
         <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            <span className="font-semibold">Pro Tip:</span> Ensure your payment method is verified before withdrawing
+            <span className="font-semibold">Pro Tip:</span> Ensure your UPI ID is
+            valid before withdrawing
           </p>
         </div>
       </div>
@@ -358,148 +355,111 @@ function WithdrawFundsView({ handleBack }) {
         className="bg-white dark:bg-gray-800 rounded-md shadow-sm p-6 border border-gray-100 dark:border-gray-700"
       >
         <motion.div variants={item}>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-            Withdrawal Form
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Withdrawal Amount (₹)
-              </label>
-              <input
-                type="number"
-                id="amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Enter amount"
-                min="1"
-                step="0.01"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Payment Method
-              </label>
-              <select
-                id="paymentMethod"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-blue-500"
-                required
-              >
-                <option value="card">Credit/Debit Card</option>
-                <option value="bank">Bank Transfer</option>
-                <option value="upi">UPI</option>
-              </select>
-            </div>
-            <div className="flex justify-end gap-4">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="inline-block bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-300 text-center"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 text-center ${
-                  isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                {isSubmitting ? "Processing..." : "Withdraw"}
-              </button>
-            </div>
-          </form>
-        </motion.div>
-      </motion.div>
-    </>
-  );
-}
-
-// Referral Program View
-function ReferralProgramView({ handleBack }) {
-  return (
-    <>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
-            Referral Program
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
-            Invite friends and earn rewards
-          </p>
-        </div>
-        <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            <span className="font-semibold">Pro Tip:</span> Share your unique referral link to maximize rewards
-          </p>
-        </div>
-      </div>
-
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="bg-white dark:bg-gray-800 rounded-md shadow-sm p-6 border border-gray-100 dark:border-gray-700"
-      >
-        <motion.div variants={item}>
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-            Referral History
-          </h2>
-          <div className="space-y-3">
-            {referralData.map((referral) => (
-              <div
-                key={referral.id}
-                className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md"
-              >
-                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
-                  <UserIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          {!hasAccountDetails ? (
+            <>
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                Add UPI ID
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Please provide your UPI ID to proceed with withdrawals.
+              </p>
+              <form onSubmit={handleSubmitUpi} className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="upiId"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    UPI ID
+                  </label>
+                  <input
+                    type="text"
+                    id="upiId"
+                    value={upiId}
+                    onChange={(e) => dispatch(setUpiId(e.target.value))}
+                    className="mt-1 p-4 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="example@upi"
+                    required
+                  />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800 dark:text-white">
-                    {referral.friendName}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {referral.date} • {referral.status}
-                  </p>
+                <div className="flex justify-end gap-4">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="inline-block bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-300 text-center"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 text-center"
+                  >
+                    Save UPI ID
+                  </button>
                 </div>
-                <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                  {referral.reward}
-                </p>
-              </div>
-            ))}
-          </div>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+                Withdrawal Form
+              </h2>
+              <form onSubmit={handleSubmitWithdrawal} className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="amount"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Withdrawal Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    id="amount"
+                    value={amount}
+                    onChange={(e) => dispatch(setAmount(e.target.value))}
+                    className="mt-1 p-4 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Enter amount"
+                    min="1"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    UPI ID
+                  </label>
+                  <p className="mt-1 text-gray-800 dark:text-white">
+                    {storedUpiId}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => dispatch(resetUpiId())}
+                    className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                  >
+                    Change UPI ID
+                  </button>
+                </div>
+                <div className="flex justify-end gap-4">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="inline-block bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-300 text-center"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 text-center ${
+                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isSubmitting ? "Processing..." : "Withdraw"}
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </motion.div>
-        <motion.div variants={item} className="mt-6">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-            Your Referral Link
-          </h2>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value="https://example.com/referral/abc123"
-              readOnly
-              className="flex-1 rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white p-2"
-            />
-            <button
-              onClick={() => navigator.clipboard.writeText("https://example.com/referral/abc123")}
-              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300"
-            >
-              Copy
-            </button>
-          </div>
-        </motion.div>
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={handleBack}
-            className="inline-block bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-300"
-          >
-            Back
-          </button>
-        </div>
       </motion.div>
     </>
   );
@@ -540,7 +500,8 @@ function PaymentMethodsView({ handleBack }) {
         </div>
         <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            <span className="font-semibold">Pro Tip:</span> Keep your payment methods updated for seamless transactions
+            <span className="font-semibold">Pro Tip:</span> Keep your payment
+            methods updated for seamless transactions
           </p>
         </div>
       </div>
@@ -598,7 +559,10 @@ function PaymentMethodsView({ handleBack }) {
             </h2>
             <form onSubmit={handleAddCard} className="space-y-4">
               <div>
-                <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="cardNumber"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
                   Card Number
                 </label>
                 <input
@@ -613,7 +577,10 @@ function PaymentMethodsView({ handleBack }) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="expiry" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="expiry"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Expiry Date
                   </label>
                   <input
@@ -627,7 +594,10 @@ function PaymentMethodsView({ handleBack }) {
                   />
                 </div>
                 <div>
-                  <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="cvv"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     CVV
                   </label>
                   <input
@@ -662,7 +632,7 @@ function PaymentMethodsView({ handleBack }) {
         <div className="mt-6 flex justify-end">
           <button
             onClick={handleBack}
-            className="inline-block bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors duration-300"
+            className="inline-block bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300"
           >
             Back
           </button>
@@ -692,7 +662,8 @@ function PendingTransactionsView({ handleBack }) {
         </div>
         <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            <span className="font-semibold">Pro Tip:</span> Some transactions may take up to 24 hours to process
+            <span className="font-semibold">Pro Tip:</span> Some transactions may
+            take up to 24 hours to process
           </p>
         </div>
       </div>
@@ -737,7 +708,8 @@ function PendingTransactionsView({ handleBack }) {
                   <div className="flex items-center gap-4">
                     <p
                       className={`text-sm font-semibold ${
-                        transaction.type === "Purchase" || transaction.type === "Withdrawal"
+                        transaction.type === "Purchase" ||
+                        transaction.type === "Withdrawal"
                           ? "text-red-600 dark:text-red-400"
                           : "text-green-600 dark:text-green-400"
                       }`}
@@ -786,7 +758,8 @@ function FullTransactionHistoryView({ handleBack }) {
         </div>
         <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            <span className="font-semibold">Pro Tip:</span> Use filters to sort transactions by type or date
+            <span className="font-semibold">Pro Tip:</span> Use filters to sort
+            transactions by type or date
           </p>
         </div>
       </div>
@@ -885,24 +858,6 @@ function ArrowDownIcon({ className }) {
     >
       <line x1="12" y1="5" x2="12" y2="19"></line>
       <polyline points="19 12 12 19 5 12"></polyline>
-    </svg>
-  );
-}
-
-function UserIcon({ className }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-      <circle cx="12" cy="7" r="4"></circle>
     </svg>
   );
 }

@@ -12,7 +12,7 @@ _db();
 
 export const POST = authMiddleware(async (request) => {
   try {
-    const { userId, courseId, amount, offerId } = await request.json();
+    const { userId, courseId, amount, offerId, agentRefCode } = await request.json();
 
     if (!userId || !courseId || !amount) {
       return NextResponse.json(

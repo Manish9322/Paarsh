@@ -27,6 +27,9 @@ const transactionSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    agentRefCode: {
+      type: String,
+    },
     status: {
       type: String,
       enum: ["PENDING", "SUCCESS", "FAILED"],
