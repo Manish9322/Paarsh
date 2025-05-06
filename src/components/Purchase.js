@@ -100,15 +100,18 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
         amount: finalPrice * 100, // Convert to smallest currency unit
         agentRefCode: agentRefCode, // Pass the referral code to the backend
       });
-
+     
+      console.log("Order Response:", orderResponse); // Log the order response for debugging
       const orderData = orderResponse.data; // ✅ Extract actual data
+
+      console.log("Order Data:", orderData); // Log the order data for debugging
 
       if (orderData && orderData.success) {
         const options = {
           key: RAZORPAY_KEY_ID, // Public Key
-          amount: orderData.amount,
-          currency: orderData.currency,
-          order_id: orderData.orderId,
+          amount: orderData?.data?.amount,
+          currency: orderData?.data?.currency,
+          order_id: orderData?.data?.orderId,
           handler: async function (response) {
             try {
               await verifyPayment(response);

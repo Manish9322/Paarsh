@@ -282,12 +282,12 @@ export const paarshEduApi = createApi({
     }),
 
     fetchCourseVideo: builder.query({
-      query: () => "/course/videos",
+      query: (params) => `/course/videos?courseId=${params.courseId}`,
       providesTags: ["CourseVideo"],
     }),
 
     fetchCourseVideoById: builder.query({
-      query: (params) => `/course/videos?courseId=${params.courseId}`,
+      query: (params) => `/user/courses/videos?courseId=${params.courseId}`,
       providesTags: ["CourseVideo"],
     }),
 

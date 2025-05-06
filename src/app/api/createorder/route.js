@@ -39,14 +39,14 @@ export const POST = authMiddleware(async (request) => {
     }
 
     const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_SECRET,
+      key_id: RAZORPAY_KEY_ID,
+      key_secret: RAZORPAY_KEY_SECRET,
     });
 
     const payment_capture = 1;
     const currency = "INR";
     const options = {
-      amount: (amount * 100).toString(),
+      amount,
       currency,
       receipt: shortid.generate(),
       payment_capture,
@@ -64,6 +64,7 @@ export const POST = authMiddleware(async (request) => {
         courseId,
         orderId: order.id,
         amount: parseInt(course.price),
+        agentRefCode,
         status: "PENDING",
       });
 
@@ -72,9 +73,10 @@ export const POST = authMiddleware(async (request) => {
       return NextResponse.json({
         success: true,
         data: {
-          id: order.id,
+          orderId: order.id,
           currency: order.currency,
           amount: order.amount,
+          agentRefCode,
         },
       });
     } catch (err) {

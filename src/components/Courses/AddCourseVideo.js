@@ -18,7 +18,7 @@ import {
 } from "../../lib/slices/courseVideoSlice";
 import {
   useAddCourseVideoMutation,
-  useFetchCourseVideoByIdQuery,
+  useFetchCourseVideoQuery,
   useUploadResourceMutation,
 } from "@/services/api";
 import { useState, useEffect } from "react";
@@ -37,7 +37,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     data: fetchResponse,
     isLoading: isLoadingCourseVideos,
     refetch,
-  } = useFetchCourseVideoByIdQuery(
+  } = useFetchCourseVideoQuery(
     {
       courseId: selectedCourse._id,
     },

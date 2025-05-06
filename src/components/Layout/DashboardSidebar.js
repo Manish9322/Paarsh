@@ -69,7 +69,7 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       description: "Overview of your courses and progress"
     },
     { 
-      name: "Home", 
+      name: "Back to Website", 
       icon: <Home size={20} />, 
       path: "/",
       description: "Return to main website"
@@ -97,6 +97,12 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       icon: <HelpCircle size={20} />, 
       path: "/faq",
       description: "Get answers to common questions"
+    },
+    { 
+      name: "Delete Account", 
+      icon: <HelpCircle size={20} />, 
+      path: "/delete-account",
+      description: "Delete your account"
     },
     { 
       name: "Log Out", 
