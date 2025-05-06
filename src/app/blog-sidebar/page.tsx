@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import RelatedPost from "@/components/Blog/RelatedPost";
 import SubscribeNewsletter from "@/components/SubscribeStripe/SubscribeStripe";
 import TagButton from "@/components/Blog/TagButton";
@@ -65,6 +66,12 @@ interface Course {
   taglineIncludes: string;
   syllabusOverview: string;
   overviewTagline: string;
+  activeOffer?: {
+    _id: string;
+    code: string;
+    discountPercentage: number;
+    validUntil: string;
+  };
 }
 
 interface Category {
@@ -260,26 +267,88 @@ const BlogSidebarPage = () => {
                       </div>
                     </div>
                     
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center">
-                          <FaIndianRupeeSign className="text-3xl text-blue-600 dark:text-blue-400" />
-                          <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                            {isLoading ? <Skeleton width={100} /> : course?.price}
-                          </span>
+                    {/* Original price display for courses without offers */}
+                    {!course?.activeOffer && (
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl p-6">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center">
+                            <FaIndianRupeeSign className="text-3xl text-blue-600 dark:text-blue-400" />
+                            <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
+                              {isLoading ? <Skeleton width={100} /> : course?.price}
+                            </span>
+                          </div>
+                          <div className="flex flex-col ml-2">
+                            <span className="text-sm text-gray-600 dark:text-gray-400">One-time payment</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">Lifetime access</span>
+                          </div>
                         </div>
-                        <div className="flex flex-col ml-2">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">One-time payment</span>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Lifetime access</span>
+                        <Button
+                          onClick={modalOpen}
+                          className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+                        >
+                          Enroll Now
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Special offer UI for courses with active offers */}
+                    {course?.activeOffer && (
+                      <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl p-6 relative">
+                        {/* Offer Tag */}
+                        <div className="absolute -top-3 left-6">
+                          <div className="bg-gradient-to-r from-blue-600 to-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium shadow-sm">
+                            Special Offer - {course.activeOffer.code}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col">
+                            {/* Price Display */}
+                            <div className="flex items-center gap-3 mb-1">
+                              {/* Original Price */}
+                              <div className="flex items-center opacity-60">
+                                <FaIndianRupeeSign className="text-xl text-blue-600 dark:text-blue-400" />
+                                <span className="text-2xl font-semibold text-blue-600 dark:text-blue-400 line-through">
+                                  {isLoading ? <Skeleton width={60} /> : course.price}
+                                </span>
+                              </div>
+                              {/* Discount Badge */}
+                              <span className="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded">
+                                {course.activeOffer.discountPercentage}% OFF
+                              </span>
+                            </div>
+
+                            {/* Discounted Price */}
+                            <div className="flex items-center">
+                              <FaIndianRupeeSign className="text-3xl text-blue-600 dark:text-blue-400" />
+                              <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
+                                {isLoading ? (
+                                  <Skeleton width={100} />
+                                ) : (
+                                  Math.round(parseFloat(course.price) * (1 - course.activeOffer.discountPercentage / 100))
+                                )}
+                              </span>
+                            </div>  
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1.5">
+                          <Button
+                            onClick={modalOpen}
+                            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+                          >
+                            Claim Offer
+                          </Button>
+                          <div className="flex flex-col items-end gap-1.5">
+                          <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">Limited time offer</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">
+                          Offer valid until {new Date(course.activeOffer.validUntil).toLocaleDateString()}
+                          </span>
+                          </div>
+                          
                         </div>
                       </div>
-                      <Button
-                        onClick={modalOpen}
-                        className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-                      >
-                        Enroll Now
-                      </Button>
-                    </div>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -720,8 +789,17 @@ const BlogSidebarPage = () => {
       </section >
 
       <ModelThree />
-      <Purchase isOpen={isModalOpen} onClose={modalClose} course={course} />
-
+      <Purchase 
+        isOpen={isModalOpen} 
+        onClose={modalClose} 
+        course={course} 
+        activeOffer={course?.activeOffer ? {
+          _id: course.activeOffer._id || '',
+          code: course.activeOffer.code,
+          discountPercentage: course.activeOffer.discountPercentage,
+          validUntil: course.activeOffer.validUntil
+        } : undefined} 
+      />
       <SubscribeNewsletter />
       <DownloadSyllabus courseName={course?.courseName || ''} />
     </SkeletonThemeProvider>

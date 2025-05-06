@@ -485,7 +485,7 @@ function ReferralProgramView({ handleBack }) {
               className="flex-1 rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white p-2"
             />
             <button
-              onClick={() => navigator.clipboard.write("https://example.com/referral/abc123")}
+              onClick={() => navigator.clipboard.writeText("https://example.com/referral/abc123")}
               className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300"
             >
               Copy

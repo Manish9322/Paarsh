@@ -15,7 +15,7 @@ import { set } from "mongoose";
 import { toast } from "sonner";
 
 
-const PurchaseModal = ({ isOpen, onClose, course }) => {
+const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state.payment.isLoading);
   const [createOrder] = useCreateOrderMutation();
@@ -24,16 +24,23 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
   const [discountApplied, setDiscountApplied] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const { data: userData } = useFetchUserQuery();
-  const [finalPrice, setFinalPrice] = useState(course?.price || 0); // Default to course price if available
+  const [finalPrice, setFinalPrice] = useState(course?.price || 0);
 
   const user = userData?.data;
 
   useEffect(() => {
     if (course?.price) {
-      setFinalPrice(Number(course.price)); // Update once course data is available
+      // If there's an active offer, apply it immediately
+      if (activeOffer) {
+        const discountedPrice = Number(course.price) * (1 - activeOffer.discountPercentage / 100);
+        setFinalPrice(discountedPrice);
+        setDiscountApplied(true);
+      } else {
+        setFinalPrice(Number(course.price));
+      }
       coursePrice = Number(course.price);
     }
-  }, [course]); // Runs when course updates
+  }, [course, activeOffer]); // Run when course or activeOffer updates
   
   useEffect(() => {
     const script = document.createElement("script");
@@ -66,8 +73,9 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
 
   const applyPromoCode = () => {
     if (promoCode === validPromoCode) {
-      const discount = coursePrice * 0.2;
-      setFinalPrice((coursePrice - discount).toFixed(2));
+      const currentPrice = Number(course?.price || 0);
+      const discount = currentPrice * 0.2;
+      setFinalPrice(Number(currentPrice - discount));
       setDiscountApplied(true);
       setErrorMessage("");
     } else {
@@ -122,7 +130,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
             name: user?.name || "",
           },
           theme: {
-            color: "#4F46E5", // Indigo color to match our UI
+            color: "#4F46E5", // blue color to match our UI
           },
         };
 
@@ -143,7 +151,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm dark:bg-black/70">
-      <div className="relative w-full md:max-w-5xl max-h-[85vh] overflow-auto md:overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-gray-900">
+      <div className="relative w-full md:max-w-5xl max-h-[85vh] overflow-auto md:overflow-hidden rounded-md bg-white shadow-xl dark:bg-gray-900">
         {/* Close button */}
         <button 
           className="absolute right-4 top-4 z-50 rounded-full bg-gray-100 p-2 text-gray-600 transition-all hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -157,7 +165,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
         {/* Split panel container */}
         <div className="flex flex-col md:flex-row">
           {/* Left panel (image/course info) */}
-          <div className="relative flex-shrink-0 bg-gradient-to-br from-blue-800 via-indigo-700 to-violet-800 p-6 md:w-2/5">
+          <div className="relative flex-shrink-0 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-800 p-6 md:w-2/5">
             {/* Background pattern overlay */}
             <div className="absolute inset-0 opacity-10">
               <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -172,7 +180,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
             
             <div className="relative z-10 flex h-full flex-col">
               {/* Course category badge at top */}
-              <div className="mb-4 inline-block self-start rounded-lg bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-white/80 backdrop-blur-sm">
+              <div className="mb-4 inline-block self-start rounded-md bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-white/80 backdrop-blur-sm">
                 {course?.category || "Online Course"}
               </div>
               
@@ -191,7 +199,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-indigo-600 text-xs font-bold text-white">
+                    <div className="flex h-full w-full items-center justify-center bg-blue-600 text-xs font-bold text-white">
                       {course?.instructor?.charAt(0) || "I"}
                     </div>
                   )}
@@ -202,8 +210,8 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
               </div>
               
               {/* Course thumbnail with enhanced styling - moved down */}
-              <div className="overflow-hidden rounded-xl bg-gradient-to-br from-white/20 to-white/5 p-[2px] shadow-lg backdrop-blur-sm">
-                <div className="aspect-video overflow-hidden rounded-[10px] border border-white/10">
+              <div className="overflow-hidden rounded-md bg-gradient-to-br from-white/20 to-white/5 p-[2px] shadow-lg backdrop-blur-sm">
+                <div className="aspect-video overflow-hidden rounded-md border border-white/10">
                   {course?.thumbnail ? (
                     <img 
                       src={course.thumbnail} 
@@ -211,7 +219,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
                       className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-900 to-violet-900 p-6">
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-900 to-blue-900 p-6">
                       <div className="rounded-full bg-white/10 p-4">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -224,7 +232,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
               
               {/* Feature highlights - adding content to fill space */}
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-white/10 p-3 backdrop-blur-sm">
+                <div className="rounded-md bg-white/10 p-3 backdrop-blur-sm">
                   <div className="mb-1 text-xl text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
@@ -233,7 +241,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
                   <p className="text-xs font-medium text-white/80">Certificate Included</p>
                 </div>
                 
-                <div className="rounded-lg bg-white/10 p-3 backdrop-blur-sm">
+                <div className="rounded-md bg-white/10 p-3 backdrop-blur-sm">
                   <div className="mb-1 text-xl text-white">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
@@ -244,26 +252,26 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
               </div>
               
               {/* Price badge with enhanced styling */}
-              <div className="mt-6 rounded-xl bg-gradient-to-r from-white/20 to-white/5 p-[1px] backdrop-blur-sm">
-                <div className="rounded-xl bg-gradient-to-r from-black/30 to-black/10 px-5 py-3 backdrop-blur-sm">
+              <div className="mt-6 rounded-md bg-gradient-to-r from-white/20 to-white/5 p-[1px] backdrop-blur-sm">
+                <div className="rounded-md bg-gradient-to-r from-black/30 to-black/10 px-5 py-3 backdrop-blur-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-white/80">Price</span>
                     <div className="flex items-center space-x-2">
                       <span className="font-medium text-white">
-                        {discountApplied ? (
+                        {(activeOffer || discountApplied) ? (
                           <>
                             <span className="mr-2 text-sm line-through opacity-70">
-                              {coursePrice.toFixed(2)}
+                              ₹{Number(course?.price || 0).toFixed(2)}
                             </span>
-                            ₹{finalPrice}
+                            ₹{Number(finalPrice).toFixed(2)}
                           </>
                         ) : (
-                          `₹${finalPrice}`
+                          `₹${Number(finalPrice).toFixed(2)}`
                         )}
                       </span>
-                      {discountApplied && (
+                      {(activeOffer || discountApplied) && (
                         <span className="rounded-full bg-green-500 px-2 py-1 text-xs font-bold text-white">
-                          20% OFF
+                          {activeOffer ? `${activeOffer.discountPercentage}% OFF` : '20% OFF'}
                         </span>
                       )}
                     </div>
@@ -273,8 +281,8 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
               
               {/* Enhanced decorative elements */}
               <div className="absolute -bottom-32 -left-16 h-64 w-64 rounded-full bg-blue-700/30 blur-3xl"></div>
-              <div className="absolute -right-16 top-32 h-40 w-40 rounded-full bg-violet-700/20 blur-3xl"></div>
-              <div className="absolute left-1/2 top-8 h-24 w-24 -translate-x-1/2 rounded-full bg-indigo-600/30 blur-2xl"></div>
+              <div className="absolute -right-16 top-32 h-40 w-40 rounded-full bg-blue-700/20 blur-3xl"></div>
+              <div className="absolute left-1/2 top-8 h-24 w-24 -translate-x-1/2 rounded-full bg-blue-600/30 blur-2xl"></div>
             </div>
           </div>
           
@@ -285,27 +293,39 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
               <p className="mt-1 text-gray-600 dark:text-gray-400">Unlock access to this course in just a few steps</p>
               
               {/* Price summary */}
-              <div className="mt-8 rounded-xl bg-gray-50 p-6 shadow-sm dark:bg-gray-800/80">
+              <div className="mt-8 rounded-md bg-gray-50 p-6 shadow-sm dark:bg-gray-800/80">
                 <h3 className="mb-4 text-lg font-medium">Order Summary</h3>
                 
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600 dark:text-gray-400">Course Price</span>
-                    <span>₹{coursePrice.toFixed(2)}</span>
+                    <span>₹{Number(course?.price || 0).toFixed(2)}</span>
                   </div>
                   
-                  {discountApplied && (
+                  {activeOffer && (
                     <div className="flex justify-between text-green-600 dark:text-green-400">
-                      <span>Discount (20%)</span>
-                      <span>-₹{(coursePrice * 0.2).toFixed(2)}</span>
+                      <span>Special Offer ({activeOffer.code} - {activeOffer.discountPercentage}% OFF)</span>
+                      <span>-₹{(Number(course?.price || 0) * activeOffer.discountPercentage / 100).toFixed(2)}</span>
+                    </div>
+                  )}
+                  
+                  {discountApplied && !activeOffer && (
+                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                      <span>Promo Discount (20%)</span>
+                      <span>-₹{(Number(course?.price || 0) * 0.2).toFixed(2)}</span>
                     </div>
                   )}
                   
                   <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
                     <div className="flex justify-between">
                       <span className="text-lg font-medium">Total</span>
-                      <span className="text-xl font-bold text-blue-600 dark:text-blue-400">₹{finalPrice}</span>
+                      <span className="text-xl font-bold text-blue-600 dark:text-blue-400">₹{Number(finalPrice).toFixed(2)}</span>
                     </div>
+                    {activeOffer && (
+                      <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+                        Offer valid until {new Date(activeOffer.validUntil).toLocaleDateString()}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -320,9 +340,10 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
                     <Input
                       type="text"
                       placeholder="Enter your code"
-                      className="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+                      className="h-12 w-full rounded-md border border-gray-300 bg-white px-4 text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
+                      disabled={activeOffer} // Only disable input if there's an active offer
                     />
                     {promoCode && (
                       <button
@@ -337,8 +358,8 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
                   </div>
                   <Button
                     onClick={applyPromoCode}
-                    disabled={!promoCode}
-                    className="h-12 rounded-lg bg-blue-600 px-5 font-medium text-white transition-all hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                    disabled={!promoCode || activeOffer}
+                    className="h-12 rounded-md bg-blue-600 px-5 font-medium text-white transition-all hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                   >
                     Apply
                   </Button>
@@ -346,9 +367,15 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
                 {errorMessage && (
                   <p className="mt-2 text-sm font-medium text-red-500 dark:text-red-400">{errorMessage}</p>
                 )}
-                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  Use code DISCOUNT20 for 20% off your purchase
-                </p>
+                {activeOffer ? (
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Special offer already applied. Promo codes cannot be used with special offers.
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Use code DISCOUNT20 for 20% off your purchase
+                  </p>
+                )}
               </div>
             </div>
             
@@ -357,7 +384,7 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
               <Button
                 onClick={handlePayment}
                 disabled={isLoading}
-                className="relative h-14 w-full overflow-hidden rounded-xl bg-blue-600 font-medium text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 disabled:bg-gray-400 dark:bg-blue-600 dark:hover:bg-blue-700 dark:hover:shadow-blue-600/10"
+                className="relative h-14 w-full overflow-hidden rounded-md bg-blue-600 font-medium text-white transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 disabled:bg-gray-400 dark:bg-blue-600 dark:hover:bg-blue-700 dark:hover:shadow-blue-600/10"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -375,28 +402,6 @@ const PurchaseModal = ({ isOpen, onClose, course }) => {
                 )}
               </Button>
               
-              <div className="mt-4 flex items-center justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                <div className="flex items-center space-x-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <span>Secure Payment</span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center space-x-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <span>Instant Access</span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center space-x-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  <span>Money-Back Guarantee</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>

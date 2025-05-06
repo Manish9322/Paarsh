@@ -126,14 +126,10 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsSidebarOpen(true)}
-        className="fixed z-40 bottom-4 right-4 p-2 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 transition-all duration-300 lg:hidden flex items-center justify-center"
+        className={`fixed z-40 top-4 right-4 p-2 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 transition-all duration-300 lg:hidden flex items-center justify-center ${isSidebarOpen ? 'hidden' : ''}`}
         aria-label="Toggle Sidebar"
       >
-        {isSidebarOpen ? (
-          <X size={24} />
-        ) : (
-          <Menu size={24} />
-        )}
+        <Menu size={24} />
       </button>
 
       {/* Sidebar */}

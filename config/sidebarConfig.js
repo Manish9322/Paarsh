@@ -1,10 +1,11 @@
-import { FaHome, FaUser, FaVideo, FaBook, FaQuestion, FaPhone } from "react-icons/fa";
+import { FaHome, FaUser, FaVideo, FaBook, FaQuestion, FaPhone, FaGift } from "react-icons/fa";
 import { RiFilePaperLine, RiSpyFill, RiArticleFill } from "react-icons/ri";
 
 const sidebarConfig = [
   { name: "Dashboard", path: "/admin/dashboard", icon: <FaHome /> },
   { name: "Agent", path: "/admin/agent", icon: <RiSpyFill /> },
   { name: "Users", path: "/admin/users", icon: <FaUser /> },
+  { name: "Offers", path: "/admin/offers", icon: <FaGift /> },
   {
     name: "Courses",
     icon: <FaBook />,

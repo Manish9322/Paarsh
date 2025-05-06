@@ -40,6 +40,7 @@ export const paarshEduApi = createApi({
     "Contact",
     "MeetingLink",
     "Progress",
+    "Offer",
   ],
 
   endpoints: (builder) => ({
@@ -449,6 +450,48 @@ export const paarshEduApi = createApi({
       providesTags: ["Progress"],
     }),
 
+    // Offers Endpoints
+    addOffer: builder.mutation({
+      query: (formData) => ({
+        url: "/admin/offers",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Offer"],
+    }),
+
+    updateOffer: builder.mutation({
+      query: ({ id, ...formData }) => ({
+        url: `/admin/offers`,
+        method: "PUT",
+        body: { id, ...formData },
+      }),
+      invalidatesTags: ["Offer"],
+    }),
+
+    deleteOffer: builder.mutation({
+      query: (id) => ({
+        url: "/admin/offers",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["Offer"],
+    }),
+
+    fetchOffers: builder.query({
+      query: () => "/admin/offers",
+      providesTags: ["Offer"],
+    }),
+
+    // Get active offers for a course
+    fetchActiveOffers: builder.mutation({
+      query: (courseId) => ({
+        url: "/admin/offers/active",
+        method: "POST",
+        body: { courseId },
+      }),
+    }),
+
   }),
 });
 
@@ -516,5 +559,12 @@ export const {
 
   useFetchUserRefferalsQuery,
   useFetchCourseProgressQuery,
+
+  useAddOfferMutation,
+  useUpdateOfferMutation,
+  useDeleteOfferMutation,
+  useFetchOffersQuery,
+
+  useFetchActiveOffersMutation,
 
 } = paarshEduApi;

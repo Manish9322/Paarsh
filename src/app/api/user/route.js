@@ -30,11 +30,14 @@ export const GET = authMiddleware(async (req) => {
 export const PUT = authMiddleware(async (req) => {
   try {
     const { user } = req;
-    console.log("user is tthe ", user);
     const { id, name, email, mobile } = await req.json();
 
+    // Convert both IDs to strings for comparison
+    const requestedUserId = id?.toString();
+    const loggedInUserId = user?._id?.toString();
+
     // If the request is from a normal user, they can only update their own profile
-    if (!user.isAdmin && user._id !== id) {
+    if (!user.isAdmin && loggedInUserId !== requestedUserId) {
       return NextResponse.json(
         { error: "Unauthorized to update this user", success: false },
         { status: 403 }
@@ -68,14 +71,17 @@ export const PUT = authMiddleware(async (req) => {
   }
 });
 
-
 export const DELETE = authMiddleware(async (req) => {
   try {
     const { user } = req;
     const { id } = await req.json();
 
+    // Convert both IDs to strings for comparison
+    const requestedUserId = id?.toString();
+    const loggedInUserId = user?._id?.toString();
+
     // If the request is from a normal user, they can only delete their own account
-    if (!user.isAdmin && user._id !== id) {
+    if (!user.isAdmin && loggedInUserId !== requestedUserId) {
       return NextResponse.json(
         { error: "Unauthorized to delete this user", success: false },
         { status: 403 }
