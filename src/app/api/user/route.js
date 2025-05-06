@@ -74,21 +74,36 @@ export const PUT = authMiddleware(async (req) => {
 export const DELETE = authMiddleware(async (req) => {
   try {
     const { user } = req;
-    const { id } = await req.json();
+    const { email , password } = await req.json();
 
-    // Convert both IDs to strings for comparison
-    const requestedUserId = id?.toString();
-    const loggedInUserId = user?._id?.toString();
+    const foundUser = await UserModel.findOne({ email});
 
-    // If the request is from a normal user, they can only delete their own account
-    if (!user.isAdmin && loggedInUserId !== requestedUserId) {
+    if (!foundUser) {
+      return NextResponse.json(
+        { error: "User not found", success: false },
+        { status: 404 }
+      );
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, foundUser.password);
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Incorrect password",
+        },
+        { status: 400 }
+      );
+    }
+
+    if ( user._id !== foundUser._id) {
       return NextResponse.json(
         { error: "Unauthorized to delete this user", success: false },
         { status: 403 }
       );
     }
 
-    const deletedUser = await UserModel.findByIdAndDelete(id);
+    const deletedUser = await UserModel.findByIdAndDelete(foundUser._id);
 
     if (!deletedUser) {
       return NextResponse.json(

@@ -1,8 +1,56 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { logout } from "../../lib/slices/userAuthSlice";
+import { useDeleteUserMutation, useFetchUserQuery } from "@/services/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useState } from "react";
 
 const Footer = () => {
+  const [deleteFormOpen, setDeleteFormOpen] = useState(false);
+  const [deleteUserConfirmOpen, setDeleteUserConfirmOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
+  const [userPassword, setUserPassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  
+  const { data: userData } = useFetchUserQuery(undefined);
+  const [deleteUser] = useDeleteUserMutation();
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const user = userData?.data;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    router.push("/");
+  };
+
+  const handleDeleteUser = async () => {
+    if (!user?._id) return;
+    
+    try {
+      const response = await deleteUser({ id: user._id, email: userEmail, password: userPassword }).unwrap();
+      if (response.success) {
+        setDeleteUserConfirmOpen(false);
+        handleLogout();
+      }
+    } catch (error) {
+      setDeleteError("Failed to delete user. Please check your credentials.");
+      setDeleteUserConfirmOpen(false);
+    }
+  };
+
   return (
     <>
       <footer className="relative z-10 bg-white pt-14 dark:bg-gray-dark md:pt-10 lg:pt-10">
@@ -335,6 +383,12 @@ const Footer = () => {
               >
                 Privacy Policy
               </a>
+              <button
+                onClick={() => setDeleteFormOpen(true)}
+                className="text-base text-red-500 dark:text-red-400 hover:text-primary"
+              >
+                Delete Account
+              </button>
             </div>
           </div>
         </div>
@@ -529,6 +583,123 @@ const Footer = () => {
           </svg>
         </div>
       </footer>
+
+      {/* Delete User Form Dialog */}
+      <Dialog open={deleteFormOpen} onOpenChange={setDeleteFormOpen}>
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+              Delete Account
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {deleteError && (
+              <p className="mb-4 text-sm text-red-500">{deleteError}</p>
+            )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={userEmail}
+                  onChange={(e) => setUserEmail(e.target.value)}
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={userPassword}
+                  onChange={(e) => setUserPassword(e.target.value)}
+                  placeholder="Enter your password"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteFormOpen(false);
+                setDeleteError("");
+                setUserEmail("");
+                setUserPassword("");
+              }}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (userEmail && userPassword) {
+                  setDeleteFormOpen(false);
+                  setDeleteUserConfirmOpen(true);
+                } else {
+                  setDeleteError("Please fill in all fields");
+                }
+              }}
+              className="w-full sm:w-auto"
+            >
+              Delete Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={deleteUserConfirmOpen} onOpenChange={setDeleteUserConfirmOpen}>
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+              Confirm Account Deletion
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4 text-center">
+            <svg
+              className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+            <p className="text-gray-600 dark:text-gray-300">
+              Are you sure you want to delete your account? This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteUserConfirmOpen(false);
+                setDeleteError("");
+                setUserEmail("");
+                setUserPassword("");
+              }}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteUser}
+              className="w-full sm:w-auto"
+            >
+              Confirm Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
