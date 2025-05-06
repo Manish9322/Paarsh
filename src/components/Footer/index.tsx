@@ -589,7 +589,7 @@ const Footer = () => {
         <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-              Delete Account
+              Account Delete Confirmation
             </DialogTitle>
           </DialogHeader>
           <div className="py-4">
