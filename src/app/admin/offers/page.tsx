@@ -16,7 +16,14 @@ import { Input } from "@/components/ui/input";
 import { Menu, Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import CreateOfferDialog from "./components/create-offer-dialog";
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useFetchOffersQuery, useDeleteOfferMutation } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -313,39 +320,33 @@ const OffersPage = () => {
             />
 
             {/* Delete Confirmation Dialog */}
-            <AlertDialog.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-              <AlertDialog.Portal>
-                <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-                <AlertDialog.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-[425px] translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg dark:bg-gray-800 dark:text-white">
-                  <div className="flex flex-col space-y-2 text-center sm:text-left">
-                    <AlertDialog.Title className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                      Confirm Deletion
-                    </AlertDialog.Title>
-                    <AlertDialog.Description className="text-sm text-gray-600 dark:text-gray-300">
-                      Are you sure you want to delete this offer? This action cannot be undone.
-                    </AlertDialog.Description>
-                  </div>
-                  <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                    <AlertDialog.Cancel asChild>
-                      <Button
-                        variant="outline"
-                        className="mt-2 sm:mt-0"
-                      >
-                        Cancel
-                      </Button>
-                    </AlertDialog.Cancel>
-                    <AlertDialog.Action asChild>
-                      <Button
-                        variant="destructive"
-                        onClick={handleDelete}
-                      >
-                        Delete Offer
-                      </Button>
-                    </AlertDialog.Action>
-                  </div>
-                </AlertDialog.Content>
-              </AlertDialog.Portal>
-            </AlertDialog.Root>
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+                <DialogHeader>
+                  <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    Confirm Deletion
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
+                    Are you sure you want to delete this offer? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteDialogOpen(false)}
+                    className="mt-2 sm:mt-0"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDelete}
+                  >
+                    Delete Offer
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             {/* Pagination */}
             <div className="mt-6 rounded bg-white p-4 shadow-md">
