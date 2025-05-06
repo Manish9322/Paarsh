@@ -6,55 +6,76 @@ import WithdrawalRequestModel from "models/Withdrawal.model";
 
 _db();
 
+function createResponse(success, message, data = null, status = 200) {
+  return NextResponse.json({
+    success,
+    message,
+    ...(data && { data }),
+    toast: {
+      type: success ? 'success' : 'error',
+      message
+    },
+    timestamp: new Date().toISOString()
+  }, { status });
+}
+
 export const POST = authMiddleware(async (req) => {
   try {
     const { user } = req;
 
     if (!user) {
-      return NextResponse.json(
-        { message: "User is not authenticated" },
-        { status: 401 }
-      );
+      return createResponse(false, "User is not authenticated", null, 401);
     }
 
     const body = await req.json();
     const { amount, upiId } = body;
 
-    if (!amount || !upiId) {
-      return NextResponse.json(
-        { message: "Amount and UPI ID are required" },
-        { status: 400 }
-      );
+    // Validate input
+    if (!amount || typeof amount !== 'number') {
+      return createResponse(false, "Invalid amount provided", null, 400);
+    }
+
+    if (!upiId || typeof upiId !== 'string') {
+      return createResponse(false, "Invalid UPI ID provided", null, 400);
+    }
+
+    if (amount <= 0) {
+      return createResponse(false, "Amount must be greater than 0", null, 400);
     }
 
     const dbUser = await UserModel.findById(user._id);
     if (!dbUser) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
+      return createResponse(false, "User not found", null, 404);
     }
 
     if (dbUser.walletBalance < amount) {
-      return NextResponse.json(
-        { message: "Insufficient balance" },
-        { status: 400 }
-      );
+      return createResponse(false, "Insufficient balance", null, 400);
     }
 
-    await WithdrawalRequestModel.create({
+    const withdrawal = await WithdrawalRequestModel.create({
       userId: user._id,
       amount,
       upiId,
+      status: "Pending",
+      requestedAt: new Date()
     });
 
     dbUser.walletBalance -= amount;
     await dbUser.save();
 
-    return NextResponse.json(
-      { message: "Withdrawal request submitted!" },
-      { status: 200 }
+    return createResponse(
+      true,
+      "Withdrawal request submitted successfully!",
+      { withdrawalId: withdrawal._id }
     );
   } catch (error) {
     console.error("Withdrawal request error:", error);
-    return NextResponse.json({ message: "Server Error" }, { status: 500 });
+    return createResponse(
+      false,
+      "An error occurred while processing your request",
+      null,
+      500
+    );
   }
 });
 
@@ -63,26 +84,26 @@ export const GET = authMiddleware(async (req) => {
     const { user } = req;
 
     if (!user) {
-      return NextResponse.json(
-        { message: "User is not authenticated" },
-        { status: 401 }
-      );
+      return createResponse(false, "User is not authenticated", null, 401);
     }
 
     const withdrawals = await WithdrawalRequestModel.find({ userId: user._id })
-      .sort({ requestedAt: -1 }) // newest first
+      .sort({ requestedAt: -1 })
       .lean();
 
-    return NextResponse.json(
-      {
-        message: "Withdrawal history fetched successfully",
-        data: withdrawals,
-      },
-      { status: 200 }
+    return createResponse(
+      true,
+      "Withdrawal history fetched successfully",
+      { withdrawals }
     );
   } catch (error) {
     console.error("Error fetching withdrawal history:", error);
-    return NextResponse.json({ message: "Server Error" }, { status: 500 });
+    return createResponse(
+      false,
+      "An error occurred while fetching withdrawal history",
+      null,
+      500
+    );
   }
 });
 
@@ -90,36 +111,35 @@ export const PATCH = authMiddleware(async (req) => {
   try {
     const { user } = req;
 
-    // ✅ Optional admin check
     if (!user?.isAdmin) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+      return createResponse(false, "Unauthorized access", null, 403);
     }
 
     const body = await req.json();
     const { requestId, status, paymentReferenceId } = body;
 
-    // ✅ Validate input
-    if (!requestId || !["Approved", "Rejected"].includes(status)) {
-      return NextResponse.json({ message: "Invalid input" }, { status: 400 });
+    if (!requestId) {
+      return createResponse(false, "Withdrawal request ID is required", null, 400);
     }
 
-    // ✅ Find the withdrawal request
+    if (!["Approved", "Rejected"].includes(status)) {
+      return createResponse(false, "Invalid status provided", null, 400);
+    }
+
     const withdrawal = await WithdrawalRequestModel.findById(requestId);
     if (!withdrawal) {
-      return NextResponse.json({ message: "Request not found" }, { status: 404 });
+      return createResponse(false, "Withdrawal request not found", null, 404);
     }
 
     if (withdrawal.status !== "Pending") {
-      return NextResponse.json({ message: "Request already processed" }, { status: 400 });
+      return createResponse(false, "Withdrawal request already processed", null, 400);
     }
 
-    // ✅ Update withdrawal
     withdrawal.status = status;
     withdrawal.paymentReferenceId = paymentReferenceId || "";
     withdrawal.processedAt = new Date();
     await withdrawal.save();
 
-    // ✅ If rejected, refund user
     if (status === "Rejected") {
       const user = await UserModel.findById(withdrawal.userId);
       if (user) {
@@ -128,10 +148,19 @@ export const PATCH = authMiddleware(async (req) => {
       }
     }
 
-    return NextResponse.json({ message: "Withdrawal request updated" }, { status: 200 });
-
-  } catch (err) {
-    console.error("PATCH /withdrawal error:", err);
-    return NextResponse.json({ message: "Server error" }, { status: 500 });
+    return createResponse(
+      true,
+      
+      "Withdrawal request updated successfully",
+      { withdrawal }
+    );
+  } catch (error) {
+    console.error("Error updating withdrawal request:", error);
+    return createResponse(
+      false,
+      "An error occurred while updating the withdrawal request",
+      null,
+      500
+    );
   }
 });

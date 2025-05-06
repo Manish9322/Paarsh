@@ -11,7 +11,7 @@ import {
 } from "../../../lib/slices/withdrawalSlice";
 import { selectRootState } from "@/lib/store";
 import { useCreateWithdrawalRequestMutation } from "@/services/api";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 
 const transactionData = [
   {
@@ -126,6 +126,7 @@ export default function UserWallet() {
 
   return (
     <div className="space-y-6">
+      <Toaster position="bottom-right" richColors />
       {view === "main" && !showFullHistory ? (
         <MainWalletView
           setView={setView}
@@ -299,33 +300,42 @@ function WithdrawFundsView({ handleBack }) {
     try {
       e.preventDefault();
       dispatch(setIsSubmitting(true));
-      // Log withdrawal data to console
-      console.log("Withdrawal Data:", { amount, upiId: storedUpiId });
 
       const response = await _CREATE_WITHDRAWAL({
         amount: parseFloat(amount),
         upiId: storedUpiId,
       });
-      console.log("Withdrawal Response:", response);
-      console.log("Withdrawal Data:", response?.data);
 
-      console.log("Error Data:", response?.error);
-    
-      if (!response.data?.success) {
-        const errorData = await response?.error;
-
-
-        toast.error(errorData?.message || "Something went wrong");
-        dispatch(setIsSubmitting(false));
+      if ('error' in response) {
+        const error = response.error;
+        if ('status' in error) {
+          const data = error.data as { message?: string };
+          toast.error(data?.message || "Failed to process withdrawal request");
+        } else {
+          toast.error(error.message || "Something went wrong with the request");
+        }
         return;
       }
-    
-      const data = await response.data;
-      toast.success(data?.message || "Withdrawal request submitted successfully!");
-      dispatch(setAmount(""));
-      dispatch(resetUpiId());
+
+      // Handle API response with toast
+      if (response.data?.toast) {
+        const { type, message } = response.data.toast;
+        if (type === 'success') {
+          toast.success(message);
+        } else {
+          toast.error(message);
+        }
+      }
+
+      if (response.data?.success) {
+        // Reset form on success
+        dispatch(setAmount(""));
+        dispatch(resetUpiId());
+      }
     } catch (error) {
-      toast.error("Server Error");
+      console.error("Withdrawal error:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
       dispatch(setIsSubmitting(false));
     }
   };    
