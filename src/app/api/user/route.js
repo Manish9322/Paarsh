@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import _db from "../../../../utils/db";
 import { authMiddleware } from "../../../../middlewares/auth";
 import UserModel from "../../../../models/User.model";
+import bcrypt from "bcryptjs";
 
 export const GET = authMiddleware(async (req) => {
   try {
@@ -74,9 +75,10 @@ export const PUT = authMiddleware(async (req) => {
 export const DELETE = authMiddleware(async (req) => {
   try {
     const { user } = req;
-    const { email , password } = await req.json();
+    const { email, password } = await req.json();
 
-    const foundUser = await UserModel.findOne({ email});
+    // Find the user by email
+    const foundUser = await UserModel.findOne({ email });
 
     if (!foundUser) {
       return NextResponse.json(
@@ -85,6 +87,7 @@ export const DELETE = authMiddleware(async (req) => {
       );
     }
 
+    // Verify password
     const isPasswordValid = await bcrypt.compare(password, foundUser.password);
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -96,13 +99,15 @@ export const DELETE = authMiddleware(async (req) => {
       );
     }
 
-    if ( user._id !== foundUser._id) {
+    // Check if the user is trying to delete their own account
+    if (user._id.toString() !== foundUser._id.toString()) {
       return NextResponse.json(
         { error: "Unauthorized to delete this user", success: false },
         { status: 403 }
       );
     }
 
+    // Delete the user
     const deletedUser = await UserModel.findByIdAndDelete(foundUser._id);
 
     if (!deletedUser) {

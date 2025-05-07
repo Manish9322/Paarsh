@@ -4,6 +4,7 @@ import { User, Phone, Mail, Edit, Camera, Save, X, Shield } from "lucide-react";
 import { useFetchUserQuery, useUpdateUserMutation } from "@/services/api";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const { data: user, isLoading, error } = useFetchUserQuery(undefined);
@@ -200,6 +201,14 @@ export default function ProfilePage() {
                 <Shield size={18} className="mr-3" />
                 Security Settings
               </button>
+              <Link 
+                href="/delete-account"
+                className="w-full text-left px-4 py-2 rounded-md flex items-center text-white hover:bg-white/10 transition-colors"
+              >
+                <User size={18} className="mr-3" />
+                Delete Account
+              </Link>
+
             </div>
           </div>
         </motion.div>

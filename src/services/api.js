@@ -199,7 +199,11 @@ export const paarshEduApi = createApi({
     }),
 
     deleteUser: builder.mutation({
-      query: (id) => ({ url: "/user", method: "DELETE", body: id }),
+      query: ({ email, password }) => ({
+        url: "/user",
+        method: "DELETE",
+        body: { email, password }
+      }),
       invalidatesTags: ["User"],
     }),
 

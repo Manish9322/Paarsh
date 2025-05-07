@@ -96,7 +96,9 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                          pathname.startsWith("/user-wallet") ||
                          pathname.startsWith("/view-links") ||
                          pathname.startsWith("/faq") ||
-                         pathname.startsWith("/course-lecture");
+                         pathname.startsWith("/course-lecture") ||
+                         pathname.startsWith("/delete-account");
+
 
 
   return (
