@@ -246,7 +246,7 @@ const Courses = () => {
         {/* ASIDE SECTION */}
         <aside className="part-2 w-full md:w-1/3 my-8 mr-4 lg:ml-1 sticky top-20 h-fit">
           
-          <div className="w-full flex lg:justify-start sm:justify-center mb-6">
+          <div className="w-full flex lg:justify-start sm:justify-center mb-1">
             <div className="sm:w-fit rounded mb-4 flex p-2 border items-center justify-center sm:justify-start sm:p-1">
               <button
                 onClick={toggleDisplayStyle}

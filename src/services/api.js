@@ -42,6 +42,7 @@ export const paarshEduApi = createApi({
     "MeetingLink",
     "Progress",
     "Offer",
+    "Transaction"
   ],
 
   endpoints: (builder) => ({
@@ -542,6 +543,12 @@ export const paarshEduApi = createApi({
       }),
     }),
 
+    // Transactions endpoint
+    fetchTransactions: builder.query({
+      query: () => "/transactions",
+      providesTags: ["Transaction"],
+    }),
+
   }),
 });
 
@@ -623,5 +630,7 @@ export const {
   useDeleteWithdrawalRequestMutation,
 
   useFetchAgentStatsQuery,
+
+  useFetchTransactionsQuery,
 
 } = paarshEduApi;

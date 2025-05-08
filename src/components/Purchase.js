@@ -36,7 +36,7 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
   useEffect(() => {
     if (course?.price) {
       // If there's an active offer, apply it immediately
-      if (activeOffer) {
+      if (activeOffer && new Date() <= new Date(activeOffer.validUntil)) {
         const discountedPrice = Number(course.price) * (1 - activeOffer.discountPercentage / 100);
         setFinalPrice(discountedPrice);
         setDiscountApplied(true);
@@ -99,6 +99,8 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
         courseId: course._id,
         amount: finalPrice * 100, // Convert to smallest currency unit
         agentRefCode: agentRefCode, // Pass the referral code to the backend
+        // Only pass the offerId if the offer is valid
+        ...(activeOffer && new Date() <= new Date(activeOffer.validUntil) ? { offerId: activeOffer._id } : {})
       });
      
       console.log("Order Response:", orderResponse); // Log the order response for debugging
@@ -311,7 +313,7 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
                     <span>₹{Number(course?.price || 0).toFixed(2)}</span>
                   </div>
                   
-                  {activeOffer && (
+                  {activeOffer && (new Date() <= new Date(activeOffer.validUntil)) && (
                     <div className="flex justify-between text-green-600 dark:text-green-400">
                       <span>Special Offer ({activeOffer.code} - {activeOffer.discountPercentage}% OFF)</span>
                       <span>-₹{(Number(course?.price || 0) * activeOffer.discountPercentage / 100).toFixed(2)}</span>
@@ -332,7 +334,10 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
                     </div>
                     {activeOffer && (
                       <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-                        Offer valid until {new Date(activeOffer.validUntil).toLocaleDateString()}
+                        {new Date() <= new Date(activeOffer.validUntil) ? 
+                          `Offer valid until ${new Date(activeOffer.validUntil).toLocaleDateString()}` : 
+                          <span className="text-red-500 dark:text-red-400">OFFER EXPIRED</span>
+                        }
                       </p>
                     )}
                   </div>

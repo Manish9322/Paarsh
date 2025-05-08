@@ -292,7 +292,7 @@ const BlogSidebarPage = () => {
                     )}
 
                     {/* Special offer UI for courses with active offers */}
-                    {course?.activeOffer && (
+                    {course?.activeOffer && (new Date() <= new Date(course.activeOffer.validUntil)) && (
                       <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl p-6 relative">
                         {/* Offer Tag */}
                         <div className="absolute -top-3 left-6">

@@ -35,7 +35,7 @@ const Purchase = ({ isOpen, onClose, course, activeOffer }: PurchaseProps) => {
     const originalPrice = parseFloat(course.price);
     if (isNaN(originalPrice)) return 0;
     
-    if (activeOffer) {
+    if (activeOffer && new Date() <= new Date(activeOffer.validUntil)) {
       const discounted = originalPrice - (originalPrice * activeOffer.discountPercentage / 100);
       return discounted.toFixed(0);
     }
@@ -60,7 +60,7 @@ const Purchase = ({ isOpen, onClose, course, activeOffer }: PurchaseProps) => {
         userId,
         courseId: course._id,
         amount,
-        offerId: activeOffer?._id
+        ...(activeOffer && new Date() <= new Date(activeOffer.validUntil) ? { offerId: activeOffer._id } : {})
       }).unwrap();
 
       if (response.success) {
@@ -126,7 +126,10 @@ const Purchase = ({ isOpen, onClose, course, activeOffer }: PurchaseProps) => {
                   Offer <span className="font-semibold">{activeOffer.code}</span> applied
                 </p>
                 <p className="text-xs text-blue-600 dark:text-blue-400">
-                  Valid until {new Date(activeOffer.validUntil).toLocaleDateString()}
+                  {new Date() <= new Date(activeOffer.validUntil) ? 
+                    `Valid until ${new Date(activeOffer.validUntil).toLocaleDateString()}` : 
+                    <span className="text-red-500 dark:text-red-400">OFFER EXPIRED</span>
+                  }
                 </p>
               </div>
             )}

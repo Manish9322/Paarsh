@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Menu, Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Menu, Search, Plus, Edit2, Trash2, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { toast } from "sonner";
 import CreateOfferDialog from "./components/create-offer-dialog";
 import {
@@ -24,29 +24,86 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useFetchOffersQuery, useDeleteOfferMutation } from "@/services/api";
+import { useFetchOffersQuery, useDeleteOfferMutation, useFetchCourcesQuery } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDispatch, useSelector } from "react-redux";
+import { setSelectedOffer, resetSelectedOffer, setPreviewOffer } from "@/lib/slices/offersSlice";
+import OfferPreviewModal from "./components/offer-preview-modal";
+import { selectRootState } from "@/lib/store";
+import OfferFilters from "./components/offer-filters";
 
 const OffersPage = () => {
+  const dispatch = useDispatch();
+  const [deleteOffer] = useDeleteOfferMutation();
+  const offer = useSelector((state) => selectRootState(state).offers);
+  const { selectedOffer } = offer;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [selectedOffer, setSelectedOffer] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [offerToDelete, setOfferToDelete] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [currentDate] = useState(new Date());
+  const [activeFilters, setActiveFilters] = useState({
+    status: "",
+    minDiscount: "",
+    maxDiscount: "",
+    course: "",
+    startDate: "",
+    endDate: "",
+  });
 
-  const { data: offersData, refetch, isLoading } = useFetchOffersQuery(undefined);
-  const [deleteOffer] = useDeleteOfferMutation();
-
+  const { data: offersData, refetch, isLoading, error: fetchError } = useFetchOffersQuery(undefined);
+  const { data: coursesData } = useFetchCourcesQuery(undefined);
+  const courses = coursesData?.data || [];
   const offers = offersData?.data || [];
   const offersPerPage = 10;
 
-  const filteredOffers = offers.filter((offer: any) =>
-    Object.values(offer).some((value) =>
+  const calculateIsActive = useCallback((offer) => {
+    const validFrom = new Date(offer.validFrom);
+    const validUntil = new Date(offer.validUntil);
+    return currentDate >= validFrom && currentDate <= validUntil;
+  }, [currentDate]);
+
+  const filteredOffers = offers.filter((offer: any) => {
+    const matchesSearch = Object.values(offer).some((value) =>
       value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+    );
+
+    if (!matchesSearch) return false;
+
+    if (activeFilters.status) {
+      const isActive = calculateIsActive(offer);
+      if (activeFilters.status === 'active' && !isActive) return false;
+      if (activeFilters.status === 'inactive' && isActive) return false;
+    }
+
+    if (activeFilters.minDiscount && offer.discountPercentage < parseInt(activeFilters.minDiscount)) {
+      return false;
+    }
+
+    if (activeFilters.maxDiscount && offer.discountPercentage > parseInt(activeFilters.maxDiscount)) {
+      return false;
+    }
+
+    if (activeFilters.course && !offer.courses.some(course => course._id === activeFilters.course)) {
+      return false;
+    }
+
+    if (activeFilters.startDate) {
+      const filterStart = new Date(activeFilters.startDate);
+      const offerStart = new Date(offer.validFrom);
+      if (offerStart < filterStart) return false;
+    }
+
+    if (activeFilters.endDate) {
+      const filterEnd = new Date(activeFilters.endDate);
+      const offerEnd = new Date(offer.validUntil);
+      if (offerEnd > filterEnd) return false;
+    }
+
+    return true;
+  });
 
   const totalPages = Math.ceil(filteredOffers.length / offersPerPage);
   const startIndex = (currentPage - 1) * offersPerPage;
@@ -55,18 +112,40 @@ const OffersPage = () => {
     startIndex + offersPerPage
   );
 
-  const handleDelete = async () => {
-    if (!offerToDelete) return;
+  const handleEditOffer = (offer) => {
+    dispatch(setSelectedOffer(offer));
+    setCreateDialogOpen(true);
+  };
 
+  const handleDeleteOffer = async (id) => {
     try {
-      await deleteOffer({ id: offerToDelete }).unwrap();
+      await deleteOffer(id).unwrap();
       toast.success("Offer deleted successfully");
-      refetch();
     } catch (error) {
       toast.error("Failed to delete offer");
     }
-    setDeleteDialogOpen(false);
-    setOfferToDelete(null);
+  };
+
+  const handleCloseEditDialog = () => {
+    setCreateDialogOpen(false);
+    dispatch(resetSelectedOffer());
+  };
+
+  const handlePreviewOffer = (offer) => {
+    dispatch(setPreviewOffer(offer));
+  };
+
+  const handleFilterChange = (newFilters: any) => {
+    setActiveFilters(newFilters);
+    setCurrentPage(1);
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   const generatePaginationNumbers = () => {
@@ -79,45 +158,33 @@ const OffersPage = () => {
       }
     } else {
       pageNumbers.push(1);
-
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(totalPages - 1, currentPage + 1);
 
       if (currentPage <= 3) {
         endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
       }
-
       if (currentPage >= totalPages - 2) {
         startPage = Math.max(2, totalPages - maxPagesToShow + 2);
       }
 
-      if (startPage > 2) {
-        pageNumbers.push('...');
-      }
-
+      if (startPage > 2) pageNumbers.push('...');
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
-
-      if (endPage < totalPages - 1) {
-        pageNumbers.push('...');
-      }
-
-      if (totalPages > 1) {
-        pageNumbers.push(totalPages);
-      }
+      if (endPage < totalPages - 1) pageNumbers.push('...');
+      if (totalPages > 1) pageNumbers.push(totalPages);
     }
-
     return pageNumbers;
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (fetchError) {
+    return <div>Error: {fetchError.toString()}</div>;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 overflow-hidden">
@@ -173,7 +240,7 @@ const OffersPage = () => {
                     />
                     <Button
                       onClick={() => {
-                        setSelectedOffer(null);
+                        dispatch(resetSelectedOffer());
                         setCreateDialogOpen(true);
                       }}
                       className="bg-white text-blue-600 hover:bg-blue-50"
@@ -184,7 +251,14 @@ const OffersPage = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
+
+              <CardContent className="p-4">
+                <OfferFilters 
+                  courses={courses}
+                  onFilterChange={handleFilterChange}
+                />
+
+                {/* Table */}
                 <div className="overflow-x-auto">
                   <Table className="w-full text-black">
                     <TableHeader>
@@ -267,22 +341,26 @@ const OffersPage = () => {
                             <TableCell>
                               <span
                                 className={`px-2 py-1 rounded-full text-xs ${
-                                  offer.isActive
+                                  calculateIsActive(offer)
                                     ? "bg-green-100 text-green-800"
                                     : "bg-red-100 text-red-800"
                                 }`}
                               >
-                                {offer.isActive ? "Active" : "Inactive"}
+                                {calculateIsActive(offer) ? "Active" : "Inactive"}
                               </span>
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center justify-center gap-2">
                                 <button
+                                  className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-600 transition-all duration-200 hover:bg-green-100 hover:text-green-700 hover:shadow-md dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30 dark:hover:text-green-300"
+                                  onClick={() => handlePreviewOffer(offer)}
+                                  aria-label="Preview offer"
+                                >
+                                  <Eye size={16} className="transition-transform group-hover:scale-110" />
+                                </button>
+                                <button
                                   className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
-                                  onClick={() => {
-                                    setSelectedOffer(offer);
-                                    setCreateDialogOpen(true);
-                                  }}
+                                  onClick={() => handleEditOffer(offer)}
                                   aria-label="Edit offer"
                                 >
                                   <Edit2 size={16} className="transition-transform group-hover:scale-110" />
@@ -311,13 +389,15 @@ const OffersPage = () => {
             {/* Create/Edit Dialog */}
             <CreateOfferDialog
               open={createDialogOpen}
-              onOpenChange={setCreateDialogOpen}
-              offer={selectedOffer}
+              onOpenChange={handleCloseEditDialog}
               onSuccess={() => {
-                setCreateDialogOpen(false);
+                handleCloseEditDialog();
                 refetch();
               }}
             />
+
+            {/* Offer preview modal */}
+            <OfferPreviewModal />
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -340,7 +420,7 @@ const OffersPage = () => {
                   </Button>
                   <Button
                     variant="destructive"
-                    onClick={handleDelete}
+                    onClick={handleDeleteOffer}
                   >
                     Delete Offer
                   </Button>

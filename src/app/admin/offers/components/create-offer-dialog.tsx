@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAddOfferMutation, useUpdateOfferMutation, useFetchCourcesQuery } from "@/services/api";
+import { useSelector } from "react-redux";
+import  {selectRootState} from "../../../../lib/store";
 
 const formSchema = z.object({
   code: z.string().min(3, "Offer code must be at least 3 characters"),
@@ -52,19 +54,20 @@ interface Course {
 interface CreateOfferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  offer?: any;
   onSuccess: () => void;
 }
 
 export default function CreateOfferDialog({
   open,
   onOpenChange,
-  offer,
   onSuccess,
 }: CreateOfferDialogProps) {
   const { data: coursesData } = useFetchCourcesQuery({});
   const [addOffer] = useAddOfferMutation();
   const [updateOffer] = useUpdateOfferMutation();
+  const offer = useSelector(
+    (state) => selectRootState(state).offers
+  );
 
   const courses = coursesData?.data || [];
 
@@ -77,13 +80,37 @@ export default function CreateOfferDialog({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      code: offer?.code || "",
-      discountPercentage: offer?.discountPercentage || 0,
-      validFrom: formatDateForInput(offer?.validFrom) || formatDateForInput(new Date()),
-      validUntil: formatDateForInput(offer?.validUntil) || formatDateForInput(new Date()),
-      appliedCourses: offer?.courses?.map((c: any) => c.id) || [],
+      code: "",
+      discountPercentage: 0,
+      validFrom: formatDateForInput(new Date()),
+      validUntil: formatDateForInput(new Date()),
+      appliedCourses: [],
     },
   });
+
+  // Reset form when selectedOffer changes
+  useEffect(() => {
+    if (open) {
+      if (offer.selectedOffer) {
+        const selectedOffer = offer.selectedOffer;
+        form.reset({
+          code: selectedOffer.code || "",
+          discountPercentage: selectedOffer.discountPercentage || 0,
+          validFrom: formatDateForInput(selectedOffer.validFrom) || formatDateForInput(new Date()),
+          validUntil: formatDateForInput(selectedOffer.validUntil) || formatDateForInput(new Date()),
+          appliedCourses: selectedOffer.courses?.map((c) => c._id || c.id) || [],
+        });
+      } else {
+        form.reset({
+          code: "",
+          discountPercentage: 0,
+          validFrom: formatDateForInput(new Date()),
+          validUntil: formatDateForInput(new Date()),
+          appliedCourses: [],
+        });
+      }
+    }
+  }, [offer.selectedOffer, open, form]);
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -91,26 +118,47 @@ export default function CreateOfferDialog({
         ...values,
         validFrom: new Date(values.validFrom).toISOString(),
         validUntil: new Date(values.validUntil).toISOString(),
+        courses: values.appliedCourses,
       };
 
-      if (offer) {
-        await updateOffer({ id: offer._id, ...submitData }).unwrap();
+      if (offer.selectedOffer) {
+        await updateOffer({ 
+          id: offer.selectedOffer._id,
+          ...submitData
+        }).unwrap();
+        toast.success("Offer updated successfully");
       } else {
         await addOffer(submitData).unwrap();
+        toast.success("Offer created successfully");
       }
-      toast.success(`Offer ${offer ? "updated" : "created"} successfully`);
       onSuccess();
-    } catch (error) {
-      toast.error(`Failed to ${offer ? "update" : "create"} offer`);
+    } catch (error: any) {
+      toast.error(error?.data?.message || `Failed to ${offer.selectedOffer ? "update" : "create"} offer`);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
+    <Dialog 
+      open={open} 
+      onOpenChange={onOpenChange}
+      modal={true}
+    >
+      <DialogContent 
+        className="max-h-[90vh] max-w-md overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
-          <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
-            {offer ? "Edit Offer" : "Create New Offer"}
+          <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white flex items-center justify-between">
+            <span>{offer.selectedOffer ? "Edit Offer" : "Create New Offer"}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={() => onOpenChange(false)}
+            >
+              <span className="text-lg font-semibold">×</span>
+            </Button>
           </DialogTitle>
         </DialogHeader>
         <div className="p-6">
@@ -271,7 +319,7 @@ export default function CreateOfferDialog({
                   type="submit"
                   className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                 >
-                  {offer ? "Update Offer" : "Create Offer"}
+                  {offer.selectedOffer ? "Update Offer" : "Create Offer"}
                 </Button>
               </div>
             </form>
