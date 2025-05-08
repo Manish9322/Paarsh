@@ -249,13 +249,13 @@ const CertificateTemplate: React.FC<CertificateProps> = ({
                             className="text-blue-800"
                             style={{ color: '#2563eb' }}
                         >
-                            Certificate ID: <span className="font-semibold" style={{ fontWeight: '600' }}>{id}</span>
+                            Certificate ID : <span className="font-semibold" style={{ fontWeight: '600' }}>{id}</span>
                         </p>
                         <p 
                             className="text-blue-800"
                             style={{ color: '#2563eb' }}
                         >
-                            Course ID: <span className="font-semibold" style={{ fontWeight: '600' }}>{courseId}</span>
+                            Course ID : <span className="font-semibold" style={{ fontWeight: '600' }}>{courseId}</span>
                         </p>
                     </div>
                     <div 
