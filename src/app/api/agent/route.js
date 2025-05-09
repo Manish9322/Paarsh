@@ -195,3 +195,63 @@ export const DELETE = authMiddleware(async (request) => {
     );
   }
 }, true);
+
+// Update Agent Target
+export const PATCH = authMiddleware(async (request) => {
+  try {
+    const { id, targetType, targetValue } = await request.json();
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: "Agent ID is required" },
+        { status: 400 },
+      );
+    }
+
+    if (!targetType || !["count", "price"].includes(targetType)) {
+      return NextResponse.json(
+        { success: false, error: "Valid target type (count or price) is required" },
+        { status: 400 },
+      );
+    }
+
+    if (targetValue === undefined || targetValue < 0) {
+      return NextResponse.json(
+        { success: false, error: "Valid target value is required" },
+        { status: 400 },
+      );
+    }
+
+    // Create update object with the specified target type and reset the other type to 0
+    const updateData = {
+      [`target.${targetType}`]: targetValue,
+      [`target.${targetType === "count" ? "price" : "count"}`]: 0, // Set the other type to 0
+    };
+
+    // Update the specific target field and reset the other
+    const updatedAgent = await AgentModel.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true }
+    );
+
+    if (!updatedAgent) {
+      return NextResponse.json(
+        { success: false, error: "Agent not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Agent target ${targetType} updated successfully`,
+      data: updatedAgent,
+    });
+  } catch (error) {
+    console.error("Error while updating agent target:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}, true);

@@ -52,6 +52,16 @@ const agentSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    target: {
+      count: {
+        type: Number,
+        default: 0,
+      },
+      price: {
+        type: Number,
+        default: 0,
+      },
+    },
   },
   { timestamps: true },
 );

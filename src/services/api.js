@@ -178,6 +178,16 @@ export const paarshEduApi = createApi({
       providesTags: ["Agent"],
     }),
 
+    // New API endpoint for updating agent targets
+    updateAgentTarget: builder.mutation({
+      query: ({ id, targetType, targetValue }) => ({
+        url: "/agent",
+        method: "PATCH",
+        body: { id, targetType, targetValue },
+      }),
+      invalidatesTags: ["Agent"],
+    }),
+
     // ------------------------------------------------------------Users Apis-------------------------------------------------------------
 
     fetchUsers: builder.query({
@@ -567,6 +577,7 @@ export const {
   useUpdateAgentMutation,
   useDeleteAgentMutation,
   useFetchAgentQuery,
+  useUpdateAgentTargetMutation,
 
   useFetchUserQuery,
   useUpdateUserMutation,
