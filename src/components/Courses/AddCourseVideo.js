@@ -57,6 +57,13 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   const [resourceUploads, setResourceUploads] = useState({});
   const [notesUploads, setNotesUploads] = useState({}); // New state for notes
 
+  // Custom handler for dialog open state change
+  const handleOpenChange = (open) => {
+    if (!open) {
+      return;
+    }
+  };
+
   // Reset and initialize data when modal opens or course data changes
   useEffect(() => {
     if (!isOpen) {
@@ -416,15 +423,36 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     setVideoPreview(null);
   };
 
+   const handleClose = () => {
+    if (onClose) {
+      onClose();
+    }
+    setVideoPreview(null);
+    setPreviewOpen(false);
+    setVideoUploads({});
+    setResourceUploads({});
+    setNotesUploads({});
+    setDataInitialized(false);
+  };
+
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="max-h-[80vh] overflow-y-auto p-6">
-          <DialogTitle className="text-2xl font-semibold">
-            {courseVideos && courseVideos.topics
-              ? "Update Course Videos"
-              : "Add Course Videos"}
-          </DialogTitle>
+          <div className="flex justify-between items-center mb-4 relative">
+            <DialogTitle className="text-2xl font-semibold">
+              {courseVideos && courseVideos.topics
+                ? "Update Course Videos"
+                : "Add Course Videos"}
+            </DialogTitle>
+            <Button
+              onClick={handleClose}
+              className="absolute -top-2 -right-3 z-50 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-grayx-600 rounded-full w-8 h-8 p-0 flex items-center justify-center"
+            >
+              <span className="text-xl text-black">&times;</span>
+            </Button>
+          </div>
 
           {isLoadingCourseVideos || !dataInitialized ? (
             <div className="flex items-center justify-center py-10">
