@@ -551,12 +551,18 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: { courseId },
       }),
-    }),
-
-    // Transactions endpoint
+    }),    // Transactions endpoint
     fetchTransactions: builder.query({
       query: () => "/transactions",
       providesTags: ["Transaction"],
+      transformResponse: (response) => ({
+        ...response,
+        data: response.data.map(tx => ({
+          ...tx,
+          userId: { ...tx.userId, name: tx.userId?.name || 'N/A' },
+          courseId: { ...tx.courseId, courseName: tx.courseId?.courseName || 'N/A' }
+        }))
+      })
     }),
 
   }),
