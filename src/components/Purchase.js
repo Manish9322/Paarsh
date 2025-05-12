@@ -13,8 +13,7 @@ import {
 import { RAZORPAY_KEY_ID } from "../../config/config";
 import { set } from "mongoose";
 import { toast } from "sonner";
-import { useSearchParams } from "next/navigation";
-
+import { useRouter, useSearchParams } from "next/navigation";
 
 const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
   const dispatch = useDispatch();
@@ -28,8 +27,10 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
   const [finalPrice, setFinalPrice] = useState(course?.price || 0);
 
   const user = userData?.data;
-
+  const router = useRouter();
   const params = useSearchParams();
+
+
   const agentRefCode = params.get("refCode"); // Get the referral code from URL
    
   console.log("Agent Referral Code:", agentRefCode); // Log the referral code for debugging
@@ -128,6 +129,7 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
                 },
               });
               handleClose();
+              router.push("/userdashboard"); 
             } catch (error) {
               toast.error("Payment verification failed. Please contact support.", {
                 duration: 5000,
