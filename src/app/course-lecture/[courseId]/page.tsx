@@ -183,6 +183,7 @@ export default function CourseLecturePage() {
   const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(
     null,
   );
+  const [remainingTime, setRemainingTime] = useState("00:00");
   const [isSaving, setIsSaving] = useState(false);
   const [courseProgress, setCourseProgress] = useState(0);
   const [lastSyncedProgress, setLastSyncedProgress] = useState<{
@@ -190,6 +191,7 @@ export default function CourseLecturePage() {
   }>({});
   const [notification, setNotification] = useState<string | null>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   console.log("currentVideo:", currentVideo);
 
   // Sync topics and videos with courseVideoData
@@ -238,11 +240,11 @@ export default function CourseLecturePage() {
         setVideoProgress(newTopics[0].videos[0].progress || 0);
       }
 
-    // Make sure this calculation in your useEffect is correct
-const allVideos = newTopics.flatMap((t) => t.videos);
-const completedVideos = allVideos.filter((v) => v.completed).length;
-const totalProgress = (completedVideos / allVideos.length) * 100;
-setCourseProgress(totalProgress || 0);
+      // Make sure this calculation in your useEffect is correct
+      const allVideos = newTopics.flatMap((t) => t.videos);
+      const completedVideos = allVideos.filter((v) => v.completed).length;
+      const totalProgress = (completedVideos / allVideos.length) * 100;
+      setCourseProgress(totalProgress || 0);
     }
   }, [courseVideoData, currentVideo]);
 
@@ -465,18 +467,17 @@ setCourseProgress(totalProgress || 0);
     if (videoRef && currentVideo) {
       const progress = Math.min(
         (videoRef.currentTime / videoRef.duration) * 100,
-        100,
+        100
       );
-      const isCompleted = progress >= 95 || (videoRef.ended && progress > 90);
-
+      const timeRemaining = videoRef.duration - videoRef.currentTime;
+      setRemainingTime(formatDuration(timeRemaining));
       setVideoProgress(progress);
 
       const lastProgress = lastSyncedProgress[currentVideo.id] || 0;
-      const shouldUpdate =
-        isCompleted || Math.abs(progress - lastProgress) >= 5;
+      const shouldUpdate = Math.abs(progress - lastProgress) >= 5;
 
       if (shouldUpdate) {
-        syncVideoProgress(currentVideo.id, progress, isCompleted);
+        syncVideoProgress(currentVideo.id, progress, false);
       }
     }
   };
@@ -540,8 +541,12 @@ setCourseProgress(totalProgress || 0);
   };
 
   const toggleFullscreen = () => {
+    if (!videoContainerRef.current) return;
+
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
+      videoContainerRef.current.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
       setIsFullscreen(true);
     } else {
       document.exitFullscreen();
@@ -714,12 +719,10 @@ setCourseProgress(totalProgress || 0);
           <Sparkles className="h-4 w-4" />
           <span>{notification}</span>
         </div>
-      )}
-
-      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)] pt-16">
+      )}      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)] pt-16">
         {/* Video Section */}
-        <div className="w-full lg:w-3/4 p-4 sm:p-6">
-          <div className="mx-auto w-full max-w-5xl space-y-6">
+        <div className="w-full lg:w-3/4 p-2 sm:p-4 md:p-6">
+          <div className="mx-auto w-full max-w-5xl space-y-4 sm:space-y-6">
             {/* Video Player */}
             {isLoading ? (
               <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-gray-200 shadow-lg">
@@ -738,6 +741,7 @@ setCourseProgress(totalProgress || 0);
               </div>
             ) : (
               <div
+                ref={videoContainerRef}
                 className="group relative aspect-video w-full overflow-hidden rounded-xl bg-black shadow-xl"
                 onMouseMove={handleMouseMove}
               >
@@ -762,9 +766,8 @@ setCourseProgress(totalProgress || 0);
 
                 {/* Video Controls Overlay */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 ${
-                    showControls ? "opacity-100" : "opacity-0"
-                  }`}
+                  className={`absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity duration-300 ${showControls ? "opacity-100" : "opacity-0"
+                    }`}
                 >
                   <div className="absolute bottom-0 left-0 right-0 flex flex-col gap-4 p-4">
                     {/* Progress Bar */}
@@ -869,11 +872,10 @@ setCourseProgress(totalProgress || 0);
                                 <button
                                   key={speed}
                                   onClick={() => handleSpeedChange(speed)}
-                                  className={`block w-full rounded px-2 py-1 text-left text-sm hover:bg-indigo-500/20 ${
-                                    playbackSpeed === speed
-                                      ? "bg-indigo-500/30 text-indigo-300"
-                                      : "text-white"
-                                  }`}
+                                  className={`block w-full rounded px-2 py-1 text-left text-sm hover:bg-indigo-500/20 ${playbackSpeed === speed
+                                    ? "bg-indigo-500/30 text-indigo-300"
+                                    : "text-white"
+                                    }`}
                                 >
                                   {speed}x
                                 </button>
@@ -907,7 +909,7 @@ setCourseProgress(totalProgress || 0);
                   <div className="flex items-center gap-3 rounded-full bg-black/70 px-3 py-1.5 text-xs text-white backdrop-blur-md">
                     <div className="flex items-center gap-1.5">
                       <Clock className="h-4 w-4" />
-                      <span>{dynamicDuration}</span>
+                      <span>{remainingTime}</span>
                     </div>
                     {currentVideo?.completed && (
                       <div className="animate-scale-in flex items-center gap-1.5 text-green-400">
@@ -976,13 +978,12 @@ setCourseProgress(totalProgress || 0);
                     </div>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                          currentVideo?.difficulty === "Beginner"
-                            ? "bg-green-100 text-green-700"
-                            : currentVideo?.difficulty === "Intermediate"
-                              ? "bg-indigo-100 text-indigo-700"
-                              : "bg-purple-100 text-purple-700"
-                        }`}
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${currentVideo?.difficulty === "Beginner"
+                          ? "bg-green-100 text-green-700"
+                          : currentVideo?.difficulty === "Intermediate"
+                            ? "bg-indigo-100 text-indigo-700"
+                            : "bg-purple-100 text-purple-700"
+                          }`}
                       >
                         {currentVideo?.difficulty}
                       </span>
@@ -1082,30 +1083,28 @@ setCourseProgress(totalProgress || 0);
               </Tabs>
             </div>
           </div>
-        </div>
-
-        {/* Playlist Section */}
-        <div className="fixed top-16 right-0 w-full lg:w-1/4 h-[calc(100vh-4rem)] bg-white shadow-lg z-40 flex flex-col overflow-hidden">
+        </div>        {/* Playlist Section */}
+        <div className="relative lg:fixed lg:top-16 lg:right-0 w-full lg:w-1/4 h-auto lg:h-[calc(100vh-4rem)] bg-white shadow-lg lg:z-40 flex flex-col overflow-hidden">
           {/* Sidebar Header (Fixed) */}
           <div className="p-4 space-y-4 flex-shrink-0">
 
 
-{/* Course Progress */}
-{/* Course Progress */}
-<div className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 p-3 text-white shadow-md">
-  <Trophy className="h-5 w-5 text-yellow-300" />
-  <div className="flex-1">
-    <div className="text-sm font-semibold">
-      Course Progress: {Math.round(courseProgress)}%
-    </div>
-    <div className="relative mt-1 h-2 w-full overflow-hidden rounded-full bg-white/30">
-      <div
-        className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500 ease-out"
-        style={{ width: `${Math.round(courseProgress)}%` }}
-      />
-    </div>
-  </div>
-</div>
+            {/* Course Progress */}
+            {/* Course Progress */}
+            <div className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 p-3 text-white shadow-md">
+              <Trophy className="h-5 w-5 text-yellow-300" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold">
+                  Course Progress: {Math.round(courseProgress)}%
+                </div>
+                <div className="relative mt-1 h-2 w-full overflow-hidden rounded-full bg-white/30">
+                  <div
+                    className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500 ease-out"
+                    style={{ width: `${Math.round(courseProgress)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
 
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">
@@ -1170,9 +1169,8 @@ setCourseProgress(totalProgress || 0);
                           {topic.topicName}
                         </h3>
                         <ChevronDown
-                          className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
-                            expandedTopicId === topic._id ? "rotate-180" : ""
-                          }`}
+                          className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${expandedTopicId === topic._id ? "rotate-180" : ""
+                            }`}
                         />
                       </button>
                       {expandedTopicId === topic._id && (
@@ -1180,11 +1178,10 @@ setCourseProgress(totalProgress || 0);
                           {topic.videos.map((video) => (
                             <div
                               key={video.id}
-                              className={`group overflow-hidden rounded-lg border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400 hover:shadow-lg ${
-                                currentVideo?.id === video.id
-                                  ? "border-indigo-400 bg-indigo-50 shadow-lg"
-                                  : ""
-                              }`}
+                              className={`group overflow-hidden rounded-lg border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400 hover:shadow-lg ${currentVideo?.id === video.id
+                                ? "border-indigo-400 bg-indigo-50 shadow-lg"
+                                : ""
+                                }`}
                             >
                               <button
                                 className="flex w-full items-center justify-between p-3 text-left"
@@ -1241,9 +1238,8 @@ setCourseProgress(totalProgress || 0);
                                   </div>
                                 </div>
                                 <ChevronDown
-                                  className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${
-                                    expandedVideoId === video.id ? "rotate-180" : ""
-                                  }`}
+                                  className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${expandedVideoId === video.id ? "rotate-180" : ""
+                                    }`}
                                 />
                               </button>
 
@@ -1423,29 +1419,28 @@ setCourseProgress(totalProgress || 0);
                   </div> */}
                 </div>
               )}
-              </ScrollArea>
-            </div>
+            </ScrollArea>
+          </div>
 
-            {/* Sidebar Footer (Fixed) */}
-            <div className="p-4 border-t bg-gray-50 flex-shrink-0">
-              <Button
-                onClick={handleGenerateCertificate}
-                className={`w-full flex items-center justify-center gap-2 text-sm py-2 ${
-                  courseProgress === 100
-                    ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                    : "bg-gray-300 cursor-not-allowed text-gray-600"
+          {/* Sidebar Footer (Fixed) */}
+          <div className="p-4 border-t bg-gray-50 flex-shrink-0">
+            <Button
+              onClick={handleGenerateCertificate}
+              className={`w-full flex items-center justify-center gap-2 text-sm py-2 ${courseProgress === 100
+                ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                : "bg-gray-300 cursor-not-allowed text-gray-600"
                 }`}
-                disabled={courseProgress !== 100}
-              >
-                <GraduationCap className="h-4 w-4" />
-                Generate Certificate
-              </Button>
-            </div>
+              disabled={courseProgress !== 100}
+            >
+              <GraduationCap className="h-4 w-4" />
+              Generate Certificate
+            </Button>
           </div>
         </div>
+      </div>
 
-        {/* Inline CSS for Animations */}
-        <style>{`
+      {/* Inline CSS for Animations */}
+      <style>{`
           .animate-pulse-slow {
             animation: pulse-slow 3s ease-in-out infinite;
           }
@@ -1490,6 +1485,6 @@ setCourseProgress(totalProgress || 0);
             display: flex;
           }
         `}</style>
-      </div>
-    );
+    </div>
+  );
 }
