@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import _db from "../../../../utils/db";
+import bcrypt from "bcryptjs";
 import AgentModel from "../../../../models/Agent.model";
 import { authMiddleware } from "../../../../middlewares/auth";
 
@@ -28,7 +29,7 @@ const generateUniqueAgentCode = async (firstName, lastName) => {
 // Create Agent
 export const POST = authMiddleware(async (request) => {
   try {
-    const { firstName, lastName, email, mobile, gender, state, city } =
+    const { firstName, lastName, email, mobile, gender, state, city ,password} =
       await request.json();
 
     if (
@@ -38,7 +39,8 @@ export const POST = authMiddleware(async (request) => {
       !mobile ||
       !gender ||
       !city ||
-      !state
+      !state ||
+      !password
     ) {
       return NextResponse.json(
         { success: false, error: "All required fields must be provided" },
@@ -55,6 +57,9 @@ export const POST = authMiddleware(async (request) => {
       );
     }
 
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Generate a unique referral code
     const agentCode = await generateUniqueAgentCode(firstName, lastName);
 
@@ -62,6 +67,7 @@ export const POST = authMiddleware(async (request) => {
       firstName,
       lastName,
       email,
+      password : hashedPassword,
       mobile,
       gender,
       state,
@@ -83,7 +89,7 @@ export const POST = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 // Get All Agents
 export const GET = authMiddleware(async () => {
@@ -97,7 +103,7 @@ export const GET = authMiddleware(async () => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 // Update Agent
 export const PUT = authMiddleware(async (request) => {
@@ -160,7 +166,7 @@ export const PUT = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 // Delete Agent
 export const DELETE = authMiddleware(async (request) => {
@@ -194,7 +200,8 @@ export const DELETE = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
+
 
 // Update Agent Target
 export const PATCH = authMiddleware(async (request) => {
@@ -254,4 +261,4 @@ export const PATCH = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);

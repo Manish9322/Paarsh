@@ -72,7 +72,7 @@ export const paarshEduApi = createApi({
       },
     }),
 
-    // ----------------------------------------------------User Apis---------------------------------------------
+    // ----------------------------------------------------User Apis------------------------------------------------------------
     login: builder.mutation({
       query: (credentials) => ({
         url: "user/login",
@@ -82,7 +82,6 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["User"],
     }),
 
-    //-------------------------------For SignUp API-----------------------
     signup: builder.mutation({
       query: (userData) => ({
         url: "user/register",
@@ -96,7 +95,8 @@ export const paarshEduApi = createApi({
       query: () => "/user/user-refferals",
       providesTags: ["User"],
     }),
-    // ----------------------------------------------------Course Apis------------------------------------
+
+    // ----------------------------------------------------Course Apis------------------------------------------------------------
 
     addCourse: builder.mutation({
       query: (formData) => ({
@@ -135,7 +135,8 @@ export const paarshEduApi = createApi({
       providesTags: ["Course"],
     }),
 
-    // ----------------------------------------------------Admin Apis--------------------------------------
+    // ----------------------------------------------------Admin Apis-----------------------------------------------------------------------
+   
     adminlogin: builder.mutation({
       query: (credentials) => ({
         url: "/admin/login",
@@ -145,7 +146,8 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Course"],
     }),
 
-    // ------------------------------------------------------------Agent Apis---------------------
+    // ------------------------------------------------------------Agent Apis-------------------------------------------------------------
+   
     addAgent: builder.mutation({
       query: (formData) => ({
         url: "/agent",
@@ -286,7 +288,7 @@ export const paarshEduApi = createApi({
       providesTags: ["SubCategory"],
     }),
 
-    // ---------------------------------------------------------------------------
+    //--------------------------------------------------------------CourseVideos Apis------------------------------------------------
 
     addCourseVideo: builder.mutation({
       query: (formData) => ({
@@ -305,10 +307,27 @@ export const paarshEduApi = createApi({
       query: (params) => `/user/courses/videos?courseId=${params.courseId}`,
       providesTags: ["CourseVideo"],
     }),
+  
 
     deleteCourseVideo: builder.mutation({
       query: (id) => ({ url: "/course/videos", method: "DELETE", body: id }),
       invalidatesTags: ["CourseVideo"],
+    }),
+
+    uploadResource: builder.mutation({
+      query: (formData) => ({
+        url: "/uploads/resource",
+        method: "POST",
+        body: formData,
+      }),
+    }),
+
+    fetchCourseProgress: builder.query({
+      query: (params) => ({
+        url: "/course/courseprogress",
+        params: params,
+      }),
+      providesTags: ["Progress"],
     }),
 
     //----------------------------------Payment ------------------------------------------------------------------------------
@@ -334,7 +353,7 @@ export const paarshEduApi = createApi({
       providesTags: ["Course", "User"],
     }),
 
-    // --------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------Contact Us Apis------------------------------------------------
 
     addContact: builder.mutation({
       query: (formData) => ({
@@ -410,7 +429,6 @@ export const paarshEduApi = createApi({
       providesTags: ["MeetingLink"],
     }),
 
-    // Endpoint for generating real-time meeting links
     generateMeetingLink: builder.mutation({
       query: (meetingData) => ({
         url: "/meeting-links/generate",
@@ -419,7 +437,6 @@ export const paarshEduApi = createApi({
       }),
     }),
 
-    // Endpoint for updating meeting status
     updateMeetingStatus: builder.mutation({
       query: (data) => ({
         url: `/meeting-links/${data.id}`,
@@ -429,7 +446,8 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["MeetingLink"],
     }),
 
-    // Endpoint for Creating Job Application
+    // ------------------------------------------------------------Job Application Apis------------------------------------------------
+    
     CreateJobApplication: builder.mutation({
       query: (data) => ({
         url: `/JobApplication`,
@@ -438,13 +456,11 @@ export const paarshEduApi = createApi({
       }),
     }),
 
-    // Endpoint for Fetching Job Application
     fetchJobApplications: builder.query({
       query: () => "/JobApplication",
       providesTags: ["JobApplication"],
     }),
 
-    // Endpoint for deleting Job Application by ID
     deleteJobApplication: builder.mutation({
       query: (id) => ({
         url: "/JobApplication",
@@ -454,21 +470,7 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["JobApplication"],
     }),
 
-    // Endpoint for uploading resources
-    uploadResource: builder.mutation({
-      query: (formData) => ({
-        url: "/uploads/resource",
-        method: "POST",
-        body: formData,
-      }),
-    }),
-    fetchCourseProgress: builder.query({
-      query: (params) => ({
-        url: "/course/courseprogress",
-        params: params,
-      }),
-      providesTags: ["Progress"],
-    }),
+    // ----------------------------------------------------Withdrawal Request Apis---------------------------------------------
 
     fetchWithdrawalRequest: builder.query({
       query: () => "/admin/withdrawal",
@@ -505,11 +507,30 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["User"],
     }),
 
+    // ----------------------------------------------------Agent Apis--------------------------------------------------
+
     fetchAgentStats: builder.query({
       query: () => "/agent/stats",
       providesTags: ["Agent"],
     }),
 
+    fetchAgentSales: builder.query({
+      query: () => "/agent/saleslist",
+      providesTags: ["Agent"],
+    }),
+    
+    fetchagentCourseRefferalLink: builder.query({
+      query: () => "/agent/courserefferal",
+      providesTags: ["Agent"],
+    }),
+
+    createLead: builder.mutation({
+      query: (formData) => ({
+        url: "/agent/lead",
+        method: "POST",
+        body: formData,
+      }),
+    }),
 
     // Offers Endpoints
     addOffer: builder.mutation({
@@ -647,6 +668,9 @@ export const {
   useDeleteWithdrawalRequestMutation,
 
   useFetchAgentStatsQuery,
+  useFetchAgentSalesQuery,
+  useFetchagentCourseRefferalLinkQuery,
+  useCreateLeadMutation,
 
   useFetchTransactionsQuery,
 

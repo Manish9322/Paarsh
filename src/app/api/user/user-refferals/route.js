@@ -57,4 +57,4 @@ export const GET = authMiddleware(async (req) => {
     console.error("Error in fetching referral status:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-});
+}, ["user"]);

@@ -258,7 +258,7 @@ const AgentPage: React.FC = () => {
         >
           {/* Add padding to the top of sidebar content to prevent it from going under the navbar */}
           <div className="h-16 md:h-0"></div> {/* Spacer for mobile header */}
-          <Sidebar />
+          <Sidebar userRole="admin" />
         </aside>
 
         {/* Overlay for mobile when sidebar is open */}

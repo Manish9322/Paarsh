@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   return NextResponse.json({
-    message: "Welcom to Wallcreat",
+    message: "Welcome to PaarshEdu",
     success: true,
   });
 }

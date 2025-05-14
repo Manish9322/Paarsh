@@ -112,7 +112,7 @@ export const PUT = authMiddleware(async (req, { params }) => {
       { status: 500 }
     );
   }
-});
+}, ["admin"]);
 
 // PATCH update meeting status (admin only)
 export const PATCH = authMiddleware(async (req, { params }) => {
@@ -165,7 +165,7 @@ export const PATCH = authMiddleware(async (req, { params }) => {
       { status: 500 }
     );
   }
-});
+}, ["admin"]);
 
 // DELETE meeting link (admin only)
 export const DELETE = authMiddleware(async (req, { params }) => {
@@ -206,4 +206,4 @@ export const DELETE = authMiddleware(async (req, { params }) => {
       { status: 500 }
     );
   }
-}); 
+}, ["admin"]); 

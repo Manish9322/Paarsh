@@ -37,7 +37,7 @@ export const POST = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["user"]);
 
 // Get All Contacts
 
@@ -56,7 +56,7 @@ export const GET = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-  }, true);
+  }, ["admin"]);
 
 // Update Contact Status
 
@@ -77,7 +77,7 @@ export const GET = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 // Delete Contact
 
@@ -98,4 +98,4 @@ export const DELETE = authMiddleware(async (request) => {
       { status: 500 },
     );    
   }
-}, true);
+}, ["admin"]);

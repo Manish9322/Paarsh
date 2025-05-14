@@ -118,7 +118,7 @@ export const POST = authMiddleware(async (request) => {
       { status: 500 }
     );
   }
-});
+}, ["user"]);
 
 export const GET = authMiddleware(async (request) => {
   try {
@@ -179,4 +179,4 @@ export const GET = authMiddleware(async (request) => {
     );
   }
   
-});
+}, ["user"]);

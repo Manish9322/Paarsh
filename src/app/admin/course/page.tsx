@@ -236,7 +236,7 @@ const CoursePage: React.FC = () => {
                          
                 {/* Sidebar Content - Scrollable */}
                 <div className="custom-scrollbar flex-1 overflow-y-auto">
-                  <Sidebar />
+                  <Sidebar  userRole="admin" />
                 </div>
               </div>
             </aside>

@@ -46,4 +46,4 @@ export const POST = authMiddleware(async (req) => {
       { status: 500 }
     );
   }
-}, true);
+}, ["admin"]);

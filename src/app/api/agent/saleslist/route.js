@@ -1,24 +1,22 @@
 import { NextResponse } from "next/server";
-import  {BASE_URL}  from "../../../../../config/config";
 import { authMiddleware } from "../../../../../middlewares/auth";
+import TransactionModel from "models/Transaction.model";
 import AgentModel from "models/Agent.model";
-import CourseModel from "models/Courses/Course.model";
 import _db from "../../../../../utils/db";
 
 _db();
 
 export const GET = authMiddleware(async (request) => {
   try {
-     const user =  request.user; // Assuming user is passed in the request object
+    const user = request.user;
     if (!user) {
       return NextResponse.json(
         { success: false, error: "User not authenticated" },
         { status: 401 }
       );
     }
-    
-    console.log("User in referral link generation:", user);
-    const agent = await AgentModel.findOne(user._id)
+
+    const agent = await AgentModel.findById(user._id);
 
     if (!agent || !agent.agentCode) {
       return NextResponse.json(
@@ -27,27 +25,29 @@ export const GET = authMiddleware(async (request) => {
       );
     }
 
-    const courses = await CourseModel.find();
+    const allTransactions = await TransactionModel.find({
+      agentRefCode: agent.agentCode,
+    })
+      .populate("userId", "name email")
+      .populate("courseId", "courseName price");
 
-    const courseLinks = courses.map(course => {
-      const slug = course.slug || course._id;
-      return {
-        courseId: course._id,
-        courseName: course.courseName,
-        referralLink: `${BASE_URL}/blog-sidebar?courseId=${slug}&ref=${agent.agentCode}`,
-      };
-    });
+    const completed = allTransactions.filter(tx => tx.status === "SUCCESS");
+    const pending = allTransactions.filter(tx => tx.status === "PENDING");
 
     return NextResponse.json({
       success: true,
-      message: "Referral links generated successfully",
-      data: courseLinks,
+      message: "Agent sales fetched successfully",
+      data: {
+        all: allTransactions,
+        completed,
+        pending,
+      },
     });
   } catch (error) {
-    console.error("Error generating all referral links:", error);
+    console.error("Error fetching agent sales:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
-},["agent"]);
+}, ["agent"]);

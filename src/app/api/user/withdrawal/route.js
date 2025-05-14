@@ -77,7 +77,7 @@ export const POST = authMiddleware(async (req) => {
       500
     );
   }
-});
+}, ["user"]);
 
 export const GET = authMiddleware(async (req) => {
   try {
@@ -105,7 +105,7 @@ export const GET = authMiddleware(async (req) => {
       500
     );
   }
-});
+}, ["user"]);
 
 export const PATCH = authMiddleware(async (req) => {
   try {
@@ -163,4 +163,4 @@ export const PATCH = authMiddleware(async (req) => {
       500
     );
   }
-});
+}, ["admin"]);

@@ -110,7 +110,7 @@ export const POST = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 //  Get All Courses
 export const GET = async () => {
@@ -309,9 +309,10 @@ export const PUT = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 //  Delete Course
+
 export const DELETE = authMiddleware(async (request) => {
   try {
     const { id } = await request.json();
@@ -344,4 +345,4 @@ export const DELETE = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);

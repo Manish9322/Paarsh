@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import generateTokens from "../../../../../utils/generateTokens";
 import AdminModel from "../../../../../models/Admin.model";
+import AgentModel from "../../../../../models/Agent.model";
 import validator from "validator";
 import _db from "../../../../../utils/db";
 
@@ -11,13 +12,6 @@ export async function POST(request) {
   try {
     const { email, password } = await request.json();
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { success: false, error: "Email and password are required" },
-        { status: 400 },
-      );
-    }
-
     if (!validator.isEmail(email)) {
       return NextResponse.json(
         { success: false, error: "Invalid email address" },
@@ -25,40 +19,65 @@ export async function POST(request) {
       );
     }
 
-    const admin = await AdminModel.findOne({ email });
-    if (!admin) {
+    if (!email || !password) {
       return NextResponse.json(
-        { success: false, error: "Admin not found" },
-        { status: 404 },
-      );
-    }
-
-    //  Check if the password is correct
-    const isPasswordValid = await bcrypt.compare(password, admin.password);
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        { success: false, error: "Incorrect password" },
+        { success: false, error: "Email and password are required" },
         { status: 400 },
       );
     }
 
-    //  Generate tokens
-    const { accessToken, refreshToken } = generateTokens(admin._id, true);
+    // First try to find Admin
+    let user = await AdminModel.findOne({ email });
+    let role = "admin";
+    let redirectTo = "/admin";
 
-    //  Set HTTP-only Secure Cookies
+    if (!user) {
+      // Try to find Agent
+      user = await AgentModel.findOne({ email });
+      role = "agent";
+      redirectTo = "/admin/agent/dashboard";
+    }
 
-    const response = NextResponse.json({
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Invalid credentials" },
+        { status: 401 },
+      );
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return NextResponse.json(
+        { success: false, error: "Incorrect password" },
+        { status: 401 },
+      );
+    }
+
+      
+    // if (password !== user.password) {
+    //   return NextResponse.json(
+    //     { success: false, error: "Incorrect password" },
+    //     { status: 401 },
+    //   );
+    // }
+
+    const { accessToken, refreshToken } = generateTokens(user._id, role);
+
+    const { password: _, ...safeUser } = user.toObject();
+
+    return NextResponse.json({
       success: true,
-      message: "Login successful",
-      redirect: "/admin",
+      message: `${role} login successful`,
+      user: { ...safeUser, role },
       admin_access_token: accessToken,
+      admin_refresh_token: refreshToken,
+      role,
+      redirectTo,
     });
-
-    return response;
   } catch (error) {
-    console.error("Error while processing request:", error);
+    console.error("Login error:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: "Something went wrong" },
       { status: 500 },
     );
   }

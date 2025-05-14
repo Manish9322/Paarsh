@@ -47,4 +47,4 @@ export const GET = authMiddleware(async (request) => {
       { status: 500 }
     );
   }
-});
+}, ["user"]);

@@ -1,69 +1,92 @@
 import { NextResponse } from "next/server";
 import { verify } from "jsonwebtoken";
-import { JWT_SECRET_USER, JWT_SECRET_ADMIN } from "../config/config";
+import {
+  JWT_SECRET_USER,
+  JWT_SECRET_ADMIN,
+  JWT_SECRET_AGENT,
+} from "../config/config";
 import UserModel from "../models/User.model";
 import AdminModel from "../models/Admin.model";
+import AgentModel from "../models/Agent.model";
 import _db from "../utils/db";
 
 _db();
 
-export function authMiddleware(handler , isAdmin = false) {
+const ROLE_SECRET_MAP = {
+  user: JWT_SECRET_USER,
+  admin: JWT_SECRET_ADMIN,
+  agent: JWT_SECRET_AGENT,
+};
+
+const ROLE_MODEL_MAP = {
+  user: UserModel,
+  admin: AdminModel,
+  agent: AgentModel,
+};
+
+export function authMiddleware(handler, allowedRoles = ["user"]) {
   return async (req, context) => {
-      // Extract Authorization header
-
-      let token;
-  
-      if (isAdmin) {
-        // Admin token from cookies
-        token = req.headers.get("admin-authorization")?.replace("Bearer ", "");
-      } else {
-        // User token from Authorization header
-        token = req.headers.get("authorization")?.replace("Bearer ", "");
-      }
-  
-
-    if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized Access", success: false },
-        { status: 401 }
-      );
-    }
-
     try {
-      // Select the correct secret key
-      const secretKey = isAdmin ? JWT_SECRET_ADMIN : JWT_SECRET_USER;
+      let token;
 
-      const decoded = verify(token, secretKey);
+      for (const r of allowedRoles) {
+        const headerName =
+          r === "admin" || r === "agent"
+            ? "admin-authorization"
+            : "authorization";
+        const raw = req.headers.get(headerName);
+        if (raw) {
+          token = raw?.replace("Bearer ", "");
+          break;
+        }
+      }
 
-      // Fetch user/admin details from DB
-      const model = isAdmin ? AdminModel : UserModel;
-      const user = await model.findById(decoded.userId).lean();
-
-      if (!user) {
+      if (!token) {
         return NextResponse.json(
-          { error: "User not found", success: false },
-          { status: 404 }
+          { success: false, error: "Unauthorized: Token missing" },
+          { status: 401 },
         );
       }
 
-      // Remove sensitive data before attaching to request
-      const { password, ...sanitizedUser } = user;
-      req.user = { ...sanitizedUser, isAdmin };
+      // Try all allowed roles until one verifies
+      let decoded, role;
+      for (const r of allowedRoles) {
+        try {
+          decoded = verify(token, ROLE_SECRET_MAP[r]);
+          role = r;
+          break;
+        } catch (_) {}
+      }
 
-      // Pass both request and context to the handler
+      if (!decoded || !role) {
+        return NextResponse.json(
+          { success: false, error: "Unauthorized: Invalid token" },
+          { status: 401 },
+        );
+      }
+
+      const Model = ROLE_MODEL_MAP[role];
+      const user = await Model.findById(decoded.userId).lean();
+
+      if (!user) {
+        return NextResponse.json(
+          { success: false, error: `${role} not found` },
+          { status: 404 },
+        );
+      }
+
+      // Remove sensitive fields
+      const { password, ...safeUser } = user;
+
+      // Attach user to request
+      req.user = { ...safeUser, role };
+
       return handler(req, context);
-    } catch (error) {
-      const errName = error.name;
-      const message =
-        errName === "TokenExpiredError"
-          ? "Token expired"
-          : errName === "JsonWebTokenError"
-            ? "Invalid token"
-            : "Unauthorized";
-
+    } catch (err) {
+      console.error("Auth Middleware Error:", err);
       return NextResponse.json(
-        { error: message, success: false },
-        { status: 401 }
+        { success: false, error: "Unauthorized request" },
+        { status: 401 },
       );
     }
   };

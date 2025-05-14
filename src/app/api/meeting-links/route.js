@@ -149,7 +149,7 @@ export const GET = authMiddleware(async (req) => {
       { status: 500 }
     );
   }
-});
+} , ["admin" , "user"]);
 
 // POST create a new meeting link (admin only)
 export const POST = authMiddleware(async (req) => {
@@ -197,7 +197,7 @@ export const POST = authMiddleware(async (req) => {
       { status: 500 }
     );
   }
-});
+}, ["admin"]);
 
 // DELETE all meeting links (admin only) - Not recommended but included for completeness
 export const DELETE = authMiddleware(async (req) => {
@@ -240,4 +240,4 @@ export const DELETE = authMiddleware(async (req) => {
       { status: 500 }
     );
   }
-}); 
+}, ["admin"]); 
