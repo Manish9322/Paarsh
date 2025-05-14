@@ -13,7 +13,7 @@ import {
   useFetchCourseVideoByIdQuery,
   useGetVideoProgressQuery,
   useUpdateVideoProgressMutation,
-} from "../../../services/api";
+} from "../../../../services/api";
 import {
   ChevronLeft,
   Play,

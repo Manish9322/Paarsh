@@ -530,7 +530,7 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: formData,
       }),
-    })
+    }),
 
     // Offers Endpoints
     addOffer: builder.mutation({
@@ -670,7 +670,7 @@ export const {
   useFetchAgentStatsQuery,
   useFetchAgentSalesQuery,
   useFetchagentCourseRefferalLinkQuery,
-  useCreateLeadMutation
+  useCreateLeadMutation,
 
   useFetchTransactionsQuery,
 
