@@ -25,7 +25,7 @@ export default function DashboardLayout({
           />
 
           {/* Main Content Area */}
-          <div className="flex-1 p-2 sm:p-4 md:p-6 sm:ml-64 transition-all duration-300 flex flex-col">
+          <div className={`flex-1 p-2 sm:p-4 md:p-6 transition-all duration-300 flex flex-col ${!isSidebarOpen ? 'ml-0' : ''} lg:ml-64`}>
             <div className="rounded-xl bg-white dark:bg-gray-800 shadow-sm p-3 sm:p-6 dark:border-gray-700 transition-all duration-300 flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto">
                 {children}

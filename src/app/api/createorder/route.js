@@ -5,15 +5,19 @@ import UserModel from "../../../../models/User.model";
 import CourseModel from "../../../../models/Courses/Course.model";
 import TransactionModel from "../../../../models/Transaction.model";
 import { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } from "../../../../config/config";
+import shortid from "shortid";
+import _db from "../../../../utils/db";
+
+_db();
 
 export const POST = authMiddleware(async (request) => {
   try {
-    const { userId, courseId, agentRefCode } = await request.json();
+    const { userId, courseId, amount, offerId, agentRefCode } = await request.json();
 
-    if (!userId || !courseId) {
+    if (!userId || !courseId || !amount) {
       return NextResponse.json(
-        { success: false, error: "User ID and Course ID required" },
-        { status: 400 },
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
       );
     }
 
@@ -39,36 +43,54 @@ export const POST = authMiddleware(async (request) => {
       key_secret: RAZORPAY_KEY_SECRET,
     });
 
-    const order = await razorpay.orders.create({
-      amount: parseInt(course.price) * 100, // Convert to paisa
-      currency: "INR",
-      receipt: `receipt_${Date.now()}`,
-      payment_capture: 1,
-    });
+    const payment_capture = 1;
+    const currency = "INR";
+    const options = {
+      amount,
+      currency,
+      receipt: shortid.generate(),
+      payment_capture,
+      notes: {
+        userId,
+        courseId,
+        offerId, // Include offer ID in payment notes if available
+      },
+    };
 
-    const newTransaction = new TransactionModel({
-      userId,
-      courseId,
-      orderId: order.id,
-      amount: parseInt(course.price),
-      agentRefCode,
-      status: "PENDING",
-    });
+    try {
+      const order = await razorpay.orders.create(options);
+      const newTransaction = new TransactionModel({
+        userId,
+        courseId,
+        orderId: order.id,
+        amount: parseInt(course.price),
+        agentRefCode,
+        status: "PENDING",
+      });
 
-    await newTransaction.save();
+      await newTransaction.save();
 
-    return NextResponse.json({
-      success: true,
-      message: "Order created successfully",
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      agentRefCode,
-    });
+      return NextResponse.json({
+        success: true,
+        data: {
+          orderId: order.id,
+          currency: order.currency,
+          amount: order.amount,
+          agentRefCode,
+        },
+      });
+    } catch (err) {
+      console.log(err);
+      return NextResponse.json(
+        { success: false, error: "Error creating order" },
+        { status: 500 }
+      );
+    }
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 });

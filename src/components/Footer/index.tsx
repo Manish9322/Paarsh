@@ -1,8 +1,23 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { logout } from "../../lib/slices/userAuthSlice";
+import { useFetchUserQuery } from "@/services/api";
 
 const Footer = () => {
+  const { data: userData } = useFetchUserQuery(undefined);
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  const user = userData?.data;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    router.push("/");
+  };
+
   return (
     <>
       <footer className="relative z-10 bg-white pt-14 dark:bg-gray-dark md:pt-10 lg:pt-10">

@@ -25,7 +25,7 @@ import {
 import { RxCross2 } from "react-icons/rx";
 import AddAgentModal from "../../../components/Agent/AddAgent";
 import { Input } from "@/components/ui/input";
-import { useDeleteAgentMutation, useFetchAgentQuery } from "@/services/api";
+import { useDeleteAgentMutation, useFetchAgentQuery, useUpdateAgentMutation, useUpdateAgentTargetMutation } from "@/services/api";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +36,14 @@ import {
 import { toast } from "sonner";
 import EditAgentModal from "../../../components/Agent/EditAgent";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Define Agent type
 interface Agent {
@@ -49,6 +57,10 @@ interface Agent {
   countSale: number;
   state: string;
   createdAt: string;
+  target?: {
+    count?: number;
+    price?: number;
+  };
 }
 
 const AgentPage: React.FC = () => {
@@ -63,6 +75,9 @@ const AgentPage: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [agentToDelete, setAgentToDelete] = useState<string | null>(null);
+  const [targetModalOpen, setTargetModalOpen] = useState(false);
+  const [targetValue, setTargetValue] = useState<number>(0);
+  const [targetType, setTargetType] = useState<"count" | "price">("count");
 
   // Close sidebar when screen size changes to desktop
   useEffect(() => {
@@ -83,6 +98,8 @@ const AgentPage: React.FC = () => {
 
   const [_DELETEAGENT, { isLoading: isDeleteLoading, error: deleteError }] =
     useDeleteAgentMutation();
+  const [updateAgent] = useUpdateAgentMutation();
+  const [updateAgentTarget, { isLoading: isTargetUpdating }] = useUpdateAgentTargetMutation();
   const handleSort = (field: keyof Agent) => {
     setSortField(field);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -191,6 +208,32 @@ const AgentPage: React.FC = () => {
     return pageNumbers;
   };
 
+  const handleSetTarget = async () => {
+    try {
+      if (!selectedAgent?._id) return;
+
+      const response = await updateAgentTarget({
+        id: selectedAgent._id,
+        targetType,
+        targetValue
+      }).unwrap();
+      
+      if (response?.success) {
+        toast.success(`Target set to ${targetValue} ${targetType === "count" ? "courses" : "rupees"}`);
+        setTargetModalOpen(false);
+        setTargetValue(0);
+      } else {
+        throw new Error(response?.message || "Failed to update target");
+      }
+    } catch (error) {
+      console.error("Error setting target:", error);
+      toast.error(
+        error?.data?.message || error?.message ||
+        "Failed to set target. Please try again."
+      );
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col overflow-hidden  bg-gray-50 dark:bg-gray-900">
       {/* Mobile Header with Menu Button */}
@@ -246,7 +289,7 @@ const AgentPage: React.FC = () => {
                     />
                     <Button
                       onClick={() => setIsModalOpen(true)}
-                      className="h-10 w-full bg-green-500 text-white transition-colors hover:bg-green-600 md:w-auto"
+                      className="h-10 w-full bg-white text-blue-600 transition-colors md:w-auto hover:bg-blue-50"
                     >
                       + Add Agent
                     </Button>
@@ -380,6 +423,9 @@ const AgentPage: React.FC = () => {
                             )}
                           </div>
                         </TableHead>
+                        <TableHead className="hidden py-3 lg:table-cell">
+                          Target
+                        </TableHead>
                         <TableHead className="py-3 text-center">
                           Actions
                         </TableHead>
@@ -447,6 +493,15 @@ const AgentPage: React.FC = () => {
                                 <p className="text-xs text-gray-500">
                                   Sales: {agent.countSale}
                                 </p>
+                                {agent.target?.count > 0 ? (
+                                  <p className="text-xs text-blue-600 dark:text-blue-400">
+                                    Target: {agent.target.count} courses
+                                  </p>
+                                ) : agent.target?.price > 0 ? (
+                                  <p className="text-xs text-green-600 dark:text-green-400">
+                                    Target: ₹{agent.target.price}
+                                  </p>
+                                ) : null}
                               </div>
                               <span className="hidden sm:inline">
                                 {agent.firstName}
@@ -469,6 +524,31 @@ const AgentPage: React.FC = () => {
                             </TableCell>
                             <TableCell className="hidden lg:table-cell">
                               {agent.state}
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              {agent.target?.count > 0 ? (
+                                <div className="flex items-center">
+                                  <span className="mr-1 text-sm font-medium">
+                                    {agent.target.count}
+                                  </span>
+                                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                    Courses
+                                  </span>
+                                </div>
+                              ) : agent.target?.price > 0 ? (
+                                <div className="flex items-center">
+                                  <span className="mr-1 text-sm font-medium">
+                                    ₹{agent.target.price}
+                                  </span>
+                                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                    Revenue
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                  No target set
+                                </span>
+                              )}
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center justify-center gap-2">
@@ -502,6 +582,45 @@ const AgentPage: React.FC = () => {
                                   />
                                   <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
                                     Edit agent
+                                  </span>
+                                </button>
+                                <button
+                                  className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-purple-50 text-purple-600 transition-all duration-200 hover:bg-purple-100 hover:text-purple-700 hover:shadow-md dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/30 dark:hover:text-purple-300"
+                                  onClick={() => {
+                                    setSelectedAgent(agent);
+                                    // Check if agent has any target and set the appropriate initial values
+                                    if (agent.target?.count) {
+                                      setTargetType("count");
+                                      setTargetValue(agent.target.count);
+                                    } else if (agent.target?.price) {
+                                      setTargetType("price");
+                                      setTargetValue(agent.target.price);
+                                    } else {
+                                      setTargetType("count");
+                                      setTargetValue(0);
+                                    }
+                                    setTargetModalOpen(true);
+                                  }}
+                                  aria-label="Set target for agent"
+                                >
+                                  <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="16" 
+                                    height="16" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                    className="transition-transform group-hover:scale-110"
+                                  >
+                                    <circle cx="12" cy="12" r="10" />
+                                    <circle cx="12" cy="12" r="6" />
+                                    <circle cx="12" cy="12" r="2" />
+                                  </svg>
+                                  <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                    Set target
                                   </span>
                                 </button>
                                 <button
@@ -695,6 +814,84 @@ const AgentPage: React.FC = () => {
               setEditOpen={setEditOpen}
               selectedAgent={selectedAgent}
             />
+
+            {/* Target Setting Modal */}
+            {targetModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                <div className="relative max-h-[90vh] max-w-md overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800 dark:text-white">
+                  {/* Header */}
+                  <div className="mb-4 flex items-center justify-between border-b pb-3">
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                      Set Target for {selectedAgent?.firstName} {selectedAgent?.lastName}
+                    </h2>
+                    <button 
+                      onClick={() => setTargetModalOpen(false)}
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                      aria-label="Close"
+                    >
+                      <RxCross2 size={18} />
+                    </button>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="py-4">
+                    <div className="mb-4 space-y-4">
+                      <div>
+                        <Label htmlFor="targetType" className="mb-2 block text-sm font-medium">
+                          Target Type
+                        </Label>
+                        <Select
+                          value={targetType}
+                          onValueChange={(value: "count" | "price") => {
+                            setTargetType(value);
+                            setTargetValue(0);
+                          }}
+                        >
+                          <SelectTrigger id="targetType" className="w-full dark:border-gray-700 dark:bg-gray-900">
+                            <SelectValue placeholder="Select target type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="count">Courses Sold Count</SelectItem>
+                            <SelectItem value="price">Sales Amount Target</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="targetValue" className="mb-2 block text-sm font-medium">
+                          {targetType === "count" ? "Course Sales Target" : "Revenue Target"}
+                        </Label>
+                        <Input 
+                          id="targetValue"
+                          type="number" 
+                          value={targetValue}
+                          onChange={(e) => setTargetValue(Number(e.target.value))}
+                          min={0}
+                          className="w-full dark:border-gray-700 dark:bg-gray-900"
+                          placeholder={`Enter ${targetType === "count" ? "course count" : "revenue"} target`}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {targetType === "count" 
+                        ? "This target represents the number of courses the agent should sell." 
+                        : "This target represents the total revenue the agent should generate."}
+                    </p>
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className="mt-6 flex justify-end">
+                    <Button
+                      onClick={handleSetTarget}
+                      className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                      disabled={isTargetUpdating}
+                    >
+                      {isTargetUpdating ? "Setting Target..." : "Set Target"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Enhanced Pagination Controls */}
             <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">

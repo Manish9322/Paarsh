@@ -25,7 +25,10 @@ import {
 import {
   useDeleteAgentMutation,
   useDeleteUserMutation,
+  useFetchCourcesQuery,
   useFetchUsersQuery,
+  useFetchTransactionsQuery,
+
 } from "../../../services/api";
 import AddAgentModal from "../../../components/Agent/AddAgent";
 import { Input } from "@/components/ui/input";
@@ -42,7 +45,7 @@ import { RxCross2 } from "react-icons/rx";
 import { toast } from "sonner";
 import EditUserModal from "../../../components/User/EditUser";
 
-// Define Agent type
+// Define Users interface first
 interface Users {
   _id: string;
   id: number;
@@ -50,6 +53,25 @@ interface Users {
   email: string;
   mobile: string;
   createdAt: string;
+}
+
+// Update the interface at the top of the file
+interface CourseEnrollment {
+  userId: string;
+  enrollmentDate: string; // ISO date string
+}
+
+interface Course {
+  _id: string;
+  courseName: string;
+  price: string;
+  duration: string;
+  level: string;
+  enrolledUsers: {
+    userId: string;
+    enrollmentDate: string;
+  }[];
+  // ... other course properties
 }
 
 const UserPage: React.FC = () => {
@@ -64,54 +86,58 @@ const UserPage: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
-  // Close sidebar when screen size changes to desktop
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(false);
-      }
-    };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+
+  const { data: coursesData } = useFetchCourcesQuery(undefined);
+  console.log("CourseData on User Management : ", coursesData);
 
   const agentsPerPage = 10;
-  const { data: userData, isLoading, refetch } = useFetchUsersQuery(undefined);
-  const [_DELETEUSER, { isLoading: isDeleteLoading, error: deleteError }] =
-    useDeleteUserMutation();
-  const users: Users[] = userData?.data || [];
+  const { data: userData, isLoading, error } = useFetchUsersQuery(undefined);
+  console.log("UserData on User Management : ", userData);
+  const [_DELETEUSER, { isLoading: isDeleteLoading }] = useDeleteUserMutation();
+
+  const users = userData?.data || [];
   const startIndex = (currentPage - 1) * agentsPerPage;
+
+
+  const { data: transactionsData } = useFetchTransactionsQuery(undefined);
+  console.log("All Transactions Data:", transactionsData);
 
   const handleSort = (field: keyof Users) => {
     setSortField(field);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
-  const filteredUsers = users.filter((user) =>
-    Object.values(user).some((value) =>
-      value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
-    ),
-  );
+  // Safe filtering that handles undefined/null values
+  const filteredUsers = users.filter((user) => {
+    if (!user) return false;
+    return Object.entries(user).some(([key, value]) => {
+      if (value === null || value === undefined) return false;
+      return value.toString().toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  });
 
+  // Safe sorting with proper type checking
   const sortedUsers = [...filteredUsers].sort((a, b) => {
     if (!sortField) return 0;
-    return sortOrder === "asc"
-      ? a[sortField] > b[sortField]
-        ? 1
-        : -1
-      : a[sortField] < b[sortField]
-        ? 1
-        : -1;
+    const aValue = a[sortField];
+    const bValue = b[sortField];
+    if (aValue === undefined || bValue === undefined) return 0;
+
+    const comparison =
+      sortOrder === "asc"
+        ? aValue.toString().localeCompare(bValue.toString())
+        : bValue.toString().localeCompare(aValue.toString());
+
+    return comparison;
   });
 
   const totalPages = Math.ceil(sortedUsers.length / agentsPerPage);
   const displayedUsers = sortedUsers.slice(
     (currentPage - 1) * agentsPerPage,
-    currentPage * agentsPerPage,
+    currentPage * agentsPerPage
   );
 
-  // Handle Edit
   const handleEdit = (user: Users) => {
     setSelectedUser(user);
     setIsModalOpen(true);
@@ -135,12 +161,11 @@ const UserPage: React.FC = () => {
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error(
-        error?.data?.message || "Failed to Delete the user. Please try again.",
+        error?.data?.message || "Failed to Delete the user. Please try again."
       );
     }
   };
 
-  // Handle View
   const handleView = (user: Users) => {
     setSelectedUser(user);
     setViewOpen(true);
@@ -150,50 +175,40 @@ const UserPage: React.FC = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Function to generate page numbers for pagination
   const generatePaginationNumbers = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 5; // Show at most 5 page numbers
+    const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
-      // If total pages are less than max to show, display all pages
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      // Always include first page
       pageNumbers.push(1);
 
-      // Calculate start and end of page numbers to show
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(totalPages - 1, currentPage + 1);
 
-      // Adjust if we're near the beginning
       if (currentPage <= 3) {
         endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
       }
 
-      // Adjust if we're near the end
       if (currentPage >= totalPages - 2) {
         startPage = Math.max(2, totalPages - maxPagesToShow + 2);
       }
 
-      // Add ellipsis if needed before middle pages
       if (startPage > 2) {
         pageNumbers.push("...");
       }
 
-      // Add middle pages
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
 
-      // Add ellipsis if needed after middle pages
       if (endPage < totalPages - 1) {
         pageNumbers.push("...");
       }
 
-      // Always include last page if there is more than one page
       if (totalPages > 1) {
         pageNumbers.push(totalPages);
       }
@@ -202,9 +217,14 @@ const UserPage: React.FC = () => {
     return pageNumbers;
   };
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+
+
   return (
     <div className="flex min-h-screen flex-col overflow-hidden  bg-gray-50 dark:bg-gray-900">
-      {/* Mobile Header with Menu Button */}
       <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
         <button
           onClick={toggleSidebar}
@@ -214,29 +234,23 @@ const UserPage: React.FC = () => {
           <Menu size={24} />
         </button>
         <h1 className="text-lg font-bold text-gray-800">User Management</h1>
-        <div className="w-10"></div> {/* Spacer for centering */}
+        <div className="w-10"></div>
       </div>
 
-      {/* Sidebar - fixed position with proper scrolling */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex h-full flex-col">
-          {/* Sidebar Header */}
           <div className="flex h-16 items-center justify-between px-4 md:justify-end">
             <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
           </div>
-
-          {/* Sidebar Content - Scrollable */}
           <div className="custom-scrollbar flex-1 overflow-y-auto">
             <Sidebar />
           </div>
         </div>
       </aside>
 
-      {/* Overlay for mobile when sidebar is open */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
@@ -245,11 +259,10 @@ const UserPage: React.FC = () => {
         ></div>
       )}
 
-      {/* Main content area */}
       <main className="flex-1 overflow-y-auto  pt-16 md:ml-64">
         <div className="container mx-auto px-4 py-6">
           <Card className="mb-6 overflow-hidden border-none  bg-white  shadow-md dark:bg-gray-800 dark:text-white">
-            <CardHeader className="bg-gradient-to-r from-emerald-600 to-teal-800 p-4 pb-4 pt-6 sm:p-6">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">
                   User Management
@@ -355,6 +368,15 @@ const UserPage: React.FC = () => {
                           </TableCell>
                         </TableRow>
                       ))
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={5}
+                          className="py-6 text-center text-red-500"
+                        >
+                          Failed to load users. Please try again later.
+                        </TableCell>
+                      </TableRow>
                     ) : displayedUsers.length === 0 ? (
                       <TableRow>
                         <TableCell
@@ -393,7 +415,7 @@ const UserPage: React.FC = () => {
                           <TableCell>
                             <div className="flex items-center justify-center gap-2">
                               <button
-                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-teal-50 text-teal-600 transition-all duration-200 hover:bg-teal-100 hover:text-teal-700 hover:shadow-md dark:bg-teal-900/20 dark:text-teal-400 dark:hover:bg-teal-900/30 dark:hover:text-teal-300"
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                 onClick={() => handleView(user)}
                                 aria-label="View user details"
                               >
@@ -406,12 +428,11 @@ const UserPage: React.FC = () => {
                                 </span>
                               </button>
                               <button
-                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 transition-all duration-200 hover:bg-emerald-100 hover:text-emerald-700 hover:shadow-md dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-300"
-                                onClick={() =>{ 
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
+                                onClick={() => {
                                   setSelectedUser(user);
                                   setEditOpen(true);
-                                }
-                                }
+                                }}
                                 aria-label="Edit user"
                               >
                                 <Edit
@@ -446,7 +467,6 @@ const UserPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* View User Dialog */}
           <Dialog open={viewOpen} onOpenChange={setViewOpen}>
             <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded-lg bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
               <DialogHeader className="sticky top-0 z-10 border-b  bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
@@ -464,7 +484,7 @@ const UserPage: React.FC = () => {
               {selectedUser ? (
                 <div className="p-6">
                   <div className="mb-6 flex items-center justify-center">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-teal-100 to-emerald-100 text-teal-600 dark:from-teal-900/30 dark:to-emerald-900/30 dark:text-teal-400">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-blue-100 to-blue-100 text-blue-600 dark:from-blue-900/30 dark:to-blue-900/30 dark:text-blue-400">
                       <span className="text-2xl font-bold">
                         {selectedUser.name.charAt(0)}
                       </span>
@@ -473,8 +493,8 @@ const UserPage: React.FC = () => {
 
                   <div className="space-y-4">
                     <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
-                      <div className="bg-gradient-to-r from-teal-50 to-emerald-50 px-4 py-2 dark:from-teal-900/20 dark:to-emerald-900/20">
-                        <h3 className="font-medium text-teal-800 dark:text-teal-300">
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-4 py-2 dark:from-blue-900/20 dark:to-blue-900/20">
+                        <h3 className="font-medium text-blue-800 dark:text-blue-300">
                           Personal Information
                         </h3>
                       </div>
@@ -505,10 +525,71 @@ const UserPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
+                    
+                    <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-4 py-2 dark:from-blue-900/20 dark:to-blue-900/20">
+                        <h3 className="font-medium text-blue-800 dark:text-blue-300">
+                          Enrolled Courses
+                        </h3>
+                      </div>
+                      <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                        {coursesData?.data?.filter(course =>
+                          course.enrolledUsers?.includes(selectedUser?._id)
+                        ).length > 0 ? (
+                          coursesData?.data?.filter(course =>
+                            course.enrolledUsers?.includes(selectedUser?._id)
+                          ).map((course, index) => {
+                            // Find the transaction for this course and user
+                            const transaction = transactionsData?.data?.find(
+                              t => t.courseId?._id === course._id && t.userId?._id === selectedUser._id
+                            );
+
+                            return (
+                              <div key={index} className="space-y-2 px-4 py-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                    Course {index + 1}
+                                  </span>
+                                  <span className="text-xs text-gray-500 font-semibold dark:text-gray-400">
+                                    {course.price === "1" ? `₹ 1` : `₹ ${course.price}`}
+                                  </span>
+                                </div>
+                                <div className="space-y-1">
+                                  <span className="block text-sm font-medium text-gray-900 dark:text-gray-200">
+                                    {course.courseName}
+                                  </span>
+                                  {transaction ? (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                                      Purchased on: {new Date(transaction.createdAt).toLocaleDateString(undefined, {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </p>
+                                  ) : (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                      Purchase date not available
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="px-4 py-3">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                              No courses enrolled yet.
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
                     <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
-                      <div className="bg-gradient-to-r from-teal-50 to-emerald-50 px-4 py-2 dark:from-teal-900/20 dark:to-emerald-900/20">
-                        <h3 className="font-medium text-teal-800 dark:text-teal-300">
+                      <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-4 py-2 dark:from-blue-900/20 dark:to-blue-900/20">
+                        <h3 className="font-medium text-blue-800 dark:text-blue-300">
                           Account Information
                         </h3>
                       </div>
@@ -519,7 +600,7 @@ const UserPage: React.FC = () => {
                           </span>
                           <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
                             {new Date(
-                              selectedUser.createdAt,
+                              selectedUser.createdAt
                             ).toLocaleDateString(undefined, {
                               year: "numeric",
                               month: "long",
@@ -529,6 +610,7 @@ const UserPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
+
                   </div>
                 </div>
               ) : (
@@ -541,7 +623,6 @@ const UserPage: React.FC = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Delete Confirmation Dialog */}
           <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
             <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
               <DialogHeader>
@@ -576,7 +657,6 @@ const UserPage: React.FC = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Enhanced Pagination Controls */}
           <div className="mt-6 rounded-lg bg-white  p-4 shadow-md dark:bg-gray-800 dark:text-white">
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
               <div className="text-sm text-gray-500  dark:text-gray-400">
@@ -601,13 +681,12 @@ const UserPage: React.FC = () => {
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
-                  className="h-8 w-8 rounded-md bg-teal-50 p-0 text-teal-600 transition-colors hover:bg-teal-100 disabled:bg-gray-50 disabled:text-gray-400  dark:bg-blue-900/20  dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400  dark:bg-blue-900/20  dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                {/* Page Numbers */}
                 <div className="hidden sm:flex sm:items-center sm:space-x-1">
                   {generatePaginationNumbers().map((page, index) =>
                     page === "..." ? (
@@ -621,21 +700,19 @@ const UserPage: React.FC = () => {
                       <Button
                         key={`page-${page}`}
                         onClick={() => setCurrentPage(Number(page))}
-                        className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
-                          currentPage === page
-                            ? "bg-teal-600 text-white hover:bg-teal-700  dark:bg-blue-700 dark:hover:bg-blue-800"
-                            : "bg-teal-50 text-teal-600 hover:bg-teal-100  dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                        }`}
+                        className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${currentPage === page
+                          ? "bg-blue-600 text-white hover:bg-blue-700  dark:bg-blue-700 dark:hover:bg-blue-800"
+                          : "bg-blue-50 text-blue-600 hover:bg-blue-100  dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                          }`}
                         aria-label={`Page ${page}`}
                         aria-current={currentPage === page ? "page" : undefined}
                       >
                         {page}
                       </Button>
-                    ),
+                    )
                   )}
                 </div>
 
-                {/* Mobile Page Indicator */}
                 <span className="text-sm font-medium text-gray-700  dark:text-gray-300 sm:hidden">
                   Page {currentPage} of {totalPages || 1}
                 </span>
@@ -643,18 +720,17 @@ const UserPage: React.FC = () => {
                 <Button
                   onClick={() =>
                     setCurrentPage((prev) =>
-                      Math.min(prev + 1, totalPages || 1),
+                      Math.min(prev + 1, totalPages || 1)
                     )
                   }
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="h-8 w-8 rounded-md bg-teal-50 p-0 text-teal-600 transition-colors hover:bg-teal-100 disabled:bg-gray-50 disabled:text-gray-400  dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400  dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                   aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
 
-              {/* Jump to page (desktop only) */}
               <div className="hidden items-center space-x-2 lg:flex">
                 <span className="text-sm text-gray-500  dark:text-gray-400">
                   Go to page:
@@ -679,7 +755,6 @@ const UserPage: React.FC = () => {
         </div>
       </main>
 
-      {/* Custom Scrollbar Styling */}
       <style jsx global>{`
         body {
           overflow-x: hidden;
@@ -707,12 +782,11 @@ const UserPage: React.FC = () => {
         }
       `}</style>
 
-        <EditUserModal
-          editOpen={editOpen}
-          setEditOpen={setEditOpen}
-          selectedUser={selectedUser}
-        />
-  
+      <EditUserModal
+        editOpen={editOpen}
+        setEditOpen={setEditOpen}
+        selectedUser={selectedUser}
+      />
     </div>
   );
 };

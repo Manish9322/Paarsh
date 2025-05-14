@@ -333,12 +333,34 @@ const JobApplicationPage: React.FC = () => {
                         </Card>
 
                         {/* View Application Dialog */}
-                        <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+                        <Dialog open={viewOpen}>
                             <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
                                 <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
-                                    <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
-                                        Application Details
-                                    </DialogTitle>
+                                    <div className="flex items-center justify-between">
+                                        <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
+                                            Application Details
+                                        </DialogTitle>
+                                        <Button
+                                            onClick={() => setViewOpen(false)}
+                                            variant="ghost"
+                                            className="h-8 w-8 rounded-full p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        >
+                                            <svg
+                                                className="h-4 w-4 text-gray-500 dark:text-gray-400"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                />
+                                            </svg>
+                                        </Button>
+                                    </div>
                                 </DialogHeader>
                                 {selectedApplication && (
                                     <div className="p-6 space-y-4">

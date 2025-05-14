@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Copy, Share2, CheckCircle, Gift, Award, Users, CreditCard, Zap } from "lucide-react";
 import { useFetchUserQuery, useFetchUserRefferalsQuery } from "@/services/api";
@@ -323,7 +325,7 @@ export default function ReferEarn() {
             <div className="text-center py-8">
               <CheckCircle className="mx-auto mb-4 text-gray-400" size={48} />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No completed referrals yet</h3>
-              <p className="text-gray-500 dark:text-gray-400">When your friends complete a course, they'll appear here</p>
+              <p className="text-gray-500 dark:text-gray-400">When your friends complete a course, they&apos;ll appear here</p>
             </div>
           )}
           
@@ -356,7 +358,7 @@ export default function ReferEarn() {
       {/* Rewards Section */}
       <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl">
         <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-8">
-          Rewards You'll Both Receive
+          Rewards You&apos;ll Both Receive
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {rewards.map((reward, index) => (

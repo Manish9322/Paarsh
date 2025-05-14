@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import _db from "../../../../utils/db";
 import { authMiddleware } from "../../../../middlewares/auth";
 import UserModel from "../../../../models/User.model";
+import bcrypt from "bcryptjs";
 
 export const GET = authMiddleware(async (req) => {
   try {
@@ -30,11 +31,14 @@ export const GET = authMiddleware(async (req) => {
 export const PUT = authMiddleware(async (req) => {
   try {
     const { user } = req;
-    console.log("user is tthe ", user);
     const { id, name, email, mobile } = await req.json();
 
+    // Convert both IDs to strings for comparison
+    const requestedUserId = id?.toString();
+    const loggedInUserId = user?._id?.toString();
+
     // If the request is from a normal user, they can only update their own profile
-    if (!user.isAdmin && user._id !== id) {
+    if (!user.isAdmin && loggedInUserId !== requestedUserId) {
       return NextResponse.json(
         { error: "Unauthorized to update this user", success: false },
         { status: 403 }
@@ -68,21 +72,43 @@ export const PUT = authMiddleware(async (req) => {
   }
 }, ["user"]);
 
-
 export const DELETE = authMiddleware(async (req) => {
   try {
     const { user } = req;
-    const { id } = await req.json();
+    const { email, password } = await req.json();
 
-    // If the request is from a normal user, they can only delete their own account
-    if (!user.isAdmin && user._id !== id) {
+    // Find the user by email
+    const foundUser = await UserModel.findOne({ email });
+
+    if (!foundUser) {
+      return NextResponse.json(
+        { error: "User not found", success: false },
+        { status: 404 }
+      );
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, foundUser.password);
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Incorrect password",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Check if the user is trying to delete their own account
+    if (user._id.toString() !== foundUser._id.toString()) {
       return NextResponse.json(
         { error: "Unauthorized to delete this user", success: false },
         { status: 403 }
       );
     }
 
-    const deletedUser = await UserModel.findByIdAndDelete(id);
+    // Delete the user
+    const deletedUser = await UserModel.findByIdAndDelete(foundUser._id);
 
     if (!deletedUser) {
       return NextResponse.json(

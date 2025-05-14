@@ -41,6 +41,8 @@ export const paarshEduApi = createApi({
     "Contact",
     "MeetingLink",
     "Progress",
+    "Offer",
+    "Transaction"
   ],
 
   endpoints: (builder) => ({
@@ -178,6 +180,16 @@ export const paarshEduApi = createApi({
       providesTags: ["Agent"],
     }),
 
+    // New API endpoint for updating agent targets
+    updateAgentTarget: builder.mutation({
+      query: ({ id, targetType, targetValue }) => ({
+        url: "/agent",
+        method: "PATCH",
+        body: { id, targetType, targetValue },
+      }),
+      invalidatesTags: ["Agent"],
+    }),
+
     // ------------------------------------------------------------Users Apis-------------------------------------------------------------
 
     fetchUsers: builder.query({
@@ -200,7 +212,11 @@ export const paarshEduApi = createApi({
     }),
 
     deleteUser: builder.mutation({
-      query: (id) => ({ url: "/user", method: "DELETE", body: id }),
+      query: ({ email, password }) => ({
+        url: "/user",
+        method: "DELETE",
+        body: { email, password }
+      }),
       invalidatesTags: ["User"],
     }),
 
@@ -283,12 +299,12 @@ export const paarshEduApi = createApi({
     }),
 
     fetchCourseVideo: builder.query({
-      query: () => "/course/videos",
+      query: (params) => `/course/videos?courseId=${params.courseId}`,
       providesTags: ["CourseVideo"],
     }),
 
     fetchCourseVideoById: builder.query({
-      query: (params) => `/course/videos?courseId=${params.courseId}`,
+      query: (params) => `/user/courses/videos?courseId=${params.courseId}`,
       providesTags: ["CourseVideo"],
     }),
   
@@ -516,6 +532,60 @@ export const paarshEduApi = createApi({
       }),
     })
 
+    // Offers Endpoints
+    addOffer: builder.mutation({
+      query: (formData) => ({
+        url: "/admin/offers",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Offer"],
+    }),
+
+    updateOffer: builder.mutation({
+      query: ({ id, ...formData }) => ({
+        url: `/admin/offers`,
+        method: "PUT",
+        body: { id, ...formData },
+      }),
+      invalidatesTags: ["Offer"],
+    }),
+
+    deleteOffer: builder.mutation({
+      query: (id) => ({
+        url: "/admin/offers",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["Offer"],
+    }),
+
+    fetchOffers: builder.query({
+      query: () => "/admin/offers",
+      providesTags: ["Offer"],
+    }),
+
+    // Get active offers for a course
+    fetchActiveOffers: builder.mutation({
+      query: (courseId) => ({
+        url: "/admin/offers/active",
+        method: "POST",
+        body: { courseId },
+      }),
+    }),    // Transactions endpoint
+    fetchTransactions: builder.query({
+      query: () => "/transactions",
+      providesTags: ["Transaction"],
+      transformResponse: (response) => ({
+        ...response,
+        data: response.data.map(tx => ({
+          ...tx,
+          userId: { ...tx.userId, name: tx.userId?.name || 'N/A' },
+          courseId: { ...tx.courseId, courseName: tx.courseId?.courseName || 'N/A' }
+        }))
+      })
+    }),
+
   }),
 });
 
@@ -534,6 +604,7 @@ export const {
   useUpdateAgentMutation,
   useDeleteAgentMutation,
   useFetchAgentQuery,
+  useUpdateAgentTargetMutation,
 
   useFetchUserQuery,
   useUpdateUserMutation,
@@ -584,6 +655,13 @@ export const {
   useFetchUserRefferalsQuery,
   useFetchCourseProgressQuery,
 
+  useAddOfferMutation,
+  useUpdateOfferMutation,
+  useDeleteOfferMutation,
+  useFetchOffersQuery,
+
+  useFetchActiveOffersMutation,
+
   useFetchWithdrawalRequestQuery,
   useCreateWithdrawalRequestMutation,
   useUpdateWithdrawalRequestMutation,
@@ -593,5 +671,7 @@ export const {
   useFetchAgentSalesQuery,
   useFetchagentCourseRefferalLinkQuery,
   useCreateLeadMutation
+
+  useFetchTransactionsQuery,
 
 } = paarshEduApi;

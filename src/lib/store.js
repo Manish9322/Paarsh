@@ -11,6 +11,7 @@ import paymentReducer from "../lib/slices/paymentSlice";
 import userReducer from "../lib/slices/userSlice";
 import withdrawalReducer from "../lib/slices/withdrawalSlice";
 import attributionReducer from "./slices/attributionSlice";
+import offersReducer from "../lib/slices/offersSlice";
 
 // Combine all reducers
 const rootReducer = combineReducers({
@@ -25,6 +26,7 @@ const rootReducer = combineReducers({
   payment: paymentReducer,
   withdrawal: withdrawalReducer,
   attribution: attributionReducer,
+  offers: offersReducer,
 
   [paarshEduApi.reducerPath]: paarshEduApi.reducer, // Include RTK Query API slice
 });

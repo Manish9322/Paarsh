@@ -62,45 +62,45 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   };
 
   const menuItems = [
-    { 
-      name: "Dashboard", 
-      icon: <LayoutDashboard size={20} />, 
+    {
+      name: "Dashboard",
+      icon: <LayoutDashboard size={20} />,
       path: "/userdashboard",
       description: "Overview of your courses and progress"
     },
-    { 
-      name: "Home", 
-      icon: <Home size={20} />, 
+    {
+      name: "Home",
+      icon: <Home size={20} />,
       path: "/",
       description: "Return to main website"
     },
-    { 
-      name: "Meeting Links", 
-      icon: <Video size={20} />, 
+    {
+      name: "Meeting Links",
+      icon: <Video size={20} />,
       path: "/view-links",
       description: "Access your class meeting links"
     },
-    { 
-      name: "Refer & Earn", 
-      icon: <Gift size={20} />, 
+    {
+      name: "Refer & Earn",
+      icon: <Gift size={20} />,
       path: "/refer-earn",
       description: "Invite friends and earn rewards"
     },
-    { 
-      name: "Wallet", 
-      icon: <Wallet size={20} />, 
+    {
+      name: "Wallet",
+      icon: <Wallet size={20} />,
       path: "/user-wallet",
       description: "Invite friends and earn rewards"
     },
-    { 
-      name: "FAQ", 
-      icon: <HelpCircle size={20} />, 
+    {
+      name: "FAQ",
+      icon: <HelpCircle size={20} />,
       path: "/faq",
       description: "Get answers to common questions"
     },
-    { 
-      name: "Log Out", 
-      icon: <LogOut size={20} />, 
+    {
+      name: "Log Out",
+      icon: <LogOut size={20} />,
       onClick: handleLogoutClick, // Changed from handleLogout to handleLogoutClick
       description: "Sign out of your account"
     },
@@ -126,21 +126,16 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsSidebarOpen(true)}
-        className="fixed z-40 bottom-4 right-4 p-2 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 transition-all duration-300 lg:hidden flex items-center justify-center"
+        className={`fixed z-40 top-4 right-4 p-2 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 transition-all duration-300 lg:hidden flex items-center justify-center ${isSidebarOpen ? 'hidden' : ''}`}
         aria-label="Toggle Sidebar"
       >
-        {isSidebarOpen ? (
-          <X size={24} />
-        ) : (
-          <Menu size={24} />
-        )}
+        <Menu size={24} />
       </button>
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full p-4">
           <div className="flex items-center justify-between mb-6">
@@ -184,11 +179,10 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                       <Link
                         href={item.path}
                         onClick={() => setIsSidebarOpen(false)}
-                        className={`relative flex items-center gap-3 px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all ${
-                          isActive
+                        className={`relative flex items-center gap-3 px-4 py-3 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all ${isActive
                             ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium"
                             : "text-gray-700 dark:text-gray-300"
-                        }`}
+                          }`}
                       >
                         <span className="text-xl">{item.icon}</span>
                         <span>{item.name}</span>
@@ -220,7 +214,7 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
                 );
               })}
             </div>
-            
+
             {/* Sidebar Footer */}
             <div className="mt-auto pt-4">
               <Link
@@ -258,7 +252,7 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
       )}
 
 
-<Dialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
+      <Dialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
         <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
@@ -272,15 +266,15 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
             </p>
           </div>
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setLogoutConfirmOpen(false)}
               className="w-full sm:w-auto"
             >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleLogoutConfirm}
               className="w-full sm:w-auto"
             >

@@ -12,17 +12,18 @@ import {
   addVideoToTopic,
   updateVideoName,
   updateVideoId,
-  removeVideoFromTopic,
   updateResourceId,
-  updateNotesId, // Import new action
+  updateNotesId,
+  removeVideoFromTopic,
+  resetState,
 } from "../../lib/slices/courseVideoSlice";
 import {
   useAddCourseVideoMutation,
-  useFetchCourseVideoByIdQuery,
+  useFetchCourseVideoQuery,
   useUploadResourceMutation,
 } from "@/services/api";
 import { useState, useEffect } from "react";
-import { store } from "../../lib/store";
+import { ObjectId } from "bson";
 
 const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   const dispatch = useDispatch();
@@ -37,13 +38,13 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     data: fetchResponse,
     isLoading: isLoadingCourseVideos,
     refetch,
-  } = useFetchCourseVideoByIdQuery(
+  } = useFetchCourseVideoQuery(
     {
       courseId: selectedCourse._id,
     },
     {
       skip: !selectedCourse._id || !isOpen,
-    },
+    }
   );
 
   const courseVideos = fetchResponse?.data;
@@ -55,22 +56,29 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [dataInitialized, setDataInitialized] = useState(false);
   const [resourceUploads, setResourceUploads] = useState({});
-  const [notesUploads, setNotesUploads] = useState({}); // New state for notes
+  const [notesUploads, setNotesUploads] = useState({});
+
+  // Custom handler for dialog open state change
+  const handleOpenChange = (open) => {
+    if (!open) {
+      handleClose();
+    }
+  };
 
   // Reset and initialize data when modal opens or course data changes
   useEffect(() => {
     if (!isOpen) {
       setVideoUploads({});
       setResourceUploads({});
-      setNotesUploads({}); // Reset notes
+      setNotesUploads({});
       setDataInitialized(false);
+      dispatch(resetState());
       return;
     }
 
-    dispatch(setCourseField({ field: "topics", value: [] }));
-    setDataInitialized(false);
+    dispatch(resetState());
 
-    const loadData = async () => {
+    const loadData = () => {
       if (
         courseVideos &&
         courseVideos.topics &&
@@ -78,122 +86,34 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
       ) {
         console.log("Found topics to load:", courseVideos.topics.length);
 
-        const topicIds = [];
+        const topics = courseVideos.topics
+          .filter((topic) => topic && typeof topic === "object")
+          .map((topic) => ({
+            _id: new ObjectId().toString(),
+            topicName: topic.topicName || "",
+            videos:
+              topic.videos && Array.isArray(topic.videos)
+                ? topic.videos
+                    .filter((video) => video && typeof video === "object")
+                    .map((video) => ({
+                      _id: new ObjectId().toString(),
+                      videoName: video.videoName || "",
+                      videoId: video.videoId || "",
+                      resourceId: video.resourceId || "",
+                      notesId: video.notesId || "",
+                    }))
+                : [],
+          }));
 
-        for (let i = 0; i < courseVideos.topics.length; i++) {
-          dispatch(addTopic());
-          await new Promise((resolve) => setTimeout(resolve, 50));
-          const currentState = store.getState().courseVideo;
-          if (currentState.topics[i]) {
-            topicIds.push(currentState.topics[i]._id);
-          }
-        }
-
-        console.log("Created topics with IDs:", topicIds);
-
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        for (let i = 0; i < courseVideos.topics.length; i++) {
-          const topic = courseVideos.topics[i];
-          const currentState = store.getState().courseVideo;
-          const topicIndex = i;
-
-          if (topicIndex < currentState.topics.length) {
-            const topicId = currentState.topics[topicIndex]._id;
-
-            dispatch(
-              updateTopicName({
-                topicId: topicId,
-                value: topic.topicName,
-              }),
-            );
-
-            console.log(`Updated topic ${i} name to: ${topic.topicName}`);
-
-            if (
-              currentState.topics[topicIndex].videos &&
-              currentState.topics[topicIndex].videos.length > 0
-            ) {
-              dispatch(
-                removeVideoFromTopic({
-                  topicId: topicId,
-                  videoId: currentState.topics[topicIndex].videos[0]._id,
-                }),
-              );
-
-              await new Promise((resolve) => setTimeout(resolve, 50));
-            }
-
-            if (topic.videos && Array.isArray(topic.videos)) {
-              for (let j = 0; j < topic.videos.length; j++) {
-                const video = topic.videos[j];
-
-                dispatch(addVideoToTopic({ topicId: topicId }));
-
-                await new Promise((resolve) => setTimeout(resolve, 50));
-
-                const updatedState = store.getState().courseVideo;
-                const updatedTopic = updatedState.topics.find(
-                  (t) => t._id === topicId,
-                );
-
-                if (
-                  updatedTopic &&
-                  updatedTopic.videos &&
-                  updatedTopic.videos.length > 0
-                ) {
-                  const videoId =
-                    updatedTopic.videos[updatedTopic.videos.length - 1]._id;
-
-                  dispatch(
-                    updateVideoName({
-                      topicId: topicId,
-                      videoId: videoId,
-                      value: video.videoName,
-                    }),
-                  );
-
-                  dispatch(
-                    updateVideoId({
-                      topicId: topicId,
-                      videoId: videoId,
-                      value: video.videoId,
-                    }),
-                  );
-
-                  dispatch(
-                    updateResourceId({
-                      topicId: topicId,
-                      videoId: videoId,
-                      value: video.resourceId,
-                    }),
-                  );
-
-                  dispatch(
-                    updateNotesId({
-                      topicId: topicId,
-                      videoId: videoId,
-                      value: video.notesId || "", // Load notesId
-                    }),
-                  );
-
-                  console.log(
-                    `Added video ${j} with name ${video.videoName} to topic ${i}`,
-                  );
-                }
-              }
-            }
-          }
-        }
+        dispatch(setCourseField({ field: "topics", value: topics }));
+        console.log("Initialized topics:", topics);
       } else {
         console.log("No course data found, adding default topic");
         dispatch(addTopic());
       }
 
-      setTimeout(() => {
-        setDataInitialized(true);
-        console.log("Data initialization complete");
-      }, 300);
+      setDataInitialized(true);
+      console.log("Data initialization complete");
     };
 
     loadData();
@@ -247,7 +167,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
           topicId,
           videoId,
           value: uploadResult.fileUrl,
-        }),
+        })
       );
 
       toast.dismiss(toastId);
@@ -256,7 +176,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
       console.error("Error uploading file:", error);
       toast.dismiss();
       toast.error(
-        "Failed to upload video: " + (error.message || "Unknown error"),
+        "Failed to upload video: " + (error.message || "Unknown error")
       );
     }
   };
@@ -296,7 +216,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
           topicId,
           videoId,
           value: result.fileUrl,
-        }),
+        })
       );
 
       toast.dismiss(toastId);
@@ -304,7 +224,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     } catch (error) {
       console.error("Error uploading resource:", error);
       toast.error(
-        "Failed to upload resource: " + (error.message || "Unknown error"),
+        "Failed to upload resource: " + (error.message || "Unknown error")
       );
     }
   };
@@ -325,7 +245,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const result = await uploadResource(formData).unwrap(); // Reuse uploadResource endpoint
+      const result = await uploadResource(formData).unwrap();
 
       if (!result.success) {
         throw new Error(result.message || "Failed to upload notes");
@@ -344,7 +264,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
           topicId,
           videoId,
           value: result.fileUrl,
-        }),
+        })
       );
 
       toast.dismiss(toastId);
@@ -352,7 +272,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     } catch (error) {
       console.error("Error uploading notes:", error);
       toast.error(
-        "Failed to upload notes: " + (error.message || "Unknown error"),
+        "Failed to upload notes: " + (error.message || "Unknown error")
       );
     }
   };
@@ -374,14 +294,14 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
               videoName: video.videoName || video.name || "",
               videoId: video.videoId || video.id || "",
               resourceId: video.resourceId || "",
-              notesId: video.notesId || "", // Add notesId
+              notesId: video.notesId || "",
               _id: video._id,
             }))
             .filter((video) => video.videoName && video.videoId),
           _id: topic._id,
         }))
         .filter(
-          (topic) => topic.topicName && topic.videos && topic.videos.length > 0,
+          (topic) => topic.topicName && topic.videos && topic.videos.length > 0
         ),
     };
 
@@ -416,15 +336,36 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
     setVideoPreview(null);
   };
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    }
+    setVideoPreview(null);
+    setPreviewOpen(false);
+    setVideoUploads({});
+    setResourceUploads({});
+    setNotesUploads({});
+    setDataInitialized(false);
+    dispatch(resetState());
+  };
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="max-h-[80vh] overflow-y-auto p-6">
-          <DialogTitle className="text-2xl font-semibold">
-            {courseVideos && courseVideos.topics
-              ? "Update Course Videos"
-              : "Add Course Videos"}
-          </DialogTitle>
+          <div className="flex justify-between items-center mb-4 relative">
+            <DialogTitle className="text-2xl font-semibold">
+              {courseVideos && courseVideos.topics
+                ? "Update Course Videos"
+                : "Add Course Videos"}
+            </DialogTitle>
+            <Button
+              onClick={handleClose}
+              className="absolute -top-2 -right-3 z-50 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-grayx-600 rounded-full w-8 h-8 p-0 flex items-center justify-center"
+            >
+              <span className="text-xl text-black">×</span>
+            </Button>
+          </div>
 
           {isLoadingCourseVideos || !dataInitialized ? (
             <div className="flex items-center justify-center py-10">
@@ -456,7 +397,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                             updateTopicName({
                               topicId: topic._id,
                               value: e.target.value,
-                            }),
+                            })
                           )
                         }
                         className="mb-2"
@@ -466,7 +407,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                           const videoKey = `${topic._id}-${video._id}`;
                           const videoData = videoUploads[videoKey];
                           const resourceData = resourceUploads[videoKey];
-                          const notesData = notesUploads[videoKey]; // Notes data
+                          const notesData = notesUploads[videoKey];
                           const hasExistingVideo =
                             video.videoId &&
                             !video.videoId.startsWith("data:video/") &&
@@ -474,7 +415,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                           const hasExistingResource =
                             video.resourceId && !resourceData;
                           const hasExistingNotes =
-                            video.notesId && !notesData; // Check for existing notes
+                            video.notesId && !notesData;
 
                           return (
                             <div
@@ -491,7 +432,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                                       topicId: topic._id,
                                       videoId: video._id,
                                       value: e.target.value,
-                                    }),
+                                    })
                                   )
                                 }
                               />
@@ -514,7 +455,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                                       openVideoPreview(
                                         videoData
                                           ? videoData.preview
-                                          : video.videoId,
+                                          : video.videoId
                                       )
                                     }
                                     className="bg-green-600 text-white hover:bg-green-700 dark:bg-green-600 dark:text-white"
@@ -528,7 +469,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                                       removeVideoFromTopic({
                                         topicId: topic._id,
                                         videoId: video._id,
-                                      }),
+                                      })
                                     )
                                   }
                                   className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
@@ -556,7 +497,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
                                       handleResourceUpload(
                                         e,
                                         topic._id,
-                                        video._id,
+                                        video._id
                                       )
                                     }
                                     className="cursor-pointer"
@@ -626,7 +567,7 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
 
               <div className="mt-5 flex justify-end gap-3">
                 <Button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-white dark:text-black"
                 >
                   Cancel

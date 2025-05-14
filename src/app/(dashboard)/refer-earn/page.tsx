@@ -1,6 +1,10 @@
 "use client";
-import React from "react";
-import ReferEarn from "@/components/ReferEarn/page";
+
+import dynamic from 'next/dynamic';
+
+const ReferEarn = dynamic(() => import("@/components/ReferEarn/page"), {
+  ssr: false,
+});
 
 export default function ReferEarnPage() {
   return <ReferEarn />;
