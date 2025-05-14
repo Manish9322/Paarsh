@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import {
   Table,
   TableBody,
@@ -42,6 +43,7 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  TrendingUp,
   Calendar,
   Clock,
   Video,
@@ -54,8 +56,8 @@ import {
   Check,
   AlertCircle,
 } from "lucide-react";
-import { 
-  useFetchMeetingLinksQuery, 
+import {
+  useFetchMeetingLinksQuery,
   useAddMeetingLinkMutation,
   useUpdateMeetingLinkMutation,
   useDeleteMeetingLinkMutation,
@@ -94,7 +96,7 @@ const MeetingLinksPage: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [itemsPerPage] = useState(10);
-  
+
   // Meeting dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -102,7 +104,7 @@ const MeetingLinksPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingLink | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  
+
   // Form state for create/edit
   const [formData, setFormData] = useState({
     title: "",
@@ -115,7 +117,7 @@ const MeetingLinksPage: React.FC = () => {
     recording: "",
     duration: 60,
   });
-  
+
   // RTK Query hooks
   const { data: meetingLinksData, isLoading, refetch } = useFetchMeetingLinksQuery({
     page: currentPage,
@@ -126,26 +128,26 @@ const MeetingLinksPage: React.FC = () => {
     sortOrder: sortOrder
   });
 
-  console.log("meetingLinksData",meetingLinksData);
-  
+  console.log("meetingLinksData", meetingLinksData);
+
   const [addMeetingLink, { isLoading: isAddingMeeting }] = useAddMeetingLinkMutation();
   const [updateMeetingLink, { isLoading: isUpdatingMeeting }] = useUpdateMeetingLinkMutation();
   const [deleteMeetingLink, { isLoading: isDeletingMeeting }] = useDeleteMeetingLinkMutation();
   const [generateMeetingLink, { isLoading: isGeneratingLink }] = useGenerateMeetingLinkMutation();
   const [updateMeetingStatus] = useUpdateMeetingStatusMutation();
-  
+
   const router = useRouter();
-  
+
   // Extract meeting links and pagination from data
   const meetingLinks = meetingLinksData?.data?.meetings || [];
-  
+
   // Update totalPages when data changes
   useEffect(() => {
     if (meetingLinksData?.data?.pagination) {
       setTotalPages(meetingLinksData.data.pagination.totalPages);
     }
   }, [meetingLinksData]);
-  
+
   // Close sidebar when screen size changes to desktop
   useEffect(() => {
     const handleResize = () => {
@@ -167,7 +169,7 @@ const MeetingLinksPage: React.FC = () => {
       setSortOrder("asc");
     }
   };
-  
+
   // Function to generate real-time meeting link
   const generateRealTimeMeetingLink = async (platform: string) => {
     try {
@@ -178,7 +180,7 @@ const MeetingLinksPage: React.FC = () => {
         time: formData.time || '10:00',
         duration: formData.duration || 60
       }).unwrap();
-      
+
       if (response.success && response.meetingLink) {
         return response.meetingLink;
       } else {
@@ -188,14 +190,14 @@ const MeetingLinksPage: React.FC = () => {
     } catch (error) {
       console.error('Error generating meeting link:', error);
       toast.error('Failed to connect to meeting service. Using placeholder link instead.');
-      
+
       // Fallback to placeholder if API fails
       const placeholderInfo = {
         id: Math.floor(100000000 + Math.random() * 900000000),
         passcode: Math.random().toString(36).substring(2, 10)
       };
-      
-      switch(platform) {
+
+      switch (platform) {
         case "Zoom":
           return `https://zoom.us/j/${placeholderInfo.id}?pwd=${placeholderInfo.passcode}`;
         case "Google Meet":
@@ -215,10 +217,10 @@ const MeetingLinksPage: React.FC = () => {
       ...prev,
       platform: value,
     }));
-    
+
     // Generate a new link based on the selected platform
     const newLink = await generateRealTimeMeetingLink(value);
-    
+
     // Update link in form data
     setFormData(prev => ({
       ...prev,
@@ -229,7 +231,7 @@ const MeetingLinksPage: React.FC = () => {
   // Update handleCreateMeeting to be async
   const handleCreateMeeting = async () => {
     const defaultPlatform = "Zoom";
-    
+
     // Reset form data with default values
     setFormData({
       title: "",
@@ -242,20 +244,20 @@ const MeetingLinksPage: React.FC = () => {
       recording: "",
       duration: 60,
     });
-    
+
     // Open dialog right away for better UX
     setCreateDialogOpen(true);
-    
+
     // Generate link in background
     const newLink = await generateRealTimeMeetingLink(defaultPlatform);
-    
+
     // Update form with the generated link
     setFormData(prev => ({
       ...prev,
       link: newLink
     }));
   };
-  
+
   const handleEditMeeting = (meeting: MeetingLink) => {
     setSelectedMeeting(meeting);
     setFormData({
@@ -271,24 +273,24 @@ const MeetingLinksPage: React.FC = () => {
     });
     setEditDialogOpen(true);
   };
-  
+
   const handleViewMeeting = (meeting: MeetingLink) => {
     setSelectedMeeting(meeting);
     setViewDialogOpen(true);
   };
-  
+
   const handleDeleteMeeting = (meeting: MeetingLink) => {
     setSelectedMeeting(meeting);
     setDeleteDialogOpen(true);
   };
-  
+
   // Update confirmDelete to use the API
   const confirmDelete = async () => {
     if (!selectedMeeting) return;
-    
+
     try {
       await deleteMeetingLink(selectedMeeting._id).unwrap();
-      
+
       toast.success("Meeting link deleted successfully");
       setDeleteDialogOpen(false);
       refetch();
@@ -297,43 +299,43 @@ const MeetingLinksPage: React.FC = () => {
       toast.error("Failed to delete meeting link");
     }
   };
-  
+
   // Update handleSubmitMeeting to make actual API calls
   const handleSubmitMeeting = async (isEditing: boolean = false) => {
     try {
       // Validate form
       const requiredFields = ["title", "description", "date", "time", "platform", "instructor"];
       const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
-      
+
       if (missingFields.length > 0) {
         toast.error(`Please fill in all required fields: ${missingFields.join(", ")}`);
         return;
       }
-      
+
       // Format the data with proper typing
       const meetingData = {
         ...formData,
         platform: formData.platform as "Zoom" | "Google Meet" | "Microsoft Teams" | "Other",
         status: isEditing ? selectedMeeting?.status : "upcoming",
       };
-      
+
       if (isEditing && selectedMeeting) {
         // Update existing meeting
         await updateMeetingLink({
           id: selectedMeeting._id,
           ...meetingData
         }).unwrap();
-        
+
         toast.success("Meeting link updated successfully");
         setEditDialogOpen(false);
       } else {
         // Create new meeting
         await addMeetingLink(meetingData).unwrap();
-        
+
         toast.success("Meeting link created successfully");
         setCreateDialogOpen(false);
       }
-      
+
       // Refresh the meeting list
       refetch();
     } catch (error) {
@@ -341,18 +343,18 @@ const MeetingLinksPage: React.FC = () => {
       toast.error(`Failed to ${isEditing ? "update" : "create"} meeting link. Please try again.`);
     }
   };
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleCopyLink = (id: string, link: string) => {
     navigator.clipboard.writeText(link);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -361,7 +363,7 @@ const MeetingLinksPage: React.FC = () => {
       day: "numeric",
     });
   };
-  
+
   const formatDateTime = (dateString: string, timeString: string) => {
     const date = new Date(dateString);
     return `${date.toLocaleDateString("en-US", {
@@ -371,7 +373,7 @@ const MeetingLinksPage: React.FC = () => {
       day: "numeric",
     })} at ${timeString}`;
   };
-  
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "upcoming":
@@ -384,7 +386,9 @@ const MeetingLinksPage: React.FC = () => {
         return <Badge className="bg-gray-500">Unknown</Badge>;
     }
   };
-  
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+
   // Generate pagination numbers
   const generatePaginationNumbers = () => {
     const pageNumbers = [];
@@ -396,30 +400,30 @@ const MeetingLinksPage: React.FC = () => {
       }
     } else {
       pageNumbers.push(1);
-      
+
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(totalPages - 1, currentPage + 1);
-      
+
       if (currentPage <= 3) {
         endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
       }
-      
+
       if (currentPage >= totalPages - 2) {
         startPage = Math.max(2, totalPages - maxPagesToShow + 2);
       }
-      
+
       if (startPage > 2) {
         pageNumbers.push("...");
       }
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
-      
+
       if (endPage < totalPages - 1) {
         pageNumbers.push("...");
       }
-      
+
       if (totalPages > 1) {
         pageNumbers.push(totalPages);
       }
@@ -445,9 +449,8 @@ const MeetingLinksPage: React.FC = () => {
 
       {/* Sidebar - fixed position with proper scrolling */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
@@ -475,365 +478,337 @@ const MeetingLinksPage: React.FC = () => {
       <main className="flex-1 overflow-y-auto pt-16 md:ml-64">
         <div className="container mx-auto px-4 py-6">
           {/* Page Header */}
-          <div className="mb-6 flex flex-col justify-between md:flex-row md:items-center">
-            <h1 className="text-2xl font-bold">Meeting Links</h1>
-            <div className="mt-4 flex flex-col space-y-3 md:mt-0 md:flex-row md:space-x-3 md:space-y-0">
-              <Input
-                placeholder="Search meetings..."
-                className="w-full md:w-64"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Button 
-                onClick={handleCreateMeeting}
-                className="w-full md:w-auto"
-                disabled={isGeneratingLink}
-              >
-                {isGeneratingLink ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Meeting Link
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Meetings
+          <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
+              <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+                <CardTitle className="text-xl font-bold text-white sm:text-2xl">
+                  Meeting Links Management
                 </CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-8 w-20" />
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">
-                      {meetingLinksData?.data?.pagination?.totalItems || 0}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {meetingLinksData?.data?.stats?.growth?.total > 0
-                        ? `+${meetingLinksData.data.stats.growth.total} from last week`
-                        : meetingLinksData?.data?.stats?.growth?.total < 0
-                        ? `${meetingLinksData.data.stats.growth.total} from last week`
-                        : "No change from last week"}
-                    </p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Upcoming Meetings
-                </CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-8 w-20" />
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">
-                      {meetingLinksData?.data?.stats?.upcoming || 0}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {meetingLinksData?.data?.stats?.growth?.upcoming > 0
-                        ? `+${meetingLinksData.data.stats.growth.upcoming} from last week`
-                        : meetingLinksData?.data?.stats?.growth?.upcoming < 0
-                        ? `${meetingLinksData.data.stats.growth.upcoming} from last week`
-                        : "No change from last week"}
-                    </p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Past Recordings
-                </CardTitle>
-                <Video className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <Skeleton className="h-8 w-20" />
-                ) : (
-                  <>
-                    <div className="text-2xl font-bold">
-                      {meetingLinksData?.data?.stats?.recordings || 0}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {meetingLinksData?.data?.stats?.growth?.recordings > 0
-                        ? `+${meetingLinksData.data.stats.growth.recordings} this month`
-                        : meetingLinksData?.data?.stats?.growth?.recordings < 0
-                        ? `${meetingLinksData.data.stats.growth.recordings} this month`
-                        : "No change this month"}
-                    </p>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Filter Tabs */}
-          <div className="mb-4 flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto pb-1">
-            <button
-              onClick={() => setSelectedFilter("all")}
-              className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                selectedFilter === "all"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-            >
-              All Meetings
-            </button>
-            <button
-              onClick={() => setSelectedFilter("upcoming")}
-              className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                selectedFilter === "upcoming"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-            >
-              Upcoming
-            </button>
-            <button
-              onClick={() => setSelectedFilter("past")}
-              className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                selectedFilter === "past"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-            >
-              Past Meetings
-            </button>
-            <button
-              onClick={() => setSelectedFilter("cancelled")}
-              className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                selectedFilter === "cancelled"
-                  ? "border-blue-500 text-blue-600 dark:text-blue-400"
-                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              }`}
-            >
-              Cancelled
-            </button>
-          </div>
-
-          {/* Meeting Links Table */}
-          <Card className="shadow-md">
-            <CardHeader>
-              <CardTitle>Meeting Links</CardTitle>
+                <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
+                  <Input
+                    type="text"
+                    placeholder="Search meetings..."
+                    className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      // Optionally trigger refetch if needed
+                      if (e.target.value === '') {
+                        refetch();
+                      }
+                    }}
+                    aria-label="Search meetings"
+                  />
+                  <Button
+                    onClick={handleCreateMeeting}
+                    className="w-full md:w-auto rounded-md hover:bg-white/90 text-blue-800 bg-white"
+                    disabled={isGeneratingLink}
+                  >
+                    {isGeneratingLink ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Create Meeting Link
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <AdminSkeletonWrapper>
-                  <div className="mb-4 space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                </AdminSkeletonWrapper>
-              ) : (
-                <>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("title")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Title
-                              {sortField === "title" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("instructor")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Instructor
-                              {sortField === "instructor" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("date")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Date
-                              {sortField === "date" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("platform")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Platform
-                              {sortField === "platform" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("status")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Status
-                              {sortField === "status" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead className="text-center">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {meetingLinks.length > 0 ? (
-                          meetingLinks.map((meeting) => (
-                            <TableRow key={meeting._id}>
-                              <TableCell className="font-medium">
-                                {meeting.title}
-                              </TableCell>
-                              <TableCell>{meeting.instructor}</TableCell>
-                              <TableCell>{formatDate(meeting.date)}</TableCell>
-                              <TableCell>{meeting.platform}</TableCell>
-                              <TableCell>
-                                {getStatusBadge(meeting.status)}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex justify-center space-x-2">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleViewMeeting(meeting)}
-                                    title="View details"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleEditMeeting(meeting)}
-                                    title="Edit"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleDeleteMeeting(meeting)}
-                                    title="Delete"
-                                    className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell
-                              colSpan={6}
-                              className="h-24 text-center"
-                            >
-                              No meeting links found
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
 
-                  {/* Pagination */}
-                  {meetingLinks.length > 0 && totalPages > 1 && (
-                    <div className="mt-6 flex justify-center">
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          disabled={currentPage === 1}
+            <CardContent className="p-4">
+              {/* Stats Cards */}
+              <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <Card className="border-t-4 border-t-blue-700 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Total Meetings
+                    </CardTitle>
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    {isLoading ? (
+                      <Skeleton className="h-8 w-20" />
+                    ) : (
+                      <>
+                        <div className="text-2xl font-bold">
+                          {meetingLinksData?.data?.pagination?.totalItems || 0}
+                        </div>
+                        <p className="text-xs text-blue-600 text-muted-foreground">
+                          {meetingLinksData?.data?.stats?.growth?.total > 0
+                            ? `+${meetingLinksData.data.stats.growth.total} from last week`
+                            : meetingLinksData?.data?.stats?.growth?.total < 0
+                              ? `${meetingLinksData.data.stats.growth.total} from last week`
+                              : "No change from last week"}
+                        </p>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card className="border-t-4 border-t-blue-700 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Upcoming Meetings
+                    </CardTitle>
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    {isLoading ? (
+                      <Skeleton className="h-8 w-20" />
+                    ) : (
+                      <>
+                        <div className="text-2xl font-bold">
+                          {meetingLinksData?.data?.stats?.upcoming || 0}
+                        </div>
+                        <p className="text-xs text-blue-600 text-muted-foreground">
+                          {meetingLinksData?.data?.stats?.growth?.upcoming > 0
+                            ? `+${meetingLinksData.data.stats.growth.upcoming} from last week`
+                            : meetingLinksData?.data?.stats?.growth?.upcoming < 0
+                              ? `${meetingLinksData.data.stats.growth.upcoming} from last week`
+                              : "No change from last week"}
+                        </p>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card className="border-t-4 border-t-blue-700 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Past Recordings
+                    </CardTitle>
+                    <Video className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    {isLoading ? (
+                      <Skeleton className="h-8 w-20" />
+                    ) : (
+                      <>
+                        <div className="text-2xl font-bold">
+                          {meetingLinksData?.data?.stats?.recordings || 0}
+                        </div>
+                        <p className="text-xs text-blue-600 text-muted-foreground">
+                          {meetingLinksData?.data?.stats?.growth?.recordings > 0
+                            ? `+${meetingLinksData.data.stats.growth.recordings} this month`
+                            : meetingLinksData?.data?.stats?.growth?.recordings < 0
+                              ? `${meetingLinksData.data.stats.growth.recordings} this month`
+                              : "No change this month"}
+                        </p>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Filter Tabs */}
+              <div className="mb-4 flex border-b border-gray-200 dark:border-gray-700 overflow-x-auto pb-1">
+                <button
+                  onClick={() => setSelectedFilter("all")}
+                  className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${selectedFilter === "all"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    }`}
+                >
+                  All Meetings
+                </button>
+                <button
+                  onClick={() => setSelectedFilter("upcoming")}
+                  className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${selectedFilter === "upcoming"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    }`}
+                >
+                  Upcoming
+                </button>
+                <button
+                  onClick={() => setSelectedFilter("past")}
+                  className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${selectedFilter === "past"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    }`}
+                >
+                  Past Meetings
+                </button>
+                <button
+                  onClick={() => setSelectedFilter("cancelled")}
+                  className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${selectedFilter === "cancelled"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                    }`}
+                >
+                  Cancelled
+                </button>
+              </div>
+
+            </CardContent>
+
+
+
+
+
+            {/* Meeting Links Table */}
+
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table className="w-full text-black">
+                  <TableHeader>
+                    <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+                      <TableHead className="hidden py-3 sm:table-cell">#</TableHead>
+                      <TableHead
+                        className="cursor-pointer py-3"
+                        onClick={() => handleSort("title")}
+                      >
+                        <div className="flex items-center">
+                          Title
+                          {sortField === "title" && (
+                            <span className="ml-1">
+                              {sortOrder === "asc" ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="hidden py-3 md:table-cell">Instructor</TableHead>
+                      <TableHead className="hidden py-3 lg:table-cell">Date & Time</TableHead>
+                      <TableHead className="hidden py-3 xl:table-cell">Platform</TableHead>
+                      <TableHead className="py-3">Status</TableHead>
+                      <TableHead className="py-3 text-center">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      Array.from({ length: 7 }).map((_, index) => (
+                        <TableRow key={index} className="border-b border-gray-100">
+                          <TableCell className="hidden sm:table-cell">
+                            <Skeleton className="h-4 w-6" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell className="hidden xl:table-cell">
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-4 w-24" />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-center gap-2">
+                              <Skeleton className="h-8 w-8 rounded-full" />
+                              <Skeleton className="h-8 w-8 rounded-full" />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : meetingLinks.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-6 text-center text-gray-500">
+                          No meetings found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      meetingLinks.map((meeting, index) => (
+                        <TableRow
+                          key={meeting._id}
+                          className="border-b border-gray-100 transition-colors hover:bg-gray-50"
                         >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        {generatePaginationNumbers().map((pageNum, index) => (
-                          <Button
-                            key={index}
-                            variant={
-                              pageNum === currentPage ? "default" : "outline"
-                            }
-                            onClick={() => {
-                              if (typeof pageNum === "number") {
-                                setCurrentPage(pageNum);
-                              }
-                            }}
-                            disabled={pageNum === "..."}
-                            className={pageNum === "..." ? "cursor-default" : ""}
-                          >
-                            {pageNum}
-                          </Button>
-                        ))}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() =>
-                            setCurrentPage(Math.min(totalPages, currentPage + 1))
-                          }
-                          disabled={currentPage === totalPages}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+                          <TableCell className="hidden text-center font-medium sm:table-cell">
+                            {startIndex + index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <div className="md:hidden">
+                              <p className="font-medium">{meeting.title}</p>
+                              <p className="mt-1 text-xs text-gray-500">
+                                {meeting.instructor}
+                              </p>
+                              <p className="mt-1 text-xs text-gray-500">
+                                {formatDateTime(meeting.date, meeting.time)}
+                              </p>
+                            </div>
+                            <span className="hidden font-medium md:inline">
+                              {meeting.title}
+                            </span>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {meeting.instructor}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {formatDateTime(meeting.date, meeting.time)}
+                          </TableCell>
+                          <TableCell className="hidden xl:table-cell">
+                            {meeting.platform}
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(meeting.status)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
+                                onClick={() => handleViewMeeting(meeting)}
+                                aria-label="View meeting details"
+                              >
+                                <Eye size={16} className="transition-transform group-hover:scale-110" />
+                              </button>
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
+                                onClick={() => handleEditMeeting(meeting)}
+                                aria-label="Edit meeting"
+                              >
+                                <Edit size={16} className="transition-transform group-hover:scale-110" />
+                              </button>
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                                onClick={() => handleDeleteMeeting(meeting)}
+                                aria-label="Delete meeting"
+                              >
+                                <Trash2 size={16} className="transition-transform group-hover:scale-110" />
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
+
+          {/* Add the custom scrollbar styles */}
+          <style jsx global>{`
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background-color: #f9fafb;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #4b5563;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background-color: #1f2937;
+    }
+  }
+`}</style>
         </div>
       </main>
 
@@ -866,7 +841,7 @@ const MeetingLinksPage: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="description">Description*</Label>
               <Textarea
@@ -878,7 +853,7 @@ const MeetingLinksPage: React.FC = () => {
                 className="min-h-[80px]"
               />
             </div>
-            
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="date">Date*</Label>
@@ -901,7 +876,7 @@ const MeetingLinksPage: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="platform">Platform*</Label>
@@ -939,7 +914,7 @@ const MeetingLinksPage: React.FC = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="duration">Duration (minutes)*</Label>
               <Input
@@ -962,7 +937,7 @@ const MeetingLinksPage: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={() => handleSubmitMeeting(false)}
               disabled={isAddingMeeting || isGeneratingLink}
             >
@@ -1008,7 +983,7 @@ const MeetingLinksPage: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="edit-description">Description*</Label>
               <Textarea
@@ -1020,7 +995,7 @@ const MeetingLinksPage: React.FC = () => {
                 className="min-h-[80px]"
               />
             </div>
-            
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="edit-date">Date*</Label>
@@ -1043,7 +1018,7 @@ const MeetingLinksPage: React.FC = () => {
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="edit-platform">Platform*</Label>
@@ -1081,7 +1056,7 @@ const MeetingLinksPage: React.FC = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="edit-duration">Duration (minutes)*</Label>
               <Input
@@ -1095,7 +1070,7 @@ const MeetingLinksPage: React.FC = () => {
                 onChange={handleInputChange}
               />
             </div>
-            
+
             {selectedMeeting?.status === "past" && (
               <div className="space-y-2">
                 <Label htmlFor="edit-recording">Recording URL (optional)</Label>
@@ -1117,7 +1092,7 @@ const MeetingLinksPage: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={() => handleSubmitMeeting(true)}
               disabled={isUpdatingMeeting || isGeneratingLink}
             >
@@ -1152,7 +1127,7 @@ const MeetingLinksPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -1182,7 +1157,7 @@ const MeetingLinksPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
                 <h4 className="font-medium mb-2">Meeting Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1217,14 +1192,14 @@ const MeetingLinksPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              
+
               <div>
                 <h4 className="font-medium mb-2">Description</h4>
                 <p className="text-gray-700 dark:text-gray-300">
                   {selectedMeeting.description}
                 </p>
               </div>
-              
+
               {selectedMeeting.status === "upcoming" && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
