@@ -61,7 +61,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: `${role} login successful`,
+      message: "Login Successful",
       user: { ...safeUser, role },
       admin_access_token: accessToken,
       admin_refresh_token: refreshToken,
