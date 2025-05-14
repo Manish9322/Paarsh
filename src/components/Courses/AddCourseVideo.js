@@ -352,7 +352,14 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-h-[80vh] overflow-y-auto p-6">
+        <DialogContent className="max-h-[80vh] overflow-y-auto p-6"
+        onPointerDownOutside={(e) => {
+            e.preventDefault();
+          }}
+          onEscapeKeyDown={(e) => {
+            e.preventDefault();
+          }}
+        >
           <div className="flex justify-between items-center mb-4 relative">
             <DialogTitle className="text-2xl font-semibold">
               {courseVideos && courseVideos.topics
