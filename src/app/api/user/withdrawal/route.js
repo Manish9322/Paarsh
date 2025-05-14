@@ -56,7 +56,7 @@ export const POST = authMiddleware(async (req) => {
     console.error("Withdrawal request error:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
-});
+}, ["user"]);
 
 export const GET = authMiddleware(async (req) => {
   try {
@@ -84,7 +84,7 @@ export const GET = authMiddleware(async (req) => {
     console.error("Error fetching withdrawal history:", error);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
   }
-});
+}, ["user"]);
 
 export const PATCH = authMiddleware(async (req) => {
   try {
@@ -134,4 +134,4 @@ export const PATCH = authMiddleware(async (req) => {
     console.error("PATCH /withdrawal error:", err);
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
-});
+}, ["admin"]);

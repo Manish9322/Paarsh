@@ -6,31 +6,39 @@ import {
   JWT_REFRESH_TOKEN_EXPIRY,
   JWT_SECRET_ADMIN,
   JWT_SECRET_USER,
+  JWT_SECRET_AGENT,
 } from "../config/config";
 
-function generateTokens(_id, isAdmin = false) {
-  // Select the correct secret key based on user type
-  const secretKey = isAdmin ? JWT_SECRET_ADMIN : JWT_SECRET_USER;
-  const refreshSecretKey = JWT_REFRESH_SECRET; // Same refresh secret for both
 
-  if (!secretKey || !refreshSecretKey) {
-    throw new Error("JWT secrets are not provided");
+function generateTokens(_id, role = "user") {
+  let secretKey;
+
+  switch (role) {
+    case "admin":
+      secretKey = JWT_SECRET_ADMIN;
+      break;
+    case "agent":
+      secretKey = JWT_SECRET_AGENT;
+      break;
+    default:
+      secretKey = JWT_SECRET_USER;
   }
 
-  // Generate access token
-  const accessToken = jwt.sign({ userId: _id }, secretKey, {
+  if (!secretKey || !JWT_REFRESH_SECRET) {
+    throw new Error("JWT secrets are missing");
+  }
+
+  const payload = { userId: _id, role };
+
+  const accessToken = jwt.sign(payload, secretKey, {
     expiresIn: JWT_ACCESS_TOKEN_EXPIRY,
   });
 
-  // Generate refresh token
-  const refreshToken = jwt.sign({ userId: _id }, refreshSecretKey, {
+  const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, {
     expiresIn: JWT_REFRESH_TOKEN_EXPIRY,
   });
 
   return { accessToken, refreshToken };
 }
 
-
-// Function to generate a secure token for invitations
 export default generateTokens;
-

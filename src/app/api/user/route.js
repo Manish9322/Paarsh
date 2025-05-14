@@ -25,7 +25,7 @@ export const GET = authMiddleware(async (req) => {
       { status: 500 },
     );
   }
-});
+}, ["user"]);
 
 export const PUT = authMiddleware(async (req) => {
   try {
@@ -66,7 +66,7 @@ export const PUT = authMiddleware(async (req) => {
       { status: 500 }
     );
   }
-});
+}, ["user"]);
 
 
 export const DELETE = authMiddleware(async (req) => {
@@ -102,4 +102,4 @@ export const DELETE = authMiddleware(async (req) => {
       { status: 500 }
     );
   }
-});
+}, ["user"]);

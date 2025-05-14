@@ -35,10 +35,10 @@ export const POST = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 // Get All Categories
-export const GET = async () => {
+export const GET = authMiddleware( async () => {
   try {
     const categories = await Category.find();
     return NextResponse.json({ success: true, data: categories });
@@ -49,7 +49,7 @@ export const GET = async () => {
       { status: 500 },
     );
   }
-};
+} , ["admin","user"]);
 
 // Update Category
 
@@ -103,7 +103,7 @@ export const PUT = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 // Delete Category
 export const DELETE = authMiddleware(async (request) => {
@@ -137,4 +137,4 @@ export const DELETE = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);

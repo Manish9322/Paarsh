@@ -56,4 +56,4 @@ export const GET = authMiddleware(async (req) => {
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-});
+}, ["user"]);

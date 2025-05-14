@@ -42,7 +42,7 @@ export const POST = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 // Get All Subcategories
 export const GET = authMiddleware(async () => {
@@ -56,7 +56,7 @@ export const GET = authMiddleware(async () => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin" , "user"]);
 
 // Update Subcategory
 
@@ -115,7 +115,7 @@ export const PUT = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);
 
 // Delete Subcategory
 export const DELETE = authMiddleware(async (request) => {
@@ -149,4 +149,4 @@ export const DELETE = authMiddleware(async (request) => {
       { status: 500 },
     );
   }
-}, true);
+}, ["admin"]);

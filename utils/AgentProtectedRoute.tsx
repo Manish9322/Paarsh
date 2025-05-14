@@ -2,12 +2,9 @@
 
 import { useEffect, useState } from "react";
 import {usePathname, useRouter } from "next/navigation";
-import Cookies from "js-cookie";
-import { selectRootState } from "@/lib/store";
-import { useSelector } from "react-redux";
 import axios from "axios";
 
-export default function AdminProtectedRoute({
+export default function AgentProtectedRoute({
   children,
 }: {
   children: React.ReactNode;
@@ -15,9 +12,6 @@ export default function AdminProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
   const [authenticated, setAuthenticated] = useState<boolean | null>(false); // null = loading state
-
- 
-  const adminAuth = useSelector((state) => selectRootState(state).auth);
 
   useEffect(() => {
   
@@ -42,7 +36,7 @@ export default function AdminProtectedRoute({
 
         const { success, role } = res.data;
 
-        if (success && role === "admin") {
+        if (success && role === "agent") {
           setAuthenticated(true);
         } else {
           router.replace("/error");

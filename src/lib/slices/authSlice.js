@@ -13,6 +13,7 @@ const initialState = {
   admin_access_token: adminAccessToken || null, // ✅ Use "admin_access_token"
   admin_refresh_token: adminRefreshToken || null,
   admin: null, // Don't store admin details in localStorage
+  userRole: null,
   isAuthenticated: !!adminAccessToken, // Set to true if token exists
   loading: false,
   error: null,
@@ -26,6 +27,7 @@ const authSlice = createSlice({
       state.admin_access_token = action.payload.admin_access_token;
       state.admin_refresh_token = action.payload.admin_refresh_token;
       state.admin = action.payload.admin; // Store admin details in Redux state
+      state.userRole = action.payload.userRole;
       state.isAuthenticated = true;
       state.error = null;
 
@@ -39,6 +41,7 @@ const authSlice = createSlice({
       state.admin_access_token = null;
       state.admin_refresh_token = null;
       state.admin = null;
+      state.userRole = null;
       state.isAuthenticated = false;
       
 

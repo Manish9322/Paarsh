@@ -3,13 +3,19 @@
 import React, { useState, useEffect } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import sidebarConfig from "../../../config/sidebarConfig";
+import agentSidebarConfig from "../../../config/agentSidebarConfig";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { TbSquareToggle } from "react-icons/tb";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  userRole: "admin" | "agent";
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ userRole } ) => {
   const [isOpen, setIsOpen] = useState<boolean>(true);
   const [openSubmenus, setOpenSubmenus] = useState<{ [key: number]: boolean }>({});
   const [mounted, setMounted] = useState(false);
@@ -53,6 +59,8 @@ const Sidebar: React.FC = () => {
 
   if (!mounted) return null;
 
+  const mainSidebarConfig = userRole === "agent" ? agentSidebarConfig : sidebarConfig;
+
   return (
     <div className="h-full w-full relative">
       <aside
@@ -83,7 +91,7 @@ const Sidebar: React.FC = () => {
             <div className={`mb-3 h-[1px] bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600 ${!isOpen && 'mx-auto w-8'}`}></div>
           </div>
           <ul className="space-y-1.5 pb-20 px-2">
-            {sidebarConfig.map((item, index) => (
+            {mainSidebarConfig.map((item, index) => (
               <li
                 key={index}
                 className="w-full"

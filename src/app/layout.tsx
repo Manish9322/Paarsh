@@ -83,6 +83,8 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
   }, [dispatch, isAuthenticated]);
 
+  const isAgentPage = pathname.startsWith("/agent");
+  const isErrorPage = pathname === "/error";
   const isAuthPage = ["/signin", "/signup"].includes(pathname);
   const isAdminPage = pathname.startsWith("/admin");
   const isDashboardPage = pathname.includes("/(dashboard)") || 
@@ -101,11 +103,11 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {!isAdminPage && !isAuthPage && !isDashboardPage && <Header />}
+      {!isAdminPage && !isAuthPage && !isDashboardPage && !isErrorPage && !isAgentPage && <Header />}
       {children}
-      {!isAdminPage && !isAuthPage && !isDashboardPage && <Footer />}
+      {!isAdminPage && !isAuthPage && !isDashboardPage && !isErrorPage  && !isAgentPage && <Footer />}
       <ScrollToTop />
-      {!isAdminPage && !isAuthPage && <AutoModal />}
+      {!isAdminPage && !isAuthPage && !isErrorPage && !isAgentPage && <AutoModal />}
       <Toaster richColors />
       <PurchaseModal />
     </>

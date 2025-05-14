@@ -21,12 +21,13 @@ const SigninPage = () => {
       const response = await _ADMINLOGIN({ email, password }).unwrap();
       console.log("response", response);
 
-      if (response?.message === "Login successful") {
+      if (response?.success) {
         dispatch(
           setAdminAuth({
             admin_access_token: response.admin_access_token, // ✅ Updated token key
             admin_refresh_token: response.admin_refresh_token, // ✅ Updated token key
             admin: response.admin, // ✅ Store admin details in Redux state
+            userRole: response.role,
           }),
         );
 
@@ -38,7 +39,7 @@ const SigninPage = () => {
         );
 
         toast.success("Login successful");
-        router.push("/admin");
+        router.push(response.redirectTo ||"/admin");
       } else {
         toast.error(response?.error || "Login failed");
       }

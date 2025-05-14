@@ -4,6 +4,7 @@ import DashboardSidebar from "@/components/Layout/DashboardSidebar";
 import { Provider } from "react-redux";
 import { store } from "../../lib/store";
 import { Toaster } from "sonner";
+import UserProtectedRoute from "utils/UserProtectedRoute";
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
+    <UserProtectedRoute>
     <Provider store={store}>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
         <div className="flex min-h-screen">
@@ -34,5 +36,6 @@ export default function DashboardLayout({
         <Toaster position="top-right" richColors />
       </div>
     </Provider>
+    </UserProtectedRoute>
   );
 } 
