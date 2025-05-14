@@ -25,7 +25,7 @@ const SigninPage = () => {
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (accessToken && !isRedirecting) {
-      router.push("/userdashboard");
+      router.push("/");
     }
   }, [router, isRedirecting]);
 

@@ -103,7 +103,7 @@ export async function POST(request) {
       data: {
         accessToken,
         refreshToken,
-        redirect: "/userdashboard",
+        redirect: "/",
       },
     });
   } catch (error) {
