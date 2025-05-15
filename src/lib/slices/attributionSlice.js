@@ -9,7 +9,7 @@ const leadSlice = createSlice({
   initialState,
   reducers: {
     addLead(state, action) {
-      const { agentId, customerName, customerEmail, courseId, reason } = action.payload;
+      const { agentId, customerName, customerEmail, courseId } = action.payload;
 
       if (!state.leads[agentId]) {
         state.leads[agentId] = {
@@ -23,7 +23,6 @@ const leadSlice = createSlice({
         customerName,
         customerEmail,
         courseId,
-        reason,
       });
     },
     resetLeads(state) {

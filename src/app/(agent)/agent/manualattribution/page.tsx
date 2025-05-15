@@ -67,7 +67,6 @@ const [_CREATELEAD, { isLoading }] = useCreateLeadMutation();
         customerName,
         customerEmail,
         courseId: selectedCourse,
-        reason: interestReason,
         notes,
       })
     );
@@ -77,7 +76,6 @@ const [_CREATELEAD, { isLoading }] = useCreateLeadMutation();
       customerName,
       customerEmail,
       courseId: selectedCourse,
-      reason: interestReason,
       notes,
     }).unwrap();
 
@@ -91,7 +89,6 @@ const [_CREATELEAD, { isLoading }] = useCreateLeadMutation();
     setCustomerEmail("");
     setSelectedAgent("");
     setSelectedCourse("");
-    setInterestReason("");
     setNotes("");
   };
 
@@ -195,7 +192,7 @@ const [_CREATELEAD, { isLoading }] = useCreateLeadMutation();
                         />
                       </div>
 
-                      <div className="space-y-2">
+                      <div>
                         <Label htmlFor="course" className="flex items-center gap-2">
                           <Book className="h-4 w-4" /> Course
                         </Label>
@@ -213,36 +210,6 @@ const [_CREATELEAD, { isLoading }] = useCreateLeadMutation();
                                 {course.name}
                               </SelectItem>
                             ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="reason" className="flex items-center gap-2">
-                          <Info className="h-4 w-4" /> Reason for Interest
-                        </Label>
-                        <Select
-                          value={interestReason}
-                          onValueChange={setInterestReason}
-                          required
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select reason" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="inquiry">
-                              Customer inquired about course
-                            </SelectItem>
-                            <SelectItem value="demo">
-                              Attended demo session
-                            </SelectItem>
-                            <SelectItem value="referral">
-                              Referred by another customer
-                            </SelectItem>
-                            <SelectItem value="marketing">
-                              Responded to marketing campaign
-                            </SelectItem>
-                            <SelectItem value="other">Other reason</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

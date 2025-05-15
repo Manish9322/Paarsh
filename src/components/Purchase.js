@@ -31,7 +31,7 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
   const params = useSearchParams();
 
 
-  const agentRefCode = params.get("refCode"); // Get the referral code from URL
+  const agentRefCode = params.get("ref"); // Get the referral code from URL
    
   console.log("Agent Referral Code:", agentRefCode); // Log the referral code for debugging
   useEffect(() => {

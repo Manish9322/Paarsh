@@ -572,7 +572,9 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: { courseId },
       }),
-    }),    // Transactions endpoint
+    }),   
+    
+    // Transactions endpoint
     fetchTransactions: builder.query({
       query: () => "/transactions",
       providesTags: ["Transaction"],
@@ -584,6 +586,14 @@ export const paarshEduApi = createApi({
           courseId: { ...tx.courseId, courseName: tx.courseId?.courseName || 'N/A' }
         }))
       })
+    }),
+
+    grantManualCourseAccess: builder.mutation({
+      query: (formData) => ({
+        url: "/admin/grantcourseaccess",
+        method: "POST",
+        body: formData,
+      }),
     }),
 
   }),
@@ -673,5 +683,6 @@ export const {
   useCreateLeadMutation,
 
   useFetchTransactionsQuery,
+  useGrantManualCourseAccessMutation
 
 } = paarshEduApi;

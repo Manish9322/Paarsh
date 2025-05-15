@@ -267,7 +267,7 @@ const WithdrawalRequestsPage: React.FC = () => {
             <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
           </div>
           <div className="custom-scrollbar flex-1 overflow-y-auto">
-            <Sidebar />
+            <Sidebar userRole="admin" />
           </div>
         </div>
       </aside>

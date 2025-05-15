@@ -27,15 +27,7 @@ export const GET = authMiddleware(async (req) => {
 
 export const PATCH = authMiddleware(async (req) => {
   try {
-    const { user } = req;
-
-    // ✅ Optional admin check
-    if (!user?.isAdmin) {
-      return NextResponse.json({ message: "Unauthorized"
-          , success: false
-       }, { status: 403 });
-    }
-
+    
     const body = await req.json();
     const { id, status, paymentReferenceId } = body;
 
