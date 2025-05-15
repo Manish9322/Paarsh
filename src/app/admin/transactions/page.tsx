@@ -232,14 +232,21 @@ const TransactionsPage = () => {
       </div>
 
       {/* Sidebar */}
-      <aside
-        className={`fixed left-0 top-0 z-40 h-full w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:sticky md:translate-x-0`}
-      >
-        <div className="h-16 md:h-0"></div>
-        <Sidebar userRole="admin" />
-      </aside>
+         <aside
+           className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
+             sidebarOpen ? "translate-x-0" : "-translate-x-full"
+           }`}
+         >
+           <div className="flex h-full flex-col">
+             <div className="flex h-16 items-center justify-between px-4 md:justify-end">
+               <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
+             </div>
+             <div className="custom-scrollbar flex-1 overflow-y-auto">
+               <Sidebar userRole="admin" />
+             </div>
+           </div>
+         </aside>
+   
 
       {/* Overlay */}
       {sidebarOpen && (
@@ -251,7 +258,7 @@ const TransactionsPage = () => {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 overflow-x-hidden pt-16">
+      <main className="flex-1 overflow-y-auto pt-16 md:ml-64">
         <div className="container mx-auto px-4 py-6">
           <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
