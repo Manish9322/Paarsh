@@ -42,7 +42,8 @@ export const paarshEduApi = createApi({
     "MeetingLink",
     "Progress",
     "Offer",
-    "Transaction"
+    "Transaction",
+    "Withdrawal",
   ],
 
   endpoints: (builder) => ({
@@ -474,12 +475,12 @@ export const paarshEduApi = createApi({
 
     fetchWithdrawalRequest: builder.query({
       query: () => "/admin/withdrawal",
-      providesTags: ["User"],
+      providesTags: ["User", "Withdrawal"],
     }),
 
     fetchUserWithdrawalRequest: builder.query({
       query: () => "/user/withdrawal",
-      providesTags: ["User"],
+      providesTags: ["User", "Withdrawal"],
     }),
     
     createWithdrawalRequest: builder.mutation({
@@ -488,6 +489,7 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: ["User", "Withdrawal"],
     }),
 
     updateWithdrawalRequest: builder.mutation({
@@ -496,15 +498,25 @@ export const paarshEduApi = createApi({
         method: "PATCH",
         body: formData,
       }),
+      invalidatesTags: ["User", "Withdrawal"],
     }),
 
     deleteWithdrawalRequest: builder.mutation({
+      query: (id) => ({
+        url: "/admin/withdrawal",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["User" , "Withdrawal"],
+    }),
+ 
+    deleteUserWithdrawalRequest: builder.mutation({
       query: (id) => ({
         url: "/user/withdrawal",
         method: "DELETE",
         body: { id },
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "Withdrawal"],
     }),
 
     // ----------------------------------------------------Agent Apis--------------------------------------------------
@@ -673,9 +685,11 @@ export const {
   useFetchActiveOffersMutation,
 
   useFetchWithdrawalRequestQuery,
+  useFetchUserWithdrawalRequestQuery,
   useCreateWithdrawalRequestMutation,
   useUpdateWithdrawalRequestMutation,
   useDeleteWithdrawalRequestMutation,
+  useDeleteUserWithdrawalRequestMutation,
 
   useFetchAgentStatsQuery,
   useFetchAgentSalesQuery,

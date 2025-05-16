@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { authMiddleware } from "../../../../../middlewares/auth";
 import _db from "../../../../../utils/db";
+import mongoose from "mongoose";
 import UserModel from "models/User.model";
 import WithdrawalRequestModel from "models/Withdrawal.model";
+
 
 _db();
 
@@ -107,60 +109,73 @@ export const GET = authMiddleware(async (req) => {
   }
 }, ["user"]);
 
-export const PATCH = authMiddleware(async (req) => {
-  try {
-    const { user } = req;
 
-    if (!user?.isAdmin) {
-      return createResponse(false, "Unauthorized access", null, 403);
-    }
+export const DELETE = authMiddleware(
+  async (req) => {
+    const session = await mongoose.startSession();
 
-    const body = await req.json();
-    const { requestId, status, paymentReferenceId } = body;
+    try {
+      const body = await req.json();
+      const { id } = body;
 
-    if (!requestId) {
-      return createResponse(false, "Withdrawal request ID is required", null, 400);
-    }
-
-    if (!["Approved", "Rejected"].includes(status)) {
-      return createResponse(false, "Invalid status provided", null, 400);
-    }
-
-    const withdrawal = await WithdrawalRequestModel.findById(requestId);
-    if (!withdrawal) {
-      return createResponse(false, "Withdrawal request not found", null, 404);
-    }
-
-    if (withdrawal.status !== "Pending") {
-      return createResponse(false, "Withdrawal request already processed", null, 400);
-    }
-
-    withdrawal.status = status;
-    withdrawal.paymentReferenceId = paymentReferenceId || "";
-    withdrawal.processedAt = new Date();
-    await withdrawal.save();
-
-    if (status === "Rejected") {
-      const user = await UserModel.findById(withdrawal.userId);
-      if (user) {
-        user.walletBalance += withdrawal.amount;
-        await user.save();
+      if (!id) {
+        return NextResponse.json(
+          { success: false, message: "Invalid input" },
+          { status: 400 },
+        );
       }
-    }
 
-    return createResponse(
-      true,
-      
-      "Withdrawal request updated successfully",
-      { withdrawal }
-    );
-  } catch (error) {
-    console.error("Error updating withdrawal request:", error);
-    return createResponse(
-      false,
-      "An error occurred while updating the withdrawal request",
-      null,
-      500
-    );
-  }
-}, ["admin"]);
+      session.startTransaction();
+
+      const withdrawal = await WithdrawalRequestModel.findById(id).session(session);
+      if (!withdrawal) {
+        await session.abortTransaction();
+        return NextResponse.json(
+          { success: false, message: "Withdrawal request not found" },
+          { status: 404 },
+        );
+      }
+
+      if (withdrawal.status !== "Pending") {
+        await session.abortTransaction();
+        return NextResponse.json(
+          { success: false, message: "Cannot delete processed request" },
+          { status: 400 },
+        );
+      }
+
+      const user = await UserModel.findById(withdrawal.userId).session(session);
+      if (!user) {
+        await session.abortTransaction();
+        return NextResponse.json(
+          { success: false, message: "User not found for withdrawal request" },
+          { status: 404 },
+        );
+      }
+
+      // Refund the amount
+      user.walletBalance += withdrawal.amount;
+      await user.save({ session });
+
+      // Delete the withdrawal request
+      await WithdrawalRequestModel.findByIdAndDelete(id).session(session);
+
+      await session.commitTransaction();
+      return NextResponse.json(
+        { success: true, message: "Withdrawal request cancelled and amount refunded" },
+        { status: 200 },
+      );
+    } catch (err) {
+      console.error("DELETE /withdrawal error:", err);
+      await session.abortTransaction();
+      return NextResponse.json(
+        { success: false, message: "Server error" },
+        { status: 500 },
+      );
+    } finally {
+      session.endSession();
+    }
+  },
+  ["user"],
+);
+

@@ -35,9 +35,12 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-
-// Hypothetical API hooks for withdrawal requests
-import { useDeleteWithdrawalRequestMutation, useFetchWithdrawalRequestQuery, useUpdateWithdrawalRequestMutation } from "@/services/api";
+import {
+  useDeleteWithdrawalRequestMutation,
+  useFetchWithdrawalRequestQuery,
+  useFetchUsersQuery,
+  useUpdateWithdrawalRequestMutation,
+} from "@/services/api";
 
 // Define WithdrawalRequest type based on schema
 interface WithdrawalRequest {
@@ -64,10 +67,17 @@ const WithdrawalRequestsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: withdrawals, isLoading: isWithdrawalsLoading } = useFetchWithdrawalRequestQuery(undefined);
+  const { data: usersData } = useFetchUsersQuery(undefined);
   const withdrawalRequests = withdrawals?.data || [];
 
   const [deleteWithdrawalRequest, { isLoading: isDeleting }] = useDeleteWithdrawalRequestMutation();
   const [updateWithdrawalRequestStatus, { isLoading: isUpdating }] = useUpdateWithdrawalRequestMutation();
+
+  // Function to get user details
+  const getUserDetails = (userId: string) => {
+    if (!usersData?.data || !userId) return null;
+    return usersData.data.find((user: any) => user._id === userId);
+  };
 
   // Close sidebar when screen size changes to desktop
   useEffect(() => {
@@ -97,11 +107,23 @@ const WithdrawalRequestsPage: React.FC = () => {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
-  const filteredRequests = withdrawalRequests.filter((request) =>
-    Object.values(request).some((value) =>
-      value?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  const filteredRequests = withdrawalRequests.filter((request) => {
+    const user = getUserDetails(request.userId);
+    const searchFields = [
+      request._id,
+      request.userId,
+      user?.name || "",
+      request.amount.toString(),
+      request.upiId,
+      request.status,
+      request.paymentReferenceId,
+      request.requestedAt,
+      request.processedAt || "",
+    ];
+    return searchFields.some((field) =>
+      field.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   const sortedRequests = [...filteredRequests].sort((a, b) => {
     if (!sortField) return 0;
@@ -126,22 +148,22 @@ const WithdrawalRequestsPage: React.FC = () => {
     setDeleteConfirmOpen(true);
   };
 
-  const handleDeleteRequest = async () => {
-    try {
-      if (!requestToDelete) return;
-      const response = await deleteWithdrawalRequest(requestToDelete).unwrap();
-      if (response.success) {
-        toast.success("Withdrawal request deleted successfully");
-        setDeleteConfirmOpen(false);
-        setRequestToDelete(null);
-      } else {
-        toast.error("Failed to delete the withdrawal request. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error deleting withdrawal request:", error);
-      toast.error("Failed to delete the withdrawal request. Please try again.");
-    }
-  };
+  // const handleDeleteRequest = async () => {
+  //   try {
+  //     if (!requestToDelete) return;
+  //     const response = await deleteWithdrawalRequest(requestToDelete).unwrap();
+  //     if (response.success) {
+  //       toast.success("Withdrawal request deleted successfully");
+  //       setDeleteConfirmOpen(false);
+  //       setRequestToDelete(null);
+  //     } else {
+  //       toast.error("Failed to delete the withdrawal request. Please try again.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error deleting withdrawal request:", error);
+  //     toast.error("Failed to delete the withdrawal request. Please try again.");
+  //   }
+  // };
 
   const handleUpdateStatus = async (id: string, status: "Approved" | "Rejected") => {
     try {
@@ -150,11 +172,11 @@ const WithdrawalRequestsPage: React.FC = () => {
         setViewOpen(false);
         toast.success("Withdrawal request status updated successfully");
       } else {
-        toast.error(  response.message || "Failed to update the withdrawal request status. Please try again.");
+        toast.error(response.message || "Failed to update the withdrawal request status. Please try again.");
       }
     } catch (error) {
       console.error("Error updating withdrawal request status:", error);
-      toast.error( "Failed to update the withdrawal request status. Please try again.");
+      toast.error("Failed to update the withdrawal request status. Please try again.");
     }
   };
 
@@ -189,7 +211,7 @@ const WithdrawalRequestsPage: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Pending":
-        return <Badge className="bg-yellow-500">Pending</Badge>;
+        return <Badge className="bg-yellow">Pending</Badge>;
       case "Approved":
         return <Badge className="bg-green-500">Approved</Badge>;
       case "Rejected":
@@ -299,7 +321,7 @@ const WithdrawalRequestsPage: React.FC = () => {
 
           {/* Stats Cards */}
           <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <Card>
+            <Card className=" dark:bg-gray-800 dark:text-white">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
                 <Eye className="h-4 w-4 text-muted-foreground" />
@@ -309,7 +331,7 @@ const WithdrawalRequestsPage: React.FC = () => {
                 <p className="text-xs text-muted-foreground">+3 from last week</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card  className=" dark:bg-gray-800 dark:text-white">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Pending Requests</CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
@@ -321,7 +343,7 @@ const WithdrawalRequestsPage: React.FC = () => {
                 <p className="text-xs text-muted-foreground">+2 from yesterday</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card  className=" dark:bg-gray-800 dark:text-white">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Approved Requests</CardTitle>
                 <Wallet className="h-4 w-4 text-muted-foreground" />
@@ -336,7 +358,7 @@ const WithdrawalRequestsPage: React.FC = () => {
           </div>
 
           {/* Withdrawal Requests Table */}
-          <Card className="shadow-md">
+          <Card className="shadow-md  dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <CardTitle>Recent Withdrawal Requests</CardTitle>
             </CardHeader>
@@ -356,14 +378,14 @@ const WithdrawalRequestsPage: React.FC = () => {
                   <div className="rounded-md border">
                     <Table>
                       <TableHeader>
-                        <TableRow className="hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <TableRow className="hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-900">
                           <TableHead className="w-[100px]">ID</TableHead>
                           <TableHead
                             className="cursor-pointer"
                             onClick={() => handleSort("userId")}
                           >
                             <div className="flex items-center gap-2">
-                              User ID
+                              User Name
                               {sortField === "userId" &&
                                 (sortOrder === "asc" ? (
                                   <ChevronUp className="h-4 w-4" />
@@ -434,9 +456,9 @@ const WithdrawalRequestsPage: React.FC = () => {
                       <TableBody>
                         {displayedRequests.length > 0 ? (
                           displayedRequests.map((request, index) => (
-                            <TableRow key={request._id}>
+                            <TableRow key={request._id} className="hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700">
                               <TableCell className="font-medium">{startIndex + index + 1}</TableCell>
-                              <TableCell>{request.userId}</TableCell>
+                              <TableCell>{getUserDetails(request.userId)?.name || request.userId}</TableCell>
                               <TableCell>{formatCurrency(request.amount)}</TableCell>
                               <TableCell>{request.upiId}</TableCell>
                               <TableCell>{getStatusBadge(request.status)}</TableCell>
@@ -448,10 +470,11 @@ const WithdrawalRequestsPage: React.FC = () => {
                                     size="icon"
                                     onClick={() => handleView(request)}
                                     title="View details"
+                                    className=" dark:text-white dark:bg-gray-900"
                                   >
                                     <Eye className="h-4 w-4" />
                                   </Button>
-                                  <Button
+                                  {/* <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => confirmDeleteRequest(request._id)}
@@ -459,7 +482,7 @@ const WithdrawalRequestsPage: React.FC = () => {
                                     className="text-red-500 hover:bg-red-50 hover:text-red-600"
                                   >
                                     <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                  </Button> */}
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -530,8 +553,12 @@ const WithdrawalRequestsPage: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-500">User ID</p>
-                  <p className="font-medium">{selectedRequest.userId}</p>
+                  <p className="text-sm font-medium text-gray-500">User Name</p>
+                  <p className="font-medium">{getUserDetails(selectedRequest.userId)?.name || selectedRequest.userId}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-500">User Email</p>
+                  <p className="font-medium">{getUserDetails(selectedRequest.userId)?.email || "N/A"}</p>
                 </div>
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-500">Amount</p>
@@ -585,7 +612,7 @@ const WithdrawalRequestsPage: React.FC = () => {
       )}
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+      {/* <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
@@ -602,7 +629,7 @@ const WithdrawalRequestsPage: React.FC = () => {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 };
