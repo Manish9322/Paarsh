@@ -97,6 +97,11 @@ export const paarshEduApi = createApi({
       providesTags: ["User"],
     }),
 
+    fetchUserOngoingCourses: builder.query({
+      query: () => "/user/ongoing-courses",
+      providesTags: ["User"],
+    }),
+
     // ----------------------------------------------------Course Apis------------------------------------------------------------
 
     addCourse: builder.mutation({
@@ -632,6 +637,8 @@ export const {
   useUpdateUserMutation,
   useDeleteUserMutation,
   useFetchUsersQuery,
+  useFetchUserOngoingCoursesQuery,
+
 
   useAddCategoryMutation,
   useFetchCategoriesQuery,
