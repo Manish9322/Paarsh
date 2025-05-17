@@ -325,7 +325,7 @@ const EnquiriesPage: React.FC = () => {
           } md:sticky md:top-0 md:translate-x-0 md:h-screen`}
         >
           <div className="h-16 md:h-0"></div>
-          <Sidebar />
+          <Sidebar  userRole="admin" />
         </aside>
 
         {/* Overlay */}
