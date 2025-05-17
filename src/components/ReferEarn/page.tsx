@@ -312,7 +312,7 @@ export default function ReferEarn() {
                           Completed
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400 font-medium">₹500</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400 font-medium">₹20</td>
                     </tr>
                   ))}
                 </tbody>
