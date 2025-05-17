@@ -9,11 +9,17 @@ _db();
 
 export const POST = authMiddleware(async (request) => {
   try {
+
+    const {user} = request;
+
+    const agentId = user._id
+
+    console.log("agentId",agentId)
+
     const {
       customerName,
       customerEmail,
       courseId,
-      agentId,
       notes = "",
     } = await request.json();
 
