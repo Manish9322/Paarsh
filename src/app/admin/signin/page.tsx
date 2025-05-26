@@ -6,54 +6,63 @@ import { useAdminloginMutation } from "../../../services/api";
 import { useDispatch } from "react-redux";
 import { setAdminAuth, adminLogout } from "../../../lib/slices/authSlice";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 const SigninPage = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [_ADMINLOGIN, { isLoading }] = useAdminloginMutation();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    try {
-      const response = await _ADMINLOGIN({ email, password }).unwrap();
-      console.log("response", response);
+   try {
+  const response = await _ADMINLOGIN({ email, password }).unwrap();
+  console.log("response", response);
 
-      if (response?.success) {
-        dispatch(
-          setAdminAuth({
-            admin_access_token: response.admin_access_token, // ✅ Updated token key
-            admin_refresh_token: response.admin_refresh_token, // ✅ Updated token key
-            admin: response.admin, // ✅ Store admin details in Redux state
-            userRole: response.role,
-          }),
-        );
+  if (response?.success) {
+    dispatch(
+      setAdminAuth({
+        admin_access_token: response.admin_access_token,
+        admin_refresh_token: response.admin_refresh_token,
+        admin: response.user, // response.admin was incorrect; should be user
+        userRole: response.role,
+      })
+    );
 
-        // ✅ Store only tokens in localStorage
-        localStorage.setItem("admin_access_token", response.admin_access_token);
-        localStorage.setItem(
-          "admin_refresh_token",
-          response.admin_refresh_token,
-        );
+    localStorage.setItem("admin_access_token", response.admin_access_token);
+    localStorage.setItem("admin_refresh_token", response.admin_refresh_token);
 
-        toast.success("Login successful");
-        router.push(response.redirectTo ||"/admin");
-      } else {
-        toast.error(response?.error || "Login failed");
-      }
-    } catch (error) {
-      console.error("Login Error:", error);
+    toast.success(response.message || "Login successful");
+    router.push(response.redirectTo || "/admin");
+  } else {
+    toast.error(response?.error || "Login failed");
+  }
+} catch (error) {
+  console.error("Login Error:", error);
 
-      if (error?.status === 401) {
-        toast.error("Invalid credentials. Please try again.");
-      } else if (error?.status === 500) {
-        toast.error("Server error. Please try again later.");
-      } else {
-        toast.error("An unexpected error occurred.");
-      }
-    }
+  const status = error?.status;
+  const message = error?.data?.error || error?.message;
+
+  switch (status) {
+    case 400:
+      toast.error(message || "Invalid input. Please check your credentials.");
+      break;
+    case 401:
+      toast.error(message || "Invalid credentials. Please try again.");
+      break;
+    case 500:
+      toast.error(message || "Server error. Please try again later.");
+      break;
+    default:
+      toast.error(message || "An unexpected error occurred.");
+      break;
+  }
+}
+
   };
 
   return (
@@ -84,7 +93,7 @@ const SigninPage = () => {
             />
           </div>
 
-          <div className="mb-4 sm:mb-6">
+          <div className=" relative mb-4 sm:mb-6">
             <label
               htmlFor="password"
               className="block text-sm font-medium text-dark dark:text-white"
@@ -92,13 +101,20 @@ const SigninPage = () => {
               Password
             </label>
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:ring focus:ring-blue-300 sm:mt-2 sm:px-4 sm:py-3 sm:text-base"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-[67%] -translate-y-1/2 transform text-gray-500 hover:text-gray-700"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
           </div>
 
           <button

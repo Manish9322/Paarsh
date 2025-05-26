@@ -60,6 +60,7 @@ const SkeletonCard = ({ view }: { view: string }) => {
 
 function OngoingCourse() {
   const [view, setView] = useState("grid");
+ 
   const router = useRouter();
 
   // Fetch course progress data
@@ -91,6 +92,9 @@ function OngoingCourse() {
     };
   });
 
+  
+
+  // Animation variants
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -110,7 +114,7 @@ function OngoingCourse() {
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
   };
 
   // Function to get level badge color
@@ -118,9 +122,9 @@ function OngoingCourse() {
     switch (level?.toLowerCase()) {
       case 'beginner':
         return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
-      case 'intermediate':
+      case "intermediate":
         return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
-      case 'advanced':
+      case "advanced":
         return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
       default:
         return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";

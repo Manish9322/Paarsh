@@ -49,7 +49,7 @@ export const POST = authMiddleware(async (req) => {
     console.error("Error while saving course videos:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}, true);
+}, ["admin"]);
 
 export const GET = authMiddleware(async (req) => {
   try {
@@ -88,4 +88,4 @@ export const GET = authMiddleware(async (req) => {
   } catch (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
-}, true);
+}, ["admin"]);

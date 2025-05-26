@@ -4,6 +4,7 @@ import TransactionModel from "../../../../models/Transaction.model";
 import UserModel from "../../../../models/User.model";
 import CourseModel from "../../../../models/Courses/Course.model";
 import { RAZORPAY_KEY_SECRET } from "../../../../config/config";
+import AgentModel from "models/Agent.model";
 
 export const POST = async (request) => {
   try {
@@ -110,7 +111,7 @@ export const POST = async (request) => {
       const referrer = await UserModel.findById(user.referredBy);
       if (referrer) {
         // Reward logic: e.g., add ₹100 to walletBalance (you need walletBalance field in user model)
-        referrer.walletBalance = (referrer.walletBalance || 0) + 500;
+        referrer.walletBalance = (referrer.walletBalance || 0) + 20;
         await referrer.save();
 
         user.firstPurchaseRewardGiven = true; // Important to not give reward twice

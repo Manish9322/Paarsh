@@ -44,6 +44,7 @@ export const paarshEduApi = createApi({
     "Offer",
     "Transaction",
     "PracticeTest",
+    "Withdrawal",
   ],
 
   endpoints: (builder) => ({
@@ -94,6 +95,11 @@ export const paarshEduApi = createApi({
 
     fetchUserRefferals: builder.query({
       query: () => "/user/user-refferals",
+      providesTags: ["User"],
+    }),
+
+    fetchUserOngoingCourses: builder.query({
+      query: () => "/user/ongoing-courses",
       providesTags: ["User"],
     }),
 
@@ -474,12 +480,12 @@ export const paarshEduApi = createApi({
 
     fetchWithdrawalRequest: builder.query({
       query: () => "/admin/withdrawal",
-      providesTags: ["User"],
+      providesTags: ["User", "Withdrawal"],
     }),
 
     fetchUserWithdrawalRequest: builder.query({
       query: () => "/user/withdrawal",
-      providesTags: ["User"],
+      providesTags: ["User", "Withdrawal"],
     }),
 
     createWithdrawalRequest: builder.mutation({
@@ -488,6 +494,7 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: ["User", "Withdrawal"],
     }),
 
     updateWithdrawalRequest: builder.mutation({
@@ -496,15 +503,25 @@ export const paarshEduApi = createApi({
         method: "PATCH",
         body: formData,
       }),
+      invalidatesTags: ["User", "Withdrawal"],
     }),
 
     deleteWithdrawalRequest: builder.mutation({
+      query: (id) => ({
+        url: "/admin/withdrawal",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["User" , "Withdrawal"],
+    }),
+ 
+    deleteUserWithdrawalRequest: builder.mutation({
       query: (id) => ({
         url: "/user/withdrawal",
         method: "DELETE",
         body: { id },
       }),
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "Withdrawal"],
     }),
 
     // ----------------------------------------------------Agent Apis--------------------------------------------------
@@ -639,6 +656,14 @@ export const paarshEduApi = createApi({
       query: (id) => `/practice-test?id=${id}`,
     }),
 
+    grantManualCourseAccess: builder.mutation({
+      query: (formData) => ({
+        url: "/admin/grantcourseaccess",
+        method: "POST",
+        body: formData,
+      }),
+    }),
+
   }),
 });
 
@@ -663,6 +688,8 @@ export const {
   useUpdateUserMutation,
   useDeleteUserMutation,
   useFetchUsersQuery,
+  useFetchUserOngoingCoursesQuery,
+
 
   useAddCategoryMutation,
   useFetchCategoriesQuery,
@@ -716,9 +743,11 @@ export const {
   useFetchActiveOffersMutation,
 
   useFetchWithdrawalRequestQuery,
+  useFetchUserWithdrawalRequestQuery,
   useCreateWithdrawalRequestMutation,
   useUpdateWithdrawalRequestMutation,
   useDeleteWithdrawalRequestMutation,
+  useDeleteUserWithdrawalRequestMutation,
 
   useFetchAgentStatsQuery,
   useFetchAgentSalesQuery,
@@ -726,6 +755,7 @@ export const {
   useCreateLeadMutation,
 
   useFetchTransactionsQuery,
+  useGrantManualCourseAccessMutation,
 
   useAddPracticeTestMutation,
   useFetchPracticeTestsQuery,

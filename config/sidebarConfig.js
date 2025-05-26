@@ -29,7 +29,7 @@ const sidebarConfig = [
   { name: "Enquiries", path: "/admin/enquiries", icon: <FaQuestion /> },
   { name: "Meeting Links", path: "/admin/meeting-links", icon: <FaVideo /> },
   { name: "Contact Requests", path: "/admin/contacts", icon: <FaPhone /> },
-  { name: "Withdrawal Requests", path: "/admin/withdrawal", icon: <FaMoneyBill /> },
+  { name: "Withdrawal Requests", path: "/admin/withdraw", icon: <FaMoneyBill /> },
   { name: "Transactions", path: "/admin/transactions", icon: <FaMoneyBill /> },
 
 ];

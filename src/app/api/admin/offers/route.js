@@ -40,10 +40,10 @@ export const POST = authMiddleware(async (request) => {
       { status: 500 }
     );
   }
-}, true);
+}, ["admin"]);
 
 // Get All Offers
-export const GET = async () => {
+export const GET = authMiddleware(async () => {
   try {
     const offers = await OfferModel.find({}).populate("courses", "id title");
     return NextResponse.json({ success: true, data: offers });
@@ -54,7 +54,7 @@ export const GET = async () => {
       { status: 500 }
     );
   }
-};
+}, ["admin", "user"]);
 
 // Update Offer
 export const PUT = authMiddleware(async (request) => {
@@ -100,7 +100,7 @@ export const PUT = authMiddleware(async (request) => {
       { status: 500 }
     );
   }
-}, true);
+}, ["admin"]);
 
 // Delete Offer
 export const DELETE = authMiddleware(async (request) => {
@@ -135,4 +135,4 @@ export const DELETE = authMiddleware(async (request) => {
       { status: 500 }
     );
   }
-}, true); 
+}, ["admin"]); 

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import _db from "../../../../../utils/db";
 import CourseModel from "../../../../../models/Courses/Course.model";
-import { authMiddleware } from "../../../../../middlewares/auth";
 
 _db();
 

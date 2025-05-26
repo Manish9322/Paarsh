@@ -73,7 +73,7 @@ const SignupPage = () => {
             description: response?.message,
           });
           dispatch(resetForm({ formName: "signupForm" }));
-          router.push(response?.data?.redirect || `/userdashboard`);
+          router.push(response?.data?.redirect || `/`);
         } else {
           // This block handles when success is false but no error was thrown
           toast.error("Registration Failed", {

@@ -87,17 +87,23 @@ export const POST = authMiddleware(async (request) => {
     }
 
     // Calculate course progress
-    const totalVideos = userProgress.progress.length;
+    const totalVideos = courseVideo.topics.reduce(
+      (sum, topic) => sum + topic.videos.length,
+      0
+    );
+
+    console.log("Total videos:", totalVideos);
+
     const totalProgress = userProgress.progress.reduce(
       (sum, vid) => sum + vid.progress,
       0
     );
+
     userProgress.courseProgress = totalVideos > 0 ? totalProgress / totalVideos : 0;
 
     // Check if course is completed
-    userProgress.courseCompleted = userProgress.progress.every(
-      (vid) => vid.completed
-    );
+    userProgress.courseCompleted = userProgress.progress.length === totalVideos &&
+      userProgress.progress.every((vid) => vid.completed);
 
     await userProgress.save();
 

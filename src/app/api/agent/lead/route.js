@@ -1,72 +1,47 @@
 import { NextResponse } from "next/server";
-import _db from "../../../../../utils/db"; // Database connection utility
-import LeadModel from "../../../../../models/Leads/LeadModel"; // Lead model
-import CourseModel from "../../../../../models/Courses/CourseModel"; // Course model for validation
-import AgentModel from "../../../../../models/Agents/AgentModel"; // Agent model for validation
-import { authMiddleware } from "../../../../../middlewares/auth"; // Authentication middleware
+import LeadModel from "models/Lead.model";
+import CourseModel from "models/Courses/Course.model"
+import AgentModel from "models/Agent.model";
+import { authMiddleware } from "../../../../../middlewares/auth";
+import _db from "../../../../../utils/db";
 
-_db(); // Initialize database connection
+_db();
 
-// Add a new lead
-export const POST = async (request) => {
+export const POST = authMiddleware(async (request) => {
   try {
-    // Apply authentication middleware
-    const authResponse = await authMiddleware(request);
-    if (authResponse) return authResponse; // Return if unauthorized
 
-    const lead = await request.json(); // Expecting a single lead object
+    const {user} = request;
 
-    // Validate input
-    if (!lead || typeof lead !== "object") {
-      return NextResponse.json(
-        { success: false, error: "Input must be a valid lead object" },
-        { status: 400 }
-      );
-    }
+    const agentId = user._id
+
+    console.log("agentId",agentId)
 
     const {
       customerName,
       customerEmail,
       courseId,
-      agentId,
-      reason,
       notes = "",
-    } = lead;
+    } = await request.json();
 
-    // Validate required fields
-    if (!customerName || !customerEmail || !courseId || !agentId || !reason) {
+    if (!customerName || !customerEmail || !courseId || !agentId ) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "Missing required fields: customerName, customerEmail, courseId, agentId, reason",
+            "All required fields (customerName, customerEmail, courseId, agentId) must be provided",
         },
         { status: 400 }
       );
     }
 
-    // Validate email format
     const emailRegex = /^\S+@\S+\.\S+$/;
     if (!emailRegex.test(customerEmail)) {
       return NextResponse.json(
-        { success很难啊success: false, error: "Invalid email format" },
+        { success: false, error: "Invalid email format" },
         { status: 400 }
       );
     }
 
-    // Validate reason
-    const validReasons = ["inquiry", "demo", "referral", "marketing", "other"];
-    if (!validReasons.includes(reason)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid reason. Must be one of: " + validReasons.join(", "),
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate courseId exists
     const course = await CourseModel.findById(courseId);
     if (!course) {
       return NextResponse.json(
@@ -75,7 +50,6 @@ export const POST = async (request) => {
       );
     }
 
-    // Validate agentId exists
     const agent = await AgentModel.findById(agentId);
     if (!agent) {
       return NextResponse.json(
@@ -84,13 +58,11 @@ export const POST = async (request) => {
       );
     }
 
-    // Create and save the lead
     const newLead = new LeadModel({
       customerName,
       customerEmail,
       courseId,
       agentId,
-      reason,
       notes,
     });
 
@@ -98,14 +70,14 @@ export const POST = async (request) => {
 
     return NextResponse.json({
       success: true,
-      message: "Lead added successfully",
+      message: "Lead created successfully",
       data: newLead,
     });
   } catch (error) {
-    console.error("Error while adding lead:", error);
+    console.error("Error while creating lead:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
     );
   }
-};
+}, ["agent"]);

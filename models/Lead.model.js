@@ -22,17 +22,6 @@ const leadSchema = new mongoose.Schema({
     ref: "Agent", // Reference to an Agent model
     required: true,
   },
-  reason: {
-    type: String,
-    required: true,
-    enum: [
-      "inquiry",
-      "demo",
-      "referral",
-      "marketing",
-      "other",
-    ], // Matches the options in the frontend
-  },
   notes: {
     type: String,
     trim: true,

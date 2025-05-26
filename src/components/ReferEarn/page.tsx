@@ -26,9 +26,9 @@ export default function ReferEarn() {
   useEffect(() => {
     if (userRefferalList) {
       // Assume each completed referral earns ₹500
-      const completedEarnings = userRefferalList.completedCount * 500;
+      const completedEarnings = userRefferalList.completedCount * 20;
       // Assume each pending referral is worth ₹500 when completed
-      const pendingRewards = userRefferalList.pendingCount * 500;
+      const pendingRewards = userRefferalList.pendingCount * 20;
       
       setReferralStats({
         totalReferred: userRefferalList.totalReferrals || 0,
@@ -73,7 +73,7 @@ export default function ReferEarn() {
       icon: <CreditCard className="text-blue-500" size={24} />
     },
     {
-      title: "₹500 Cashback",
+      title: "₹20 Cashback",
       description: "You earn ₹500 when your friend completes their first course",
       icon: <Award className="text-blue-500" size={24} />
     },
@@ -312,7 +312,7 @@ export default function ReferEarn() {
                           Completed
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400 font-medium">₹500</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400 font-medium">₹20</td>
                     </tr>
                   ))}
                 </tbody>

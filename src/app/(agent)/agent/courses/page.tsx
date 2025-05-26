@@ -39,7 +39,7 @@ export default function ReferralLinks() {
   const { data: agentCourseRefferalLinks } = useFetchagentCourseRefferalLinkQuery(undefined);
 
   const courses: Course[] = agentCourseRefferalLinks?.data.map((course) => ({
-    id: course.id,
+    id: course.courseId,
     courseName: course.courseName,
     referralLink: course.referralLink,
   })) || [];

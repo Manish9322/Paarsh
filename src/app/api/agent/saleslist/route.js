@@ -3,6 +3,7 @@ import { authMiddleware } from "../../../../../middlewares/auth";
 import TransactionModel from "models/Transaction.model";
 import AgentModel from "models/Agent.model";
 import _db from "../../../../../utils/db";
+import CourseModel from "models/Courses/Course.model";
 
 _db();
 

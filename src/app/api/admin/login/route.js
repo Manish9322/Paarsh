@@ -35,7 +35,7 @@ export async function POST(request) {
       // Try to find Agent
       user = await AgentModel.findOne({ email });
       role = "agent";
-      redirectTo = "/admin/agent/dashboard";
+      redirectTo = "/agent";
     }
 
     if (!user) {
@@ -47,19 +47,13 @@ export async function POST(request) {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return NextResponse.json(
-        { success: false, error: "Incorrect password" },
-        { status: 401 },
-      );
+      return NextResponse.json({
+        success: false,
+        error: "Incorrect password",
+      },
+      { status: 401 },
+    );
     }
-
-      
-    // if (password !== user.password) {
-    //   return NextResponse.json(
-    //     { success: false, error: "Incorrect password" },
-    //     { status: 401 },
-    //   );
-    // }
 
     const { accessToken, refreshToken } = generateTokens(user._id, role);
 
@@ -67,7 +61,7 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: `${role} login successful`,
+      message: "Login Successful",
       user: { ...safeUser, role },
       admin_access_token: accessToken,
       admin_refresh_token: refreshToken,
