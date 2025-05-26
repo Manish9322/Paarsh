@@ -23,7 +23,7 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
     duration,
     lang,
     certificate,
-    student,
+    enrolledUsers,
     tags,
     availability, // New field
     category, // New field
@@ -93,7 +93,15 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
                     </div>
                     <div className="mr-2 mb-2 w-fit items-center flex text-black bg-gray-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <HiOutlineUsers className="mr-1" />
-                      <p className="text-xs py-1">{student ? student : "1"}</p>
+
+                      <p className="text-xs py-1">
+                        {Array.isArray(enrolledUsers)
+                          ? `${enrolledUsers.length === 0 ? 1 : enrolledUsers.length} student${enrolledUsers.length === 1 ? '' : 's'}`
+                          : typeof enrolledUsers === 'number'
+                            ? `${enrolledUsers === 0 ? 1 : enrolledUsers} student${enrolledUsers === 1 ? '' : 's'}`
+                            : "1 student"}
+                      </p>
+
                     </div>
                     <div className="mr-2 mb-2 w-fit items-center flex text-black bg-gray-200 rounded px-2 py-0.5 dark:bg-gray-600 dark:text-white">
                       <IoLanguage className="mr-1" />

@@ -11,7 +11,7 @@ export type Course = {
   duration: string;
   lang: string;
   certificate: string;
-  student: string;
+  enrolledUsers: string;
   availability: string; // New field
   category: string; // New field
   courseFees: number; // New field

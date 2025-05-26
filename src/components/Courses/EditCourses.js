@@ -27,9 +27,9 @@ import { toast } from "sonner";
 import TextEditor from "../../components/TextEditor";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  useAddCourseMutation,
   useFetchCategoriesQuery,
   useFetchSubCategoriesQuery,
+  useUpdateCourseMutation,
 } from "@/services/api";
 import {
   updateField,
@@ -52,8 +52,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useUpdateCourseMutation } from "../../services/api";
-import { selectRootState } from "@/lib/store";
 
 const formSchema = z.object({
   courseName: z.string().optional(),
@@ -82,18 +80,13 @@ const formSchema = z.object({
   featuredCourse: z.boolean().optional(),
 });
 
-const categories = [
-  { name: "Development", subcategories: ["Web Development", "Mobile Apps"] },
-  { name: "Business", subcategories: ["Marketing", "Finance"] },
-];
-
 export function EditCourse({ editOpen, setEditOpen }) {
   const dispatch = useDispatch();
   const course = useSelector((state) => state.course);
   const [_UPDATECOURSE, { isLoading }] = useUpdateCourseMutation();
   const fileInputRef = React.useRef(null);
   const [newLanguage, setNewLanguage] = useState("");
-  
+
   // Common languages list
   const commonLanguages = [
     "English",
@@ -107,7 +100,7 @@ export function EditCourse({ editOpen, setEditOpen }) {
     "Portuguese",
     "Russian",
   ];
-  
+
   const {
     handleSubmit,
     formState: { errors },
@@ -146,24 +139,20 @@ export function EditCourse({ editOpen, setEditOpen }) {
         );
 
         if (fileInputRef.current) {
-          fileInputRef.current.value = ""; // Allowed: Only setting it to an empty string
+          fileInputRef.current.value = "";
         }
       };
-      reader.readAsDataURL(file);
-
       reader.onerror = (error) => {
         console.error(`Error converting ${field} to Base64:`, error);
       };
     }
   };
 
-  console.log("Courseseeese", course);
-
-  const onSubmit = async (e) => {
+  const onSubmit = async (data) => {
     // Convert languages array to comma-separated string
-    const languagesString = Array.isArray(course.languages) 
-      ? course.languages.join(', ') 
-      : course.languages || '';
+    const languagesString = Array.isArray(course.languages)
+      ? course.languages.join(", ")
+      : course.languages || "";
 
     const formattedData = {
       ...course,
@@ -172,7 +161,7 @@ export function EditCourse({ editOpen, setEditOpen }) {
       thoughts: course.thoughts,
       tags: course.tags,
       editorContent,
-      languages: languagesString, // Use the comma-separated string instead of the array
+      languages: languagesString,
     };
 
     try {
@@ -181,7 +170,7 @@ export function EditCourse({ editOpen, setEditOpen }) {
         ...formattedData,
       }).unwrap();
 
-      dispatch(resetForm()); // Reset state after successful update
+      dispatch(resetForm());
       setEditOpen(false);
 
       if (response?.success) {
@@ -190,27 +179,26 @@ export function EditCourse({ editOpen, setEditOpen }) {
         toast.error(response?.error || "Failed to update course.");
       }
     } catch (error) {
-      // Extract error message from response
       const errorMessage =
-        error?.data?.error || // Check if error message exists in response
-        error?.error || // Check for error object
-        error?.data?.message || // Check if message key is present
-        error?.message || // Check for general message
-        "Failed to update course."; // Default message
-
-      toast.error(errorMessage); // Show the exact error message
+        error?.data?.error ||
+        error?.error ||
+        error?.data?.message ||
+        error?.message ||
+        "Failed to update course.";
+      toast.error(errorMessage);
     }
   };
 
   const handleAddItem = (field, action) => (value, e) => {
-    e.preventDefault(); // Prevent form submission
+    e.preventDefault();
     if (value.trim()) {
       dispatch(action(value));
-      e.target.value = ""; // Clear input after adding
+      e.target.value = "";
     }
   };
 
-  const handleRemoveItem = (field, action) => (index) => {
+  const handleRemoveItem = (field, action) => (index, e) => {
+    e.preventDefault(); // Prevent form submission
     dispatch(action(index));
   };
 
@@ -243,15 +231,16 @@ export function EditCourse({ editOpen, setEditOpen }) {
 
   // Convert string languages to array for backward compatibility
   useEffect(() => {
-    if (course.languages && typeof course.languages === 'string') {
-      // Split the string by commas and trim spaces
-      const languagesArray = course.languages.split(',').map(lang => lang.trim()).filter(Boolean);
+    if (course.languages && typeof course.languages === "string") {
+      const languagesArray = course.languages
+        .split(",")
+        .map((lang) => lang.trim())
+        .filter(Boolean);
       handleChange("languages", languagesArray);
     } else if (!Array.isArray(course.languages)) {
-      // Initialize as empty array if not already an array
       handleChange("languages", []);
     }
-  }, [editOpen, course._id]); // Re-run when the edit modal opens or course changes
+  }, [editOpen, course._id]);
 
   return (
     <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -325,7 +314,7 @@ export function EditCourse({ editOpen, setEditOpen }) {
                 name="courseName"
                 className="mt-2 w-full"
                 onChange={(e) => handleChange("courseName", e.target.value)}
-                defaultValue={course.courseName}
+                value={course.courseName}
               />
               {errors.courseName && (
                 <p className="text-red-500">{errors.courseName.message}</p>
@@ -466,12 +455,12 @@ export function EditCourse({ editOpen, setEditOpen }) {
                 <div className="flex flex-wrap gap-2 rounded-md border border-gray-300 bg-white p-2">
                   {Array.isArray(course.languages) && course.languages.length > 0 ? (
                     course.languages.map((lang, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="flex items-center rounded bg-blue-100 px-2 py-1 text-sm"
                       >
                         <span>{lang}</span>
-                        <button 
+                        <button
                           type="button"
                           className="ml-1 text-gray-500 hover:text-gray-700"
                           onClick={(e) => {
@@ -526,10 +515,10 @@ export function EditCourse({ editOpen, setEditOpen }) {
                         }
                       }}
                     />
-                    <Button 
+                    <Button
                       type="button"
                       variant="secondary"
-                      className="ml-2" 
+                      className="ml-2"
                       onClick={(e) => {
                         e.preventDefault();
                         const value = newLanguage.trim();
@@ -629,8 +618,8 @@ export function EditCourse({ editOpen, setEditOpen }) {
                 }
                 value={course.taglineIncludes}
               />
-              {errors.duration && (
-                <p className="text-red-500">{errors.duration.message}</p>
+              {errors.taglineIncludes && (
+                <p className="text-red-500">{errors.taglineIncludes.message}</p>
               )}
             </div>
 
@@ -677,7 +666,7 @@ export function EditCourse({ editOpen, setEditOpen }) {
                 id="finalText"
                 name="finalText"
                 className="mt-2 w-full"
-                type="finalText"
+                type="text"
                 onChange={(e) => handleChange("finalText", e.target.value)}
                 value={course.finalText}
               />
@@ -687,7 +676,7 @@ export function EditCourse({ editOpen, setEditOpen }) {
             </div>
           </div>
           <div className="flex gap-4">
-            <div className=" w-1/2">
+            <div className="w-1/2">
               <Label>Syllabus (PDF)</Label>
               <Input
                 type="file"
@@ -726,11 +715,8 @@ export function EditCourse({ editOpen, setEditOpen }) {
                         >
                           <span className="text-sm">{item}</span>
                           <button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() =>
-                              handleRemoveItem(field, removeAction)(itemIndex)
-                            }
+                            type="button" // Explicitly set type to prevent form submission
+                            onClick={(e) => handleRemoveItem(field, removeAction)(itemIndex, e)}
                           >
                             <FaMinus className="h-4 w-4" />
                           </button>
@@ -749,6 +735,7 @@ export function EditCourse({ editOpen, setEditOpen }) {
                         }}
                       />
                       <button
+                        type="button"
                         className="ml-2"
                         onClick={(e) =>
                           handleAddItem(field, addAction)(

@@ -16,20 +16,30 @@ export const GET = authMiddleware(async (request) => {
     console.log("User Progress:", userProgressList);
 
     const completedCourses = [];
+    const allCoursesProgress = [];
 
     // Loop through the user's progress records
     for (let progressDoc of userProgressList) {
-      if (progressDoc.courseCompleted) {
-        // Fetch the course details for each completed course
-        const courseDetails = await CourseModel.findById(progressDoc.courseId); // Assuming you store course data in CourseModel
-          console.log("Course Details:", courseDetails);
-        if (courseDetails) {
+      const courseDetails = await CourseModel.findById(progressDoc.courseId); // Assuming you store course data in CourseModel
+      if (courseDetails) {
+        // Push to allCoursesProgress
+        allCoursesProgress.push({
+          courseId: progressDoc.courseId,
+          courseProgress: progressDoc.courseProgress,
+          courseCompleted: progressDoc.courseCompleted,
+          courseName: courseDetails.courseName,
+          courseDuration: courseDetails.duration,
+          courseLevel: courseDetails.level,
+        });
+
+        // Push to completedCourses if completed
+        if (progressDoc.courseCompleted) {
           completedCourses.push({
-            courseId: progressDoc.courseId, // courseId from user progress
+            courseId: progressDoc.courseId,
             courseProgress: progressDoc.courseProgress,
-            courseName: courseDetails.courseName, // Adding course name
-            courseDuration: courseDetails.duration, // Adding course 
-            courseLevel: courseDetails.level, // Adding course level
+            courseName: courseDetails.courseName,
+            courseDuration: courseDetails.duration,
+            courseLevel: courseDetails.level,
           });
         }
       }
@@ -37,11 +47,12 @@ export const GET = authMiddleware(async (request) => {
 
     return NextResponse.json({
       success: true,
-      completedCourses, // Send the list of completed courses with additional details
+      completedCourses,      // Only completed courses
+      allCoursesProgress,    // All progress records
     });
 
   } catch (error) {
-    console.error("Error fetching completed courses:", error);
+    console.error("Error fetching course data:", error);
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }

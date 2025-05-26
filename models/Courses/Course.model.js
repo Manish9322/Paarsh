@@ -91,6 +91,12 @@ const courseSchema = new mongoose.Schema(
         ref: "User",
       },
     ], // Users who bought the course
+    practiceTests: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "PracticeTest",
+      },
+    ], // Practice tests associated with the course
   },
   { timestamps: true },
 );

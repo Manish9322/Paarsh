@@ -7,22 +7,22 @@ const withPWA = require("next-pwa")({
 const nextConfig = withPWA({
   reactStrictMode: true,
   images: {
-    domains: ["paarshedu.com"],
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "paarshedu.com", // moved from 'domains'
+      },
+      {
+        protocol: "https",
         hostname: "cdn.sanity.io",
-        port: "",
       },
     ],
   },
-  // Configure body size limit for server actions and API routes
-  serverActions: {
-    bodySizeLimit: '500mb', // Increase this limit for large uploads
-  },
+  serverExternalPackages: ['sharp'], // updated from deprecated experimental field
   experimental: {
-    serverComponentsExternalPackages: ['sharp'], // For image processing if needed
-  },
+  esmExternals: true, // Allow ESM modules with top-level await
+},
+
 });
 
 module.exports = nextConfig;
