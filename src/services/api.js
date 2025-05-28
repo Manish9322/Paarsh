@@ -156,7 +156,7 @@ export const paarshEduApi = createApi({
    
     addAgent: builder.mutation({
       query: (formData) => ({
-        url: "/agent",
+        url: "/admin/agents",
         method: "POST",
         body: formData,
       }),
@@ -165,7 +165,7 @@ export const paarshEduApi = createApi({
 
     updateAgent: builder.mutation({
       query: (formData) => ({
-        url: "/agent",
+        url: "/admin/agents",
         method: "PUT",
         body: { formData },
       }),
@@ -174,11 +174,16 @@ export const paarshEduApi = createApi({
 
     deleteAgent: builder.mutation({
       query: (id) => ({
-        url: "/agent",
+        url: "/admin/agents",
         method: "DELETE",
         body: id,
       }),
       invalidatesTags: ["Agent"],
+    }),
+
+    fetchAgents: builder.query({
+      query: () => "/admin/agents",
+      providesTags: ["Agent"],
     }),
 
     fetchAgent: builder.query({
@@ -189,7 +194,7 @@ export const paarshEduApi = createApi({
     // New API endpoint for updating agent targets
     updateAgentTarget: builder.mutation({
       query: ({ id, targetType, targetValue }) => ({
-        url: "/agent",
+        url: "/admin/agent",
         method: "PATCH",
         body: { id, targetType, targetValue },
       }),
@@ -631,6 +636,7 @@ export const {
   useUpdateAgentMutation,
   useDeleteAgentMutation,
   useFetchAgentQuery,
+  useFetchAgentsQuery,
   useUpdateAgentTargetMutation,
 
   useFetchUserQuery,

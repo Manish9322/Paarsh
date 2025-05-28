@@ -6,7 +6,7 @@ import { useState ,useEffect} from "react";
 import { resetForm, setAuthData } from "../../lib/slices/userAuthSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLoginMutation } from "@/services/api";
 import { selectRootState } from "@/lib/store";
 import { signInValidationSchema } from "../../lib/validationSchema"; // ✅ FIXED Validation Schema Import
@@ -14,6 +14,7 @@ import { signInValidationSchema } from "../../lib/validationSchema"; // ✅ FIXE
 const SigninPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [_LOGIN] = useLoginMutation();
   const loginForm = useSelector(
     (state) => selectRootState(state).userAuth.forms,
@@ -62,11 +63,20 @@ const SigninPage = () => {
           
           // Reset form
           dispatch(resetForm({ formName: "loginForm" }));
+
+          // Get redirect URL from query parameter, fallback to response.data.redirect, then /userdashboard
+        const redirect = searchParams.get('redirect');
+        const redirectUrl = redirect
+          ? decodeURIComponent(redirect)
+          : response?.data?.redirect || '/userdashboard';
+
+        // Validate redirectUrl to ensure it's a safe internal path
+        const isValidRedirect = redirectUrl.startsWith('/');
           
           // Delay navigation to allow toast to be visible
           setTimeout(() => {
             setIsRedirecting(true);
-            router.push(response?.data?.redirect || `/userdashboard`);
+            router.push(isValidRedirect ? redirectUrl : '/userdashboard');
           }, 2000);
         } else {
           toast.error("Login Failed", {
