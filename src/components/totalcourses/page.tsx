@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { List, Grid3x3, Search, Filter, ChevronRight, BookOpen, Clock, Calendar, Users, Award, PlayCircle } from "lucide-react";
+import { List, Frown, Grid3x3, Search, Filter, ChevronRight, BookOpen, Clock, Calendar, Users, Award, PlayCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -14,17 +14,45 @@ interface Course {
   level: string;
   price: string;
   thumbnail: string;
-  progress:string;
-  purchaseDate:string;
+  progress: string;
+  purchaseDate: string;
   videos: any[];
 }
+
+// Skeleton Card Component
+const SkeletonCard = ({ view }: { view: string }) => {
+  return (
+    <div
+      className={`flex ${
+        view === "list" ? "flex-row" : "flex-col"
+      } bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 animate-pulse`}
+    >
+      <div className={`${view === "list" ? "w-1/3" : "w-full"} relative`}>
+        <div
+          className={`${
+            view === "list" ? "h-full w-full" : "h-48 w-full"
+          } bg-gray-200 dark:bg-gray-700`}
+        />
+      </div>
+      <div className={`${view === "list" ? "w-2/3" : "w-full"} p-4 space-y-3`}>
+        <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-3/4" />
+        <div className="space-y-2">
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+        </div>
+        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded-lg w-full" />
+      </div>
+    </div>
+  );
+};
 
 function TotalCourses() {
   const [view, setView] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
-  const { data, error, isLoading } = useFetchUserCourseQuery({});
+  const { data, error : courseError, isLoading: isCourseLoading, refetch: refetchCourses } = useFetchUserCourseQuery({});
   const courses: Course[] = data?.purchasedCourses || [];
 
   const handleStartCourse = (courseId: string) => {
@@ -33,7 +61,13 @@ function TotalCourses() {
   };
 
   console.log("purchased courses : ", courses);
+  console.log("total videos in the lecture : ", courses[0]?.videos.length);
 
+  const getTotalVideoCount = (course: any) => {
+    return course.videos.reduce((total: number, topic: any) => {
+      return total + (topic.videos?.length || 0);
+    }, 0);
+  };
 
   const exampleCourses = [
     {
@@ -104,6 +138,59 @@ function TotalCourses() {
     }
   };
 
+
+    // Handle loading state
+    if (isCourseLoading) {
+      return (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse" />
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 mt-2 animate-pulse" />
+            </div>
+            <div className="flex items-center gap-2 bg-white dark:bg-gray-700 p-1 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+              <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse" />
+              <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse" />
+            </div>
+          </div>
+          <div
+            className={`grid ${
+              view === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+            } gap-6`}
+          >
+            {[...Array(6)].map((_, index) => (
+              <SkeletonCard key={index} view={view} />
+            ))}
+          </div>
+        </div>
+      );
+    }
+  
+    // Handle error state
+    if ( courseError) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Frown size={48} className="text-red-600 dark:text-red-400 mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+            Oops! We couldn’t load your courses.
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
+            Something went wrong while fetching your ongoing courses. Please check your connection or try again.
+          </p>
+          <button
+            onClick={() => {
+              refetchCourses();
+            }}
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors"
+          >
+            Retry
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      );
+    }
+
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -164,8 +251,8 @@ function TotalCourses() {
         initial="hidden"
         animate="show"
         className={`grid ${view === "grid"
-            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-            : "grid-cols-1"
+          ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+          : "grid-cols-1"
           } gap-6`}
       >
         {courses.map((course) => (
@@ -173,7 +260,7 @@ function TotalCourses() {
             key={course._id}
             variants={item}
             className={`flex ${view === "list" ? "flex-row" : "flex-col"
-              } bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500`}
+              } bg-white dark:bg-gray-800 rounded-md overflow-hidden shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500`}
             style={{ cursor: 'pointer' }}
           >
             <div className={`${view === "list" ? "w-1/3" : "w-full"} relative`}>
@@ -222,8 +309,8 @@ function TotalCourses() {
                 </div>
 
                 <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                  <Calendar size={12} className="mr-1" />
-                  Purchased: {formatDate(course.purchaseDate)}
+                  <PlayCircle size={12} className="mr-1" />
+                  {getTotalVideoCount(course)} Lectures
                 </div>
               </div>
 
@@ -235,7 +322,7 @@ function TotalCourses() {
                       <Award size={12} className="mr-1" />
                       Completed
                     </span>
-                  ) :Number(course.progress) === 100 ? (
+                  ) : Number(course.progress) === 100 ? (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                       <Clock size={12} className="mr-1" />
                       In Progress
@@ -249,7 +336,7 @@ function TotalCourses() {
                 </div>
 
                 <button
-                  className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-sm hover:shadow transition-all duration-300"
+                  className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-md shadow-sm hover:shadow transition-all duration-300"
                   onClick={() => handleStartCourse(course._id)}
                 >
                   {Number(course.progress) === 100 ? "Continue" : "Start"}

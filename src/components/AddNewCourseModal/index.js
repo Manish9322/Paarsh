@@ -254,7 +254,7 @@ export function AddNewCourse() {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="inline-flex items-center justify-center rounded bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-600 dark:bg-blue-600"
+          className="inline-flex items-center justify-center rounded bg-white px-4 py-2 text-sm font-semibold text-black hover:bg-white/90 dark:bg-white"
           onClick={() => setOpen(true)}
         >
           Add Course

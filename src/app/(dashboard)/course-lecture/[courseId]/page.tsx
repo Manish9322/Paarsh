@@ -152,6 +152,7 @@ export default function CourseLecturePage() {
 
   console.log("Course ID:", courseId);
   console.log("Course Video Data:", courseVideoData);
+  console.log("Course Name : ", courseVideoData?.data?.courseName);
   const { data: progressData } = useGetVideoProgressQuery(courseId, {
     skip: !courseId,
     pollingInterval: 0, // Disable polling to avoid frequent refetches
@@ -540,19 +541,33 @@ export default function CourseLecturePage() {
     }
   };
 
-  const toggleFullscreen = () => {
-    if (!videoContainerRef.current) return;
+const toggleFullscreen = () => {
+  if (!videoContainerRef.current) return;
 
-    if (!document.fullscreenElement) {
-      videoContainerRef.current.requestFullscreen().catch(err => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+  if (!document.fullscreenElement) {
+    videoContainerRef.current.requestFullscreen().catch(err => {
+      console.error(`Error attempting to enable fullscreen: ${err.message}`);
+    });
+    // Lock orientation to landscape for mobile devices if supported
+    if (screen.orientation && 'lock' in screen.orientation && typeof screen.orientation.lock === 'function') {
+      screen.orientation.lock('landscape').catch(err => {
+        console.error(`Error locking orientation: ${err.message}`);
       });
-      setIsFullscreen(true);
     } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
+      console.warn('Screen orientation lock is not supported in this browser.');
     }
-  };
+    setIsFullscreen(true);
+  } else {
+    document.exitFullscreen();
+    // Unlock orientation when exiting fullscreen if supported
+    if (screen.orientation && 'unlock' in screen.orientation && typeof screen.orientation.unlock === 'function') {
+      screen.orientation.unlock();
+    } else {
+      console.warn('Screen orientation unlock is not supported in this browser.');
+    }
+    setIsFullscreen(false);
+  }
+};
 
   const handleFastForward = () => {
     if (videoRef) {
@@ -671,7 +686,7 @@ export default function CourseLecturePage() {
                 <ChevronLeft className="h-6 w-6 text-gray-700" />
               </button>
               <div className="max-w-[200px] sm:max-w-[400px] truncate text-xl font-semibold text-gray-800">
-                Course / {currentVideo?.title || "Loading..."}
+                {courseVideoData?.data?.courseName || "Loading course name..."} / {currentVideo?.title || "Loading video name..."}
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -713,7 +728,7 @@ export default function CourseLecturePage() {
       {/* Notification Toast */}
       {notification && (
         <div
-          className="animate-slide-in fixed right-4 top-20 z-50 flex items-center gap-2 rounded-lg bg-teal-600 p-3 text-white shadow-lg"
+          className="animate-slide-in fixed right-4 top-20 z-50 flex items-center gap-2 rounded-md bg-teal-600 p-3 text-white shadow-lg"
           aria-live="polite"
         >
           <Sparkles className="h-4 w-4" />
@@ -839,7 +854,7 @@ export default function CourseLecturePage() {
                             )}
                           </button>
                           {showVolumeSlider && (
-                            <div className="absolute bottom-full mb-2 w-24 rounded-lg bg-black/90 p-2">
+                            <div className="absolute bottom-full mb-2 w-24 rounded-md bg-black/90 p-2">
                               <input
                                 type="range"
                                 min="0"
@@ -867,7 +882,7 @@ export default function CourseLecturePage() {
                             {playbackSpeed}x
                           </button>
                           {showSpeedOptions && (
-                            <div className="absolute bottom-full mb-2 w-24 rounded-lg bg-black/90 p-2">
+                            <div className="absolute bottom-full mb-2 w-24 rounded-md bg-black/90 p-2">
                               {[0.5, 1, 1.25, 1.5, 2].map((speed) => (
                                 <button
                                   key={speed}
@@ -955,7 +970,7 @@ export default function CourseLecturePage() {
                   <h2 className="mb-2 text-xl font-semibold text-gray-900">
                     {currentVideo?.title}
                   </h2>
-                  <div className="mb-4 rounded-lg bg-indigo-50 p-3">
+                  <div className="mb-4 rounded-md bg-indigo-50 p-3">
                     <h3 className="flex items-center gap-2 text-sm font-medium text-indigo-700">
                       <Sparkles className="h-4 w-4" />
                       AI-Powered Summary
@@ -1067,7 +1082,7 @@ export default function CourseLecturePage() {
                 </TabsContent>
                 <TabsContent value="notes" className="mt-4">
                   <textarea
-                    className="h-32 w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900"
+                    className="h-32 w-full rounded-md border border-gray-200 p-3 text-sm text-gray-900"
                     placeholder="Add your notes here..."
                     defaultValue={currentVideo?.notes}
                   />
@@ -1083,15 +1098,15 @@ export default function CourseLecturePage() {
               </Tabs>
             </div>
           </div>
-        </div>        {/* Playlist Section */}
+        </div>
+        
+        {/* Playlist Section */}
         <div className="relative lg:fixed lg:top-16 lg:right-0 w-full lg:w-1/4 h-auto lg:h-[calc(100vh-4rem)] bg-white shadow-lg lg:z-40 flex flex-col overflow-hidden">
           {/* Sidebar Header (Fixed) */}
           <div className="p-4 space-y-4 flex-shrink-0">
 
-
             {/* Course Progress */}
-            {/* Course Progress */}
-            <div className="flex items-center gap-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 p-3 text-white shadow-md">
+            <div className="flex items-center gap-3 rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 p-3 text-white shadow-md">
               <Trophy className="h-5 w-5 text-yellow-300" />
               <div className="flex-1">
                 <div className="text-sm font-semibold">
@@ -1178,7 +1193,7 @@ export default function CourseLecturePage() {
                           {topic.videos.map((video) => (
                             <div
                               key={video.id}
-                              className={`group overflow-hidden rounded-lg border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400 hover:shadow-lg ${currentVideo?.id === video.id
+                              className={`group overflow-hidden rounded-md border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400 hover:shadow-lg ${currentVideo?.id === video.id
                                 ? "border-indigo-400 bg-indigo-50 shadow-lg"
                                 : ""
                                 }`}
@@ -1304,7 +1319,7 @@ export default function CourseLecturePage() {
                                   </div>
 
                                   <div className="mb-4 grid grid-cols-2 gap-3">
-                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                    <div className="rounded-md bg-white p-3 shadow-sm">
                                       <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
                                         <Timer className="h-3.5 w-3.5" />
                                         Duration
@@ -1313,7 +1328,7 @@ export default function CourseLecturePage() {
                                         {dynamicDuration}
                                       </div>
                                     </div>
-                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                    <div className="rounded-md bg-white p-3 shadow-sm">
                                       <div className="mb-1 flex items-center gap-2 text-xs text-gray-500">
                                         <GraduationCap className="h-3.5 w-3.5" />
                                         Level
@@ -1326,7 +1341,7 @@ export default function CourseLecturePage() {
 
                                   {video.learningObjectives &&
                                     video.learningObjectives.length > 0 && (
-                                      <div className="mb-4 rounded-lg bg-white p-3 shadow-sm">
+                                      <div className="mb-4 rounded-md bg-white p-3 shadow-sm">
                                         <div className="mb-2 flex items-center gap-2">
                                           <BookOpenCheck className="h-4 w-4 text-indigo-600" />
                                           <h4 className="text-sm font-medium text-gray-900">
@@ -1351,7 +1366,7 @@ export default function CourseLecturePage() {
 
                                   {video.codeExamples &&
                                     video.codeExamples.length > 0 && (
-                                      <div className="mb-4 rounded-lg bg-white p-3 shadow-sm">
+                                      <div className="mb-4 rounded-md bg-white p-3 shadow-sm">
                                         <div className="mb-2 flex items-center gap-2">
                                           <Code className="h-4 w-4 text-indigo-600" />
                                           <h4 className="text-sm font-medium text-gray-900">
@@ -1372,7 +1387,7 @@ export default function CourseLecturePage() {
                                     )}
 
                                   {video.resource && (
-                                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                                    <div className="rounded-md bg-white p-3 shadow-sm">
                                       <div className="mb-2 flex items-center gap-2">
                                         <FileText className="h-4 w-4 text-indigo-600" />
                                         <h4 className="text-sm font-medium text-gray-900">

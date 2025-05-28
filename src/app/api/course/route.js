@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import _db from "../../../../utils/db";
 import CourseModel from "../../../../models/Courses/Course.model";
+import CourseVideoModel from "../../../../models/Courses/CouresVideo.model";
 import { authMiddleware } from "../../../../middlewares/auth";
 import { uploadBase64ToVPS } from "../../../../utils/uploadfile";
 
@@ -115,8 +116,27 @@ export const POST = authMiddleware(async (request) => {
 //  Get All Courses
 export const GET = async () => {
   try {
+    // Get all courses
     const courses = await CourseModel.find();
-    return NextResponse.json({ success: true, data: courses });
+    
+    // Get all course videos in a single query
+    const courseVideos = await CourseVideoModel.find({}, 'courseId topics');
+
+    // Create a map of courseId to lecture count
+    const lectureCountMap = courseVideos.reduce((acc, courseVideo) => {
+      const totalLectures = courseVideo.topics.reduce((sum, topic) => sum + topic.videos.length, 0);
+      acc[courseVideo.courseId.toString()] = totalLectures;
+      return acc;
+    }, {});
+
+    // Attach lecture count to each course
+    const coursesWithLectureCount = courses.map(course => {
+      const courseObj = course.toObject();
+      courseObj.lectureCount = lectureCountMap[course._id.toString()] || 0;
+      return courseObj;
+    });
+
+    return NextResponse.json({ success: true, data: coursesWithLectureCount });
   } catch (error) {
     console.error("Error fetching courses:", error);
     return NextResponse.json(
