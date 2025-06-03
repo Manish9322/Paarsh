@@ -16,6 +16,7 @@ import { Providers } from "./providers";
 import PurchaseModal from "@/components/PurchaseModal";
 import { Provider } from "react-redux";
 import { Toaster } from "sonner";
+import AuthInitializer from "../components/AuthIntializer";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -52,9 +53,11 @@ useEffect(() => {
         <Suspense>
         <Provider store={store}>
           <Providers>
+                 <AuthInitializer>
             <MainLayout>{children}
               <Toaster richColors />
             </MainLayout>
+            </AuthInitializer>
           </Providers>
         </Provider>
         </Suspense>
@@ -68,9 +71,12 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isAuthenticated } = useSelector((state: any) => state.userAuth);
 
+  console.log("isAuthenticated:from MainLayout", isAuthenticated);
+
   useEffect(() => {
     const storedAccessToken = localStorage.getItem("accessToken");
     const storedRefreshToken = localStorage.getItem("refreshToken");
+    const sessionId = localStorage.getItem("sessionId");
 
     if (storedAccessToken && !isAuthenticated) {
       dispatch(
@@ -78,6 +84,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
           accessToken: storedAccessToken,
           refreshToken: storedRefreshToken,
           user: null, // Fetch user details later if needed
+          sessionId,
         })
       );
     }

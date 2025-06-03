@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminloginMutation } from "../../../services/api";
 import { useDispatch } from "react-redux";
-import { setAdminAuth, adminLogout } from "../../../lib/slices/authSlice";
+import { setAdminAuthData, logoutAdmin } from "../../../lib/slices/authSlice";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -25,7 +25,7 @@ const SigninPage = () => {
 
   if (response?.success) {
     dispatch(
-      setAdminAuth({
+      setAdminAuthData({
         admin_access_token: response.admin_access_token,
         admin_refresh_token: response.admin_refresh_token,
         admin: response.user, // response.admin was incorrect; should be user

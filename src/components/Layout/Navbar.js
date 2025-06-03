@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { adminLogout } from "@/lib/slices/authSlice";
+import {  logoutAdmin } from "@/lib/slices/authSlice";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { useTheme } from "next-themes";
@@ -54,7 +54,7 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
-    dispatch(adminLogout()); // Redux logout
+    dispatch(logoutAdmin()); // Redux logout
     router.push("/");
   };
 

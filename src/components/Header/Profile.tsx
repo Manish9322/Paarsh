@@ -17,7 +17,7 @@ import { PiUserCircleThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
 import { logout } from "../../lib/slices/userAuthSlice";
 import { useDispatch } from "react-redux";
-import { useFetchUserQuery } from "@/services/api";
+import { useFetchUserQuery, useLogoutMutation } from "@/services/api";
 
 import {
   Dialog,
@@ -27,11 +27,14 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 
 export default function Profile() {
   const { data: userData, error, isLoading } = useFetchUserQuery(undefined);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
+  const [_LOGOUT] = useLogoutMutation();
 
   const user = userData?.data;
 
@@ -54,10 +57,28 @@ export default function Profile() {
     return (firstInitial + lastInitial).toUpperCase();
   };
 
-  const handleLogout = () => {
-    dispatch(logout()); // Redux logout
-    router.push("/"); // Redirect to Sign In page
-  };
+
+
+ const handleLogout = async () => {
+   try {
+     // Call the logout mutation (likely defined in your RTK Query API slice)
+     await _LOGOUT({}).unwrap();
+ 
+     // Optionally: You could show a toast here if needed
+     toast.success("Logged out successfully");
+ 
+   } catch (err) {
+     console.error("Logout request failed:", err);
+     // Optionally: show error toast or message
+     // toast.error("Logout failed. Please try again.");
+   } finally {
+     // Clear tokens & session from Redux and localStorage
+     dispatch(logout());
+ 
+     // Redirect user to signin page
+     router.push("/");
+   }
+ };
 
   const handleLogoutClick = () => {
     setLogoutConfirmOpen(true);
