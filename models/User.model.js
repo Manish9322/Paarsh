@@ -70,6 +70,8 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  otpToken: String,
+  otpTokenExpiry: Date,
 });
 
 // Pre-save middleware to update timestamps and session creation time

@@ -164,6 +164,23 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["User"],
     }),
 
+      forgotPassword: builder.mutation({
+      query: (email) => ({
+        url: "user/forgot-password",
+        method: "POST",
+        body: email,
+      }),
+    }), 
+
+    resetPassword: builder.mutation({
+      query: ({ email, password, otp }) => ({
+        url: "user/forgot-password",
+        method: "PUT",
+        body: { email, password, otp },
+      }),
+    }),
+
+
     logout: builder.mutation({
       query: () => ({
         url: "/user/logout",
@@ -753,6 +770,8 @@ export const paarshEduApi = createApi({
 export const {
   useLoginMutation,
   useSignupMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
   useLogoutMutation,
 
   useValidateTokenQuery,
