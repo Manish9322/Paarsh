@@ -36,13 +36,13 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     const updateTokensAction = isAdminRequest ? updateAdminTokens : updateTokens;
     const logoutAction = isAdminRequest ? logoutAdmin : logout;
 
-    if (!refreshTokenToUse) {
-      api.dispatch(logoutAction());
-      if (typeof window !== "undefined") {
-        window.location.href = "/signin";
-      }
-      return result;
-    }
+    // if (!refreshTokenToUse) {
+    //   api.dispatch(logoutAction());
+    //   if (typeof window !== "undefined") {
+    //     window.location.href = "/signin";
+    //   }
+    //   return result;
+    // }
 
     if (tokenRefreshing) {
       return new Promise((resolve) => {
@@ -69,16 +69,16 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
         result = await baseQuery(args, api, extraOptions);
       } else {
         api.dispatch(logoutAction());
-        if (typeof window !== "undefined") {
-          window.location.href = "/signin";
-        }
+        // if (typeof window !== "undefined") {
+        //   window.location.href = "/signin";
+        // }
       }
     } catch (error) {
       console.error("Token refresh error:", error);
       api.dispatch(logoutAction());
-      if (typeof window !== "undefined") {
-        window.location.href = "/signin";
-      }
+      // if (typeof window !== "undefined") {
+      //   window.location.href = "/signin";
+      // }
     } finally {
       api.dispatch(setTokenRefreshing(false));
     }
