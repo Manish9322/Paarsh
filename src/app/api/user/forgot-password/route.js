@@ -117,10 +117,11 @@ export async function POST(request) {
     user.otpTokenExpiry = expiry;
     await user.save();
 
-    const message = resetPassword(otp);
+
+    const message = resetPassword(otp, user.name);
     const emailOptions = {
-      email: email,
-      subject: "Email verification for WallCreat",
+      email: email, 
+      subject: "Email verification for password reset",
       message: message,
     };
 
@@ -136,7 +137,7 @@ export async function POST(request) {
         data: {
           accessToken,
           refreshToken,
-          redirect: `/forgot-password-verification?email=${email}`,
+          redirect: `/reset-password?email=${email}`,
         },
       },
       { status: 200 }

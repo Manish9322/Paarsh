@@ -4,7 +4,7 @@ import { useState } from "react";
 import { User, AlertTriangle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import { useFetchUserQuery, useDeleteUserMutation } from "@/services/api";
+import { useDeleteUserMutation } from "@/services/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import {
 export default function DeleteAccountPage() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { data: userData } = useFetchUserQuery(undefined);
+ 
   const [deleteUser] = useDeleteUserMutation();
 
   const [formData, setFormData] = useState({

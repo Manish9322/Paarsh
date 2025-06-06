@@ -32,21 +32,21 @@ const ForgotPasswordPage = () => {
     return (
       <section className="relative z-10 flex min-h-screen items-center justify-center p-3 sm:p-6">
         <div className="mx-auto w-full max-w-[500px] rounded-lg bg-white px-4 py-8 shadow-lg dark:bg-dark xs:px-5 xs:py-9 sm:p-[40px] md:p-[60px]">
-          <div className="text-center space-y-4">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+          <div className="text-center ">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="mb-2 text-xl font-bold text-black dark:text-white sm:mb-3 sm:text-2xl md:text-3xl">
+            <h3 className="mb-3 text-xl font-bold text-black dark:text-white sm:mb-3 sm:text-2xl md:text-3xl">
               OTP Sent Successfully!
             </h3>
-            <p className="mb-4 text-sm text-body-color sm:mb-6 sm:text-base">
+            <p className="mb-8 text-sm text-body-color sm:mb-6 sm:text-base">
               Check your email for the verification code.
             </p>
             <Link
               href={`/reset-password?email=${encodeURIComponent(formik.values.email)}`}
-              className="h-10 w-full rounded-md bg-blue-700 px-4 py-2 text-sm text-white transition duration-300 hover:bg-blue-600 sm:h-12 sm:py-3 sm:text-base"
+              className="h-10 w-full rounded-md bg-blue-700 mt-6 px-4 py-2 text-sm text-white transition duration-300 hover:bg-blue-600 sm:h-12 sm:py-3 sm:text-base"
             >
               Enter OTP
             </Link>

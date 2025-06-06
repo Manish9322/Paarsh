@@ -16,3 +16,9 @@ export const VPS_USERNAME = process.env.VPS_USERNAME;
 export const VPS_PASSWORD = process.env.VPS_PASSWORD;
 export const VPS_UPLOAD_DIR = process.env.VPS_UPLOAD_DIR;
 export const VPS_BASE_URL = process.env.VPS_BASE_URL;
+
+export const SMTP_HOST = process.env.SMTP_HOST;
+export const SMTP_PORT = process.env.SMTP_PORT;
+export const SMTP_USER = process.env.SMTP_USER;
+export const SMTP_PASS = process.env.SMTP_PASS;
+export const EMAIL_FROM = process.env.EMAIL_FROM;
