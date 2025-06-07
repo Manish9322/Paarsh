@@ -57,7 +57,7 @@ const [loginData, setLoginData] = useState(null);
       // Show success toast
       toast.success("Login Successful", {
         description: response?.message || "Welcome back!",
-        duration: 3000,
+        duration: 500,
       });
       
       // Store tokens in localStorage
