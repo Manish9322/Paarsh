@@ -5,8 +5,8 @@ import SingleTestimonial from "./SingleTestimonial";
 const testimonialData: Testimonial[] = [
   {
     id: 1,
-    name: "Dhiraj Bhirud",
-    designation: "Founder @Artify Inc.",
+    name: "Praful Jadhav",
+    designation: "Jr. UI Engineer @Artify Inc.",
     content:
       " Paarsh infotech , it gives me such an good experience and helps me to improve my knowledge, It gives me opportunity to take decision by myself.",
     image: "/images/testimonials/auth-01.png",
@@ -14,8 +14,8 @@ const testimonialData: Testimonial[] = [
   },
   {
     id: 2,
-    name: "Mangesh Dound",
-    designation: "Founder @UIdeck",
+    name: "Mitesh Dalavi",
+    designation: "Asocciate Software Developer @LinkClick",
     content:
       "I have never worked a part-time job with such intensity and dedication before.My internship was such a valuable experience and I learned so much!I am very grateful for the opportunity",
     image: "/images/testimonials/auth-02.png",
@@ -23,8 +23,8 @@ const testimonialData: Testimonial[] = [
   },
   {
     id: 3,
-    name: "Dharmi Barot",
-    designation: "Founder @Lineicons",
+    name: "Nilesh Sawant",
+    designation: "Jr. Software Developer @Lineicons",
     content:
       "A positive company culture that values innovation, teamwork, and open communication can help employees feel engaged and motivated and The work environment is also better",
     image: "/images/testimonials/auth-03.png",

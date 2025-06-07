@@ -36,16 +36,14 @@ function Certificates() {
     const [searchTerm, setSearchTerm] = useState("");
     const [previewImage, setPreviewImage] = useState<React.ReactNode | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    
     const { data: progressData } = useFetchCourseProgressQuery(undefined);
-
     console.log("Progress Data:", progressData);
 
     const { data: userData, isLoading, error } = useFetchUserQuery(undefined);
       const user = userData?.data;
       console.log("User: ", user);
       console.log("User Name : ", user?.name);
-
-
 
     // Hardcoded user name (replace with actual user data from API or context)
     const userName = user?.name || "Loading Student's Name..."; // This can be fetched dynamically

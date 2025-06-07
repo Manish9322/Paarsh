@@ -62,14 +62,14 @@ export default function CourseFilters({ categories, onFilterChange, isCategories
   };
 
   return (
-    <div className="mb-6 rounded-lg bg-white p-4 shadow-md">
+    <div className="mb-6 rounded-lg bg-white dark:bg-gray-900 p-4 shadow-md">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-700">Filters</h3>
+        <h3 className="text-lg font-semibold text-gray-700 dark:text-white">Filters</h3>
         <Button
           variant="ghost"
           size="sm"
           onClick={clearFilters}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-gray-500 hover:text-gray-700 dark:text-white"
         >
           <X className="mr-2 h-4 w-4" />
           Clear Filters
@@ -78,7 +78,7 @@ export default function CourseFilters({ categories, onFilterChange, isCategories
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Search Courses</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Search Courses</label>
           <Input
             type="text"
             placeholder="Search by name, category..."
@@ -88,7 +88,7 @@ export default function CourseFilters({ categories, onFilterChange, isCategories
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Level</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Level</label>
           <Select
             value={filters.level}
             onValueChange={(value) => handleFilterChange("level", value)}
@@ -106,7 +106,7 @@ export default function CourseFilters({ categories, onFilterChange, isCategories
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Category</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Category</label>
           <Select
             value={filters.category}
             onValueChange={(value) => handleFilterChange("category", value)}
@@ -127,7 +127,7 @@ export default function CourseFilters({ categories, onFilterChange, isCategories
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Min Price (₹)</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Min Price (₹)</label>
           <Input
             type="number"
             min="0"
@@ -138,7 +138,7 @@ export default function CourseFilters({ categories, onFilterChange, isCategories
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Max Price (₹)</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Max Price (₹)</label>
           <Input
             type="number"
             min="0"

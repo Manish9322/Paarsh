@@ -8,13 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { updateField, resetForm } from "../../lib/slices/subCategorySlice";
-import { 
+import {
   useAddSubCategoryMutation,
-  useFetchCategoriesQuery 
+  useFetchCategoriesQuery,
 } from "../../services/api";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import {
@@ -31,7 +32,8 @@ const AddSubCategoryModal = () => {
   const [open, setOpen] = useState(false);
 
   const [_ADDSUBCATEGORY, { isLoading }] = useAddSubCategoryMutation();
-  const { data: categoriesData, isLoading: isCategoriesLoading } = useFetchCategoriesQuery();
+  const { data: categoriesData, isLoading: isCategoriesLoading } =
+    useFetchCategoriesQuery();
   console.log(categoriesData);
 
   // Handle input change using Redux actions
@@ -75,7 +77,8 @@ const AddSubCategoryModal = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-500 text-white hover:bg-blue-700">
+        <Button className="bg-white text-blue-600 hover:bg-white/90">
+          <Plus className="mr-2 h-4 w-4" />
           Add SubCategory
         </Button>
       </DialogTrigger>
@@ -86,10 +89,7 @@ const AddSubCategoryModal = () => {
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Select
-
-            onValueChange={handleCategoryChange}
-          >
+          <Select onValueChange={handleCategoryChange}>
             <SelectTrigger className="rounded-md border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500">
               <SelectValue placeholder="Select Category" />
             </SelectTrigger>

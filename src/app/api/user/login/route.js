@@ -77,6 +77,8 @@ export async function POST(request) {
       data: {
         accessToken,
         refreshToken,
+        userId: user._id.toString(), // Include userId
+        name: user.name,
         redirect: "/userdashboard",
       },
     });

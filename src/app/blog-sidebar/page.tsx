@@ -25,7 +25,7 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import Purchase from "../../components/Purchase";
 
-import { useFetchCategoriesQuery, useFetchCourcebyIdQuery, useFetchCourcesQuery } from "@/services/api";
+import { useFetchCategoriesQuery, useFetchCourcebyIdQuery, useFetchCourcesQuery, useFetchUserCourseQuery } from "@/services/api";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -94,12 +94,18 @@ const BlogSidebarPage = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   const courseId = param.get("courseId");
-  
+
+
+
   // Check authentication status on component mount
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     setIsAuthorized(!!accessToken);
   }, []);
+
+  const {
+    data: UserCourseData,
+  } = useFetchUserCourseQuery(undefined);
 
   const {
     data: courseData,
@@ -128,7 +134,7 @@ const BlogSidebarPage = () => {
   };
 
   // Memoize random categories
-  const randomCategories = useMemo(() => 
+  const randomCategories = useMemo(() =>
     getRandomCategories(categories, 6),
     [categories]
   );
@@ -158,10 +164,10 @@ const BlogSidebarPage = () => {
       }
 
       setIsSearching(true);
-      
+
       if (coursesData?.data) {
         const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
-        
+
         const filteredResults = coursesData.data.filter((course) => {
           const searchableContent = [
             course.courseName,
@@ -175,10 +181,10 @@ const BlogSidebarPage = () => {
 
           return searchTerms.every(term => searchableContent.includes(term));
         });
-        
+
         setSearchResults(filteredResults);
       }
-      
+
       setIsSearching(false);
     }, 300),
     [coursesData]
@@ -228,6 +234,20 @@ const BlogSidebarPage = () => {
   console.log("Course Data : ", course);
   console.log("Editor Content:", course?.editorContent);
 
+  const isCoursePurchased = useMemo(() => {
+    if (!UserCourseData?.purchasedCourses || !course?._id) return false;
+    return UserCourseData.purchasedCourses.some(
+      (purchasedCourse: any) => purchasedCourse._id === course._id
+    );
+  }, [UserCourseData, course]);
+
+  const handleGoToCourse = () => {
+    router.push('/total-courses');
+  };
+
+
+
+
   return (
     <SkeletonThemeProvider>
       <section className="overflow-hidden pb-[120px] pt-[180px]">
@@ -266,7 +286,7 @@ const BlogSidebarPage = () => {
                         <span>{course?.certificate ? "Certificate" : "No Certificate"}</span>
                       </div>
                     </div>
-                    
+
                     {/* Original price display for courses without offers */}
                     {!course?.activeOffer && (
                       <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl p-6">
@@ -282,12 +302,16 @@ const BlogSidebarPage = () => {
                             <span className="text-sm text-gray-600 dark:text-gray-400">Lifetime access</span>
                           </div>
                         </div>
-                        <Button
-                          onClick={modalOpen}
-                          className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-                        >
-                          Enroll Now
-                        </Button>
+                        {isLoading ? (
+                          <Skeleton width={150} height={48} />
+                        ) : (
+                          <Button
+                            onClick={isCoursePurchased ? handleGoToCourse : modalOpen}
+                            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+                          >
+                            {isCoursePurchased ? "Go to Course" : "Enroll Now"}
+                          </Button>
+                        )}
                       </div>
                     )}
 
@@ -328,24 +352,28 @@ const BlogSidebarPage = () => {
                                   Math.round(parseFloat(course.price) * (1 - course.activeOffer.discountPercentage / 100))
                                 )}
                               </span>
-                            </div>  
+                            </div>
                           </div>
                         </div>
 
                         <div className="flex flex-col items-end gap-1.5">
-                          <Button
-                            onClick={modalOpen}
-                            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-                          >
-                            Claim Offer
-                          </Button>
+                          {isLoading ? (
+                            <Skeleton width={150} height={48} />
+                          ) : (
+                            <Button
+                              onClick={isCoursePurchased ? handleGoToCourse : modalOpen}
+                              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+                            >
+                              {isCoursePurchased ? "Go to Course" : "Claim Offer"}
+                            </Button>
+                          )}
                           <div className="flex flex-col items-end gap-1.5">
-                          <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">Limited time offer</span>
-                          <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">
-                          Offer valid until {new Date(course.activeOffer.validUntil).toLocaleDateString()}
-                          </span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">Limited time offer</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">
+                              Offer valid until {new Date(course.activeOffer.validUntil).toLocaleDateString()}
+                            </span>
                           </div>
-                          
+
                         </div>
                       </div>
                     )}
@@ -361,11 +389,11 @@ const BlogSidebarPage = () => {
                     ) : (
                       "Loading Summary..."
                     )}
-                  </p> 
+                  </p>
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <VideoPlayer
-                      thumbnailUrl={ course?.thumbnail || "/images/blog/blog-details-01.jpg"}
-                      videoUrl={ course?.videoLink || ""}
+                      thumbnailUrl={course?.thumbnail || "/images/blog/blog-details-01.jpg"}
+                      videoUrl={course?.videoLink || ""}
                       title={course?.courseName || "Course Video"}
                     />
                   </div>
@@ -428,7 +456,7 @@ const BlogSidebarPage = () => {
                       <Skeleton count={3} />
                     ) : course?.syllabusOverview?.length > 0 ? (
                       <>
-                        {Array.isArray(course.syllabusOverview) ? ( course.syllabusOverview
+                        {Array.isArray(course.syllabusOverview) ? (course.syllabusOverview
                           .filter((topic) => topic !== "Many More") // Exclude 'Many More' if it exists
                           .map((topic, index) => (
                             <li
@@ -680,11 +708,11 @@ const BlogSidebarPage = () => {
                     </h4>
                     <ul className="max-h-60 overflow-y-auto">
                       {searchResults.map((course) => (
-                        <li 
-                          key={course._id || course.id} 
+                        <li
+                          key={course._id || course.id}
                           className="mb-2 border-b border-body-color border-opacity-10 pb-2 dark:border-white dark:border-opacity-10"
                         >
-                          <a 
+                          <a
                             href={`/blog-sidebar?courseId=${course._id || course.id}`}
                             className="text-base font-medium text-body-color hover:text-primary"
                           >
@@ -727,7 +755,7 @@ const BlogSidebarPage = () => {
                           slug={`/${course.slug || "#"}`}
                           level={course.level || "N/A"}
                           duration={course.duration || "Unknown"}
-                          certificate={course.certificate || "Unknown"} 
+                          certificate={course.certificate || "Unknown"}
                           date={""}
                         />
                       </div>
@@ -789,16 +817,16 @@ const BlogSidebarPage = () => {
       </section >
 
       <ModelThree />
-      <Purchase 
-        isOpen={isModalOpen} 
-        onClose={modalClose} 
-        course={course} 
+      <Purchase
+        isOpen={isModalOpen}
+        onClose={modalClose}
+        course={course}
         activeOffer={course?.activeOffer ? {
           _id: course.activeOffer._id || '',
           code: course.activeOffer.code,
           discountPercentage: course.activeOffer.discountPercentage,
           validUntil: course.activeOffer.validUntil
-        } : undefined} 
+        } : undefined}
       />
       <SubscribeNewsletter />
       <DownloadSyllabus courseName={course?.courseName || ''} />

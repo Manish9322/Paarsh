@@ -49,6 +49,7 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
   const handleLogout = () => {
     dispatch(logout()); // Redux logout
+    localStorage.removeItem("userId");
     router.push("/"); // Redirect to home
   };
 

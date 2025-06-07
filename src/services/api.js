@@ -45,6 +45,7 @@ export const paarshEduApi = createApi({
     "Transaction",
     "PracticeTest",
     "Withdrawal",
+    "Visitor",
   ],
 
   endpoints: (builder) => ({
@@ -83,6 +84,8 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+
+    
 
     signup: builder.mutation({
       query: (userData) => ({
@@ -664,6 +667,34 @@ export const paarshEduApi = createApi({
       }),
     }),
 
+    // ----------------------------------------------------Visitor Tracking Apis-------------------------------------------------- //
+
+    // New Visitor Tracking Endpoints
+    trackVisitor: builder.mutation({
+      query: (visitorData) => ({
+        url: "/visitors",
+        method: "POST",
+        body: visitorData,
+      }),
+      invalidatesTags: ["Visitor"],
+    }),
+
+    fetchVisitors: builder.query({
+      query: () => "/visitors",
+      providesTags: ["Visitor"],
+      transformResponse: (response) => ({
+        ...response,
+        data: response.data.map((visitor) => ({
+          ...visitor,
+          userId: {
+            ...visitor.userId,
+            name: visitor.userId?.name || "Guest",
+            email: visitor.userId?.email || "N/A",
+          },
+        })),
+      }),
+    }),
+
   }),
 });
 
@@ -764,5 +795,8 @@ export const {
   useFetchUserPracticeTestsQuery,
 
   useFetchPracticeTestByIdQuery,
+
+  useTrackVisitorMutation,
+  useFetchVisitorsQuery,
 
 } = paarshEduApi;

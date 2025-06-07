@@ -3,6 +3,7 @@ import _db from "../../../../utils/db";
 import PracticeTestModel from "../../../../models/PracticeTest.model";
 import CourseModel from "../../../../models/Courses/Course.model";
 import { authMiddleware } from "../../../../middlewares/auth";
+import mongoose from "mongoose"; // Import mongoose for ObjectId validation
 
 _db();
 
@@ -69,7 +70,7 @@ export const POST = authMiddleware(async (request) => {
   } catch (error) {
     console.error("Error while creating practice test:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: error.message || "Internal server error" },
       { status: 500 }
     );
   }
@@ -82,7 +83,6 @@ export const GET = async (request) => {
     const id = searchParams.get("id");
 
     if (id) {
-      // Fetch single test by ID
       const practiceTest = await PracticeTestModel.findById(id).populate(
         "linkedCourses",
         "courseName"
@@ -96,7 +96,6 @@ export const GET = async (request) => {
       return NextResponse.json({ success: true, data: practiceTest });
     }
 
-    // Fetch all tests
     const practiceTests = await PracticeTestModel.find().populate(
       "linkedCourses",
       "courseName"
@@ -105,7 +104,7 @@ export const GET = async (request) => {
   } catch (error) {
     console.error("Error fetching practice tests:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: error.message || "Internal server error" },
       { status: 500 }
     );
   }
@@ -196,7 +195,7 @@ export const PUT = authMiddleware(async (request) => {
   } catch (error) {
     console.error("Error updating practice test:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: error.message || "Internal server error" },
       { status: 500 }
     );
   }
@@ -205,23 +204,37 @@ export const PUT = authMiddleware(async (request) => {
 // Delete Practice Test
 export const DELETE = authMiddleware(async (request) => {
   try {
-    const { id } = await request.json();
+    const body = await request.json();
+    console.log("Received DELETE body:", body);
+    const { id } = body;
 
-    if (!id) {
+    if (!id || typeof id !== "string") {
+      console.error("Invalid ID received:", id);
       return NextResponse.json(
-        { success: false, error: "Practice test ID is required" },
+        { success: false, error: "Practice test ID must be a valid string" },
+        { status: 400 }
+      );
+    }
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.error("Invalid ObjectId format:", id);
+      return NextResponse.json(
+        { success: false, error: "Invalid ObjectId format" },
         { status: 400 }
       );
     }
 
     const deletedTest = await PracticeTestModel.findByIdAndDelete(id);
     if (!deletedTest) {
+      console.error("Practice test not found for ID:", id);
       return NextResponse.json(
         { success: false, error: "Practice test not found" },
         { status: 404 }
       );
     }
 
+    // Update linked courses
     await CourseModel.updateMany(
       { practiceTests: id },
       { $pull: { practiceTests: id } }
@@ -235,7 +248,7 @@ export const DELETE = authMiddleware(async (request) => {
   } catch (error) {
     console.error("Error deleting practice test:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: error.message || "Internal server error" },
       { status: 500 }
     );
   }

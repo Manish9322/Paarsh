@@ -56,6 +56,8 @@ const SigninPage = () => {
           // Store tokens in localStorage
           localStorage.setItem("accessToken", accessToken);
           localStorage.setItem("refreshToken", refreshToken);
+          localStorage.setItem("userId", response.data.userId);
+          console.log("Stored userId in localStorage:", response.data.userId); // Debug log
 
           // Update Redux state
           dispatch(setAuthData({ accessToken, refreshToken, user }));

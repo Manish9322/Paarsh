@@ -2,6 +2,14 @@
 import React from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import {
+  useFetchUserOngoingCoursesQuery,
+  useFetchUserCourseQuery,
+  useFetchTransactionsQuery, useFetchUserQuery,
+  useFetchCourseProgressQuery,
+  useFetchPracticeTestsQuery,
+} from "@/services/api";
+
 
 const cardData = [
   {
@@ -29,10 +37,10 @@ const cardData = [
     hoverColor: "hover:from-purple-600 hover:to-purple-700",
   },
   {
-    title: "Question Bank",
+    title: "Practice Tests",
     path: "/question-bank",
     image: "/images/dashboard-card/messages-question.png",
-    description: "Practice with sample questions",
+    description: "Practice with sample tests",
     color: "from-orange-500 to-orange-600",
     hoverColor: "hover:from-orange-600 hover:to-orange-700",
   },
@@ -54,6 +62,48 @@ const item = {
 };
 
 export default function UserDashboard() {
+
+  
+  const {data : practiceTestsData } = useFetchPracticeTestsQuery(undefined);  
+  const { data: ongoingCourses } = useFetchUserOngoingCoursesQuery(undefined);
+  const { data: progressData } = useFetchCourseProgressQuery(undefined);
+  const { data: totalCourses } = useFetchUserCourseQuery(undefined);
+  const { data: userData } = useFetchUserQuery(undefined);
+
+  console.log("user id : ", userData?.data._id);
+
+  localStorage.setItem("userId", userData?.data._id);
+  console.log("userId in local storage : ", localStorage.getItem("userId"));
+  
+  
+  
+  const { data: transactions } = useFetchTransactionsQuery(undefined);
+  const latestTransaction = transactions?.data
+    ?.filter(
+      (transaction) =>
+        transaction?.userId?._id === userData?.data?._id &&
+        transaction.status === "SUCCESS"
+    )
+    ?.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+
+  const purchaseTime = latestTransaction?.createdAt;
+
+  function timeAgo(date) {
+    const now = new Date();
+    const past = new Date(date);
+    const diff = Math.floor((now.getTime() - past.getTime()) / 1000);
+
+    if (diff < 60) return `${diff} seconds ago`;
+    else if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+    else if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+    else return `${Math.floor(diff / 86400)} days ago`;
+  }
+
+  const timeSincePurchase = purchaseTime ? timeAgo(purchaseTime) : "Loading...";
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -65,14 +115,14 @@ export default function UserDashboard() {
             Manage your courses and track your progress
           </p>
         </div>
-        <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+        <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
           <p className="text-sm text-blue-700 dark:text-blue-300">
             <span className="font-semibold">Pro Tip:</span> Click on any card to explore more
           </p>
         </div>
       </div>
 
-      <motion.div 
+      <motion.div
         variants={container}
         initial="hidden"
         animate="show"
@@ -82,7 +132,7 @@ export default function UserDashboard() {
           <motion.div key={index} variants={item} className="h-full">
             <Link
               href={card.path}
-              className={`group flex flex-col h-full rounded-xl overflow-hidden bg-gradient-to-br ${card.color} ${card.hoverColor} shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
+              className={`group flex flex-col h-full rounded-md overflow-hidden bg-gradient-to-br ${card.color} ${card.hoverColor} shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1`}
             >
               <div className="p-6 flex-grow flex flex-col items-center text-center">
                 <div className="w-12 h-12 mb-4 bg-white/20 rounded-full p-2 backdrop-blur-sm">
@@ -110,68 +160,80 @@ export default function UserDashboard() {
       </motion.div>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <h1 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Recent Activity
           </h1>
           <div className="space-y-3">
-            <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
               <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
                 <BookIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div>
+              <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-800 dark:text-white">
-                  Completed Module 3
+                  New Course : {totalCourses?.purchasedCourses[totalCourses?.purchasedCourses.length - 1]?.courseName || "Loading..."}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  2 hours ago
+                  {timeSincePurchase}
                 </p>
+
               </div>
             </div>
-            <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
               <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-3">
                 <CheckIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-800 dark:text-white">
-                  Quiz Completed
+                  {ongoingCourses?.data?.length || "Loading..."} Total Ongoing Courses
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Yesterday
-                </p>
+                {(() => {
+                  const count = ongoingCourses?.data?.filter(
+                    (course) => course.courseProgress >= 70 && course.courseProgress <= 99
+                  )?.length;
+
+                  return (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {count != null
+                        ? `${count} ${count === 1 ? 'Course is' : 'Courses are'} About to Complete`
+                        : "Loading..."}
+                    </p>
+                  );
+                })()}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-md shadow-sm p-6 border border-gray-100 dark:border-gray-700">
           <h1 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Upcoming Classes
           </h1>
           <div className="space-y-3">
-            <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
               <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mr-3">
                 <CalendarIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-800 dark:text-white">
-                  Advanced JavaScript
+                  {progressData?.completedCourses?.length} Certificates are available for download.
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Tomorrow, 10:00 AM
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate lg:max-w-full max-w-[150px]">
+                  {progressData?.completedCourses?.map(course => course.courseName).join(", ")}
                 </p>
+
               </div>
             </div>
-            <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md">
               <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mr-3">
                 <CalendarIcon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-800 dark:text-white">
-                  React Fundamentals
+                  {practiceTestsData?.data?.length} Practice Tests are available.
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Friday, 2:00 PM
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate lg:max-w-full max-w-[150px]">
+                  {practiceTestsData?.data?.map((test) => test.testName).join(", ")}
                 </p>
               </div>
             </div>

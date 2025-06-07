@@ -60,14 +60,14 @@ export default function OfferFilters({ courses, onFilterChange }: OfferFiltersPr
   };
 
   return (
-    <div className="mb-6 rounded-lg bg-white p-4 shadow-md">
+    <div className="mb-6 m-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-700">Filters</h3>
+        <h3 className="text-lg font-semibold text-gray-700 dark:text-white">Filters</h3>
         <Button
           variant="ghost"
           size="sm"
           onClick={clearFilters}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 dark:text-white"
         >
           <X className="mr-2 h-4 w-4" />
           Clear Filters
@@ -76,7 +76,7 @@ export default function OfferFilters({ courses, onFilterChange }: OfferFiltersPr
       
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Status</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Status</label>
           <Select
             value={filters.status}
             onValueChange={(value) => handleFilterChange("status", value)}
@@ -93,7 +93,7 @@ export default function OfferFilters({ courses, onFilterChange }: OfferFiltersPr
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Min Discount (%)</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Min Discount (%)</label>
           <Input
             type="number"
             min="0"
@@ -105,7 +105,7 @@ export default function OfferFilters({ courses, onFilterChange }: OfferFiltersPr
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Max Discount (%)</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Max Discount (%)</label>
           <Input
             type="number"
             min="0"
@@ -117,7 +117,7 @@ export default function OfferFilters({ courses, onFilterChange }: OfferFiltersPr
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Course</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Course</label>
           <Select
             value={filters.course}
             onValueChange={(value) => handleFilterChange("course", value)}
@@ -137,7 +137,7 @@ export default function OfferFilters({ courses, onFilterChange }: OfferFiltersPr
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Start Date</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">Start Date</label>
           <Input
             type="date"
             value={filters.startDate}
@@ -146,7 +146,7 @@ export default function OfferFilters({ courses, onFilterChange }: OfferFiltersPr
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">End Date</label>
+          <label className="text-sm font-medium text-gray-700 dark:text-white">End Date</label>
           <Input
             type="date"
             value={filters.endDate}

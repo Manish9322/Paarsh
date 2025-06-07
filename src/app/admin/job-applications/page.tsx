@@ -161,25 +161,24 @@ const JobApplicationPage: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-gray-50 overflow-hidden">
+        <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
             {/* Mobile Header */}
-            <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
+            <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm dark:bg-gray-800 dark:text-white md:hidden">
                 <button
                     onClick={toggleSidebar}
-                    className="rounded-full p-2 text-gray-600 hover:bg-gray-100"
+                    className="rounded-full p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                     aria-label="Toggle sidebar"
                 >
                     <Menu size={24} />
                 </button>
-                <h1 className="text-lg font-bold text-gray-800">Job Applications</h1>
+                <h1 className="text-lg font-bold text-gray-800 dark:text-white">Job Applications</h1>
                 <div className="w-10"></div>
             </div>
 
             <div className="flex flex-1">
                 {/* Sidebar */}
                 <aside
-                    className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-                        } md:sticky md:top-0 md:translate-x-0 md:h-screen`}
+                    className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:sticky md:top-0 md:translate-x-0 md:h-screen`}
                 >
                     <div className="h-16 md:h-0"></div>
                     <Sidebar userRole="admin" />
@@ -197,7 +196,7 @@ const JobApplicationPage: React.FC = () => {
                 {/* Main Content */}
                 <main className="w-full flex-1 overflow-x-hidden pt-16">
                     <div className="container mx-auto px-4 py-6">
-                        <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
+                        <Card className="mb-6 overflow-hidden border border-gray-100 bg-white shadow-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
                                 <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                                     <CardTitle className="text-xl font-bold text-white sm:text-2xl">
@@ -207,7 +206,7 @@ const JobApplicationPage: React.FC = () => {
                                         <Input
                                             type="text"
                                             placeholder="Search applications..."
-                                            className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
+                                            className="h-10 w-full rounded border border-gray-300 bg-white p-2 text-gray-900 placeholder:text-gray-500 dark:border-gray-700 dark:placeholder:text-gray-400 md:w-64"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
@@ -216,9 +215,9 @@ const JobApplicationPage: React.FC = () => {
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="overflow-x-auto">
-                                    <Table className="w-full text-black">
+                                    <Table className="w-full text-gray-900 dark:text-white">
                                         <TableHeader>
-                                            <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+                                            <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
                                                 <TableHead className="hidden py-3 sm:table-cell">#</TableHead>
                                                 <TableHead
                                                     className="cursor-pointer py-3"
@@ -242,33 +241,33 @@ const JobApplicationPage: React.FC = () => {
                                         <TableBody>
                                             {isLoading ? (
                                                 Array.from({ length: 7 }).map((_, index) => (
-                                                    <TableRow key={index} className="border-b border-gray-100">
+                                                    <TableRow key={index} className="border-b border-gray-100 dark:border-gray-700">
                                                         <TableCell className="hidden sm:table-cell">
-                                                            <Skeleton className="h-4 w-6" />
+                                                            <Skeleton className="h-4 w-6 dark:bg-gray-700" />
                                                         </TableCell>
                                                         <TableCell>
-                                                            <Skeleton className="h-4 w-24" />
+                                                            <Skeleton className="h-4 w-24 dark:bg-gray-700" />
                                                         </TableCell>
                                                         <TableCell className="hidden md:table-cell">
-                                                            <Skeleton className="h-4 w-24" />
+                                                            <Skeleton className="h-4 w-24 dark:bg-gray-700" />
                                                         </TableCell>
                                                         <TableCell className="hidden lg:table-cell">
-                                                            <Skeleton className="h-4 w-24" />
+                                                            <Skeleton className="h-4 w-24 dark:bg-gray-700" />
                                                         </TableCell>
                                                         <TableCell className="hidden xl:table-cell">
-                                                            <Skeleton className="h-4 w-24" />
+                                                            <Skeleton className="h-4 w-24 dark:bg-gray-700" />
                                                         </TableCell>
                                                         <TableCell>
                                                             <div className="flex justify-center gap-2">
-                                                                <Skeleton className="h-8 w-8 rounded-full" />
-                                                                <Skeleton className="h-8 w-8 rounded-full" />
+                                                                <Skeleton className="h-8 w-8 rounded-full dark:bg-gray-700" />
+                                                                <Skeleton className="h-8 w-8 rounded-full dark:bg-gray-700" />
                                                             </div>
                                                         </TableCell>
                                                     </TableRow>
                                                 ))
                                             ) : displayedApplications.length === 0 ? (
                                                 <TableRow>
-                                                    <TableCell colSpan={6} className="py-6 text-center text-gray-500">
+                                                    <TableCell colSpan={6} className="py-6 text-center text-gray-500 dark:text-gray-400">
                                                         No applications found.
                                                     </TableCell>
                                                 </TableRow>
@@ -276,7 +275,7 @@ const JobApplicationPage: React.FC = () => {
                                                 displayedApplications.map((application, index) => (
                                                     <TableRow
                                                         key={application._id}
-                                                        className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                                                        className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                                                     >
                                                         <TableCell className="hidden text-center font-medium sm:table-cell">
                                                             {startIndex + index + 1}
@@ -284,10 +283,10 @@ const JobApplicationPage: React.FC = () => {
                                                         <TableCell>
                                                             <div className="md:hidden">
                                                                 <p className="font-medium">{application.fullName}</p>
-                                                                <p className="mt-1 text-xs text-gray-500">
+                                                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                                                     {application.email}
                                                                 </p>
-                                                                <p className="mt-1 text-xs text-gray-500">
+                                                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                                                     {application.desiredRole}
                                                                 </p>
                                                             </div>
@@ -333,11 +332,11 @@ const JobApplicationPage: React.FC = () => {
                         </Card>
 
                         {/* View Application Dialog */}
-                        <Dialog open={viewOpen}>
-                            <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
+                        <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+                            <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white custom-scrollbar">
                                 <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
                                     <div className="flex items-center justify-between">
-                                        <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
+                                        <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                                             Application Details
                                         </DialogTitle>
                                         <Button
@@ -366,8 +365,8 @@ const JobApplicationPage: React.FC = () => {
                                     <div className="p-6 space-y-4">
                                         <div className="grid gap-4">
                                             <div className="space-y-2">
-                                                <h3 className="font-medium text-gray-500 dark:text-gray-400">Personal Information</h3>
-                                                <div className="rounded border p-4 dark:border-gray-700">
+                                                <h3 className="font-medium text-gray-800 dark:text-gray-200">Personal Information</h3>
+                                                <div className="rounded border border-gray-100 p-4 dark:border-gray-700">
                                                     <div className="grid gap-2">
                                                         <div>
                                                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Name:</span>
@@ -386,8 +385,8 @@ const JobApplicationPage: React.FC = () => {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <h3 className="font-medium text-gray-500 dark:text-gray-400">Application Details</h3>
-                                                <div className="rounded border p-4 dark:border-gray-700">
+                                                <h3 className="font-medium text-gray-800 dark:text-gray-200">Application Details</h3>
+                                                <div className="rounded border border-gray-100 p-4 dark:border-gray-700">
                                                     <div className="grid gap-2">
                                                         <div>
                                                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Desired Role:</span>
@@ -420,8 +419,8 @@ const JobApplicationPage: React.FC = () => {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <h3 className="font-medium text-gray-500 dark:text-gray-400">Cover Letter</h3>
-                                                <div className="rounded border p-4 dark:border-gray-700">
+                                                <h3 className="font-medium text-gray-800 dark:text-gray-200">Cover Letter</h3>
+                                                <div className="rounded border border-gray-100 p-4 dark:border-gray-700">
                                                     <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                                                         {selectedApplication.coverLetter}
                                                     </p>
@@ -435,7 +434,7 @@ const JobApplicationPage: React.FC = () => {
 
                         {/* Delete Confirmation Dialog */}
                         <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-                            <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+                            <DialogContent className="max-w-md bg-white dark:bg-gray-800 dark:text-white">
                                 <DialogHeader>
                                     <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                                         Confirm Deletion
@@ -451,14 +450,14 @@ const JobApplicationPage: React.FC = () => {
                                     <Button
                                         variant="outline"
                                         onClick={() => setDeleteConfirmOpen(false)}
-                                        className="w-full sm:w-auto"
+                                        className="w-full border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 sm:w-auto"
                                     >
                                         Cancel
                                     </Button>
                                     <Button
                                         variant="destructive"
                                         onClick={handleDeleteApplication}
-                                        className="w-full sm:w-auto"
+                                        className="w-full bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 sm:w-auto"
                                     >
                                         Delete Application
                                     </Button>
@@ -467,21 +466,21 @@ const JobApplicationPage: React.FC = () => {
                         </Dialog>
 
                         {/* Pagination */}
-                        <div className="mt-6 rounded bg-white p-4 shadow-md">
+                        <div className="mt-6 rounded bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
                             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-                                <div className="text-sm text-gray-500">
-                                    Showing <span className="font-medium text-gray-700">{startIndex + 1}</span> to{" "}
-                                    <span className="font-medium text-gray-700">
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    Showing <span className="font-medium text-gray-700 dark:text-gray-300">{startIndex + 1}</span> to{" "}
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">
                                         {Math.min(startIndex + applicationsPerPage, sortedApplications.length)}
                                     </span>{" "}
-                                    of <span className="font-medium text-gray-700">{sortedApplications.length}</span> applications
+                                    of <span className="font-medium text-gray-700 dark:text-gray-300">{sortedApplications.length}</span> applications
                                 </div>
 
                                 <div className="flex items-center space-x-1">
                                     <Button
                                         onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                                         disabled={currentPage === 1}
-                                        className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400"
+                                        className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                                         aria-label="Previous page"
                                     >
                                         <ChevronLeft className="h-4 w-4" />
@@ -493,15 +492,16 @@ const JobApplicationPage: React.FC = () => {
                                                 <Button
                                                     key={index}
                                                     onClick={() => setCurrentPage(page)}
-                                                    className={`h-8 w-8 rounded p-0 text-sm font-medium ${currentPage === page
-                                                            ? "bg-blue-600 text-white hover:bg-blue-700"
-                                                            : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                                                        }`}
+                                                    className={`h-8 w-8 rounded p-0 text-sm font-medium ${
+                                                        currentPage === page
+                                                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                                                            : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                                                    }`}
                                                 >
                                                     {page}
                                                 </Button>
                                             ) : (
-                                                <span key={index} className="px-2 text-gray-400">
+                                                <span key={index} className="px-2 text-gray-400 dark:text-gray-500">
                                                     {page}
                                                 </span>
                                             )
@@ -511,7 +511,7 @@ const JobApplicationPage: React.FC = () => {
                                     <Button
                                         onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                                         disabled={currentPage === totalPages}
-                                        className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400"
+                                        className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                                         aria-label="Next page"
                                     >
                                         <ChevronRight className="h-4 w-4" />
@@ -519,7 +519,7 @@ const JobApplicationPage: React.FC = () => {
                                 </div>
 
                                 <div className="hidden items-center space-x-2 lg:flex">
-                                    <span className="text-sm text-gray-500">Go to page:</span>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">Go to page:</span>
                                     <Input
                                         type="number"
                                         min={1}
@@ -531,7 +531,7 @@ const JobApplicationPage: React.FC = () => {
                                                 setCurrentPage(value);
                                             }
                                         }}
-                                        className="h-8 w-16 rounded border-gray-300 text-center text-sm"
+                                        className="h-8 w-16 rounded border-gray-300 text-center text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white"
                                     />
                                 </div>
                             </div>

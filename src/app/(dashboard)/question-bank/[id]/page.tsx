@@ -777,7 +777,7 @@ const PracticeTest = () => {
                             Try Again
                           </Button>
                           <Button
-                            onClick={() => router.push("/test-bank")}
+                            onClick={() => router.push("/question-bank")}
                             className="bg-gradient-to-r from-blue-500 via-blue-500 to-blue-500 hover:from-blue-600 hover:via-blue-600 hover:to-blue-600 text-white px-8 py-6 rounded-md font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                           >
                             Explore More Tests

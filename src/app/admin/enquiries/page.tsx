@@ -240,7 +240,7 @@ const EnquiriesPage: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge className="bg-black/80">Pending</Badge>;
+        return <Badge className="bg-black/50 dark:bg-black/80 dark:text-gray-400">Pending</Badge>;
       case "resolved":
         return <Badge className="bg-green-500">Resolved</Badge>;
       case "in-progress":
@@ -338,7 +338,7 @@ const EnquiriesPage: React.FC = () => {
         )}
 
         {/* Main Content */}
-        <main className="w-full flex-1 overflow-x-hidden pt-16">
+        <main className="w-full flex-1 overflow-x-hidden pt-16 dark:bg-gray-900">
           <div className="container mx-auto px-4 py-6">
             <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
@@ -361,7 +361,7 @@ const EnquiriesPage: React.FC = () => {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+                      <TableRow className="border-b dark:border-b-gray-900 border-gray-200 bg-gray-50 hover:bg-gray-100 dark:bg-gray-900">
                         <TableHead className="py-3">
                           <div className="flex items-center">
                             Name
@@ -435,7 +435,7 @@ const EnquiriesPage: React.FC = () => {
                         displayedEnquiries.map((enquiry) => (
                           <TableRow
                             key={enquiry._id}
-                            className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                            className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-800"
                           >
                             <TableCell>
                               <div className="md:hidden">
@@ -484,9 +484,9 @@ const EnquiriesPage: React.FC = () => {
             </Card>
 
             {/* Pagination */}
-            <div className="mt-6 rounded bg-white p-4 shadow-md">
+            <div className="mt-6 rounded bg-white p-4 shadow-md dark:bg-gray-800">
               <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 dark:text-white">
                   Showing <span className="font-medium text-gray-700">{(currentPage - 1) * enquiriesPerPage + 1}</span> to{" "}
                   <span className="font-medium text-gray-700">
                     {Math.min(currentPage * enquiriesPerPage, sortedEnquiries.length)}
@@ -537,7 +537,7 @@ const EnquiriesPage: React.FC = () => {
                 </div>
 
                 <div className="hidden items-center space-x-2 lg:flex">
-                  <span className="text-sm text-gray-500">Go to page:</span>
+                  <span className="text-sm text-gray-500 dark:text-white">Go to page:</span>
                   <Input
                     type="number"
                     min={1}
@@ -549,7 +549,7 @@ const EnquiriesPage: React.FC = () => {
                         setCurrentPage(value);
                       }
                     }}
-                    className="h-8 w-16 rounded border-gray-300 text-center text-sm"
+                    className="h-8 w-16 rounded border-gray-300 text-center text-sm dark:text-white dark:bg-gray-800 dark:border-gray-700"
                   />
                 </div>
               </div>
@@ -660,7 +660,7 @@ const EnquiriesPage: React.FC = () => {
 
       {/* Status Update Dialog */}
       <Dialog open={statusUpdateOpen} onOpenChange={setStatusUpdateOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[450px] dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">Update Enquiry Status</DialogTitle>
           </DialogHeader>
@@ -668,16 +668,16 @@ const EnquiriesPage: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Current Status</h3>
-                <div className="w-fit">{selectedEnquiry && getStatusBadge(selectedEnquiry.status)}</div>
+                <div className="w-fit dark:text-white">{selectedEnquiry && getStatusBadge(selectedEnquiry.status)}</div>
               </div>
               
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">New Status</h3>
-                <Select 
+                <Select
                   value={newStatus} 
                   onValueChange={(value) => setNewStatus(value as "pending" | "resolved" | "in-progress")}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full ">
                     <SelectValue placeholder="Select new status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -705,7 +705,7 @@ const EnquiriesPage: React.FC = () => {
             <Button variant="outline" onClick={() => setStatusUpdateOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleStatusUpdate} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleStatusUpdate} className="bg-blue-600 hover:bg-blue-700 dark:bg-white/80 dark:hover:bg-white/70">
               Update Status
             </Button>
           </DialogFooter>

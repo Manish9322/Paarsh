@@ -109,6 +109,7 @@ const CoursePage: React.FC = () => {
     minPrice: "",
     maxPrice: "",
   });
+  
   const coursesPerPage = 10;
   const dispatch = useDispatch();
   const selectedCourse = useSelector(
@@ -328,10 +329,10 @@ const CoursePage: React.FC = () => {
               </div>
             </CardHeader>
 
-            <CardContent className="p-4">
+            <CardContent className="p-4 dark:bg-gray-800">
               {/* Stats Cards */}
               <div className="mb-6 grid gap-4 md:grid-cols-3">
-                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-800">
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
                   <div className="p-4">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
@@ -363,7 +364,7 @@ const CoursePage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-800">
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
                   <div className="p-4">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
@@ -383,7 +384,7 @@ const CoursePage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-800">
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
                   <div className="p-4">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
@@ -663,7 +664,7 @@ const CoursePage: React.FC = () => {
                     setCurrentPage(value);
                   }
                 }}
-                className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
+                className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:text-white dark:bg-gray-800"
                 aria-label="Go to page"
               />
             </div>

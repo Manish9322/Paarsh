@@ -16,12 +16,11 @@ import { Providers } from "./providers";
 import PurchaseModal from "@/components/PurchaseModal";
 import { Provider } from "react-redux";
 import { Toaster } from "sonner";
-
+import TrackVisitor from "../components/TrackVisitors/TrackVisitors";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-
 
 // Service Worker Registration
 useEffect(() => {
@@ -36,7 +35,6 @@ useEffect(() => {
       });
   }
 }, []);
-
 
   return (
     <html suppressHydrationWarning lang="en">
@@ -53,6 +51,7 @@ useEffect(() => {
         <Provider store={store}>
           <Providers>
             <MainLayout>{children}
+              <TrackVisitor />
               <Toaster richColors />
             </MainLayout>
           </Providers>
@@ -100,9 +99,6 @@ function MainLayout({ children }: { children: React.ReactNode }) {
                          pathname.startsWith("/faq") ||
                          pathname.startsWith("/course-lecture") ||
                          pathname.startsWith("/delete-account");
-
-
-
   return (
     <>
       {!isAdminPage && !isAuthPage && !isDashboardPage && !isErrorPage && !isAgentPage && <Header />}

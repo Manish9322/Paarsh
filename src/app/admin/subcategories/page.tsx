@@ -532,7 +532,7 @@ const SubcategoriesPage: React.FC = () => {
                         setCurrentPage(value);
                       }
                     }}
-                    className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
+                    className="h-8 w-16 rounded-md dark:text-white border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
                     aria-label="Go to page"
                   />
                 </div>

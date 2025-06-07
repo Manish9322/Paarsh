@@ -261,7 +261,7 @@ const AdminPage: React.FC = () => {
                       <Input
                         type="text"
                         placeholder="Search categories..."
-                        className="h-10 w-full rounded-md border border-gray-300 bg-white/90 p-2 pl-9 text-black placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/90 dark:text-white dark:placeholder:text-gray-400 md:w-64"
+                        className="h-10 w-full rounded-md border border-gray-300 bg-white/90 p-2 pl-9 text-black placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600  dark:text-white dark:placeholder:text-gray-400 md:w-64 dark:border-none"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -562,7 +562,7 @@ const AdminPage: React.FC = () => {
                         setCurrentPage(value);
                       }
                     }}
-                    className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
+                    className="h-8 w-16 rounded-md dark:text-white border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
                     aria-label="Go to page"
                   />
                 </div>

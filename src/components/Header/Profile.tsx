@@ -56,6 +56,7 @@ export default function Profile() {
 
   const handleLogout = () => {
     dispatch(logout()); // Redux logout
+    localStorage.removeItem("userId");
     router.push("/"); // Redirect to Sign In page
   };
 

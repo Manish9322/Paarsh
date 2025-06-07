@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { List, Frown, Grid3x3, Search, Filter, ChevronRight, BookOpen, Clock, Calendar, Users, Award, PlayCircle } from "lucide-react";
+import { List, Frown, Grid3x3, Search, Filter, ChevronRight, BookOpen, Clock, Calendar, Users, Award, PlayCircle, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -52,11 +52,10 @@ function TotalCourses() {
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
-  const { data, error : courseError, isLoading: isCourseLoading, refetch: refetchCourses } = useFetchUserCourseQuery({});
+  const { data, error: courseError, isLoading: isCourseLoading, refetch: refetchCourses } = useFetchUserCourseQuery({});
   const courses: Course[] = data?.purchasedCourses || [];
 
   const handleStartCourse = (courseId: string) => {
-    // router.push(`/course-lecture?courseId=${courseId}`);
     router.push(`/course-lecture/${courseId}`);
   };
 
@@ -138,59 +137,6 @@ function TotalCourses() {
     }
   };
 
-
-    // Handle loading state
-    if (isCourseLoading) {
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 mt-2 animate-pulse" />
-            </div>
-            <div className="flex items-center gap-2 bg-white dark:bg-gray-700 p-1 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-              <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse" />
-              <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse" />
-            </div>
-          </div>
-          <div
-            className={`grid ${
-              view === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-            } gap-6`}
-          >
-            {[...Array(6)].map((_, index) => (
-              <SkeletonCard key={index} view={view} />
-            ))}
-          </div>
-        </div>
-      );
-    }
-  
-    // Handle error state
-    if ( courseError) {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Frown size={48} className="text-red-600 dark:text-red-400 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
-            Oops! We couldn’t load your courses.
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
-            Something went wrong while fetching your ongoing courses. Please check your connection or try again.
-          </p>
-          <button
-            onClick={() => {
-              refetchCourses();
-            }}
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors"
-          >
-            Retry
-            <ChevronRight size={16} />
-          </button>
-        </div>
-      );
-    }
-
-
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -245,108 +191,151 @@ function TotalCourses() {
         </div>
       </div>
 
-      {/* Example Course Cards */}
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className={`grid ${view === "grid"
-          ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-          : "grid-cols-1"
+      {/* Main Content */}
+      {isCourseLoading ? (
+        <div
+          className={`grid ${
+            view === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
           } gap-6`}
-      >
-        {courses.map((course) => (
-          <motion.div
-            key={course._id}
-            variants={item}
-            className={`flex ${view === "list" ? "flex-row" : "flex-col"
-              } bg-white dark:bg-gray-800 rounded-md overflow-hidden shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500`}
-            style={{ cursor: 'pointer' }}
-          >
-            <div className={`${view === "list" ? "w-1/3" : "w-full"} relative`}>
-              {course.thumbnail ? (
-                <img
-                  src={course.thumbnail}
-                  alt={course.courseName}
-                  className={`${view === "list" ? "h-full w-full" : "h-48 w-full"
-                    } object-cover`}
-                />
-              ) : (
-                <div className={`${view === "list" ? "h-full w-full" : "h-48 w-full"
-                  } bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center`}>
-                  <BookOpen size={48} className="text-white" />
-                </div>
-              )}
+        >
+          {[...Array(6)].map((_, index) => (
+            <SkeletonCard key={index} view={view} />
+          ))}
+        </div>
+      ) : courseError ? (
+        // Improved Error View
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center justify-center py-12 px-4 bg-white dark:bg-gray-800 rounded"
+        >
+          <AlertCircle className="h-16 w-16 text-blue-600 mb-4" />
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2">
+            Unable to Load Courses
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
+            We encountered an issue while fetching your courses. Please try again or contact support if the issue persists.
+          </p>
+          <div className="flex gap-4">
+            <button
+              onClick={() => refetchCourses()}
+              className="inline-flex items-center px-6 py-3 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+            >
+              Retry
+              <ChevronRight size={18} className="ml-2" />
+            </button>
+            <button
+              onClick={() => router.push("/contact")}
+              className="inline-flex items-center px-6 py-3 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+            >
+              Contact Support
+            </button>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className={`grid ${view === "grid"
+            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            : "grid-cols-1"
+            } gap-6`}
+        >
+          {courses.map((course) => (
+            <motion.div
+              key={course._id}
+              variants={item}
+              className={`flex ${view === "list" ? "flex-row" : "flex-col"
+                } bg-white dark:bg-gray-800 rounded-md overflow-hidden shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500`}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className={`${view === "list" ? "w-1/3" : "w-full"} relative`}>
+                {course.thumbnail ? (
+                  <img
+                    src={course.thumbnail}
+                    alt={course.courseName}
+                    className={`${view === "list" ? "h-full w-full" : "h-48 w-full"
+                      } object-cover`}
+                  />
+                ) : (
+                  <div className={`${view === "list" ? "h-full w-full" : "h-48 w-full"
+                    } bg-gradient-to-r from-blue-400 to-indigo-500 flex items-center justify-center`}>
+                    <BookOpen size={48} className="text-white" />
+                  </div>
+                )}
 
-              {/* Play button overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity duration-300">
-                <PlayCircle size={48} className="text-white" />
+                {/* Play button overlay */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity duration-300">
+                  <PlayCircle size={48} className="text-white" />
+                </div>
+
+                {/* Level badge */}
+                <div className="absolute top-2 right-2 bg-white dark:bg-gray-800 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                  <span className={`px-2 py-0.5 rounded-full ${getLevelColor(course.level)}`}>
+                    {course.level || "All Levels"}
+                  </span>
+                </div>
               </div>
 
-              {/* Level badge */}
-              <div className="absolute top-2 right-2 bg-white dark:bg-gray-800 text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                <span className={`px-2 py-0.5 rounded-full ${getLevelColor(course.level)}`}>
-                  {course.level || "All Levels"}
-                </span>
+              <div className={`${view === "list" ? "w-2/3" : "w-full"} p-4`}>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                  {course.courseName}
+                </h3>
+
+                {/* Course metadata */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                    <Users size={12} className="mr-1" />
+                    {course.instructor}
+                  </div>
+
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                    <Clock size={12} className="mr-1" />
+                    {course.duration}
+                  </div>
+
+                  <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+                    <PlayCircle size={12} className="mr-1" />
+                    {getTotalVideoCount(course)} Lectures
+                  </div>
+                </div>
+
+                {/* Course status */}
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center">
+                    {Number(course.progress) === 100 ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                        <Award size={12} className="mr-1" />
+                        Completed
+                      </span>
+                    ) : Number(course.progress) === 100 ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                        <Clock size={12} className="mr-1" />
+                        In Progress
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                        <BookOpen size={12} className="mr-1" />
+                        Not Started
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-md shadow-sm hover:shadow transition-all duration-300"
+                    onClick={() => handleStartCourse(course._id)}
+                  >
+                    {Number(course.progress) === 100 ? "Continue" : "Start"}
+                    <ChevronRight size={14} className="ml-1" />
+                  </button>
+                </div>
               </div>
-            </div>
-
-            <div className={`${view === "list" ? "w-2/3" : "w-full"} p-4`}>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                {course.courseName}
-              </h3>
-
-              {/* Course metadata */}
-              <div className="flex flex-wrap gap-2 mb-3">
-                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                  <Users size={12} className="mr-1" />
-                  {course.instructor}
-                </div>
-
-                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                  <Clock size={12} className="mr-1" />
-                  {course.duration}
-                </div>
-
-                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-                  <PlayCircle size={12} className="mr-1" />
-                  {getTotalVideoCount(course)} Lectures
-                </div>
-              </div>
-
-              {/* Course status */}
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center">
-                  {Number(course.progress) === 100 ? (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                      <Award size={12} className="mr-1" />
-                      Completed
-                    </span>
-                  ) : Number(course.progress) === 100 ? (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                      <Clock size={12} className="mr-1" />
-                      In Progress
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                      <BookOpen size={12} className="mr-1" />
-                      Not Started
-                    </span>
-                  )}
-                </div>
-
-                <button
-                  className="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-md shadow-sm hover:shadow transition-all duration-300"
-                  onClick={() => handleStartCourse(course._id)}
-                >
-                  {Number(course.progress) === 100 ? "Continue" : "Start"}
-                  <ChevronRight size={14} className="ml-1" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
     </div>
   );
 }

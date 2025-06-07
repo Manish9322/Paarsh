@@ -260,7 +260,7 @@ const TransactionsPage = () => {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pt-16 md:ml-64">
         <div className="container mx-auto px-4 py-6">
-          <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
+          <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-900">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">
@@ -393,7 +393,7 @@ const TransactionsPage = () => {
               <div className="mb-6 grid gap-4 md:grid-cols-4">
                 <div>
                   <select
-                    className="w-full rounded border p-2"
+                    className="text-md w-full rounded-md border p-2 dark:bg-gray-800"
                     value={activeFilters.status}
                     onChange={(e) =>
                       handleFilterChange({
@@ -419,7 +419,7 @@ const TransactionsPage = () => {
                         minAmount: e.target.value,
                       })
                     }
-                    className="w-full"
+                    className="w-full dark:bg-gray-800 dark:text-white"
                   />
                 </div>
                 <div>
@@ -433,7 +433,7 @@ const TransactionsPage = () => {
                         maxAmount: e.target.value,
                       })
                     }
-                    className="w-full"
+                    className="w-full dark:bg-gray-800 dark:text-white"
                   />
                 </div>
                 <div>
@@ -446,7 +446,7 @@ const TransactionsPage = () => {
                         date: e.target.value,
                       })
                     }
-                    className="w-full"
+                    className="w-full dark:bg-gray-800 dark:text-white"
                   />
                 </div>
               </div>
@@ -484,7 +484,7 @@ const TransactionsPage = () => {
                         (transaction: any, index: number) => (
                           <TableRow
                             key={transaction._id}
-                            className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                            className="border-b dark:text-white border-gray-100 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800"
                           >
                             <TableCell className="hidden text-center font-medium sm:table-cell">
                               {startIndex + index + 1}
@@ -883,7 +883,7 @@ const TransactionsPage = () => {
 
               <div className="hidden items-center space-x-2 lg:flex">
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Go to page:
+                  Go to page :
                 </span>
                 <Input
                   type="number"
@@ -896,7 +896,7 @@ const TransactionsPage = () => {
                       setCurrentPage(value);
                     }
                   }}
-                  className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
+                  className="h-8 w-16 rounded-md dark:text-white border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
                   aria-label="Go to page"
                 />
               </div>

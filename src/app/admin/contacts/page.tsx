@@ -30,13 +30,14 @@ import { AdminSkeletonWrapper } from "@/components/ui/admin-skeleton-wrapper";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useDeleteContactMutation, useFetchContactsQuery, useUpdateContactStatusMutation } from "@/services/api";
+import { RxCross2 } from "react-icons/rx";
 
 // Define ContactRequest type
 interface ContactRequest {
@@ -64,13 +65,11 @@ const ContactRequestsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: contacts, isLoading: isContactsLoading } = useFetchContactsQuery(undefined);
-  console.log( "Contacts logged inside ContactRequestsPage : " , contacts);
+  console.log("Contacts logged inside ContactRequestsPage : ", contacts);
   const mockContactRequests = contacts?.data || [];
-
 
   const [_DELETECONTACT, { isLoading: isDeleting }] = useDeleteContactMutation();
   const [_UPDATECONTACTSTATUS, { isLoading: isUpdating }] = useUpdateContactStatusMutation();
-
 
   // Close sidebar when screen size changes to desktop
   useEffect(() => {
@@ -146,7 +145,7 @@ const ContactRequestsPage: React.FC = () => {
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
-    const response = await _UPDATECONTACTSTATUS({id, status});
+    const response = await _UPDATECONTACTSTATUS({ id, status });
     if (response.data.success) {
       setViewOpen(false);
       toast.success("Contact request status updated successfully");
@@ -179,76 +178,70 @@ const ContactRequestsPage: React.FC = () => {
 
   // Get status badge color
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "pending":
-        return <Badge className="bg-yellow">Pending</Badge>;
+        return (
+          <Badge className="bg-gray-300 text-black hover:bg-gray-400 dark:bg-gray-700 dark:text-white">
+            Pending
+          </Badge>
+        );
       case "resolved":
-        return <Badge className="bg-green-500">Resolved</Badge>;
+        return (
+          <Badge className="bg-green-300 hover:bg-green-400 text-black dark:bg-green-700 dark:text-white">
+            Resolved
+          </Badge>
+        );
       case "in-progress":
-        return <Badge className="bg-blue-500">In Progress</Badge>;
+        return (
+          <Badge className="bg-blue-300 hover:bg-blue-400 text-black dark:bg-blue-700 dark:text-white">
+            In Progress
+          </Badge>
+        );
       default:
-        return <Badge className="bg-gray-500">Unknown</Badge>;
+        return (
+          <Badge className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+            Unknown
+          </Badge>
+        );
     }
   };
 
   const startIndex = (currentPage - 1) * contactRequestsPerPage;
-  const endIndex = startIndex + contactRequestsPerPage;
 
   // Function to generate page numbers for pagination
   const generatePaginationNumbers = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 5; // Show at most 5 page numbers
+    const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
-      // If total pages are less than max to show, display all pages
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      // Always include first page
       pageNumbers.push(1);
-
-      // Calculate start and end of page numbers to show
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(totalPages - 1, currentPage + 1);
 
-      // Adjust if we're near the beginning
       if (currentPage <= 3) {
         endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
       }
-
-      // Adjust if we're near the end
       if (currentPage >= totalPages - 2) {
         startPage = Math.max(2, totalPages - maxPagesToShow + 2);
       }
 
-      // Add ellipsis if needed before middle pages
-      if (startPage > 2) {
-        pageNumbers.push("...");
-      }
-
-      // Add middle pages
+      if (startPage > 2) pageNumbers.push("...");
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
-
-      // Add ellipsis if needed after middle pages
-      if (endPage < totalPages - 1) {
-        pageNumbers.push("...");
-      }
-
-      // Always include last page if there is more than one page
-      if (totalPages > 1) {
-        pageNumbers.push(totalPages);
-      }
+      if (endPage < totalPages - 1) pageNumbers.push("...");
+      if (totalPages > 1) pageNumbers.push(totalPages);
     }
-
     return pageNumbers;
   };
 
   return (
-    <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
-      {/* Mobile Header with Menu Button */}
+    <div className="flex min-h-screen">
+      {/* Mobile Header */}
       <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
         <button
           onClick={toggleSidebar}
@@ -258,28 +251,18 @@ const ContactRequestsPage: React.FC = () => {
           <Menu size={24} />
         </button>
         <h1 className="text-lg font-bold text-gray-800">Contact Requests</h1>
-        <div className="w-10"></div> {/* Spacer for centering */}
+        <div className="w-10"></div>
       </div>
 
-      {/* Sidebar - fixed position with proper scrolling */}
+      {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed left-0 top-0 z-40 h-full w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:sticky md:translate-x-0`}
       >
-        <div className="flex h-full flex-col">
-          {/* Sidebar Header */}
-          <div className="flex h-16 items-center justify-between px-4 md:justify-end">
-            <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
-          </div>
-
-          {/* Sidebar Content - Scrollable */}
-          <div className="custom-scrollbar flex-1 overflow-y-auto">
-            <Sidebar userRole="admin"/>
-          </div>
-        </div>
+        <div className="h-16 md:h-0"></div>
+        <Sidebar userRole="admin" />
       </aside>
 
-      {/* Overlay for mobile when sidebar is open */}
+      {/* Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
@@ -288,341 +271,472 @@ const ContactRequestsPage: React.FC = () => {
         ></div>
       )}
 
-      {/* Main content area */}
-      <main className="flex-1 overflow-y-auto pt-16 md:ml-64">
+      {/* Main Content */}
+      <main className="flex-1 overflow-x-hidden pt-16">
         <div className="container mx-auto px-4 py-6">
-          {/* Page Header */}
-          <div className="mb-6 flex flex-col justify-between md:flex-row md:items-center">
-            <h1 className="text-2xl font-bold">Contact Requests</h1>
-            <div className="mt-4 md:mt-0">
-              <Input
-                placeholder="Search requests..."
-                className="w-full md:w-80"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          </div>
+          <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
+              <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+                <CardTitle className="text-xl font-bold text-white sm:text-2xl">
+                  Contact Requests
+                </CardTitle>
+                <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
+                  <Input
+                    placeholder="Search requests..."
+                    className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
 
-          {/* Stats Cards */}
-          <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Requests
-                </CardTitle>
-                <Eye
-                  className="h-4 w-4 text-muted-foreground"
-                />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{mockContactRequests.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  +3 from last week
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Pending Requests
-                </CardTitle>
-                <Clock
-                  className="h-4 w-4 text-muted-foreground"
-                />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {mockContactRequests.filter(r => r.status === "pending").length}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  +2 from yesterday
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Resolved Requests
-                </CardTitle>
-                <Mail
-                  className="h-4 w-4 text-muted-foreground"
-                />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {mockContactRequests.filter(r => r.status === "resolved").length}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  +5 this month
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Users Table */}
-          <Card className="shadow-md">
-            <CardHeader>
-              <CardTitle>Recent Contact Requests</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <AdminSkeletonWrapper>
-                  <div className="mb-4 space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                </AdminSkeletonWrapper>
-              ) : (
-                <>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="hover:bg-gray-100 dark:hover:bg-gray-800">
-                          <TableHead
-                            className="w-[100px] cursor-pointer"
-                            onClick={() => handleSort("id")}
-                          >
-                            <div className="flex items-center gap-2">
-                              ID
-                              {sortField === "id" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("name")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Name
-                              {sortField === "name" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("email")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Email
-                              {sortField === "email" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("message")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Message
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("status")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Status
-                              {sortField === "status" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead
-                            className="cursor-pointer"
-                            onClick={() => handleSort("createdAt")}
-                          >
-                            <div className="flex items-center gap-2">
-                              Date
-                              {sortField === "createdAt" ? (
-                                sortOrder === "asc" ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )
-                              ) : null}
-                            </div>
-                          </TableHead>
-                          <TableHead className="text-center">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {displayedRequests.length > 0 ? (
-                          displayedRequests.map((request, index) => (
-                            <TableRow key={request._id}>
-                              <TableCell className="font-medium">
-                                {startIndex + index + 1}
-                              </TableCell>
-                              <TableCell>{request.name}</TableCell>
-                              <TableCell>{request.email}</TableCell>
-                              <TableCell>{request.message}</TableCell>
-                              <TableCell>
-                                {getStatusBadge(request.status)}
-                              </TableCell>
-                              <TableCell>
-                                {formatDate(request.createdAt)}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex justify-center space-x-2">
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => handleView(request)}
-                                    title="View details"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => confirmDeleteRequest(request._id)}
-                                    title="Delete"
-                                    className="text-red-500 hover:bg-red-50 hover:text-red-600"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell
-                              colSpan={6}
-                              className="h-24 text-center"
-                            >
-                              No contact requests found
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
 
-                  {/* Pagination */}
-                  {displayedRequests.length > 0 && (
-                    <div className="mt-6 flex justify-center">
-                      <div className="flex space-x-1">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                          disabled={currentPage === 1}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        {generatePaginationNumbers().map((pageNum, index) => (
-                          <Button
-                            key={index}
-                            variant={
-                              pageNum === currentPage ? "default" : "outline"
-                            }
-                            onClick={() => {
-                              if (typeof pageNum === "number") {
-                                setCurrentPage(pageNum);
-                              }
-                            }}
-                            disabled={pageNum === "..."}
-                            className={pageNum === "..." ? "cursor-default" : ""}
-                          >
-                            {pageNum}
-                          </Button>
-                        ))}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() =>
-                            setCurrentPage(Math.min(totalPages, currentPage + 1))
-                          }
-                          disabled={currentPage === totalPages}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
+            <CardContent className="p-4 dark:bg-gray-800">
+              {/* Stats Cards */}
+              <div className="mb-6 grid gap-4 md:grid-cols-3">
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
+                  <div className="p-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                          <Eye className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Total Requests
+                        </h3>
+                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                          {mockContactRequests.length.toLocaleString()}
+                        </p>
                       </div>
                     </div>
-                  )}
-                </>
-              )}
+                  </div>
+                </div>
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
+                  <div className="p-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                          <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Pending Requests
+                        </h3>
+                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                          {mockContactRequests
+                            .filter((r) => r.status === "pending")
+                            .length.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
+                  <div className="p-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                          <Mail className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Resolved Requests
+                        </h3>
+                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                          {mockContactRequests
+                            .filter((r) => r.status === "resolved")
+                            .length.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto no-scrollbar">
+                <Table className="w-full text-black dark:text-white">
+                  <TableHeader>
+                    <TableRow className="border border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
+                      <TableHead
+                        className="hidden py-3 text-center sm:table-cell"
+                        onClick={() => handleSort("id")}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          #
+                          {sortField === "id" ? (
+                            sortOrder === "asc" ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )
+                          ) : null}
+                        </div>
+                      </TableHead>
+                      <TableHead className="py-3" onClick={() => handleSort("name")}>
+                        <div className="flex items-center gap-2">
+                          Name
+                          {sortField === "name" ? (
+                            sortOrder === "asc" ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )
+                          ) : null}
+                        </div>
+                      </TableHead>
+                      <TableHead className="py-3" onClick={() => handleSort("email")}>
+                        <div className="flex items-center gap-2">
+                          Email
+                          {sortField === "email" ? (
+                            sortOrder === "asc" ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )
+                          ) : null}
+                        </div>
+                      </TableHead>
+                      <TableHead className="py-3" onClick={() => handleSort("message")}>
+                        <div className="flex items-center gap-2">Message</div>
+                      </TableHead>
+                      <TableHead className="hidden py-3 lg:table-cell" onClick={() => handleSort("status")}>
+                        <div className="flex items-center gap-2">
+                          Status
+                          {sortField === "status" ? (
+                            sortOrder === "asc" ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )
+                          ) : null}
+                        </div>
+                      </TableHead>
+                      <TableHead className="hidden py-3 lg:table-cell" onClick={() => handleSort("createdAt")}>
+                        <div className="flex items-center gap-2">
+                          Date
+                          {sortField === "createdAt" ? (
+                            sortOrder === "asc" ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )
+                          ) : null}
+                        </div>
+                      </TableHead>
+                      <TableHead className="py-3 text-center">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <TableRow key={index} className="animate-pulse">
+                          <TableCell className="hidden sm:table-cell">
+                            <Skeleton className="h-5 w-6" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-5 w-full max-w-[100px]" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-5 w-full max-w-[150px]" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-5 w-full max-w-[200px]" />
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <Skeleton className="h-6 w-20 rounded-full" />
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <Skeleton className="h-5 w-20" />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-center gap-1">
+                              <Skeleton className="h-8 w-8 rounded-full" />
+                              <Skeleton className="h-8 w-8 rounded-full" />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : displayedRequests.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="h-32 text-center">
+                          <div className="flex flex-col items-center justify-center space-y-2">
+                            <div className="text-gray-400 dark:text-gray-500">
+                              <Mail className="mx-auto h-12 w-12" />
+                            </div>
+                            <div className="text-gray-500 dark:text-gray-400">
+                              <p className="text-base font-medium">No contact requests found</p>
+                              <p className="text-sm">
+                                {searchTerm
+                                  ? "Try adjusting your search criteria"
+                                  : "No contact requests available"}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      displayedRequests.map((request, index) => (
+                        <TableRow
+                          key={request._id}
+                          className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                        >
+                          <TableCell className="hidden text-center font-medium sm:table-cell">
+                            {startIndex + index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <p className="font-medium">{request.name}</p>
+                            <p className="mt-1 text-xs text-gray-500 lg:hidden">
+                              {getStatusBadge(request.status)}
+                            </p>
+                            <p className="mt-1 text-xs text-gray-500 sm:hidden">
+                              {formatDate(request.createdAt)}
+                            </p>
+                          </TableCell>
+                          <TableCell>{request.email}</TableCell>
+                          <TableCell>{request.message}</TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {getStatusBadge(request.status)}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {formatDate(request.createdAt)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
+                                onClick={() => handleView(request)}
+                                aria-label="View contact details"
+                              >
+                                <Eye size={16} className="transition-transform group-hover:scale-110" />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  View details
+                                </span>
+                              </button>
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-blue-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                                onClick={() => confirmDeleteRequest(request._id)}
+                                aria-label="Delete contact"
+                              >
+                                <Trash2 size={16} className="transition-transform group-hover:scale-110" />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  Delete contact
+                                </span>
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
+
+          {/* Pagination */}
+          {displayedRequests.length > 0 && (
+            <div className="mt-6 rounded-md bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
+              <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing <span className="font-medium text-gray-700 dark:text-gray-300">{startIndex + 1}</span> to{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {Math.min(startIndex + contactRequestsPerPage, sortedRequests.length)}
+                  </span>{" "}
+                  of <span className="font-medium text-gray-700 dark:text-gray-300">{sortedRequests.length}</span> requests
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <div className="hidden sm:flex sm:items-center sm:space-x-1">
+                    {generatePaginationNumbers().map((page, index) =>
+                      page === "..." ? (
+                        <span key={`ellipsis-${index}`} className="px-1 text-gray-400">...</span>
+                      ) : (
+                        <Button
+                          key={`page-${page}`}
+                          onClick={() => setCurrentPage(Number(page))}
+                          className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${currentPage === page
+                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                            : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                            }`}
+                          aria-label={`Page ${page}`}
+                          aria-current={currentPage === page ? "page" : undefined}
+                        >
+                          {page}
+                        </Button>
+                      )
+                    )}
+                  </div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:hidden">
+                    Page {currentPage} of {totalPages || 1}
+                  </span>
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages || 1))}
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="hidden items-center space-x-2 lg:flex">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Go to page:</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={totalPages || 1}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= 1 && value <= totalPages) {
+                        setCurrentPage(value);
+                      }
+                    }}
+                    className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:text-white dark:bg-gray-800"
+                    aria-label="Go to page"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
       {/* View Contact Request Dialog */}
       {selectedRequest && (
         <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-          <DialogContent className="md:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Contact Request Details</DialogTitle>
+          <DialogContent className="no-scrollbar max-h-[90vh] max-w-md overflow-y-auto rounded-md bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
+            <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
+                  Contact Request Details
+                </DialogTitle>
+                <RxCross2
+                  className="text-gray-800 dark:text-white"
+                  size={20}
+                  onClick={() => setViewOpen(false)}
+                />
+              </div>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-500">Name</p>
-                  <p className="font-medium">{selectedRequest.name}</p>
+            <div className="p-6 space-y-6">
+              <div className="overflow-hidden rounded-md border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
+                <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-4 py-2 dark:from-blue-900/20 dark:to-blue-900/20">
+                  <h3 className="font-medium text-blue-800 dark:text-blue-300">
+                    Contact Information
+                  </h3>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-500">Email</p>
-                  <p className="font-medium">{selectedRequest.email}</p>
-                </div>
-                {selectedRequest.mobile && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Mobile</p>
-                    <p className="font-medium">{selectedRequest.mobile}</p>
+                <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                  <div className="grid grid-cols-3 px-4 py-3">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Name
+                    </span>
+                    <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                      {selectedRequest.name}
+                    </span>
                   </div>
-                )}
-                {selectedRequest.subject && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-500">Subject</p>
-                    <p className="font-medium">{selectedRequest.subject}</p>
+                  <div className="grid grid-cols-3 px-4 py-3">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Email
+                    </span>
+                    <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                      {selectedRequest.email}
+                    </span>
                   </div>
-                )}
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-500">Status</p>
-                  <div>{getStatusBadge(selectedRequest.status)}</div>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-500">Date</p>
-                  <p className="font-medium">{formatDate(selectedRequest.createdAt)}</p>
+                  {selectedRequest.mobile && (
+                    <div className="grid grid-cols-3 px-4 py-3">
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Mobile
+                      </span>
+                      <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                        {selectedRequest.mobile}
+                      </span>
+                    </div>
+                  )}
+                  {selectedRequest.subject && (
+                    <div className="grid grid-cols-3 px-4 py-3">
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Subject
+                      </span>
+                      <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                        {selectedRequest.subject}
+                      </span>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-3 px-4 py-3">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Status
+                    </span>
+                    <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                      {getStatusBadge(selectedRequest.status)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 px-4 py-3">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Date
+                    </span>
+                    <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                      {formatDate(selectedRequest.createdAt)}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-500">Message</p>
-                <div className="rounded-md bg-gray-50 p-4 dark:bg-gray-800">
-                  <p className="whitespace-pre-wrap">{selectedRequest.message}</p>
+              <div className="overflow-hidden rounded-md border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
+                <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-4 py-2 dark:from-blue-900/20 dark:to-blue-900/20">
+                  <h3 className="font-medium text-blue-800 dark:text-blue-300">
+                    Message
+                  </h3>
+                </div>
+                <div className="p-4">
+                  <p className="text-sm text-gray-900 dark:text-gray-200 whitespace-pre-wrap">
+                    {selectedRequest.message}
+                  </p>
                 </div>
               </div>
             </div>
-            <DialogFooter className="flex justify-between">
-              <div className="flex space-x-2">
-                <Button variant="outline" onClick={() => handleUpdateStatus(selectedRequest._id, "resolved")}>Mark as Resolved</Button>
-                <Button variant="outline" onClick={() => handleUpdateStatus(selectedRequest._id, "in-progress")}>In Progress</Button>
+            <DialogFooter className="sticky bottom-0 z-10 border-t bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between sm:gap-0">
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleUpdateStatus(selectedRequest._id, "resolved")}
+                    className="w-full sm:w-auto"
+                  >
+                    Mark as Resolved
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleUpdateStatus(selectedRequest._id, "in-progress")}
+                    className="w-full sm:w-auto"
+                  >
+                    In Progress
+                  </Button>
+
+                  <Button
+                  variant="outline"
+                  onClick={() => setViewOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Close
+                </Button>
+
+
+                </div>
+
+                
+
               </div>
-              <Button variant="outline" onClick={() => setViewOpen(false)}>
-                Close
-              </Button>           
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -630,31 +744,70 @@ const ContactRequestsPage: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+              Confirm Deletion
+            </DialogTitle>
           </DialogHeader>
-          <div className="py-3">
-            <p>Are you sure you want to delete this contact request? This action cannot be undone.</p>
+          <div className="py-4 text-center">
+            <Trash2 className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
+            <p className="text-gray-600 dark:text-gray-300">
+              Are you sure you want to delete this contact request? This action cannot be undone.
+            </p>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
               onClick={() => setDeleteConfirmOpen(false)}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeleteRequest}
+              className="w-full sm:w-auto"
+              disabled={isDeleting}
             >
-              Delete
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <style>
+        {`
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 3px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #f9fafb;
+          }
+          @media (prefers-color-scheme: dark) {
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+              background-color: #4b5563;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+              background-color: #1f2937;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 };
 
-export default ContactRequestsPage; 
+export default ContactRequestsPage;

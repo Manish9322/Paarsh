@@ -377,13 +377,13 @@ const MeetingLinksPage: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "upcoming":
-        return <Badge className="bg-green-500">Upcoming</Badge>;
+        return <Badge className="bg-green-500 dark:text-white/70">Upcoming</Badge>;
       case "past":
-        return <Badge className="bg-gray-500">Past</Badge>;
+        return <Badge className="bg-gray-500 dark:text-white">Past</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-500">Cancelled</Badge>;
+        return <Badge className="bg-red-500 dark:text-white/90">Cancelled</Badge>;
       default:
-        return <Badge className="bg-gray-500">Unknown</Badge>;
+        return <Badge className="bg-gray-500 dark:text-white">Unknown</Badge>;
     }
   };
 
@@ -520,10 +520,10 @@ const MeetingLinksPage: React.FC = () => {
               </div>
             </CardHeader>
 
-            <CardContent className="p-4">
+            <CardContent className="p-4 dark:bg-gray-700">
               {/* Stats Cards */}
               <div className="mb-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <Card className="border-t-4 border-t-blue-700 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                <Card className="border-t-4 border-t-blue-700 dark:bg-gray-900 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
                       Total Meetings
@@ -549,7 +549,7 @@ const MeetingLinksPage: React.FC = () => {
                     )}
                   </CardContent>
                 </Card>
-                <Card className="border-t-4 border-t-blue-700 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                <Card className="border-t-4 border-t-blue-700 dark:bg-gray-900 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
                       Upcoming Meetings
@@ -575,7 +575,7 @@ const MeetingLinksPage: React.FC = () => {
                     )}
                   </CardContent>
                 </Card>
-                <Card className="border-t-4 border-t-blue-700 dark:bg-gray-800 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+                <Card className="border-t-4 border-t-blue-700 dark:bg-gray-900 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
                       Past Recordings
@@ -655,7 +655,7 @@ const MeetingLinksPage: React.FC = () => {
               <div className="overflow-x-auto">
                 <Table className="w-full text-black">
                   <TableHeader>
-                    <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
+                    <TableRow className="border-b dark:border-b-gray-800 border-gray-200 bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 dark:text-white">
                       <TableHead className="hidden py-3 sm:table-cell">#</TableHead>
                       <TableHead
                         className="cursor-pointer py-3"
@@ -721,7 +721,7 @@ const MeetingLinksPage: React.FC = () => {
                       meetingLinks.map((meeting, index) => (
                         <TableRow
                           key={meeting._id}
-                          className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                          className="border-b dark:border-gray-700 dark:text-white border-gray-100 transition-colors hover:bg-gray-50 dark:bg-gray-700"
                         >
                           <TableCell className="hidden text-center font-medium sm:table-cell">
                             {startIndex + index + 1}
@@ -814,7 +814,7 @@ const MeetingLinksPage: React.FC = () => {
 
       {/* Create Meeting Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle>Create New Meeting Link</DialogTitle>
           </DialogHeader>
@@ -956,7 +956,7 @@ const MeetingLinksPage: React.FC = () => {
 
       {/* Edit Meeting Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle>Edit Meeting Link</DialogTitle>
           </DialogHeader>
@@ -1112,7 +1112,7 @@ const MeetingLinksPage: React.FC = () => {
       {/* View Meeting Dialog */}
       {selectedMeeting && (
         <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-          <DialogContent className="sm:max-w-[650px]">
+          <DialogContent className="sm:max-w-[650px] dark:bg-gray-800">
             <DialogHeader>
               <DialogTitle>Meeting Details</DialogTitle>
             </DialogHeader>
@@ -1264,7 +1264,7 @@ const MeetingLinksPage: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
           </DialogHeader>

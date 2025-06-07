@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Eye, Trash2, ChevronLeft, ChevronRight, BookPlus, Menu, Pencil, BookOpen } from "lucide-react";
+import { Eye, Edit, Trash2, ChevronLeft, ChevronRight, BookPlus, Menu, Pencil, BookOpen } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,7 @@ import {
   useUpdatePracticeTestMutation,
   useDeletePracticeTestMutation,
   useFetchCourcesQuery,
-  useFetchCategoriesQuery, // Fixed typo
+  useFetchCategoriesQuery,
 } from "@/services/api";
 
 interface Question {
@@ -82,10 +82,10 @@ interface Category {
 const PracticeTestPage: React.FC = () => {
   const [viewOpen, setViewOpen] = useState(false);
   const [addTestOpen, setAddTestOpen] = useState(false);
-  const [editTestOpen, setEditTestOpen] = useState(false); // Added for edit modal
+  const [editTestOpen, setEditTestOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [testToDelete, setTestToDelete] = useState<string | null>(null);
-  const [testToEdit, setTestToEdit] = useState<PracticeTest | null>(null); // Added for edit modal
+  const [testToEdit, setTestToEdit] = useState<PracticeTest | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -94,14 +94,13 @@ const PracticeTestPage: React.FC = () => {
 
   // Fetch data
   const { data: practiceTestsData, isLoading, error } = useFetchPracticeTestsQuery(undefined);
-  const { data: coursesData } = useFetchCourcesQuery(undefined); // Fixed typo
+  const { data: coursesData } = useFetchCourcesQuery(undefined);
   const [addPracticeTest] = useAddPracticeTestMutation();
   const [updatePracticeTest] = useUpdatePracticeTestMutation();
   const [deletePracticeTest] = useDeletePracticeTestMutation();
 
   const practiceTests: PracticeTest[] = practiceTestsData?.data || [];
   const availableCourses: Course[] = coursesData?.data || [];
-
 
   // Fetch categories data
   const { data: categoriesData, isLoading: isCategoriesLoading } = useFetchCategoriesQuery(undefined);
@@ -114,12 +113,12 @@ const PracticeTestPage: React.FC = () => {
   const keywordOptions = Array.from(
     new Set(
       categories
-        .map(category => category.keywords) // get the keyword strings
-        .flat()                             // flatten the array
-        .join(",")                          // join all into one string
-        .split(",")                         // split by comma
-        .map(kw => kw.trim())               // trim spaces
-        .filter(Boolean)                    // remove empty strings
+        .map(category => category.keywords)
+        .flat()
+        .join(",")
+        .split(",")
+        .map(kw => kw.trim())
+        .filter(Boolean)
     )
   );
   console.log("Extracted Keywords:", keywordOptions);
@@ -142,38 +141,64 @@ const PracticeTestPage: React.FC = () => {
     const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
     } else {
       pageNumbers.push(1);
+
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(totalPages - 1, currentPage + 1);
 
-      if (currentPage <= 3) endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
-      if (currentPage >= totalPages - 2) startPage = Math.max(2, totalPages - maxPagesToShow + 2);
+      if (currentPage <= 3) {
+        endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
+      }
 
-      if (startPage > 2) pageNumbers.push("...");
-      for (let i = startPage; i <= endPage; i++) pageNumbers.push(i);
-      if (endPage < totalPages - 1) pageNumbers.push("...");
-      if (totalPages > 1) pageNumbers.push(totalPages);
+      if (currentPage >= totalPages - 2) {
+        startPage = Math.max(2, totalPages - maxPagesToShow + 2);
+      }
+
+      if (startPage > 2) {
+        pageNumbers.push("...");
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      if (endPage < totalPages - 1) {
+        pageNumbers.push("...");
+      }
+
+      if (totalPages > 1) {
+        pageNumbers.push(totalPages);
+      }
     }
     return pageNumbers;
   };
 
   // Handle delete test
   const confirmDeleteTest = (testId: string) => {
+    console.log("Test ID to delete:", testId, typeof testId);
     setTestToDelete(testId);
     setDeleteConfirmOpen(true);
   };
 
   const handleDeleteTest = async () => {
-    if (!testToDelete) return;
+    if (!testToDelete) {
+      console.error("No test ID provided for deletion");
+      toast.error("No test ID provided for deletion");
+      return;
+    }
+    console.log("Sending DELETE request with ID:", testToDelete, typeof testToDelete);
     try {
-      await deletePracticeTest({ id: testToDelete }).unwrap(); // Updated to match API payload
+      await deletePracticeTest(testToDelete).unwrap();
       toast.success("Practice test deleted successfully");
       setDeleteConfirmOpen(false);
       setTestToDelete(null);
     } catch (error) {
-      toast.error("Failed to delete practice test");
+      console.error("Delete error:", error);
+      toast.error(`Failed to delete practice test: ${error.message || "Unknown error"}`);
     }
   };
 
@@ -220,13 +245,13 @@ const PracticeTestPage: React.FC = () => {
   const getLevelBadgeColor = (level: string) => {
     switch (level.toLowerCase()) {
       case "easy":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400";
+        return "bg-green-100 text-green-800 dark:bg-white/20 dark:text-green-400 hover:bg-green-200 dark:hover:bg-white/20";
       case "intermediate":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400";
+        return "bg-blue-100 text-blue-800 dark:bg-white/20 dark:text-blue-400";
       case "difficult":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400";
+        return "bg-red-100 text-red-800 dark:bg-white/20 dark:text-red-400";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+        return "bg-gray-100 text-gray-800 dark:bg-white/20 dark:text-gray-300";
     }
   };
 
@@ -333,7 +358,7 @@ const PracticeTestPage: React.FC = () => {
         duration: data.duration,
         questions: data.questions,
       };
-      onSubmit(testData as any); // Type assertion for union type
+      onSubmit(testData as any);
       form.reset();
       onClose();
     };
@@ -361,7 +386,7 @@ const PracticeTestPage: React.FC = () => {
                         {...field}
                         placeholder="Enter test name"
                         className="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                        disabled={isEditMode} // Disable in edit mode
+                        disabled={isEditMode}
                       />
                     </FormControl>
                     <FormMessage className="text-red-500" />
@@ -438,7 +463,7 @@ const PracticeTestPage: React.FC = () => {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                          <SelectValue placeholder="Select skill" />
+                          <SelectValue placeholder="Select courses" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="dark:bg-gray-800 max-h-60 overflow-y-auto">
@@ -453,7 +478,6 @@ const PracticeTestPage: React.FC = () => {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="level"
@@ -724,14 +748,14 @@ const PracticeTestPage: React.FC = () => {
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row">
                   <Input
                     type="text"
-                    className="h-10 rounded border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white md:w-64"
+                    className="h-10 rounded border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:border-gray-600   md:w-64"
                     placeholder="Search tests..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <Button
                     onClick={() => setAddTestOpen(true)}
-                    className="bg-white text-blue-600 hover:bg-gray-100 dark:bg-gray-700 dark:text-white"
+                    className="bg-white text-blue-600 hover:bg-gray-100"
                   >
                     <BookPlus className="mr-2 h-5 w-5" />
                     Add New Test
@@ -762,7 +786,7 @@ const PracticeTestPage: React.FC = () => {
                 <>
                   <Table>
                     <TableHeader>
-                      <TableRow>
+                    <TableRow className="border-b  border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
                         <TableHead>Test Name</TableHead>
                         <TableHead>Skill</TableHead>
                         <TableHead>Level</TableHead>
@@ -790,70 +814,138 @@ const PracticeTestPage: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                 onClick={() => handleViewTest(test)}
+                                aria-label="View user details"
                               >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
+                                <Eye
+                                  size={16}
+                                  className="transition-transform group-hover:scale-110"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  View details
+                                </span>
+                              </button>
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                 onClick={() => handleEditTest(test)}
+                                aria-label="Edit user"
                               >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
+                                <Edit
+                                  size={16}
+                                  className="transition-transform group-hover:scale-110"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  Edit Test
+                                </span>
+                              </button>
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
                                 onClick={() => confirmDeleteTest(test._id)}
+                                aria-label="Delete user"
                               >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                                <Trash2
+                                  size={16}
+                                  className="transition-transform group-hover:scale-110"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  Delete user
+                                </span>
+                              </button>
                             </div>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
-                  {totalPages > 1 && (
-                    <div className="mt-4 flex items-center justify-between">
-                      <Button
-                        variant="outline"
-                        disabled={currentPage === 1}
-                        onClick={() => setCurrentPage((prev) => prev - 1)}
-                      >
-                        <ChevronLeft className="h-4 w-4 mr-2" />
-                        Previous
-                      </Button>
-                      <div className="flex gap-2">
-                        {generatePaginationNumbers().map((page, index) =>
-                          typeof page === "string" ? (
-                            <span key={index} className="px-2">
-                              ...
-                            </span>
-                          ) : (
-                            <Button
-                              key={page}
-                              variant={currentPage === page ? "default" : "outline"}
-                              onClick={() => setCurrentPage(page)}
-                            >
-                              {page}
-                            </Button>
-                          )
-                        )}
+                  <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
+                    <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        Showing{" "}
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                          {startIndex + 1}
+                        </span>{" "}
+                        to{" "}
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                          {Math.min(startIndex + testsPerPage, filteredTests.length)}
+                        </span>{" "}
+                        of{" "}
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                          {filteredTests.length}
+                        </span>{" "}
+                        tests
                       </div>
-                      <Button
-                        variant="outline"
-                        disabled={currentPage === totalPages}
-                        onClick={() => setCurrentPage((prev) => prev + 1)}
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4 ml-2" />
-                      </Button>
+                      <div className="flex items-center space-x-1">
+                        <Button
+                          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                          aria-label="Previous page"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <div className="hidden sm:flex sm:items-center sm:space-x-1">
+                          {generatePaginationNumbers().map((page, index) =>
+                            page === "..." ? (
+                              <span
+                                key={`ellipsis-${index}`}
+                                className="px-1 text-gray-400"
+                              >
+                                ...
+                              </span>
+                            ) : (
+                              <Button
+                                key={`page-${page}`}
+                                onClick={() => setCurrentPage(Number(page))}
+                                className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
+                                  currentPage === page
+                                    ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                                    : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                                }`}
+                                aria-label={`Page ${page}`}
+                                aria-current={currentPage === page ? "page" : undefined}
+                              >
+                                {page}
+                              </Button>
+                            )
+                          )}
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:hidden">
+                          Page {currentPage} of {totalPages || 1}
+                        </span>
+                        <Button
+                          onClick={() =>
+                            setCurrentPage((prev) => Math.min(prev + 1, totalPages || 1))
+                          }
+                          disabled={currentPage === totalPages || totalPages === 0}
+                          className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                          aria-label="Next page"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="hidden items-center space-x-2 lg:flex">
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          Go to page:
+                        </span>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={totalPages || 1}
+                          value={currentPage}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value);
+                            if (value >= 1 && value <= totalPages) {
+                              setCurrentPage(value);
+                            }
+                          }}
+                          className="h-8 w-16 rounded-md dark:text-white border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
+                          aria-label="Go to page"
+                        />
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </>
               )}
             </CardContent>

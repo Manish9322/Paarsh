@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DialogTrigger } from "@radix-ui/react-dialog";
+import {Plus} from "lucide-react";
 
 const AddCategoryModal = () => {
   const dispatch = useDispatch();
@@ -45,7 +46,8 @@ const AddCategoryModal = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-500 text-white hover:bg-blue-700 rounded-md p-2 font-medium shadow-md transition duration-300 ease-in-out">
+        <Button className="px-2 rounded-md bg-white p-2 font-medium text-blue-600 shadow-md transition duration-300 ease-in-out hover:bg-blue-700 dark:bg-white/90">
+          <Plus className="mr-2 h-4 w-4" />
           Add Category
         </Button>
       </DialogTrigger>
@@ -59,7 +61,6 @@ const AddCategoryModal = () => {
           <Input
             name="name"
             placeholder="Category Name"
-            
             onChange={handleChange}
             required
             className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"
@@ -67,7 +68,6 @@ const AddCategoryModal = () => {
           <Input
             name="description"
             placeholder="Description"
-            
             onChange={handleChange}
             required
             className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"
@@ -75,7 +75,6 @@ const AddCategoryModal = () => {
           <Input
             name="keywords"
             placeholder="Keywords (comma separated)"
-            
             onChange={handleChange}
             required
             className="rounded-lg border border-gray-300 bg-white p-2 text-black focus:ring-2 focus:ring-blue-500"

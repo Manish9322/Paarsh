@@ -187,26 +187,26 @@ const OffersPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 overflow-hidden">
+    <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Mobile Header */}
-      <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
+      <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm dark:bg-gray-800 dark:text-white md:hidden">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          className="rounded-full p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           aria-label="Toggle sidebar"
         >
           <Menu size={24} />
         </button>
-        <h1 className="text-lg font-bold text-gray-800">Offers Management</h1>
+        <h1 className="text-lg font-bold text-gray-800 dark:text-white">Offers Management</h1>
         <div className="w-10"></div>
       </div>
 
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside
-          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${
+          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:sticky md:top-0 md:translate-x-0 md:h-screen`}
+          } md:sticky md:top-0 md:h-screen md:translate-x-0`}
         >
           <div className="h-16 md:h-0"></div>
           <Sidebar userRole="admin"/>
@@ -224,7 +224,7 @@ const OffersPage = () => {
         {/* Main Content */}
         <main className="w-full flex-1 overflow-x-hidden pt-16">
           <div className="container mx-auto px-4 py-6">
-            <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
+            <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-800 dark:text-white">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
                 <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                   <CardTitle className="text-xl font-bold text-white sm:text-2xl">
@@ -234,7 +234,7 @@ const OffersPage = () => {
                     <Input
                       type="text"
                       placeholder="Search offers..."
-                      className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
+                      className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -243,7 +243,7 @@ const OffersPage = () => {
                         dispatch(resetSelectedOffer());
                         setCreateDialogOpen(true);
                       }}
-                      className="bg-white text-blue-600 hover:bg-blue-50"
+                      className="h-10 w-full bg-white text-blue-600 transition-colors md:w-auto hover:bg-blue-50 "
                     >
                       <Plus className="mr-2 h-4 w-4" />
                       Add New Offer
@@ -252,18 +252,18 @@ const OffersPage = () => {
                 </div>
               </CardHeader>
 
-              <CardContent className="p-4">
+              <CardContent className="p-0">
                 <OfferFilters 
                   courses={courses}
                   onFilterChange={handleFilterChange}
                 />
 
                 {/* Table */}
-                <div className="overflow-x-auto">
-                  <Table className="w-full text-black">
+                <div className="overflow-x-auto m-4">
+                  <Table className="w-full text-black dark:text-white">
                     <TableHeader>
-                      <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100">
-                        <TableHead className="hidden py-3 sm:table-cell">#</TableHead>
+                      <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
+                        <TableHead className="hidden py-3 text-center sm:table-cell">#</TableHead>
                         <TableHead className="py-3">Code</TableHead>
                         <TableHead className="hidden py-3 md:table-cell">Discount</TableHead>
                         <TableHead className="hidden py-3 lg:table-cell">Valid From</TableHead>
@@ -275,7 +275,7 @@ const OffersPage = () => {
                     <TableBody>
                       {isLoading ? (
                         Array.from({ length: 7 }).map((_, index) => (
-                          <TableRow key={index} className="border-b border-gray-100">
+                          <TableRow key={index} className="border-b border-gray-100 dark:border-gray-700 dark:bg-gray-900">
                             <TableCell className="hidden sm:table-cell">
                               <Skeleton className="h-4 w-6" />
                             </TableCell>
@@ -296,15 +296,15 @@ const OffersPage = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex justify-center gap-2">
-                                <Skeleton className="h-8 w-8 rounded-full" />
-                                <Skeleton className="h-8 w-8 rounded-full" />
+                                <Skeleton className="h-6 w-6 rounded-full" />
+                                <Skeleton className="h-6 w-6 rounded-full" />
                               </div>
                             </TableCell>
                           </TableRow>
                         ))
                       ) : displayedOffers.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="py-6 text-center text-gray-500">
+                          <TableCell colSpan={7} className="py-6 text-center text-gray-500 dark:text-gray-400">
                             No offers found.
                           </TableCell>
                         </TableRow>
@@ -312,7 +312,7 @@ const OffersPage = () => {
                         displayedOffers.map((offer: any, index) => (
                           <TableRow
                             key={offer._id}
-                            className="border-b border-gray-100 transition-colors hover:bg-gray-50"
+                            className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                           >
                             <TableCell className="hidden text-center font-medium sm:table-cell">
                               {startIndex + index + 1}
@@ -320,10 +320,10 @@ const OffersPage = () => {
                             <TableCell>
                               <div className="md:hidden">
                                 <p className="font-medium">{offer.code}</p>
-                                <p className="mt-1 text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                   {offer.discountPercentage}% off
                                 </p>
-                                <p className="mt-1 text-xs text-gray-500">
+                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                   Valid until {formatDate(offer.validUntil)}
                                 </p>
                               </div>
@@ -342,8 +342,8 @@ const OffersPage = () => {
                               <span
                                 className={`px-2 py-1 rounded-full text-xs ${
                                   calculateIsActive(offer)
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
+                                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
                                 }`}
                               >
                                 {calculateIsActive(offer) ? "Active" : "Inactive"}
@@ -357,6 +357,9 @@ const OffersPage = () => {
                                   aria-label="Preview offer"
                                 >
                                   <Eye size={16} className="transition-transform group-hover:scale-110" />
+                                  <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                    Preview offer
+                                  </span>
                                 </button>
                                 <button
                                   className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
@@ -364,6 +367,9 @@ const OffersPage = () => {
                                   aria-label="Edit offer"
                                 >
                                   <Edit2 size={16} className="transition-transform group-hover:scale-110" />
+                                  <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                    Edit offer
+                                  </span>
                                 </button>
                                 <button
                                   className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
@@ -374,6 +380,9 @@ const OffersPage = () => {
                                   aria-label="Delete offer"
                                 >
                                   <Trash2 size={16} className="transition-transform group-hover:scale-110" />
+                                  <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                    Delete offer
+                                  </span>
                                 </button>
                               </div>
                             </TableCell>
@@ -403,7 +412,7 @@ const OffersPage = () => {
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
               <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
                 <DialogHeader>
-                  <DialogTitle className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                  <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                     Confirm Deletion
                   </DialogTitle>
                   <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
@@ -414,13 +423,14 @@ const OffersPage = () => {
                   <Button
                     variant="outline"
                     onClick={() => setDeleteDialogOpen(false)}
-                    className="mt-2 sm:mt-0"
+                    className="w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={handleDeleteOffer}
+                    className="w-full sm:w-auto"
                   >
                     Delete Offer
                   </Button>
@@ -429,21 +439,21 @@ const OffersPage = () => {
             </Dialog>
 
             {/* Pagination */}
-            <div className="mt-6 rounded bg-white p-4 shadow-md">
+            <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
               <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-                <div className="text-sm text-gray-500">
-                  Showing <span className="font-medium text-gray-700">{startIndex + 1}</span> to{" "}
-                  <span className="font-medium text-gray-700">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing <span className="font-medium text-gray-700 dark:text-gray-300">{startIndex + 1}</span> to{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
                     {Math.min(startIndex + offersPerPage, filteredOffers.length)}
                   </span>{" "}
-                  of <span className="font-medium text-gray-700">{filteredOffers.length}</span> offers
+                  of <span className="font-medium text-gray-700 dark:text-gray-300">{filteredOffers.length}</span> offers
                 </div>
 
                 <div className="flex items-center space-x-1">
                   <Button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                     disabled={currentPage === 1}
-                    className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400"
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                     aria-label="Previous page"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -453,18 +463,20 @@ const OffersPage = () => {
                     {generatePaginationNumbers().map((page, index) => (
                       typeof page === 'number' ? (
                         <Button
-                          key={index}
+                          key={`page-${page}`}
                           onClick={() => setCurrentPage(page)}
-                          className={`h-8 w-8 rounded p-0 text-sm font-medium ${
+                          className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
                             currentPage === page
-                              ? "bg-blue-600 text-white hover:bg-blue-700"
-                              : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                              ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                              : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
                           }`}
+                          aria-label={`Page ${page}`}
+                          aria-current={currentPage === page ? "page" : undefined}
                         >
                           {page}
                         </Button>
                       ) : (
-                        <span key={index} className="px-2 text-gray-400">
+                        <span key={`ellipsis-${index}`} className="px-1 text-gray-400">
                           {page}
                         </span>
                       )
@@ -474,7 +486,7 @@ const OffersPage = () => {
                   <Button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                     disabled={currentPage === totalPages}
-                    className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400"
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                     aria-label="Next page"
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -482,7 +494,7 @@ const OffersPage = () => {
                 </div>
 
                 <div className="hidden items-center space-x-2 lg:flex">
-                  <span className="text-sm text-gray-500">Go to page:</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Go to page:</span>
                   <Input
                     type="number"
                     min={1}
@@ -494,7 +506,6 @@ const OffersPage = () => {
                         setCurrentPage(value);
                       }
                     }}
-                    className="h-8 w-16 rounded border-gray-300 text-center text-sm"
                   />
                 </div>
               </div>
@@ -504,24 +515,28 @@ const OffersPage = () => {
       </div>
 
       {/* Custom Scrollbar Styling */}
-      <style>{`
-        :global(.custom-scrollbar::-webkit-scrollbar) {
+      <style jsx global>{`
+        body {
+          overflow-x: hidden;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
           height: 6px;
         }
-        :global(.custom-scrollbar::-webkit-scrollbar-thumb) {
+        .custom-scrollbar::-webkit-scrollbar-thumb {
           background-color: #d1d5db;
           border-radius: 3px;
         }
-        :global(.custom-scrollbar::-webkit-scrollbar-track) {
+        .custom-scrollbar::-webkit-scrollbar-track {
           background-color: #f9fafb;
         }
         
         @media (prefers-color-scheme: dark) {
-          :global(.custom-scrollbar::-webkit-scrollbar-thumb) {
+          .custom-scrollbar::-webkit-scrollbar-thumb {
             background-color: #4b5563;
           }
-          :global(.custom-scrollbar::-webkit-scrollbar-track) {
+          .custom-scrollbar::-webkit-scrollbar-track {
             background-color: #1f2937;
           }
         }
@@ -530,4 +545,4 @@ const OffersPage = () => {
   );
 };
 
-export default OffersPage; 
+export default OffersPage;
