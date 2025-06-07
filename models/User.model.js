@@ -58,6 +58,37 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+    currentSessionId: {
+    type: String,
+    default: null,
+  },
+  lastLoginAt: {
+    type: Date,
+    default: null,
+  },
+  sessionCreatedAt: {
+    type: Date,
+    default: null,
+  },
+  otpToken: String,
+  otpTokenExpiry: Date,
+});
+
+// Pre-save middleware to update timestamps and session creation time
+userSchema.pre('save', function(next) {
+  this.updatedAt = new Date();
+  
+  // If currentSessionId is being set, update sessionCreatedAt
+  if (this.isModified('currentSessionId') && this.currentSessionId) {
+    this.sessionCreatedAt = new Date();
+  }
+  
+  // If currentSessionId is being cleared, also clear sessionCreatedAt
+  if (this.isModified('currentSessionId') && !this.currentSessionId) {
+    this.sessionCreatedAt = null;
+  }
+  
+  next();
 });
 
 const UserModel = mongoose.models.User || mongoose.model("User", userSchema);

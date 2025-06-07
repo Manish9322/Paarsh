@@ -1,35 +1,95 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { updateWith } from "lodash";
+import { setTokenRefreshing, updateTokens, logout } from "../lib/slices/userAuthSlice";
+import { updateAdminTokens, logoutAdmin } from "../lib/slices/authSlice";
+
+const baseQuery = fetchBaseQuery({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "/api",
+  prepareHeaders: (headers, { getState }) => {
+    const  accessToken  = localStorage.getItem("accessToken");
+    const  adminAccessToken  =  localStorage.getItem("admin_access_token");
+
+    if (accessToken) {
+      headers.set("Authorization", `Bearer ${accessToken}`);
+    }
+    if (adminAccessToken) {
+      headers.set("Admin-Authorization", `Bearer ${adminAccessToken}`);
+    }
+
+    return headers;
+  },
+  credentials: "include",
+});
+
+const baseQueryWithReauth = async (args, api, extraOptions) => {
+  let result = await baseQuery(args, api, extraOptions);
+  const { userAuth, auth } = api.getState();
+  const { refreshToken, tokenRefreshing } = userAuth;
+  const { adminRefreshToken, isAdminAuthenticated } = auth;
+
+  if (result.error?.status === 401) {
+    const isAdminRequest =
+  typeof args.url === "string" && args.url.startsWith("/admin") ||
+  result.error?.data?.error?.includes("admin");
+
+    const refreshTokenToUse = isAdminRequest ? adminRefreshToken : refreshToken;
+    const refreshEndpoint = isAdminRequest ? "/admin/refreshtoken" : "/user/refreshtoken";
+    const updateTokensAction = isAdminRequest ? updateAdminTokens : updateTokens;
+    const logoutAction = isAdminRequest ? logoutAdmin : logout;
+
+    // if (!refreshTokenToUse) {
+    //   api.dispatch(logoutAction());
+    //   if (typeof window !== "undefined") {
+    //     window.location.href = "/signin";
+    //   }
+    //   return result;
+    // }
+
+    if (tokenRefreshing) {
+      return new Promise((resolve) => {
+        const checkRefresh = setInterval(async () => {
+          if (!api.getState().userAuth.tokenRefreshing) {
+            clearInterval(checkRefresh);
+            resolve(await baseQuery(args, api, extraOptions));
+          }
+        }, 100);
+      });
+    }
+
+    api.dispatch(setTokenRefreshing(true));
+    try {
+      const refreshResult = await baseQuery(
+        { url: refreshEndpoint, method: "POST", body: { refreshToken: refreshTokenToUse } },
+        api,
+        extraOptions
+      );
+
+      if (refreshResult.data?.success) {
+        const { accessToken, refreshToken: newRefreshToken } = refreshResult.data.data;
+        api.dispatch(updateTokensAction({ accessToken, refreshToken: newRefreshToken }));
+        result = await baseQuery(args, api, extraOptions);
+      } else {
+        api.dispatch(logoutAction());
+        // if (typeof window !== "undefined") {
+        //   window.location.href = "/signin";
+        // }
+      }
+    } catch (error) {
+      console.error("Token refresh error:", error);
+      api.dispatch(logoutAction());
+      // if (typeof window !== "undefined") {
+      //   window.location.href = "/signin";
+      // }
+    } finally {
+      api.dispatch(setTokenRefreshing(false));
+    }
+  }
+
+  return result;
+};
 
 export const paarshEduApi = createApi({
   reducerPath: "paarshEduApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: "/api",
-    prepareHeaders: (headers) => {
-      // Include the access token in headers if available
-      const accessToken =
-        localStorage.getItem("accessToken") ||
-        sessionStorage.getItem("accessToken");
-
-      // Get admin access token
-      const adminAccessToken =
-        localStorage.getItem("admin_access_token") ||
-        sessionStorage.getItem("admin_access_token");
-
-      if (accessToken) {
-        headers.set("Authorization", `Bearer ${accessToken}`);
-      }
-
-      // Set Admin token in headers separately
-      if (adminAccessToken) {
-        headers.set("Admin-Authorization", `Bearer ${adminAccessToken}`);
-      }
-
-      return headers;
-    },
-    credentials: "include",
-  }),
-
+  baseQuery: baseQueryWithReauth,
   tagTypes: [
     "User",
     "Course",
@@ -76,11 +136,22 @@ export const paarshEduApi = createApi({
     }),
 
     // ----------------------------------------------------User Apis------------------------------------------------------------
+    
+      validateToken: builder.query({
+      query: () => "/auth/validate",
+      providesTags: ["User"],
+    }),
+
+      getUserProfile: builder.query({
+      query: () => "/user/profile",
+      providesTags: ["User"],
+    }),
+
     login: builder.mutation({
-      query: (credentials) => ({
-        url: "user/login",
+      query: ({ email, password, forceLogin }) => ({
+        url: "/user/login",
         method: "POST",
-        body: credentials,
+        body: { email, password, forceLogin },
       }),
       invalidatesTags: ["User"],
     }),
@@ -89,11 +160,35 @@ export const paarshEduApi = createApi({
 
     signup: builder.mutation({
       query: (userData) => ({
-        url: "user/register",
+        url: "/user/register",
         method: "POST",
         body: userData,
       }),
       invalidatesTags: ["User"],
+    }),
+
+      forgotPassword: builder.mutation({
+      query: (email) => ({
+        url: "user/forgot-password",
+        method: "POST",
+        body: email,
+      }),
+    }), 
+
+    resetPassword: builder.mutation({
+      query: ({ email, password, otp }) => ({
+        url: "user/forgot-password",
+        method: "PUT",
+        body: { email, password, otp },
+      }),
+    }),
+
+
+    logout: builder.mutation({
+      query: () => ({
+        url: "/user/logout",
+        method: "POST",
+      }),
     }),
 
     fetchUserRefferals: builder.query({
@@ -160,7 +255,7 @@ export const paarshEduApi = createApi({
 
     addAgent: builder.mutation({
       query: (formData) => ({
-        url: "/agent",
+        url: "/admin/agents",
         method: "POST",
         body: formData,
       }),
@@ -169,7 +264,7 @@ export const paarshEduApi = createApi({
 
     updateAgent: builder.mutation({
       query: (formData) => ({
-        url: "/agent",
+        url: "/admin/agents",
         method: "PUT",
         body: { formData },
       }),
@@ -178,11 +273,16 @@ export const paarshEduApi = createApi({
 
     deleteAgent: builder.mutation({
       query: (id) => ({
-        url: "/agent",
+        url: "/admin/agents",
         method: "DELETE",
         body: id,
       }),
       invalidatesTags: ["Agent"],
+    }),
+
+    fetchAgents: builder.query({
+      query: () => "/admin/agents",
+      providesTags: ["Agent"],
     }),
 
     fetchAgent: builder.query({
@@ -193,7 +293,7 @@ export const paarshEduApi = createApi({
     // New API endpoint for updating agent targets
     updateAgentTarget: builder.mutation({
       query: ({ id, targetType, targetValue }) => ({
-        url: "/agent",
+        url: "/admin/agent",
         method: "PATCH",
         body: { id, targetType, targetValue },
       }),
@@ -701,6 +801,12 @@ export const paarshEduApi = createApi({
 export const {
   useLoginMutation,
   useSignupMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+  useLogoutMutation,
+
+  useValidateTokenQuery,
+  useGetUserProfileQuery,
 
   useAddCourseMutation,
   useFetchCourcesQuery,
@@ -713,6 +819,7 @@ export const {
   useUpdateAgentMutation,
   useDeleteAgentMutation,
   useFetchAgentQuery,
+  useFetchAgentsQuery,
   useUpdateAgentTargetMutation,
 
   useFetchUserQuery,

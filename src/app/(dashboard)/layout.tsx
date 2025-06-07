@@ -1,19 +1,42 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DashboardSidebar from "@/components/Layout/DashboardSidebar";
-import { Provider } from "react-redux";
+import { Provider, useDispatch, useSelector } from "react-redux";
 import { store } from "../../lib/store";
 import { Toaster } from "sonner";
 import UserProtectedRoute from "utils/UserProtectedRoute";
 import { usePathname } from "next/navigation";
+import { setAuthData } from "@/lib/slices/userAuthSlice";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const dispatch = useDispatch();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const { isAuthenticated } = useSelector((state: any) => state.userAuth);
+
+  console.log("isAuthenticated:from DashboardLayout", isAuthenticated);
+
+  useEffect(() => {
+    const storedAccessToken = localStorage.getItem("accessToken");
+    const storedRefreshToken = localStorage.getItem("refreshToken");
+    const sessionId = localStorage.getItem("sessionId");
+
+    if (storedAccessToken && !isAuthenticated) {
+      dispatch(
+        setAuthData({
+          accessToken: storedAccessToken,
+          refreshToken: storedRefreshToken,
+          user: null, // Fetch user details later if needed
+          sessionId,
+        })
+      );
+    }
+  }, [dispatch, isAuthenticated]);
 
   const isCourseLecturePage = pathname?.startsWith("/course-lecture");
 

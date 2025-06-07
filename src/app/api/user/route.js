@@ -26,7 +26,7 @@ export const GET = authMiddleware(async (req) => {
       { status: 500 },
     );
   }
-}, ["user"]);
+}, ["user", "admin"]);
 
 export const PUT = authMiddleware(async (req) => {
   try {

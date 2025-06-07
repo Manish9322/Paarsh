@@ -28,7 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-import { useFetchUserQuery } from "@/services/api";
+import { useFetchUserQuery, useLogoutMutation } from "@/services/api";
+import { toast } from "sonner";
 
 const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const router = useRouter();
@@ -41,17 +42,35 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const { data: userData, isLoading, error } = useFetchUserQuery(undefined);
   const user = userData?.data;
   console.log("User: ", user);
+ 
+  const [_LOGOUT] = useLogoutMutation();
 
   // Handle hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleLogout = () => {
-    dispatch(logout()); // Redux logout
-    localStorage.removeItem("userId");
-    router.push("/"); // Redirect to home
-  };
+const handleLogout = async () => {
+  try {
+    // Call the logout mutation (likely defined in your RTK Query API slice)
+    await _LOGOUT().unwrap();
+
+    // Optionally: You could show a toast here if needed
+    toast.success("Logged out successfully");
+
+  } catch (err) {
+    console.error("Logout request failed:", err);
+    // Optionally: show error toast or message
+    // toast.error("Logout failed. Please try again.");
+  } finally {
+    // Clear tokens & session from Redux and localStorage
+    dispatch(logout());
+
+    // Redirect user to signin page
+    router.push("/signin");
+  }
+};
+
 
   const handleLogoutClick = () => {
     setLogoutConfirmOpen(true);

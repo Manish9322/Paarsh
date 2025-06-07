@@ -17,6 +17,8 @@ import PurchaseModal from "@/components/PurchaseModal";
 import { Provider } from "react-redux";
 import { Toaster } from "sonner";
 import TrackVisitor from "../components/TrackVisitors/TrackVisitors";
+import AuthInitializer from "../components/AuthIntializer";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -50,10 +52,12 @@ useEffect(() => {
         <Suspense>
         <Provider store={store}>
           <Providers>
+                 <AuthInitializer>
             <MainLayout>{children}
               <TrackVisitor />
               <Toaster richColors />
             </MainLayout>
+            </AuthInitializer>
           </Providers>
         </Provider>
         </Suspense>
@@ -67,9 +71,12 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isAuthenticated } = useSelector((state: any) => state.userAuth);
 
+  console.log("isAuthenticated:from MainLayout", isAuthenticated);
+
   useEffect(() => {
     const storedAccessToken = localStorage.getItem("accessToken");
     const storedRefreshToken = localStorage.getItem("refreshToken");
+    const sessionId = localStorage.getItem("sessionId");
 
     if (storedAccessToken && !isAuthenticated) {
       dispatch(
@@ -77,6 +84,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
           accessToken: storedAccessToken,
           refreshToken: storedRefreshToken,
           user: null, // Fetch user details later if needed
+          sessionId,
         })
       );
     }
@@ -84,7 +92,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
 
   const isAgentPage = pathname.startsWith("/agent");
   const isErrorPage = pathname === "/error";
-  const isAuthPage = ["/signin", "/signup"].includes(pathname);
+  const isAuthPage = ["/signin", "/signup", "/forgot-password", "/reset-password"].includes(pathname);
   const isAdminPage = pathname.startsWith("/admin");
   const isDashboardPage = pathname.includes("/(dashboard)") || 
                          pathname.startsWith("/userdashboard") ||

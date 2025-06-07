@@ -25,7 +25,7 @@ import {
 import { RxCross2 } from "react-icons/rx";
 import AddAgentModal from "../../../components/Agent/AddAgent";
 import { Input } from "@/components/ui/input";
-import { useDeleteAgentMutation, useFetchAgentQuery, useUpdateAgentMutation, useUpdateAgentTargetMutation } from "@/services/api";
+import { useDeleteAgentMutation, useFetchAgentsQuery, useUpdateAgentMutation, useUpdateAgentTargetMutation } from "@/services/api";
 import {
   Dialog,
   DialogContent,
@@ -92,7 +92,7 @@ const AgentPage: React.FC = () => {
   }, []);
 
   const agentsPerPage = 10;
-  const { data: agentData, isLoading } = useFetchAgentQuery(undefined);
+  const { data: agentData, isLoading } = useFetchAgentsQuery(undefined); 
   const agents: Agent[] = agentData?.data || [];
   const startIndex = (currentPage - 1) * agentsPerPage;
 

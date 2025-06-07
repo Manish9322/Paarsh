@@ -10,7 +10,7 @@ import {
 } from "../config/config";
 
 
-function generateTokens(_id, role = "user") {
+function generateTokens(_id, role = "user", sessionId = null) {
   let secretKey;
 
   switch (role) {
@@ -28,7 +28,11 @@ function generateTokens(_id, role = "user") {
     throw new Error("JWT secrets are missing");
   }
 
-  const payload = { userId: _id, role };
+  const payload = {
+     userId: _id,
+     role,
+     ...(role === "user" && sessionId && { sessionId: sessionId })
+     };
 
   const accessToken = jwt.sign(payload, secretKey, {
     expiresIn: JWT_ACCESS_TOKEN_EXPIRY,

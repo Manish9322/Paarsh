@@ -26,7 +26,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import Purchase from "../../components/Purchase";
 
 import { useFetchCategoriesQuery, useFetchCourcebyIdQuery, useFetchCourcesQuery, useFetchUserCourseQuery } from "@/services/api";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { SkeletonThemeProvider } from "@/components/ui/skeleton-theme-provider";
@@ -86,6 +86,7 @@ interface Category {
 const BlogSidebarPage = () => {
   const param = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -209,14 +210,20 @@ const BlogSidebarPage = () => {
     }
   }, [handleSearch]);
 
-  const modalOpen = () => {
-    if (isAuthorized) {
-      setIsModalOpen(true);
-    } else {
-      // Redirect to sign-in page if not authorized
-      router.push('/signin');
-    }
-  };
+
+  console.log("Pathname:", pathname);
+
+    const modalOpen = () => {
+      if (isAuthorized) {
+        setIsModalOpen(true);
+      } else {
+       // Construct full path with query parameters
+      const queryString = param.toString();
+      const fullPath = queryString ? `${pathname}?${queryString}` : pathname;
+      const redirectUrl = encodeURIComponent(fullPath); // Encode the full path
+      router.push(`/signin?redirect=${redirectUrl}`);
+      }
+    };
 
   const modalClose = () => {
     setIsModalOpen(false);

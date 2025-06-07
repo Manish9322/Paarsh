@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { v4 as uuidv4 } from "uuid";
 import UserModel from "../../../../../models/User.model";
 import _db from "../../../../../utils/db";
 import validator from "validator";
@@ -10,7 +11,7 @@ _db();
 
 export async function POST(request) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, forceLogin = false } = await request.json();
 
     // Validate input
     if (!email || !password) {
@@ -68,17 +69,44 @@ export async function POST(request) {
       );
     }
 
+     // Check for active session
+    if (user.currentSessionId && !forceLogin) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Already logged in on another device",
+          needsConfirmation: true,
+          message: "This account is already logged in on another device. Do you want to continue and logout the other session?"
+        },
+        { status: 409 },
+      );
+    }
+
+    // Generate new session ID
+    const sessionId = uuidv4();
+
     // Generate tokens
-    const { accessToken, refreshToken } = generateTokens(user._id, false);
+    const { accessToken, refreshToken } = generateTokens(user._id, "user" , sessionId);
+
+      // Update user with new session
+    user.currentSessionId = sessionId;
+    user.lastLoginAt = new Date();
+    user.sessionCreatedAt = new Date();
+    await user.save();
+
+     // Get user data without sensitive fields
+    const { password: _, ...userData } = user.toObject();
 
     return NextResponse.json({
       success: true,
-      message: "Login successful",
+      message: forceLogin ? "Previous session logged out. Login successful" : "Login successful",
       data: {
         accessToken,
         refreshToken,
         userId: user._id.toString(), // Include userId
         name: user.name,
+         sessionId,
+        user: userData,
         redirect: "/userdashboard",
       },
     });
