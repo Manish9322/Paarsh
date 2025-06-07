@@ -24,42 +24,53 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 
-// Service Worker Registration
-useEffect(() => {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker
-      .register("/service-worker.js")
-      .then((registration) => {
-        console.log("Service Worker registered with scope:", registration.scope);
-      })
-      .catch((error) => {
-        console.error("Service Worker registration failed:", error);
-      });
-  }
-}, []);
+  // Service Worker Registration
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/service-worker.js")
+        .then((registration) => {
+          console.log("Service Worker registered with scope:", registration.scope);
+        })
+        .catch((error) => {
+          console.error("Service Worker registration failed:", error);
+        });
+    }
+  }, []);
 
   return (
     <html suppressHydrationWarning lang="en">
-       <head>
+      <head>
         <link rel="manifest" href="/manifest.json" />
         <meta
           name="google-site-verification"
           content="SJK3Jxq1TFmLKiRR9oEByekMdQJn4xaK8OAW0xfij1g"
         />
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-NXH8DKK59X"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-NXH8DKK59X');
+            `,
+          }}
+        />
       </head>
-      
       <body className={`bg-[#FCFCFC] dark:bg-black ${inter.className}`}>
+
         <Suspense>
-        <Provider store={store}>
-          <Providers>
-                 <AuthInitializer>
-            <MainLayout>{children}
-              <TrackVisitor />
-              <Toaster richColors />
-            </MainLayout>
-            </AuthInitializer>
-          </Providers>
-        </Provider>
+          <Provider store={store}>
+            <Providers>
+              <AuthInitializer>
+                <MainLayout>{children}
+                  <TrackVisitor />
+                  <Toaster richColors />
+                </MainLayout>
+              </AuthInitializer>
+            </Providers>
+          </Provider>
         </Suspense>
       </body>
     </html>
@@ -94,24 +105,24 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   const isErrorPage = pathname === "/error";
   const isAuthPage = ["/signin", "/signup", "/forgot-password", "/reset-password"].includes(pathname);
   const isAdminPage = pathname.startsWith("/admin");
-  const isDashboardPage = pathname.includes("/(dashboard)") || 
-                         pathname.startsWith("/userdashboard") ||
-                         pathname.startsWith("/total-courses") ||
-                         pathname.startsWith("/ongoing-courses") ||
-                         pathname.startsWith("/certificates") ||
-                         pathname.startsWith("/question-bank") ||
-                         pathname.startsWith("/profile") ||
-                         pathname.startsWith("/refer-earn") ||
-                         pathname.startsWith("/user-wallet") ||
-                         pathname.startsWith("/view-links") ||
-                         pathname.startsWith("/faq") ||
-                         pathname.startsWith("/course-lecture") ||
-                         pathname.startsWith("/delete-account");
+  const isDashboardPage = pathname.includes("/(dashboard)") ||
+    pathname.startsWith("/userdashboard") ||
+    pathname.startsWith("/total-courses") ||
+    pathname.startsWith("/ongoing-courses") ||
+    pathname.startsWith("/certificates") ||
+    pathname.startsWith("/question-bank") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/refer-earn") ||
+    pathname.startsWith("/user-wallet") ||
+    pathname.startsWith("/view-links") ||
+    pathname.startsWith("/faq") ||
+    pathname.startsWith("/course-lecture") ||
+    pathname.startsWith("/delete-account");
   return (
     <>
       {!isAdminPage && !isAuthPage && !isDashboardPage && !isErrorPage && !isAgentPage && <Header />}
       {children}
-      {!isAdminPage && !isAuthPage && !isDashboardPage && !isErrorPage  && !isAgentPage && <Footer />}
+      {!isAdminPage && !isAuthPage && !isDashboardPage && !isErrorPage && !isAgentPage && <Footer />}
       <ScrollToTop />
       {!isAdminPage && !isAuthPage && !isErrorPage && !isAgentPage && <AutoModal />}
       <Toaster richColors />
