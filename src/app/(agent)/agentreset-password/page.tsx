@@ -49,7 +49,7 @@ const ResetPasswordPage = () => {
       toast.success(response.message || "Password reset successfully");
       setIsSuccess(true);
       setTimeout(() => {
-        router.push("/agent/signin");
+        router.push("/admin/signin");
       }, 3000);
     } else {
       toast.error(response.message || "Something went wrong");
@@ -80,7 +80,7 @@ const ResetPasswordPage = () => {
               Your password has been updated. Redirecting to login...
             </p>
             <Link
-              href="/agent/signin"
+              href="/admin/signin"
               className="inline-block h-10 w-full rounded-md bg-blue-700 mt-6 px-4 py-2 text-sm text-white transition duration-300 hover:bg-blue-600 sm:h-12 sm:py-3 sm:text-base text-center"
             >
               Go to Login

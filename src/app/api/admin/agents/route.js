@@ -87,7 +87,7 @@ export const POST = authMiddleware(async (request) => {
 
         // Send email with credentials + reset password link
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetUrl = `http://localhost:3000/agentreset-password?token=${resetToken}&email=${email}`;
+    const resetUrl = `https://paarshedu.com/agentreset-password?token=${resetToken}&email=${email}`;
 
     // Optionally, store token in DB with expiry if not using JWT
     newAgent.resetToken = resetToken;
