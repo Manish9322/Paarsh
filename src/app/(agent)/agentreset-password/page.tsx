@@ -37,28 +37,30 @@ const ResetPasswordPage = () => {
       confirmPassword: ''
     },
     validationSchema,
-    onSubmit: async (values) => {
-      try {
-        const response = await resetAgentPassword({ 
-          email: values.email, 
-          resetToken, 
-          newPassword: values.newPassword 
-        }).unwrap();
-        
-        if (response.success) {
-          toast.success(response.message);
-          setIsSuccess(true);
-          setTimeout(() => {
-            router.push("/agent/signin");
-          }, 3000);
-        } else {
-          toast.error(response.message);
-        }
-      } catch (err) {
-        toast.error(err?.data?.message || 'Failed to reset password');
-        console.error('Failed to reset password:', err);
-      }
-    },
+  onSubmit: async (values) => {
+  try {
+    const response = await resetAgentPassword({ 
+      email: values.email, 
+      resetToken, 
+      newPassword: values.newPassword 
+    }).unwrap();
+    
+    if (response.success) {
+      toast.success(response.message || "Password reset successfully");
+      setIsSuccess(true);
+      setTimeout(() => {
+        router.push("/agent/signin");
+      }, 3000);
+    } else {
+      toast.error(response.message || "Something went wrong");
+    }
+  } catch (err) {
+    const serverMessage =
+      err?.data?.message || err?.data?.error || "Failed to reset password";
+    toast.error(serverMessage);
+    console.error("Reset password error:", err);
+  }
+},
   });
 
   if (isSuccess) {

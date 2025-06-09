@@ -11,7 +11,7 @@ export const POST = async (request) => {
 
     if (!email || !resetToken || !newPassword) {
       return NextResponse.json(
-        { success: false, error: "All required fields must be provided" },
+        { success: false,  message: "All required fields must be provided" },
         { status: 400 }
       );
     }
@@ -20,7 +20,7 @@ export const POST = async (request) => {
 
     if (!agent || agent.resetToken !== resetToken) {
       return NextResponse.json(
-        { success: false, error: "Invalid token or email" },
+        { success: false, message: "Linked has expired" },
         { status: 400 }
       );
     }
@@ -28,7 +28,7 @@ export const POST = async (request) => {
     const isTokenExpired = new Date(agent.resetTokenExpiry) < new Date();
     if (isTokenExpired) {
       return NextResponse.json(
-        { success: false, error: "Linked has expired" },
+        { success: false, message: "Linked has expired" },
         { status: 400 }
       );
     }
@@ -49,7 +49,7 @@ export const POST = async (request) => {
   } catch (error) {
     console.error("Error while resetting password:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, message: "Internal server error" },
       { status: 500 }
     );
   }
