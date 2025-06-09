@@ -67,6 +67,8 @@ const agentSchema = new mongoose.Schema(
         default: 0,
       },
     },
+    resetToken: { type: String },
+    tokenExpiry: { type: Date },
   },
   { timestamps: true },
 );

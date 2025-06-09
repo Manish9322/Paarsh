@@ -280,6 +280,15 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Agent"],
     }),
 
+    resetAgentPassword: builder.mutation({
+      query: (formData) => ({
+        url: "/agent/reset-password",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Agent"],
+    }),
+
     fetchAgents: builder.query({
       query: () => "/admin/agents",
       providesTags: ["Agent"],
@@ -818,6 +827,7 @@ export const {
   useAddAgentMutation,
   useUpdateAgentMutation,
   useDeleteAgentMutation,
+  useResetAgentPasswordMutation,
   useFetchAgentQuery,
   useFetchAgentsQuery,
   useUpdateAgentTargetMutation,

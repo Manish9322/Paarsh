@@ -3,6 +3,10 @@ import _db from "../../../../../utils/db";
 import bcrypt from "bcryptjs";
 import AgentModel from "../../../../../models/Agent.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
+import { agentCredentialsMail } from "../../../../../utils/MailTemplates/agentCredentialMailTemplate";
+import emailSender from "../../../../../utils/mailSender";
+import crypto from "crypto";
+
 
 _db();
 
@@ -26,10 +30,14 @@ const generateUniqueAgentCode = async (firstName, lastName) => {
   return agentCode;
 };
 
+const generateRandomPassword = () => {
+  return crypto.randomBytes(4).toString("hex"); // 8-character random string
+};
+
 // Create Agent
 export const POST = authMiddleware(async (request) => {
   try {
-    const { firstName, lastName, email, mobile, gender, state, city ,password} =
+    const { firstName, lastName, email, mobile, gender, state, city } =
       await request.json();
 
     if (
@@ -39,8 +47,7 @@ export const POST = authMiddleware(async (request) => {
       !mobile ||
       !gender ||
       !city ||
-      !state ||
-      !password
+      !state 
     ) {
       return NextResponse.json(
         { success: false, error: "All required fields must be provided" },
@@ -57,11 +64,12 @@ export const POST = authMiddleware(async (request) => {
       );
     }
 
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate a unique referral code
+     // Generate a unique referral code
     const agentCode = await generateUniqueAgentCode(firstName, lastName);
+    const randomPassword = generateRandomPassword();
+     // Hash the password
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
     const newAgent = new AgentModel({
       firstName,
@@ -76,6 +84,24 @@ export const POST = authMiddleware(async (request) => {
     });
 
     await newAgent.save();
+
+        // Send email with credentials + reset password link
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetUrl = `http://localhost:3000/agentreset-password?token=${resetToken}&email=${email}`;
+
+    // Optionally, store token in DB with expiry if not using JWT
+    newAgent.resetToken = resetToken;
+    newAgent.tokenExpiry = Date.now() + 30 * 60 * 1000;
+    await newAgent.save();
+
+      const message = agentCredentialsMail(firstName, agentCode, email, randomPassword , resetUrl);
+        const emailOptions = {
+          email: email, 
+          subject: "Welcome to PaarshEdu - Agent Credentials",
+          message: message,
+        };
+    
+        await emailSender(emailOptions);
 
     return NextResponse.json({
       success: true,
