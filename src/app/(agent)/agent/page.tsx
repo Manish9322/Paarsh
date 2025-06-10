@@ -14,19 +14,19 @@ import {
   Search,
   ChevronUp,
   ChevronDown,
+  Calendar,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFetchAgentQuery, useFetchAgentSalesQuery } from "@/services/api";
+import { useFetchAgentQuery, useFetchAgentSalesQuery, useFetchLeadsQuery } from "@/services/api";
 import Navbar from "@/components/Layout/Navbar";
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { Area, Bar, CartesianGrid, ComposedChart, XAxis, YAxis } from "recharts";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Area, Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts";
 
-// Define CourseSale interface
+// Define interfaces
 interface CourseSale {
   id: string;
   courseName: string;
@@ -36,7 +36,14 @@ interface CourseSale {
   status: "SUCCESS" | "PENDING";
 }
 
-// Define CardConfig interface for dynamic cards
+interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+  lastContacted: string;
+}
+
 interface CardConfig {
   title: string;
   getValue: (agent: any, isLoading: boolean) => string | number;
@@ -90,9 +97,38 @@ const SkeletonTable = () => (
   </Card>
 );
 
-// CourseSalesChart with Skeleton
+// Utility function to filter sales by time period
+const filterSalesByTime = (sales: CourseSale[], period: string): CourseSale[] => {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  
+  switch (period) {
+    case 'today':
+      return sales.filter(sale => {
+        const saleDate = new Date(sale.saleDate);
+        return saleDate >= today;
+      });
+    case 'yesterday':
+      return sales.filter(sale => {
+        const saleDate = new Date(sale.saleDate);
+        return saleDate >= yesterday && saleDate < today;
+      });
+    case 'monthly':
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      return sales.filter(sale => new Date(sale.saleDate) >= monthStart);
+    case 'yearly':
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      return sales.filter(sale => new Date(sale.saleDate) >= yearStart);
+    default:
+      return sales;
+  }
+};
+
+// CourseSalesChart
 const CourseSalesChart = ({ salesData, isLoading }) => {
-  const COLORS = ['#8b5cf6', '#0ea5e9', '#f97316', '#10b981'];
+  const COLORS = ['#8b5cf6', '#0ea5e9', '#f97316', '#10b981', '#ef4444'];
 
   const courseSalesData = isLoading || !salesData
     ? []
@@ -112,7 +148,7 @@ const CourseSalesChart = ({ salesData, isLoading }) => {
   }
 
   return (
-    <Card className="col-span-1 md:col-span-1 bg-white dark:bg-gray-800">
+    <Card className="bg-white dark:bg-gray-800">
       <CardHeader>
         <CardTitle className="text-gray-800 dark:text-white">Course Sales Distribution</CardTitle>
         <CardDescription className="text-gray-500 dark:text-gray-400">Sales by course category</CardDescription>
@@ -150,27 +186,20 @@ const CourseSalesChart = ({ salesData, isLoading }) => {
   );
 };
 
-// SalesHistory with Skeleton
-const SalesHistory = () => {
+// SalesHistory
+const SalesHistory = ({ salesData, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof CourseSale | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [transactionFilter, setTransactionFilter] = useState<"all" | "completed" | "pending">("all");
+  const [timeFilter, setTimeFilter] = useState<"all" | "today" | "yesterday" | "monthly" | "yearly">("all");
   const salesPerPage = 5;
 
-  const { data: salesData, isLoading, error } = useFetchAgentSalesQuery(undefined);
+  const courseSales: CourseSale[] = salesData || [];
 
-  const courseSales: CourseSale[] = salesData?.data?.all?.map((tx: any) => ({
-    id: tx._id,
-    courseName: tx.courseId?.courseName || "Unknown Course",
-    studentName: tx.userId?.name || "Unknown Student",
-    saleDate: tx.createdAt,
-    amount: tx.amount || 0,
-    status: tx.status === "SUCCESS" ? "SUCCESS" : "PENDING",
-  })) || [];
-
-  const filteredByStatus = courseSales.filter((sale) => {
+  const filteredByTime = filterSalesByTime(courseSales, timeFilter);
+  const filteredByStatus = filteredByTime.filter((sale) => {
     if (transactionFilter === "all") return true;
     return transactionFilter === "completed" ? sale.status === "SUCCESS" : sale.status === "PENDING";
   });
@@ -208,37 +237,41 @@ const SalesHistory = () => {
     return <SkeletonTable />;
   }
 
-  if (error) {
-    return (
-      <Card className="mb-6 bg-white dark:bg-gray-800">
-        <CardContent>
-          <p className="text-red-600 dark:text-red-400">Error fetching sales data</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="mb-6 bg-white dark:bg-gray-800">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-2 gap-4">
         <div>
           <CardTitle className="text-gray-800 dark:text-white">Sales History</CardTitle>
           <CardDescription className="text-gray-500 dark:text-gray-400">Your recent course sales</CardDescription>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="relative w-full sm:w-[200px]">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
             <Input
               placeholder="Search sales..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 w-full sm:w-[200px] bg-white dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-400"
+              className="pl-8 w-full bg-white dark:bg-gray-900 dark:text-white"
             />
           </div>
+          <Select 
+            value={timeFilter} 
+            onValueChange={(value: "all" | "today" | "yesterday" | "monthly" | "yearly") => setTimeFilter(value)}>
+            <SelectTrigger className="w-full sm:w-[180px] bg-white dark:bg-gray-900 dark:text-white">
+              <SelectValue placeholder="Select time period" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-gray-700 dark:text-gray-100">
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="yesterday">Yesterday</SelectItem>
+              <SelectItem value="monthly">This Month</SelectItem>
+              <SelectItem value="yearly">This Year</SelectItem>
+            </SelectContent>
+          </Select>
           <div className="flex gap-2">
             <Button
               onClick={() => setTransactionFilter("all")}
-              className={`h-10 ${transactionFilter === "all" ? "bg-teal-600 text-white dark:bg-teal-700" : "bg-teal-50 text-teal-600 dark:bg-Teal-900/20 dark:text-teal-400"}`}
+              className={`h-10 ${transactionFilter === "all" ? "bg-teal-600 text-white dark:bg-teal-700" : "bg-teal-50 text-teal-600 dark:bg-teal-900/20 dark:text-teal-400"}`}
             >
               All
             </Button>
@@ -368,7 +401,7 @@ const SalesHistory = () => {
   );
 };
 
-// TargetProgress with Skeleton
+// TargetProgress
 const TargetProgress = ({ salesData, salesLoading, salesTarget }) => {
   const [timeFrame, setTimeFrame] = useState('yearly');
 
@@ -409,8 +442,8 @@ const TargetProgress = ({ salesData, salesLoading, salesTarget }) => {
             <SelectValue placeholder="Select timeframe" />
           </SelectTrigger>
           <SelectContent className="bg-white dark:bg-gray-700 dark:text-gray-100">
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="quarterly">Quarterly</SelectItem>
+            <SelectItem value="monthly">Last 6 Months</SelectItem>
+            <SelectItem value="quarterly">Last Quarter</SelectItem>
             <SelectItem value="yearly">Yearly</SelectItem>
           </SelectContent>
         </Select>
@@ -445,12 +478,185 @@ const TargetProgress = ({ salesData, salesLoading, salesTarget }) => {
   );
 };
 
+// ActiveLeads
+const ActiveLeads = ({ leadsData, isLoading }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const leadsPerPage = 5;
+
+  const leads: Lead[] = leadsData?.map((lead: any) => ({
+    id: lead._id,
+    name: lead.name || "Unknown",
+    email: lead.email || "N/A",
+    status: lead.status || "New",
+    lastContacted: lead.lastContacted || new Date().toISOString(),
+  })) || [];
+
+  const filteredLeads = leads.filter((lead) =>
+    Object.values(lead).some((value) =>
+      value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
+
+  const totalPages = Math.ceil(filteredLeads.length / leadsPerPage);
+  const displayedLeads = filteredLeads.slice(
+    (currentPage - 1) * leadsPerPage,
+    currentPage * leadsPerPage
+  );
+
+  if (isLoading) {
+    return <SkeletonTable />;
+  }
+
+  return (
+    <Card className="mb-6 bg-white dark:bg-gray-800">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div>
+          <CardTitle className="text-gray-800 dark:text-white">Active Leads</CardTitle>
+          <CardDescription className="text-gray-500 dark:text-gray-400">Current lead pipeline</CardDescription>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Input
+            placeholder="Search leads..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-8 w-[200px] bg-white dark:bg-gray-900 dark:text-white"
+          />
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+                <TableHead className="text-gray-800 dark:text-white">Name</TableHead>
+                <TableHead className="text-gray-800 dark:text-white">Email</TableHead>
+                <TableHead className="text-gray-800 dark:text-white">Status</TableHead>
+                <TableHead className="text-gray-800 dark:text-white">Last Contacted</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {displayedLeads.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-6 text-center text-gray-500 dark:text-gray-400">
+                    No leads found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                displayedLeads.map((lead) => (
+                  <TableRow key={lead.id} className="border-b border-gray-100 dark:border-gray-700">
+                    <TableCell className="text-gray-800 dark:text-white">{lead.name}</TableCell>
+                    <TableCell className="text-gray-800 dark:text-white">{lead.email}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${
+                          lead.status === "New"
+                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                            : lead.status === "Contacted"
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+                            : "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                        }`}
+                      >
+                        {lead.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-gray-800 dark:text-white">
+                      {new Date(lead.lastContacted).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-end space-x-2 mt-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="border-gray-300 dark:border-gray-700"
+            >
+              <ChevronLeft className="h-4 w-4 text-gray-800 dark:text-white" />
+            </Button>
+            <div className="text-sm text-gray-800 dark:text-white">
+              Page {currentPage} of {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="border-gray-300 dark:border-gray-700"
+            >
+              <ChevronRight className="h-4 w-4 text-gray-800 dark:text-white" />
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// SalesTrendChart
+const SalesTrendChart = ({ salesData, isLoading }) => {
+  const dailySalesData = isLoading || !salesData
+    ? []
+    : Object.values(
+        salesData.reduce((acc, sale) => {
+          if (sale.status !== "SUCCESS") return acc;
+          const date = new Date(sale.saleDate).toLocaleDateString();
+          if (!acc[date]) {
+            acc[date] = { date, sales: 0 };
+          }
+          acc[date].sales += sale.amount;
+          return acc;
+        }, {} as Record<string, { date: string; sales: number }>)
+      ).sort((a: { date: string }, b: { date: string }) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  if (isLoading) {
+    return <SkeletonChart />;
+  }
+
+  return (
+    <Card className="mb-6 bg-white dark:bg-gray-800">
+      <CardHeader>
+        <CardTitle className="text-gray-800 dark:text-white">Sales Trend</CardTitle>
+        <CardDescription className="text-gray-500 dark:text-gray-400">Daily sales over time</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[300px]">
+          {dailySalesData.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400">No sales data available</p>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart
+                data={dailySalesData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fill: 'currentColor' }} />
+                <YAxis tickFormatter={(value) => `₹${value}`} tickLine={false} axisLine={false} tick={{ fill: 'currentColor' }} />
+                <Tooltip formatter={(value) => [`₹${value.toLocaleString()}`, undefined]} />
+                <Legend />
+                <Line type="monotone" dataKey="sales" name="Daily Sales" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default function AgentDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { data: agentData, isLoading: agentLoading, error: agentError } = useFetchAgentQuery(undefined);
-  const { data: salesData, isLoading: salesLoading, error: salesError } = useFetchAgentSalesQuery(undefined);
+  const { data: agentData, isLoading: agentLoading } = useFetchAgentQuery(undefined);
+  const { data: salesData, isLoading: salesLoading } = useFetchAgentSalesQuery(undefined);
+  const { data: leadsData, isLoading: leadsLoading } = useFetchLeadsQuery(undefined);
 
-  // Map sales data to CourseSale format
   const courseSales: CourseSale[] = salesData?.data?.all?.map((tx: any) => ({
     id: tx._id,
     courseName: tx.courseId?.courseName || 'Unknown Course',
@@ -475,23 +681,18 @@ export default function AgentDashboard() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // Debugging: Log agentData to diagnose structure
-  console.log('Agent data:', agentData);
-
-  // Access nested agent data with fallbacks
   const agent = agentData?.data || {};
   const salesTarget = agent.target?.price || 0;
   const revenue = agent.totalSale || 0;
   const salesCount = agent.countSale || 0;
-  const activeLeads = agent.activeLeads || 0; // Default to 0 if not present
+  const activeLeads = leadsData?.data?.length || 0;
 
-  // Define dynamic card configuration
   const cardConfig: CardConfig[] = [
     {
       title: 'Conversion Rate',
       getValue: (agent, isLoading) => {
         if (isLoading) return '...';
-        const leads = agent.activeLeads || 0;
+        const leads = activeLeads || 0;
         const count = agent.countSale || 0;
         return leads === 0 ? '0.0%' : `${((count / leads) * 100).toFixed(1)}%`;
       },
@@ -523,7 +724,7 @@ export default function AgentDashboard() {
     },
     {
       title: 'Active Leads',
-      getValue: (agent, isLoading) => (isLoading ? '...' : agent.activeLeads || 0),
+      getValue: (agent, isLoading) => (isLoading ? '...' : activeLeads),
       icon: UserPlus,
       borderColor: 'orange-500',
       textColor: 'orange-500',
@@ -531,10 +732,7 @@ export default function AgentDashboard() {
     },
   ];
 
-  // Validate agent data
-  const isAgentDataValid = agent && (agent.target?.price != null || agent.totalSale != null || agent.countSale != null || agent.activeLeads != null);
-
-  if (agentLoading || salesLoading) {
+  if (agentLoading || salesLoading || leadsLoading) {
     return (
       <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-6">
         <div className="mb-6 flex items-center justify-between">
@@ -552,22 +750,6 @@ export default function AgentDashboard() {
         <div className="mt-8">
           <SkeletonTable />
         </div>
-      </div>
-    );
-  }
-
-  if (agentError || salesError) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <p className="text-red-600 dark:text-red-400">Error fetching dashboard data</p>
-      </div>
-    );
-  }
-
-  if (!agentData || !isAgentDataValid) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <p className="text-red-600 dark:text-red-400">No valid agent data available</p>
       </div>
     );
   }
@@ -632,10 +814,12 @@ export default function AgentDashboard() {
           <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <CourseSalesChart salesData={courseSales} isLoading={salesLoading} />
             <TargetProgress salesData={courseSales} salesLoading={salesLoading} salesTarget={salesTarget} />
+            <SalesTrendChart salesData={courseSales} isLoading={salesLoading} />
+            <ActiveLeads leadsData={leadsData?.data} isLoading={leadsLoading} />
           </div>
 
           <div className="mt-8">
-            <SalesHistory />
+            <SalesHistory salesData={courseSales} isLoading={salesLoading} />
           </div>
         </div>
       </div>

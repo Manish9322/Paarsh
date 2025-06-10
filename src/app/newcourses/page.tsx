@@ -13,8 +13,8 @@ import 'react-loading-skeleton/dist/skeleton.css';
 
 import { CiGrid41 } from "react-icons/ci";
 import { TbLayoutList } from "react-icons/tb";
-import { useFetchCategoriesQuery, useFetchCourcesQuery, useFetchUserCourseQuery, useFetchUserOngoingCoursesQuery } from "@/services/api";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useFetchCategoriesQuery, useFetchCourcesQuery } from "@/services/api";
+import { useRouter, useSearchParams } from "next/navigation"; 
 import { useTheme } from "next-themes";
 import { SkeletonThemeProvider } from "@/components/ui/skeleton-theme-provider";
 
@@ -51,11 +51,7 @@ const Courses = () => {
   const param = useSearchParams();
   const courseId = param.get("courseId");
 
-  const {data : UserCourseData} = useFetchUserCourseQuery(undefined);
-  console.log("User Course Data", UserCourseData);
-
   
-
   // TITLE CASE FUNCTION
   const toTitleCase = (str: string) => {
     return str.replace(/\b\w/g, (char) => char.toUpperCase());

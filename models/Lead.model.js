@@ -12,6 +12,11 @@ const leadSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
+  customerMobile: {
+    type: String,
+    required: true,
+    trim: true,
+  },
   courseId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Course", // Reference to a Course model

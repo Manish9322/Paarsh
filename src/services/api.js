@@ -293,6 +293,15 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Agent"],
     }),
 
+    resetAgentPassword: builder.mutation({
+      query: (formData) => ({
+        url: "/agent/reset-password",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Agent"],
+    }),
+
     fetchAgents: builder.query({
       query: () => "/admin/agents",
       providesTags: ["Agent"],
@@ -322,6 +331,11 @@ export const paarshEduApi = createApi({
 
     fetchUser: builder.query({
       query: () => "/user",
+      providesTags: ["User"],
+    }),
+
+    fetchUserById: builder.query({
+      query: (id) => `/user/${id}`,
       providesTags: ["User"],
     }),
 
@@ -663,7 +677,32 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: ["Agent"],
     }),
+
+    fetchLeads: builder.query({
+      query: () => "/agent/lead",
+      providesTags: ["Agent"],
+    }),
+
+    deleteLead: builder.mutation({
+      query: (id) => ({
+        url: "/agent/lead",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["Agent"],
+    }),
+
+    updateLead: builder.mutation({
+      query: ({ id, ...formData }) => ({
+        url: "/agent/lead",
+        method: "PATCH",
+        body: { id, ...formData },
+      }),
+      invalidatesTags: ["Agent"],
+    }),
+
 
     // ----------------------------------------------------Offers Apis--------------------------------------------------
 
@@ -850,11 +889,13 @@ export const {
   useAddAgentMutation,
   useUpdateAgentMutation,
   useDeleteAgentMutation,
+  useResetAgentPasswordMutation,
   useFetchAgentQuery,
   useFetchAgentsQuery,
   useUpdateAgentTargetMutation,
 
   useFetchUserQuery,
+  useFetchUserByIdQuery,
   useUpdateUserMutation,
   useDeleteUserMutation,
   useFetchUsersQuery,
@@ -922,6 +963,9 @@ export const {
   useFetchAgentSalesQuery,
   useFetchagentCourseRefferalLinkQuery,
   useCreateLeadMutation,
+  useFetchLeadsQuery,
+  useUpdateLeadMutation,
+  useDeleteLeadMutation, 
 
   useFetchTransactionsQuery,
   useGrantManualCourseAccessMutation,
