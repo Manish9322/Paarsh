@@ -23,6 +23,7 @@ interface CourseSale {
   id: string;
   courseName: string;
   studentName: string;
+  studentMobile: string;
   saleDate: string;
   amount: number;
   status: "SUCCESS" | "PENDING";
@@ -46,6 +47,7 @@ export default function SalesHistory() {
     id: tx._id,
     courseName: tx.courseId?.courseName || "Unknown Course",
     studentName: tx.userId?.name || "Unknown Student",
+    studentMobile: tx.userId?.mobile || "N/A",
     saleDate: tx.createdAt,
     amount: tx.amount || 0,
     status: tx.status === "SUCCESS" ? "SUCCESS" : "PENDING",
@@ -80,9 +82,16 @@ export default function SalesHistory() {
   };
 
   const filteredSales = filteredByStatus.filter((sale) =>
-    Object.values(sale).some((value) =>
-      value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
-    ),
+    [
+      sale.courseName,
+      sale.studentName,
+      sale.studentMobile,
+      sale.saleDate,
+      sale.amount.toString(),
+      sale.status,
+    ].some((value) =>
+      value.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   const sortedSales = [...filteredSales].sort((a, b) => {
@@ -272,6 +281,23 @@ export default function SalesHistory() {
                         </div>
                       </TableHead>
                       <TableHead
+                        className="hidden cursor-pointer py-3 lg:table-cell"
+                        onClick={() => handleSort("studentMobile")}
+                      >
+                        <div className="flex items-center">
+                          Mobile
+                          {sortField === "studentMobile" && (
+                            <span className="ml-1">
+                              {sortOrder === "asc" ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead
                         className="hidden cursor-pointer py-3 sm:table-cell"
                         onClick={() => handleSort("saleDate")}
                       >
@@ -328,7 +354,7 @@ export default function SalesHistory() {
                     {displayedSales.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={6}
+                          colSpan={7}
                           className="py-6 text-center text-gray-500"
                         >
                           No sales found. Try a different search term or filter.
@@ -349,6 +375,9 @@ export default function SalesHistory() {
                               <p className="mt-1 text-xs text-gray-500 md:hidden">
                                 {sale.studentName}
                               </p>
+                              <p className="mt-1 text-xs text-gray-500 lg:hidden">
+                                Mobile: {sale.studentMobile}
+                              </p>
                               <p className="mt-1 text-xs text-gray-500 sm:hidden">
                                 {new Date(sale.saleDate).toLocaleDateString()}
                               </p>
@@ -356,6 +385,9 @@ export default function SalesHistory() {
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
                             {sale.studentName}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {sale.studentMobile}
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">
                             {new Date(sale.saleDate).toLocaleDateString()}

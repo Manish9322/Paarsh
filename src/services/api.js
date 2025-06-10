@@ -321,6 +321,11 @@ export const paarshEduApi = createApi({
       providesTags: ["User"],
     }),
 
+    fetchUserById: builder.query({
+      query: (id) => `/user/${id}`,
+      providesTags: ["User"],
+    }),
+
     updateUser: builder.mutation({
       query: (formData) => ({
         url: "/user",
@@ -659,7 +664,32 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: ["Agent"],
     }),
+
+    fetchLeads: builder.query({
+      query: () => "/agent/lead",
+      providesTags: ["Agent"],
+    }),
+
+    deleteLead: builder.mutation({
+      query: (id) => ({
+        url: "/agent/lead",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["Agent"],
+    }),
+
+    updateLead: builder.mutation({
+      query: ({ id, ...formData }) => ({
+        url: "/agent/lead",
+        method: "PATCH",
+        body: { id, ...formData },
+      }),
+      invalidatesTags: ["Agent"],
+    }),
+
 
     // ----------------------------------------------------Offers Apis--------------------------------------------------
 
@@ -833,6 +863,7 @@ export const {
   useUpdateAgentTargetMutation,
 
   useFetchUserQuery,
+  useFetchUserByIdQuery,
   useUpdateUserMutation,
   useDeleteUserMutation,
   useFetchUsersQuery,
@@ -901,6 +932,9 @@ export const {
   useFetchAgentSalesQuery,
   useFetchagentCourseRefferalLinkQuery,
   useCreateLeadMutation,
+  useFetchLeadsQuery,
+  useUpdateLeadMutation,
+  useDeleteLeadMutation, 
 
   useFetchTransactionsQuery,
   useGrantManualCourseAccessMutation,
