@@ -60,14 +60,9 @@ export default function AdminPage() {
     isLoading,
     error,
   } = useFetchUserQuery(undefined);
-  console.log("User Data logged inside AdminPage:", userData);
 
   const { data: usersData } = useFetchUsersQuery(undefined)
-  console.log("All Users Data logged inside AdminPage:", usersData);
-
   const { data: transactionsData } = useFetchTransactionsQuery(undefined);
-  console.log("All Transactions Data:", transactionsData);
-
   const { data: coursesData } = useFetchCourcesQuery(undefined)
   
   // Calculate total number of users

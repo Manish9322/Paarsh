@@ -34,7 +34,6 @@ const TrackVisitor = () => {
         const ipResponse = await fetch("https://api.ipify.org?format=json");
         const { ip } = await ipResponse.json();
         const userId = localStorage.getItem("userId");
-        console.log("TrackVisitors userId:", userId, "deviceId:", deviceId);
 
         visitorDataRef.current = {
           sessionId: sessionIdRef.current,
@@ -50,7 +49,6 @@ const TrackVisitor = () => {
           if (!startTimeRef.current) return;
           const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
           trackVisitor({ ...visitorDataRef.current, duration });
-          console.log("Sent duration update:", { ...visitorDataRef.current, duration });
         };
 
         // Initial update after 1s

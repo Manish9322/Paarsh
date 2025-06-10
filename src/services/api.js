@@ -1,12 +1,16 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { setTokenRefreshing, updateTokens, logout } from "../lib/slices/userAuthSlice";
+import {
+  setTokenRefreshing,
+  updateTokens,
+  logout,
+} from "../lib/slices/userAuthSlice";
 import { updateAdminTokens, logoutAdmin } from "../lib/slices/authSlice";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: process.env.NEXT_PUBLIC_API_URL || "/api",
   prepareHeaders: (headers, { getState }) => {
-    const  accessToken  = localStorage.getItem("accessToken");
-    const  adminAccessToken  =  localStorage.getItem("admin_access_token");
+    const accessToken = localStorage.getItem("accessToken");
+    const adminAccessToken = localStorage.getItem("admin_access_token");
 
     if (accessToken) {
       headers.set("Authorization", `Bearer ${accessToken}`);
@@ -28,12 +32,16 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 
   if (result.error?.status === 401) {
     const isAdminRequest =
-  typeof args.url === "string" && args.url.startsWith("/admin") ||
-  result.error?.data?.error?.includes("admin");
+      (typeof args.url === "string" && args.url.startsWith("/admin")) ||
+      result.error?.data?.error?.includes("admin");
 
     const refreshTokenToUse = isAdminRequest ? adminRefreshToken : refreshToken;
-    const refreshEndpoint = isAdminRequest ? "/admin/refreshtoken" : "/user/refreshtoken";
-    const updateTokensAction = isAdminRequest ? updateAdminTokens : updateTokens;
+    const refreshEndpoint = isAdminRequest
+      ? "/admin/refreshtoken"
+      : "/user/refreshtoken";
+    const updateTokensAction = isAdminRequest
+      ? updateAdminTokens
+      : updateTokens;
     const logoutAction = isAdminRequest ? logoutAdmin : logout;
 
     // if (!refreshTokenToUse) {
@@ -58,14 +66,21 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     api.dispatch(setTokenRefreshing(true));
     try {
       const refreshResult = await baseQuery(
-        { url: refreshEndpoint, method: "POST", body: { refreshToken: refreshTokenToUse } },
+        {
+          url: refreshEndpoint,
+          method: "POST",
+          body: { refreshToken: refreshTokenToUse },
+        },
         api,
-        extraOptions
+        extraOptions,
       );
 
       if (refreshResult.data?.success) {
-        const { accessToken, refreshToken: newRefreshToken } = refreshResult.data.data;
-        api.dispatch(updateTokensAction({ accessToken, refreshToken: newRefreshToken }));
+        const { accessToken, refreshToken: newRefreshToken } =
+          refreshResult.data.data;
+        api.dispatch(
+          updateTokensAction({ accessToken, refreshToken: newRefreshToken }),
+        );
         result = await baseQuery(args, api, extraOptions);
       } else {
         api.dispatch(logoutAction());
@@ -106,6 +121,7 @@ export const paarshEduApi = createApi({
     "PracticeTest",
     "Withdrawal",
     "Visitor",
+    "UserPracticeAttempt",
   ],
 
   endpoints: (builder) => ({
@@ -136,13 +152,13 @@ export const paarshEduApi = createApi({
     }),
 
     // ----------------------------------------------------User Apis------------------------------------------------------------
-    
-      validateToken: builder.query({
+
+    validateToken: builder.query({
       query: () => "/auth/validate",
       providesTags: ["User"],
     }),
 
-      getUserProfile: builder.query({
+    getUserProfile: builder.query({
       query: () => "/user/profile",
       providesTags: ["User"],
     }),
@@ -156,8 +172,6 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["User"],
     }),
 
-    
-
     signup: builder.mutation({
       query: (userData) => ({
         url: "/user/register",
@@ -167,13 +181,13 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["User"],
     }),
 
-      forgotPassword: builder.mutation({
+    forgotPassword: builder.mutation({
       query: (email) => ({
         url: "user/forgot-password",
         method: "POST",
         body: email,
       }),
-    }), 
+    }),
 
     resetPassword: builder.mutation({
       query: ({ email, password, otp }) => ({
@@ -182,7 +196,6 @@ export const paarshEduApi = createApi({
         body: { email, password, otp },
       }),
     }),
-
 
     logout: builder.mutation({
       query: () => ({
@@ -615,9 +628,9 @@ export const paarshEduApi = createApi({
         method: "DELETE",
         body: { id },
       }),
-      invalidatesTags: ["User" , "Withdrawal"],
+      invalidatesTags: ["User", "Withdrawal"],
     }),
- 
+
     deleteUserWithdrawalRequest: builder.mutation({
       query: (id) => ({
         url: "/user/withdrawal",
@@ -795,6 +808,25 @@ export const paarshEduApi = createApi({
       }),
     }),
 
+    // ----------------------------------------------------User Practice Attempts Apis-------------------------------------------------- //
+
+    fetchUserPracticeAttempts: builder.query({
+      query: () => "/practice-test-attempt",
+      providesTags: ["UserPracticeAttempt", "User"],
+      transformResponse: (response) => ({
+        success: true,
+        data: response.data,
+      }),
+    }),
+
+    addUserPracticeAttempt: builder.mutation({
+      query: (formData) => ({
+        url: "/user/practice-test-attempt",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["UserPracticeAttempt", "User"],
+    }),
   }),
 });
 
@@ -827,7 +859,6 @@ export const {
   useDeleteUserMutation,
   useFetchUsersQuery,
   useFetchUserOngoingCoursesQuery,
-
 
   useAddCategoryMutation,
   useFetchCategoriesQuery,
@@ -905,5 +936,8 @@ export const {
 
   useTrackVisitorMutation,
   useFetchVisitorsQuery,
+
+  useFetchUserPracticeAttemptsQuery,
+  useAddUserPracticeAttemptMutation,
 
 } = paarshEduApi;

@@ -1,4 +1,4 @@
-import { FaHome, FaUser, FaVideo, FaBook, FaQuestion, FaPhone, FaGift, FaMoneyBill, FaPencilRuler } from "react-icons/fa";
+import { FaHome, FaUser, FaVideo, FaBook, FaQuestion, FaPhone, FaGift, FaMoneyBill, FaPencilRuler, FaPen } from "react-icons/fa";
 import { RiFilePaperLine, RiSpyFill, RiArticleFill } from "react-icons/ri";
 
 const sidebarConfig = [
@@ -15,7 +15,14 @@ const sidebarConfig = [
       { name: "Subcategories", path: "/admin/subcategories" },
     ],
   },
-    { name: "Practice Tests", path: "/admin/practice-tests", icon: <FaPencilRuler /> },
+  {
+    name: "Practice Tests",
+    icon: <FaPencilRuler />,
+    children: [
+      { name: "New Practice Test", path: "/admin/practice-tests" },
+      { name: "Practice Test logs", path: "/admin/practice-test-logs" },
+    ],
+  },
   {
     name: "Blogs",
     icon: <RiArticleFill />,
