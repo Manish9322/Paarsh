@@ -27,8 +27,6 @@ export async function POST(request) {
       }
     );
 
-    console.log("Upserted visitor:", visitor);
-
     return NextResponse.json({
       success: true,
       data: visitor,

@@ -1,14 +1,15 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { BookOpen, ChevronRight, Clock, Tag, CheckCircle, XCircle, ArrowLeft, Trophy, Target, Zap, Star, AlertTriangleIcon,  } from "lucide-react";
+import { BookOpen, ChevronRight, Clock, Tag, CheckCircle, XCircle, ArrowLeft, Trophy, Target, Zap, Star, AlertTriangleIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useFetchCategoriesQuery, useFetchPracticeTestByIdQuery } from "@/services/api";
+import { useFetchPracticeTestByIdQuery, useAddUserPracticeAttemptMutation } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface PracticeTest {
   _id: string;
@@ -18,6 +19,7 @@ interface PracticeTest {
   questionCount: number;
   duration: string;
   questions: {
+    _id: string;
     questionText: string;
     options: string[];
     correctAnswer: string;
@@ -29,11 +31,6 @@ interface Answer {
   selectedOption: string;
 }
 
-// Define Category type
-interface Category {
-  name: string;
-}
-
 const PracticeTest = () => {
   const router = useRouter();
   const { id } = useParams();
@@ -43,30 +40,34 @@ const PracticeTest = () => {
   const [score, setScore] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [quitConfirmOpen, setQuitConfirmOpen] = useState(false);
-  const dialogRef = useRef<HTMLDialogElement>(null); // Add ref for dialog
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // Fetch test data
   const { data: testData, isLoading, error } = useFetchPracticeTestByIdQuery(id as string);
   const test: PracticeTest | undefined = testData?.data;
+  const [addUserPracticeAttempt] = useAddUserPracticeAttemptMutation();
 
-
-  // Parse duration to seconds
   useEffect(() => {
+    console.log("Test data:", test);
     if (test?.duration) {
       const match = test.duration.match(/(\d+)\s*minutes?/i);
       if (match) {
-        setTimeRemaining(parseInt(match[1]) * 60);
+        const seconds = parseInt(match[1]) * 60;
+        console.log("Setting timeRemaining to:", seconds);
+        setTimeRemaining(seconds);
+      } else {
+        console.error("Invalid duration format:", test.duration);
       }
     }
   }, [test]);
 
-  // Timer logic
   useEffect(() => {
     if (view === "test" && timeRemaining > 0) {
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
+          console.log("Time remaining:", prev);
           if (prev <= 1) {
             clearInterval(timer);
+            console.log("Timer expired, calling handleSubmit");
             handleSubmit();
             return 0;
           }
@@ -77,7 +78,6 @@ const PracticeTest = () => {
     }
   }, [view, timeRemaining]);
 
-  // Handle answer selection
   const handleAnswer = (option: string) => {
     setAnswers((prev) => {
       const existing = prev.find((a) => a.questionIndex === currentQuestionIndex);
@@ -90,9 +90,13 @@ const PracticeTest = () => {
     });
   };
 
-  // Navigate questions
   const handleNext = () => {
-    if (test && currentQuestionIndex < test.questions.length - 1) {
+    if (!test) {
+      console.error("Test data is undefined");
+      return;
+    }
+    if (currentQuestionIndex < test.questions.length - 1) {
+      console.log("Current Index:", currentQuestionIndex, "Total Questions:", test.questions.length);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
@@ -103,43 +107,65 @@ const PracticeTest = () => {
     }
   };
 
-  // Submit test
-  const handleSubmit = () => {
-    if (test) {
-      const correctAnswers = answers.reduce((acc, answer) => {
-        const question = test.questions[answer.questionIndex];
-        return acc + (answer.selectedOption === question.correctAnswer ? 1 : 0);
-      }, 0);
-      setScore(correctAnswers);
-      setView("results");
+  const handleSubmit = async () => {
+    console.log("Submitting test with answers:", answers);
+    if (!test) {
+      console.error("Test data is undefined in handleSubmit");
+      toast.error("Cannot submit test: Invalid test data", { position: "bottom-right", });
+      return;
     }
+    const correctAnswers = answers.reduce((acc, answer) => {
+      const question = test.questions[answer.questionIndex];
+      return acc + (answer.selectedOption === question.correctAnswer ? 1 : 0);
+    }, 0);
+    setScore(correctAnswers);
+
+    const formattedAnswers = answers.map((answer) => ({
+      questionId: test.questions[answer.questionIndex]._id,
+      selectedAnswer: answer.selectedOption,
+    }));
+
+    try {
+      const response = await addUserPracticeAttempt({
+        practiceTestId: test._id,
+        answers: formattedAnswers,
+      }).unwrap();
+      if (response.success) {
+        toast.success("Test attempt recorded successfully!", {
+          position: "bottom-right",});
+      } else {
+        toast.error("Failed to record test attempt.", {
+          position: "bottom-right",});
+      }
+    } catch (error) {
+      console.error("Error recording practice attempt:", error);
+      toast.error("Error recording test attempt.", {
+        position: "bottom-right",});
+    }
+
+    setView("results");
   };
 
-  // Handle back button click during test
   const handleBackClick = () => {
     if (view === "test") {
       setQuitConfirmOpen(true);
-      dialogRef.current?.showModal(); // Show the dialog
+      dialogRef.current?.showModal();
     } else {
       router.push("/question-bank");
     }
   };
 
-  // Handle quit test
   const handleQuitTest = () => {
     setQuitConfirmOpen(false);
-    dialogRef.current?.close(); // Close the dialog
+    dialogRef.current?.close();
     router.push("/question-bank");
   };
 
-  // Handle cancel (close dialog without quitting)
   const handleCancelQuit = () => {
     setQuitConfirmOpen(false);
-    dialogRef.current?.close(); // Close the dialog
+    dialogRef.current?.close();
   };
 
-
-  // Retry test
   const handleRetry = () => {
     setAnswers([]);
     setCurrentQuestionIndex(0);
@@ -148,104 +174,85 @@ const PracticeTest = () => {
     setView("pre-test");
   };
 
-  // Format time
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
-  // Animation variants
   const container = {
     hidden: { opacity: 0, y: 20 },
-    show: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { 
-        duration: 0.6,
-        ease: "easeOut"
-      } 
-    },
+    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
   };
 
   const stagger = {
-    show: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
+    show: { transition: { staggerChildren: 0.1 } },
   };
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
-    show: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" }
-    }
+    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
   };
 
-  // Difficulty color and icon
   const getDifficultyInfo = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
         return {
           color: "bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-700 border-emerald-200 dark:from-emerald-900/30 dark:to-green-900/30 dark:text-emerald-300 dark:border-emerald-700",
-          icon: <Zap size={14} className="mr-1" />
+          icon: <Zap size={14} className="mr-1" />,
         };
       case "Intermediate":
         return {
           color: "bg-gradient-to-r from-blue-100 to-yellow-100 text-blue-700 border-blue-200 dark:from-blue-900/30 dark:to-yellow-900/30 dark:text-blue-300 dark:border-blue-700",
-          icon: <Target size={14} className="mr-1" />
+          icon: <Target size={14} className="mr-1" />,
         };
       case "Difficult":
         return {
           color: "bg-gradient-to-r from-red-100 to-rose-100 text-red-700 border-red-200 dark:from-red-900/30 dark:to-rose-900/30 dark:text-red-300 dark:border-red-700",
-          icon: <Star size={14} className="mr-1" />
+          icon: <Star size={14} className="mr-1" />,
         };
       default:
         return {
           color: "bg-gradient-to-r from-gray-100 to-slate-100 text-gray-700 border-gray-200 dark:from-gray-700 dark:to-slate-700 dark:text-gray-300 dark:border-gray-600",
-          icon: <BookOpen size={14} className="mr-1" />
+          icon: <BookOpen size={14} className="mr-1" />,
         };
     }
   };
 
-  // Get score color and message
   const getScoreInfo = (percentage: number) => {
     if (percentage >= 0.9) {
       return {
         color: "text-emerald-600 dark:text-emerald-400",
         bgColor: "bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20",
         message: "Outstanding! You've mastered this topic! 🎉",
-        icon: <Trophy className="text-emerald-500" size={24} />
+        icon: <Trophy className="text-emerald-500" size={24} />,
       };
     } else if (percentage >= 0.7) {
       return {
         color: "text-blue-600 dark:text-blue-400",
         bgColor: "bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20",
         message: "Great job! You're doing well! 👏",
-        icon: <CheckCircle className="text-blue-500" size={24} />
+        icon: <CheckCircle className="text-blue-500" size={24} />,
       };
     } else if (percentage >= 0.5) {
       return {
         color: "text-blue-600 dark:text-blue-400",
         bgColor: "bg-gradient-to-r from-blue-50 to-yellow-50 dark:from-blue-900/20 dark:to-yellow-900/20",
         message: "Good effort! Keep practicing to improve! 💪",
-        icon: <Target className="text-blue-500" size={24} />
+        icon: <Target className="text-blue-500" size={24} />,
       };
     } else {
       return {
         color: "text-red-600 dark:text-red-400",
         bgColor: "bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20",
         message: "Don't give up! Practice makes perfect! 🌟",
-        icon: <Zap className="text-red-500" size={24} />
+        icon: <Zap className="text-red-500" size={24} />,
       };
     }
   };
 
-  // Loading state with enhanced skeleton
   if (isLoading) {
+    console.log("Loading test data...");
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-blue-900/20">
         <div className="container mx-auto p-4 space-y-6">
@@ -272,8 +279,8 @@ const PracticeTest = () => {
     );
   }
 
-  // Error or not found with enhanced styling
-  if (error || !test) {
+  if (error || !test || !test.questions || test.questions.length === 0) {
+    console.log("Error:", error, "Test:", test);
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-rose-50 dark:from-gray-900 dark:via-red-900/20 dark:to-rose-900/20">
         <div className="container mx-auto p-4 flex flex-col items-center justify-center py-20">
@@ -285,7 +292,7 @@ const PracticeTest = () => {
           >
             <BookOpen className="h-16 w-16 text-red-500" />
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -293,7 +300,7 @@ const PracticeTest = () => {
           >
             Test Not Found
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -319,7 +326,6 @@ const PracticeTest = () => {
     );
   }
 
-  // Check authentication with enhanced styling
   const isLoggedIn =
     typeof window !== "undefined" &&
     (localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken"));
@@ -336,7 +342,7 @@ const PracticeTest = () => {
           >
             <BookOpen className="h-16 w-16 text-blue-500" />
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -344,7 +350,7 @@ const PracticeTest = () => {
           >
             Please Log In
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -375,8 +381,7 @@ const PracticeTest = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-blue-900/20">
       <div className="container mx-auto p-4 space-y-8">
-        {/* Enhanced Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -388,7 +393,7 @@ const PracticeTest = () => {
             </h1>
             <p className="text-gray-600 dark:text-gray-400">Challenge yourself and track your progress</p>
           </div>
-<Button
+          <Button
             variant="ghost"
             onClick={handleBackClick}
             className="text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-800/50 border-black/10 backdrop-blur-sm rounded-md px-4 py-2 transition-all duration-300"
@@ -399,12 +404,11 @@ const PracticeTest = () => {
         </motion.div>
 
         <AnimatePresence mode="wait">
-          {/* Enhanced Pre-Test View */}
           {view === "pre-test" && (
-            <motion.div 
+            <motion.div
               key="pre-test"
-              variants={container} 
-              initial="hidden" 
+              variants={container}
+              initial="hidden"
               animate="show"
               exit={{ opacity: 0, y: -20 }}
             >
@@ -417,7 +421,7 @@ const PracticeTest = () => {
                   <p className="mt-2 opacity-90">Get ready to showcase your knowledge!</p>
                 </div>
                 <CardContent className="p-8 space-y-8">
-                  <motion.div 
+                  <motion.div
                     variants={stagger}
                     initial="hidden"
                     animate="show"
@@ -430,7 +434,6 @@ const PracticeTest = () => {
                       </div>
                       <p className="text-gray-800 dark:text-white font-semibold">{test.skill}</p>
                     </motion.div>
-                    
                     <motion.div variants={fadeInUp} className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 p-4 rounded border border-blue-100 dark:border-blue-800">
                       <div className="flex items-center text-blue-600 dark:text-blue-400 mb-2">
                         {difficultyInfo.icon}
@@ -440,7 +443,6 @@ const PracticeTest = () => {
                         {test.level}
                       </Badge>
                     </motion.div>
-                    
                     <motion.div variants={fadeInUp} className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-emerald-900/20 dark:to-green-900/20 p-4 rounded border border-emerald-100 dark:border-blue-800">
                       <div className="flex items-center text-blue-600 dark:text-blue-400 mb-2">
                         <BookOpen size={18} className="mr-2" />
@@ -448,7 +450,6 @@ const PracticeTest = () => {
                       </div>
                       <p className="text-gray-800 dark:text-white font-semibold">{test.questionCount}</p>
                     </motion.div>
-                    
                     <motion.div variants={fadeInUp} className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 p-4 rounded border border-blue-100 dark:border-blue-800">
                       <div className="flex items-center text-blue-600 dark:text-blue-400 mb-2">
                         <Clock size={18} className="mr-2" />
@@ -457,8 +458,7 @@ const PracticeTest = () => {
                       <p className="text-gray-800 dark:text-white font-semibold">{test.duration}</p>
                     </motion.div>
                   </motion.div>
-
-                  <motion.div 
+                  <motion.div
                     variants={fadeInUp}
                     className="bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800 dark:to-slate-800 p-6 rounded-md border border-gray-100 dark:border-gray-700"
                   >
@@ -497,7 +497,6 @@ const PracticeTest = () => {
                       </div>
                     </div>
                   </motion.div>
-
                   <motion.div variants={fadeInUp} className="text-center">
                     <Button
                       onClick={() => setView("test")}
@@ -511,13 +510,11 @@ const PracticeTest = () => {
               </Card>
             </motion.div>
           )}
-
-          {/* Enhanced Test View */}
           {view === "test" && (
-            <motion.div 
+            <motion.div
               key="test"
-              variants={container} 
-              initial="hidden" 
+              variants={container}
+              initial="hidden"
               animate="show"
               exit={{ opacity: 0, y: -20 }}
             >
@@ -544,7 +541,6 @@ const PracticeTest = () => {
                     className="mt-4 h-2 bg-white/20"
                   />
                 </div>
-                
                 <CardContent className="p-8 space-y-8">
                   <motion.div
                     key={currentQuestionIndex}
@@ -557,7 +553,6 @@ const PracticeTest = () => {
                         {test.questions[currentQuestionIndex].questionText}
                       </p>
                     </div>
-                    
                     <div className="space-y-4">
                       {test.questions[currentQuestionIndex].options.map((option, index) => {
                         const isSelected = answers.find((a) => a.questionIndex === currentQuestionIndex)?.selectedOption === option;
@@ -567,11 +562,10 @@ const PracticeTest = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className={`flex items-center p-4 rounded-md cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
-                              isSelected
+                            className={`flex items-center p-4 rounded-md cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${isSelected
                                 ? "bg-gradient-to-r from-blue-100 to-blue-100 dark:from-blue-900/40 dark:to-blue-900/40 border-2 border-blue-400 dark:border-blue-500 shadow-lg"
                                 : "bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent hover:border-gray-200 dark:hover:border-gray-600"
-                            }`}
+                              }`}
                           >
                             <input
                               type="radio"
@@ -596,7 +590,6 @@ const PracticeTest = () => {
                       })}
                     </div>
                   </motion.div>
-                  
                   <div className="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-gray-700">
                     <Button
                       onClick={handlePrevious}
@@ -612,7 +605,7 @@ const PracticeTest = () => {
                     </div>
                     <div className="space-x-3">
                       {currentQuestionIndex < test.questions.length - 1 ? (
-                        <Button 
+                        <Button
                           onClick={handleNext}
                           className="bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-600 hover:to-blue-600 text-white px-8 py-6 rounded-md shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                         >
@@ -621,7 +614,10 @@ const PracticeTest = () => {
                         </Button>
                       ) : (
                         <Button
-                          onClick={handleSubmit}
+                          onClick={() => {
+                            console.log("Submit Test button clicked");
+                            handleSubmit();
+                          }}
                           className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white px-8 py-6 rounded-md shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                         >
                           Submit Test
@@ -634,13 +630,11 @@ const PracticeTest = () => {
               </Card>
             </motion.div>
           )}
-
-          {/* Enhanced Results View */}
           {view === "results" && (
-            <motion.div 
+            <motion.div
               key="results"
-              variants={container} 
-              initial="hidden" 
+              variants={container}
+              initial="hidden"
               animate="show"
               exit={{ opacity: 0, y: -20 }}
             >
@@ -649,7 +643,6 @@ const PracticeTest = () => {
                 const scoreInfo = getScoreInfo(percentage);
                 return (
                   <div className="space-y-8">
-                    {/* Score Card */}
                     <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border-0 shadow-2xl rounded-md overflow-hidden">
                       <div className={`${scoreInfo.bgColor} p-8 text-center border-b border-gray-100 dark:border-gray-700`}>
                         <motion.div
@@ -686,14 +679,12 @@ const PracticeTest = () => {
                           {scoreInfo.message}
                         </motion.p>
                       </div>
-                      
                       <CardContent className="p-8">
                         <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
                           <BookOpen className="mr-3 text-blue-500" size={28} />
                           Detailed Review
                         </h3>
-                        
-                        <motion.div 
+                        <motion.div
                           variants={stagger}
                           initial="hidden"
                           animate="show"
@@ -703,16 +694,16 @@ const PracticeTest = () => {
                             const userAnswer = answers.find((a) => a.questionIndex === index)?.selectedOption;
                             const isCorrect = userAnswer === question.correctAnswer;
                             const isAnswered = userAnswer !== undefined;
-                            
                             return (
                               <motion.div key={index} variants={fadeInUp}>
-                                <Card className={`border-l-4 transition-all duration-300 hover:shadow-lg ${
-                                  isCorrect 
-                                    ? "border-l-emerald-500 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20" 
-                                    : isAnswered
-                                    ? "border-l-red-500 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20"
-                                    : "border-l-gray-400 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800 dark:to-slate-800"
-                                }`}>
+                                <Card
+                                  className={`border-l-4 transition-all duration-300 hover:shadow-lg ${isCorrect
+                                      ? "border-l-emerald-500 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20"
+                                      : isAnswered
+                                        ? "border-l-red-500 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20"
+                                        : "border-l-gray-400 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800 dark:to-slate-800"
+                                    }`}
+                                >
                                   <CardContent className="p-6">
                                     <div className="flex items-start justify-between mb-4">
                                       <div className="flex-1">
@@ -731,24 +722,27 @@ const PracticeTest = () => {
                                         <p className="text-gray-800 dark:text-white text-lg font-medium mb-4">
                                           {question.questionText}
                                         </p>
-                                        
                                         <div className="space-y-2">
                                           <div className="flex items-start">
-                                            <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 mr-2 mt-1">Your Answer:</span>
-                                            <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                                              isAnswered 
-                                                ? isCorrect
-                                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                                  : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                                                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-                                            }`}>
+                                            <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 mr-2 mt-1">
+                                              Your Answer:
+                                            </span>
+                                            <span
+                                              className={`px-3 py-1 rounded-lg text-sm font-medium ${isAnswered
+                                                  ? isCorrect
+                                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+                                                  : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                                                }`}
+                                            >
                                               {userAnswer || "Not answered"}
                                             </span>
                                           </div>
-                                          
                                           {!isCorrect && (
                                             <div className="flex items-start">
-                                              <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 mr-2 mt-1">Correct Answer:</span>
+                                              <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 mr-2 mt-1">
+                                                Correct Answer:
+                                              </span>
                                               <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300 px-3 py-1 rounded-lg text-sm font-medium">
                                                 {question.correctAnswer}
                                               </span>
@@ -763,8 +757,7 @@ const PracticeTest = () => {
                             );
                           })}
                         </motion.div>
-                        
-                        <motion.div 
+                        <motion.div
                           variants={fadeInUp}
                           className="flex justify-center space-x-6 mt-12 pt-8 border-t border-gray-200 dark:border-gray-700"
                         >
@@ -792,7 +785,6 @@ const PracticeTest = () => {
             </motion.div>
           )}
         </AnimatePresence>
-        
         <dialog
           ref={dialogRef}
           className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-2xl rounded-md p-6 w-full max-w-md"
@@ -805,7 +797,7 @@ const PracticeTest = () => {
               </h2>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
-              Are you sure you want to quit this test? All your progress will be lost and you&apos;ll need to restart from the beginning if you want to take this test again.
+              Are you sure you want to quit this test? All your progress will be lost and you'll need to restart from the beginning if you want to take this test again.
             </p>
             <div className="flex justify-end gap-3">
               <Button
@@ -823,7 +815,6 @@ const PracticeTest = () => {
             </div>
           </div>
         </dialog>
-
       </div>
     </div>
   );
