@@ -5,6 +5,7 @@ import UserModel from "../../../../models/User.model";
 import CourseModel from "../../../../models/Courses/Course.model";
 import { RAZORPAY_KEY_SECRET } from "../../../../config/config";
 import AgentModel from "models/Agent.model";
+import ReferralSettingsModel from "models/RefferalSetting.model";
 
 export const POST = async (request) => {
   try {
@@ -103,6 +104,7 @@ export const POST = async (request) => {
     // Fetch user and course details
 
     const user = await UserModel.findById(transaction.userId);
+    const referralSettings = await ReferralSettingsModel.findOne();
 
     const isFirstPurchase = user.purchasedCourses.length === 0;
 
@@ -110,11 +112,23 @@ export const POST = async (request) => {
     if (isFirstPurchase && user.referredBy && !user.firstPurchaseRewardGiven) {
       const referrer = await UserModel.findById(user.referredBy);
       if (referrer) {
-        // Reward logic: e.g., add ₹100 to walletBalance (you need walletBalance field in user model)
-        referrer.walletBalance = (referrer.walletBalance || 0) + 20;
-        await referrer.save();
-
-        user.firstPurchaseRewardGiven = true; // Important to not give reward twice
+        // Check maxReferrals limit
+        const referredUsers = await UserModel.find({
+          referredBy: referrer._id,
+          firstPurchaseRewardGiven: true,
+        });
+        if (
+          referralSettings.maxReferrals === 0 ||
+          referredUsers.length < referralSettings.maxReferrals
+        ) {
+          // Credit reward to referrer
+          referrer.walletBalance =
+            (referrer.walletBalance || 0) + referralSettings.cashbackAmount;
+          // Store reward amount for referred user
+          user.firstPurchaseRewardAmount = referralSettings.cashbackAmount;
+          user.firstPurchaseRewardGiven = true;
+          await referrer.save();
+        }
       }
     }
 

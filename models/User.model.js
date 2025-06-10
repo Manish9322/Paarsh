@@ -32,7 +32,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-
+  firstPurchaseRewardAmount: {
+      type: Number,
+      default: 0,
+  },
   password: {
     type: String,
     required: true,

@@ -32,6 +32,8 @@ const sidebarConfig = [
   { name: "Withdrawal Requests", path: "/admin/withdraw", icon: <FaMoneyBill /> },
   { name: "Transactions", path: "/admin/transactions", icon: <FaMoneyBill /> },
   {name: "visitors", path: "/admin/visitors", icon: <FaUser />},
+  {name: "Referal Program", path: "/admin/referal-program", icon: <FaUser />},
+  
 
 ];
 

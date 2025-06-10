@@ -106,6 +106,9 @@ export const paarshEduApi = createApi({
     "PracticeTest",
     "Withdrawal",
     "Visitor",
+    "Admin",
+    "ReferralSettings",
+
   ],
 
   endpoints: (builder) => ({
@@ -302,7 +305,7 @@ export const paarshEduApi = createApi({
     // New API endpoint for updating agent targets
     updateAgentTarget: builder.mutation({
       query: ({ id, targetType, targetValue }) => ({
-        url: "/admin/agent",
+        url: "/admin/agents",
         method: "PATCH",
         body: { id, targetType, targetValue },
       }),
@@ -834,6 +837,22 @@ export const paarshEduApi = createApi({
       }),
     }),
 
+    // Referral Settings
+
+     fetchReferralSettings: builder.query({
+      query: () => 'refferal-settings',
+      providesTags: ['ReferralSettings'],
+    }),
+
+    updateReferralSettings: builder.mutation({
+      query: (settings) => ({
+        url: 'refferal-settings',
+        method: 'PUT',
+        body: settings,
+      }),
+      invalidatesTags: ['ReferralSettings'],
+    }),
+
   }),
 });
 
@@ -949,5 +968,8 @@ export const {
 
   useTrackVisitorMutation,
   useFetchVisitorsQuery,
+
+  useFetchReferralSettingsQuery,
+  useUpdateReferralSettingsMutation,
 
 } = paarshEduApi;
