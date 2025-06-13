@@ -797,7 +797,7 @@ const PracticeTest = () => {
               </h2>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
-              Are you sure you want to quit this test? All your progress will be lost and you'll need to restart from the beginning if you want to take this test again.
+              Are you sure you want to quit this test? All your progress will be lost and you will need to restart from the beginning if you want to take this test again.
             </p>
             <div className="flex justify-end gap-3">
               <Button
