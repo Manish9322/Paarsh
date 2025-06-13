@@ -148,6 +148,11 @@ function TotalCourses() {
   };
 
   console.log("Total Courses : ", courses);
+
+    // Navigate to course lecture page
+  const navigateToCourseDetails = (courseId: string) => {
+    router.push(`/course-lecture/${courseId}`);
+  };
   
   return (
     <div className="space-y-6">
@@ -296,6 +301,11 @@ function TotalCourses() {
                 view === "list" ? "flex-row" : "flex-col"
               } overflow-hidden rounded-md border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-500`}
               style={{ cursor: "pointer" }}
+               onClick={() => {
+                if (!purchasedCourse.isExpired) {
+                  navigateToCourseDetails(purchasedCourse._id);
+                }
+              }}
             >
               <div
                 className={`${view === "list" ? "w-1/3" : "w-full"} relative`}

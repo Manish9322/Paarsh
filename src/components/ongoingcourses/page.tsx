@@ -1,19 +1,19 @@
 "use client";
 import React, { useState } from "react";
-import { 
-  List, 
-  Grid3x3, 
-  Clock, 
-  ChevronRight, 
-  PlayCircle, 
-  BookOpen, 
-  Users, 
-  PlayCircle as VideoIcon, 
+import {
+  List,
+  Grid3x3,
+  Clock,
+  ChevronRight,
+  PlayCircle,
+  BookOpen,
+  Users,
+  PlayCircle as VideoIcon,
   AlertCircle,
   Search,
   Frown,
   Calendar,
-  Award
+  Award,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -90,47 +90,69 @@ function OngoingCourse() {
   const router = useRouter();
 
   // Fetch course progress data
-  const { data: progressData, isLoading: isProgressLoading, error: progressError, refetch: refetchProgress } = useFetchCourseProgressQuery(undefined);
+  const {
+    data: progressData,
+    isLoading: isProgressLoading,
+    error: progressError,
+    refetch: refetchProgress,
+  } = useFetchCourseProgressQuery(undefined);
   console.log("Course Progress Data on Ongoing Course Page: ", progressData);
 
-
-
   // Fetch user courses
-  const { data, error: courseError, isLoading: isCourseLoading, refetch: refetchCourses } = useFetchUserCourseQuery({});
+  const {
+    data,
+    error: courseError,
+    isLoading: isCourseLoading,
+    refetch: refetchCourses,
+  } = useFetchUserCourseQuery({});
   const courses: Course[] = data?.purchasedCourses || [];
 
   // Filter ongoing courses (0 < progress < 100)
-  const ongoingCourses = progressData?.allCoursesProgress?.filter(
-    (progressCourse: ProgressCourse) => progressCourse.courseProgress > 0 && progressCourse.courseProgress < 100
-  ) || [];
+  const ongoingCourses =
+    progressData?.allCoursesProgress?.filter(
+      (progressCourse: ProgressCourse) =>
+        progressCourse.courseProgress > 0 &&
+        progressCourse.courseProgress < 100,
+    ) || [];
 
   // Merge course details with progress data
-  const enrichedOngoingCourses = ongoingCourses.map((progressCourse: ProgressCourse) => {
-    const purchasedCourse = courses.find((c) => c.course?._id === progressCourse.courseId || c._id === progressCourse.courseId);
-    
-    // Handle both direct course object and nested course structure
-    const courseData = purchasedCourse?.course || purchasedCourse;
-    
-    return {
-      _id: progressCourse.courseId,
-      courseName: progressCourse.courseName || courseData?.courseName || "Unknown Course",
-      duration: progressCourse.courseDuration || courseData?.duration || "Unknown",
-      level: progressCourse.courseLevel || courseData?.level || "All Levels",
-      progress: progressCourse.courseProgress.toFixed(2), // Round to 2 decimal places
-      instructor: courseData?.instructor || "Unknown Instructor",
-      thumbnail: courseData?.thumbnail || "",
-      price: courseData?.price || "N/A",
-      purchaseDate: purchasedCourse?.purchaseDate || "",
-      expiryDate: purchasedCourse?.expiryDate || "",
-      isExpired: purchasedCourse?.isExpired || false,
-      videos: purchasedCourse?.videos || courseData?.videos || [], // Ensure videos is an array or empty
-    };
-  });
+  const enrichedOngoingCourses = ongoingCourses.map(
+    (progressCourse: ProgressCourse) => {
+      const purchasedCourse = courses.find(
+        (c) =>
+          c.course?._id === progressCourse.courseId ||
+          c._id === progressCourse.courseId,
+      );
+
+      // Handle both direct course object and nested course structure
+      const courseData = purchasedCourse?.course || purchasedCourse;
+
+      return {
+        _id: progressCourse.courseId,
+        courseName:
+          progressCourse.courseName ||
+          courseData?.courseName ||
+          "Unknown Course",
+        duration:
+          progressCourse.courseDuration || courseData?.duration || "Unknown",
+        level: progressCourse.courseLevel || courseData?.level || "All Levels",
+        progress: progressCourse.courseProgress.toFixed(2), // Round to 2 decimal places
+        instructor: courseData?.instructor || "Unknown Instructor",
+        thumbnail: courseData?.thumbnail || "",
+        price: courseData?.price || "N/A",
+        purchaseDate: purchasedCourse?.purchaseDate || "",
+        expiryDate: purchasedCourse?.expiryDate || "",
+        isExpired: purchasedCourse?.isExpired || false,
+        videos: purchasedCourse?.videos || courseData?.videos || [], // Ensure videos is an array or empty
+      };
+    },
+  );
 
   // Filter courses based on search term
-  const filteredCourses = enrichedOngoingCourses.filter((course) =>
-    course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.instructor.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCourses = enrichedOngoingCourses.filter(
+    (course) =>
+      course.courseName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.instructor.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   // Animation variants
@@ -153,17 +175,17 @@ function OngoingCourse() {
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", { 
-      year: "numeric", 
-      month: "short", 
-      day: "numeric" 
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   // Function to get level badge color
   const getLevelColor = (level: string) => {
     switch (level?.toLowerCase()) {
-      case 'beginner':
+      case "beginner":
         return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
       case "intermediate":
         return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300";
@@ -190,22 +212,22 @@ function OngoingCourse() {
   // Function to format duration
   const formatDuration = (duration: string | number) => {
     if (!duration) return "Unknown Duration";
-    
+
     // If duration is a number, treat as months
-    if (typeof duration === 'number') {
+    if (typeof duration === "number") {
       if (duration === 1) return "1 month";
       return `${duration} months`;
     }
-    
+
     // If duration is already formatted string, return as is
-    if (typeof duration === 'string') {
-      if (duration.includes('month')) return duration;
+    if (typeof duration === "string") {
+      if (duration.includes("month")) return duration;
       const num = parseInt(duration);
       if (isNaN(num)) return duration;
       if (num === 1) return "1 month";
       return `${num} months`;
     }
-    
+
     return "Unknown Duration";
   };
 
@@ -296,7 +318,8 @@ function OngoingCourse() {
             Unable to Load Courses
           </h2>
           <p className="mb-6 max-w-md text-center text-gray-600 dark:text-gray-400">
-            We encountered an issue while fetching your courses. Please try again or contact support if the issue persists.
+            We encountered an issue while fetching your courses. Please try
+            again or contact support if the issue persists.
           </p>
           <div className="flex gap-4">
             <button
@@ -330,10 +353,9 @@ function OngoingCourse() {
             {searchTerm ? "No courses found" : "No ongoing courses"}
           </h2>
           <p className="mb-6 max-w-md text-center text-gray-600 dark:text-gray-400">
-            {searchTerm 
+            {searchTerm
               ? `No courses match "${searchTerm}". Try adjusting your search.`
-              : "You don't have any courses in progress. Start a course to see it here!"
-            }
+              : "You don't have any courses in progress. Start a course to see it here!"}
           </p>
           {searchTerm && (
             <button
@@ -363,9 +385,15 @@ function OngoingCourse() {
                 view === "list" ? "flex-row" : "flex-col"
               } overflow-hidden rounded-md border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-500`}
               style={{ cursor: "pointer" }}
-              onClick={() => navigateToCourseDetails(course._id)}
+              onClick={() => {
+                if (!course.isExpired) {
+                  navigateToCourseDetails(course._id);
+                }
+              }}
             >
-              <div className={`${view === "list" ? "w-1/3" : "w-full"} relative`}>
+              <div
+                className={`${view === "list" ? "w-1/3" : "w-full"} relative`}
+              >
                 {course.thumbnail ? (
                   <img
                     src={course.thumbnail}
@@ -452,7 +480,7 @@ function OngoingCourse() {
                       ₹{course.price}
                     </span>
                   )}
-                  <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                  <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
                     <Clock size={12} className="mr-1" />
                     In Progress ({course.progress}%)
                   </span>
