@@ -32,4 +32,4 @@ const contactUsSchema = new mongoose.Schema({
 
 const ContactUsModel = mongoose.models.ContactUs || mongoose.model("ContactUs", contactUsSchema);
 
-module.exports = ContactUsModel;
+export default ContactUsModel;

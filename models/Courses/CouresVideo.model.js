@@ -37,5 +37,4 @@ const courseVideoSchema = new mongoose.Schema(
 const CourseVideoModel =
   mongoose.models.CourseVideo ||
   mongoose.model("CourseVideo", courseVideoSchema);
-
-module.exports = CourseVideoModel;
+export default CourseVideoModel;

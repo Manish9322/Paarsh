@@ -11,7 +11,7 @@ const courseSchema = new mongoose.Schema(
       required: true,
     },
     duration: {
-      type: String,
+      type: Number, // ✅ change from String to Number
       required: true,
     },
     level: {
@@ -104,4 +104,4 @@ const courseSchema = new mongoose.Schema(
 const CourseModel =
   mongoose.models.Course || mongoose.model("Course", courseSchema);
 
-module.exports = CourseModel;
+export default CourseModel;

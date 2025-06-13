@@ -129,4 +129,4 @@ meetingLinkSchema.pre("save", function (next) {
 
 const MeetingLinkModel = mongoose.models.MeetingLink || mongoose.model("MeetingLink", meetingLinkSchema);
 
-module.exports = MeetingLinkModel;
+export default MeetingLinkModel;

@@ -49,4 +49,4 @@ const leadSchema = new mongoose.Schema({
 
 const LeadModel = mongoose.models.Lead || mongoose.model("Lead", leadSchema);
 
-module.exports = LeadModel;
+export default LeadModel;

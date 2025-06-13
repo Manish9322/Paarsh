@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -42,8 +42,23 @@ const userSchema = new mongoose.Schema({
   },
   purchasedCourses: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
+      course: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course",
+        required: true,
+      },
+      purchaseDate: {
+        type: Date,
+        default: Date.now,
+      },
+      expiryDate: {
+        type: Date,
+        required: true,
+      },
+      isExpired: {
+        type: Boolean,
+        default: false,
+      },
     },
   ],
   acceptTerms: {
@@ -96,4 +111,4 @@ userSchema.pre('save', function(next) {
 
 const UserModel = mongoose.models.User || mongoose.model("User", userSchema);
 
-module.exports = UserModel;
+export default UserModel;

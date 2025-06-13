@@ -4,7 +4,7 @@ import { isNull } from "lodash";
 const initialState = {
   courseName: "",
   price: "",
-  duration: "",
+  duration: 0,
   level: "",
   videoLink: null,
   languages: [],

@@ -56,7 +56,7 @@ import {
 const formSchema = z.object({
   courseName: z.string().optional(),
   price: z.string().optional(),
-  duration: z.string().optional(),
+  duration: z.number().min().optional(),
   level: z.string().optional(),
   languages: z.array(z.string()).optional(),
   thumbnail: z.string().optional(),
@@ -360,20 +360,21 @@ export function EditCourse({ editOpen, setEditOpen }) {
                 <p className="text-red-500">{errors.level.message}</p>
               )}
             </div>
-            <div className="w-1/2">
-              <Label htmlFor="duration">Course Duration</Label>
-              <Input
-                id="duration"
-                name="duration"
-                className="mt-2 w-full"
-                type="text"
-                onChange={(e) => handleChange("duration", e.target.value)}
-                value={course.duration}
-              />
-              {errors.duration && (
-                <p className="text-red-500">{errors.duration.message}</p>
-              )}
-            </div>
+           <div className="w-1/2">
+  <Label htmlFor="duration">Course Duration (in days)</Label>
+  <Input
+    id="duration"
+    name="duration"
+    className="mt-2 w-full"
+    value={course.duration}
+    type="number" // ✅ change this
+    onChange={(e) => handleChange("duration", e.target.value)}
+  />
+  {errors.duration && (
+    <p className="text-red-500">{errors.duration.message}</p>
+  )}
+</div>
+
           </div>
 
           <div className="flex gap-4">

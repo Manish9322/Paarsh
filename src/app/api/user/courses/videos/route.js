@@ -30,17 +30,24 @@ export const GET = authMiddleware(async (req) => {
     // Await user data from DB
     const userData = await UserModel.findById(user._id).select("purchasedCourses");
 
-    // Check if courseId is among purchased courses
-    const hasPurchased = userData.purchasedCourses.some((purchasedCourseId) =>
-      purchasedCourseId.equals(new mongoose.Types.ObjectId(courseId))
+    const purchasedEntry = userData.purchasedCourses.find((entry) =>
+      entry.course.equals(new mongoose.Types.ObjectId(courseId))
     );
-      
-    if (!hasPurchased) {
+
+    if (!purchasedEntry) {
       return NextResponse.json(
         { error: "You have not purchased this course" },
         { status: 403 }
       );
     }
+
+    if (purchasedEntry.isExpired) {
+      return NextResponse.json(
+        { error: "Course access has expired" },
+        { status: 403 }
+      );
+    }
+
 
     // Fetch course videos
     const courseVideos = await CourseVideoModel.findOne({ courseId }).populate("courseId");
