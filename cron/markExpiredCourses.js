@@ -1,11 +1,9 @@
-const cron = require("node-cron");
-const UserModel = require("../models/User.model.js");
-const _db = require("../utils/db.js");
-
-  await _db(); // ensure DB is connected before running
+import cron from "node-cron";
+import UserModel from "../models/User.model.js";
+import _db from "../utils/db.js";
 
 const checkExpiredCourses = async () => {
-
+  await _db(); // ensure DB is connected before running
 
   const now = new Date();
   const users = await UserModel.find();
@@ -29,5 +27,5 @@ const checkExpiredCourses = async () => {
 // Run immediately
 checkExpiredCourses();
 
-// Run daily at midnight
+// Schedule to run daily at midnight
 cron.schedule("0 0 * * *", checkExpiredCourses);

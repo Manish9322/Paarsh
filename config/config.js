@@ -10,8 +10,8 @@
 // // Load .env from root directory
 // dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+// const path = require('path');
+// require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 // __dirname and __filename are available directly in CommonJS
 
