@@ -669,6 +669,11 @@ export const paarshEduApi = createApi({
       providesTags: ["Agent"],
     }),
 
+    fetchAgentSalesAdmin: builder.query({
+      query: ({agentId}) => `/admin/agents/sales?agentId=${agentId}`,
+      providesTags: ["Agent"],
+    }),
+
     fetchagentCourseRefferalLink: builder.query({
       query: () => "/agent/courserefferal",
       providesTags: ["Agent"],
@@ -910,6 +915,7 @@ export const {
   useDeleteAgentMutation,
   useResetAgentPasswordMutation,
   useFetchAgentQuery,
+  useFetchAgentSalesAdminQuery,
   useFetchAgentsQuery,
   useUpdateAgentTargetMutation,
 

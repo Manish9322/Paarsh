@@ -295,7 +295,7 @@ function TotalCourses() {
         >
           {filteredCourses.map((purchasedCourse) => (
             <motion.div
-              key={purchasedCourse._id}
+              key={purchasedCourse.course._id}
               variants={item}
               className={`flex ${
                 view === "list" ? "flex-row" : "flex-col"
@@ -303,7 +303,7 @@ function TotalCourses() {
               style={{ cursor: "pointer" }}
                onClick={() => {
                 if (!purchasedCourse.isExpired) {
-                  navigateToCourseDetails(purchasedCourse._id);
+                  navigateToCourseDetails(purchasedCourse.course._id);
                 }
               }}
             >

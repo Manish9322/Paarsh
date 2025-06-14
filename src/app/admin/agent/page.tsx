@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +26,7 @@ import { RxCross2 } from "react-icons/rx";
 import AddAgentModal from "../../../components/Agent/AddAgent";
 import { Input } from "@/components/ui/input";
 import { skipToken } from '@reduxjs/toolkit/query/react';
-import { useDeleteAgentMutation, useFetchAgentsQuery, useUpdateAgentMutation, useUpdateAgentTargetMutation } from "@/services/api";
+import { useDeleteAgentMutation, useFetchAgentSalesAdminQuery, useFetchAgentsQuery, useUpdateAgentMutation, useUpdateAgentTargetMutation } from "@/services/api";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +55,30 @@ interface SalesData {
   status: 'completed' | 'pending';
 }
 
+// Define Raw API Sales Record type based on the response
+interface RawSalesRecord {
+  _id: string;
+  userId: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  courseId: {
+    _id: string;
+    courseName: string;
+    price: string; // Price is a string in the response
+  };
+  orderId: string;
+  amount: number;
+  agentRefCode: string;
+  status: 'SUCCESS' | 'PENDING';
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  paymentId?: string;
+  signature?: string;
+}
+
 // Define Agent type
 interface Agent {
   _id: string;
@@ -73,23 +97,6 @@ interface Agent {
   };
   salesData?: SalesData[];
 }
-
-// Mock useFetchAgentSalesQuery hook (replace with actual RTK Query hook in @/services/api)
-const useFetchAgentSalesQuery = (args: { agentId: string; timeFilter: string } | typeof skipToken) => {
-  // This is a placeholder. Implement in @/services/api with actual API call, e.g.:
-  /*
-  export const api = createApi({
-    baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-    endpoints: (builder) => ({
-      fetchAgentSales: builder.query<SalesData[], { agentId: string; timeFilter: string }>({
-        query: ({ agentId, timeFilter }) => `/agents/${agentId}/sales?filter=${timeFilter}`,
-      }),
-    }),
-  });
-  */
-  // Mock return for compilation
-  return { data: [] as SalesData[], isLoading: false, error: null };
-};
 
 const AgentPage: React.FC = () => {
   const [sortField, setSortField] = useState<keyof Agent | null>(null);
@@ -132,16 +139,66 @@ const AgentPage: React.FC = () => {
   const [updateAgentTarget, { isLoading: isTargetUpdating }] = useUpdateAgentTargetMutation();
 
   // Fetch sales data dynamically
-  const { data: salesData = [], isLoading: isSalesLoading, error: salesError } = useFetchAgentSalesQuery(
+  const { data: salesDataResponse, isLoading: isSalesLoading, error: salesError } = useFetchAgentSalesAdminQuery(
     selectedAgent ? { agentId: selectedAgent._id, timeFilter } : skipToken
   );
 
-  useEffect(() => {
-    if (selectedAgent && salesData) {
-      const completedSales = salesData.filter(sale => sale.status === 'completed');
-      setSelectedAgent({ ...selectedAgent, salesData: completedSales });
+  // Transform and aggregate sales data
+  const completedSales = useMemo(() => {
+    if (!salesDataResponse?.data?.completed) {
+      return [];
     }
-  }, [selectedAgent?._id, timeFilter, salesData]);
+
+    // Transform raw sales records to SalesData format
+    const transformedSales: SalesData[] = salesDataResponse.data.completed.map((sale: RawSalesRecord) => ({
+      date: new Date(sale.createdAt).toISOString().split('T')[0], // Format as YYYY-MM-DD
+      count: 1, // Each sale counts as 1
+      revenue: parseFloat(sale.courseId.price), // Use course price as revenue
+      status: sale.status === 'SUCCESS' ? 'completed' : 'pending',
+    }));
+
+    // Aggregate by date
+    const aggregatedSales = transformedSales.reduce((acc: { [key: string]: SalesData }, sale) => {
+      const { date, count, revenue } = sale;
+      if (!acc[date]) {
+        acc[date] = { date, count: 0, revenue: 0, status: 'completed' };
+      }
+      acc[date].count += count;
+      acc[date].revenue += revenue;
+      return acc;
+    }, {});
+
+    // Convert to array and sort by date
+    return Object.values(aggregatedSales).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [salesDataResponse]);
+
+  // Apply time filter to completedSales
+  const filteredCompletedSales = useMemo(() => {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (timeFilter) {
+      case 'daily':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'yesterday':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        break;
+      case 'weekly':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        break;
+      case 'monthly':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        break;
+      case 'yearly':
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        break;
+      default:
+        startDate = new Date(0); // All time
+    }
+
+    return completedSales.filter(sale => new Date(sale.date) >= startDate);
+  }, [completedSales, timeFilter]);
 
   useEffect(() => {
     if (salesError) {
@@ -498,7 +555,7 @@ const AgentPage: React.FC = () => {
                       {isAgentsLoading ? (
                         Array.from({ length: 6 }).map((_, index) => (
                           <TableRow
-                            key={index}
+                            key={`skeleton-row-${index}`}
                             className="border-b border-gray-100 dark:border-gray-700 dark:bg-gray-900"
                           >
                             <TableCell className="hidden sm:table-cell">
@@ -746,7 +803,7 @@ const AgentPage: React.FC = () => {
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               Full Name
                             </span>
-                            <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                            <span className="col-span-2 text-sm text-gray-900 dark:text-white">
                               {selectedAgent.firstName} {selectedAgent.lastName}
                             </span>
                           </div>
@@ -754,7 +811,7 @@ const AgentPage: React.FC = () => {
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               Contact
                             </span>
-                            <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                            <span className="col-span-2 text-sm text-gray-600 dark:text-gray-400">
                               {selectedAgent.mobile}
                             </span>
                           </div>
@@ -762,14 +819,14 @@ const AgentPage: React.FC = () => {
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               State
                             </span>
-                            <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                            <span className="col-span-2 text-sm text-gray-600 dark:text-gray-400">
                               {selectedAgent.state}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
+                      <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-800">
                         <div className="bg-gray-50 px-4 py-2 dark:bg-gray-700">
                           <div className="flex items-center justify-between">
                             <h3 className="font-medium text-gray-700 dark:text-gray-300">
@@ -780,7 +837,7 @@ const AgentPage: React.FC = () => {
                                 value={chartMetric}
                                 onValueChange={(value: "count" | "revenue") => setChartMetric(value)}
                               >
-                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-900">
+                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-200">
                                   <SelectValue placeholder="Select metric" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -792,7 +849,7 @@ const AgentPage: React.FC = () => {
                                 value={timeFilter}
                                 onValueChange={(value: typeof timeFilter) => setTimeFilter(value)}
                               >
-                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-900">
+                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-200">
                                   <SelectValue placeholder="Select period" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -840,14 +897,14 @@ const AgentPage: React.FC = () => {
                               <div className="flex h-full items-center justify-center text-sm text-red-500 dark:text-red-400">
                                 Error loading sales data
                               </div>
-                            ) : selectedAgent.salesData?.length === 0 ? (
+                            ) : filteredCompletedSales.length === 0 ? (
                               <div className="flex h-full items-center justify-center text-sm text-gray-500 dark:text-gray-400">
                                 No completed sales data available
                               </div>
                             ) : (
                               <ResponsiveContainer width="100%" height="100%">
                                 <LineChart 
-                                  data={selectedAgent.salesData}
+                                  data={filteredCompletedSales}
                                   margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
                                 >
                                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
