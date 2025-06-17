@@ -228,7 +228,7 @@ const handlePasswordSubmit = async (e) => {
           </div>
           <h1 className="text-xl font-bold text-gray-800 dark:text-white mb-2">Error Loading Profile</h1>
           <p className="text-gray-600 dark:text-gray-300 mb-4">
-            We couldn't load your profile information. Please try again later.
+            We could not load your profile information. Please try again later.
           </p>
           <button 
             onClick={() => window.location.reload()}
@@ -416,7 +416,7 @@ const handlePasswordSubmit = async (e) => {
                   <div className="p-4">
                     <h3 className="font-medium text-gray-800 dark:text-white mb-2">Change Password</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                      It's a good idea to use a strong password that you don't use elsewhere
+                      It is a good idea to use a strong password that you do not use elsewhere
                     </p>
                     <button
                       onClick={() => setIsPasswordModalOpen(true)}

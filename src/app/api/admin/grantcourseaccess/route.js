@@ -5,7 +5,7 @@ import { authMiddleware } from "../../../../../middlewares/auth"; // Adjust path
 import UserModel from "../../../../../models/User.model";
 import CourseModel from "../../../../../models/Courses/Course.model";
 import TransactionModel from "../../../../../models/Transaction.model";
-import ReferralSettingsModel from "../../../../../models/ReferralSettings.model"; // Add this import
+import ReferralSettingsModel from "../../../../../models/RefferalSetting.model"; // Add this import
 import { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } from "../../../../../config/config";
 import _db from "../../../../../utils/db";
 
