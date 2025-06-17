@@ -192,6 +192,19 @@ export const paarshEduApi = createApi({
       }),
     }),
 
+    changePassword: builder.mutation({
+      query: ({ email, userId, previousPassword, newPassword }) => ({
+        url: "user/change-password",
+        method: "PUT",
+        body: {
+          email,
+          userId,
+          previousPassword,
+          newPassword,
+        },
+      }),
+    }),
+
     resetPassword: builder.mutation({
       query: ({ email, password, otp }) => ({
         url: "user/forgot-password",
@@ -670,7 +683,7 @@ export const paarshEduApi = createApi({
     }),
 
     fetchAgentSalesAdmin: builder.query({
-      query: ({agentId}) => `/admin/agents/sales?agentId=${agentId}`,
+      query: ({ agentId }) => `/admin/agents/sales?agentId=${agentId}`,
       providesTags: ["Agent"],
     }),
 
@@ -710,7 +723,6 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["Agent"],
     }),
-
 
     // ----------------------------------------------------Offers Apis--------------------------------------------------
 
@@ -857,18 +869,18 @@ export const paarshEduApi = createApi({
 
     // Referral Settings
 
-     fetchReferralSettings: builder.query({
-      query: () => 'refferal-settings',
-      providesTags: ['ReferralSettings'],
+    fetchReferralSettings: builder.query({
+      query: () => "refferal-settings",
+      providesTags: ["ReferralSettings"],
     }),
 
     updateReferralSettings: builder.mutation({
       query: (settings) => ({
-        url: 'refferal-settings',
-        method: 'PUT',
+        url: "refferal-settings",
+        method: "PUT",
         body: settings,
       }),
-      invalidatesTags: ['ReferralSettings'],
+      invalidatesTags: ["ReferralSettings"],
     }),
 
     // ----------------------------------------------------User Practice Attempts Apis-------------------------------------------------- //
@@ -897,6 +909,7 @@ export const {
   useLoginMutation,
   useSignupMutation,
   useForgotPasswordMutation,
+  useChangePasswordMutation,
   useResetPasswordMutation,
   useLogoutMutation,
 
@@ -990,7 +1003,7 @@ export const {
   useCreateLeadMutation,
   useFetchLeadsQuery,
   useUpdateLeadMutation,
-  useDeleteLeadMutation, 
+  useDeleteLeadMutation,
 
   useFetchTransactionsQuery,
   useGrantManualCourseAccessMutation,
@@ -1011,5 +1024,4 @@ export const {
 
   useFetchUserPracticeAttemptsQuery,
   useAddUserPracticeAttemptMutation,
-
 } = paarshEduApi;
