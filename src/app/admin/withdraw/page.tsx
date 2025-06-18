@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FaRegCheckCircle, FaInfoCircle, } from "react-icons/fa";
+import { FaRegCheckCircle, FaInfoCircle, FaMoneyBillWave, FaHourglassHalf, FaTimesCircle } from "react-icons/fa";
 import { HiDotsHorizontal } from "react-icons/hi";
 import {
   Table,
@@ -22,7 +22,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Wallet,
-  Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -70,10 +69,25 @@ const WithdrawalRequestsPage: React.FC = () => {
 
   const { data: withdrawals, isLoading: isWithdrawalsLoading } = useFetchWithdrawalRequestQuery(undefined);
   const { data: usersData } = useFetchUsersQuery(undefined);
+
+  console.log("Withdrawal Request", withdrawals);
+
   const withdrawalRequests = withdrawals?.data || [];
 
   const [deleteWithdrawalRequest, { isLoading: isDeleting }] = useDeleteWithdrawalRequestMutation();
   const [updateWithdrawalRequestStatus, { isLoading: isUpdating }] = useUpdateWithdrawalRequestMutation();
+
+  // Calculate total amounts
+  const totalWithdrawalAmount = withdrawalRequests.reduce((sum, request) => sum + request.amount, 0);
+  const approvedWithdrawalAmount = withdrawalRequests
+    .filter((r) => r.status === "Approved")
+    .reduce((sum, request) => sum + request.amount, 0);
+  const pendingWithdrawalAmount = withdrawalRequests
+    .filter((r) => r.status === "Pending")
+    .reduce((sum, request) => sum + request.amount, 0);
+  const rejectedWithdrawalAmount = withdrawalRequests
+    .filter((r) => r.status === "Rejected")
+    .reduce((sum, request) => sum + request.amount, 0);
 
   // Function to get user details
   const getUserDetails = (userId: string) => {
@@ -317,7 +331,8 @@ const WithdrawalRequestsPage: React.FC = () => {
 
             <CardContent className="p-4 dark:bg-gray-800">
               {/* Stats Cards */}
-              <div className="mb-6 grid gap-4 md:grid-cols-3">
+              <div className="mb-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                {/* Total Requests */}
                 <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
                   <div className="p-4">
                     <div className="flex items-center">
@@ -338,7 +353,7 @@ const WithdrawalRequestsPage: React.FC = () => {
                   </div>
                 </div>
 
-
+                {/* Approved Requests */}
                 <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
                   <div className="p-4">
                     <div className="flex items-center">
@@ -361,6 +376,7 @@ const WithdrawalRequestsPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Pending Requests */}
                 <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
                   <div className="p-4">
                     <div className="flex items-center">
@@ -383,6 +399,89 @@ const WithdrawalRequestsPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Total Withdrawal Amount */}
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
+                  <div className="p-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                          <FaMoneyBillWave className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Total Withdrawal Amount
+                        </h3>
+                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                          {formatCurrency(totalWithdrawalAmount)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Approved Withdrawal Amount */}
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
+                  <div className="p-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                          <FaRegCheckCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Approved Amount
+                        </h3>
+                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                          {formatCurrency(approvedWithdrawalAmount)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pending Withdrawal Amount */}
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
+                  <div className="p-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                          <FaHourglassHalf className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Pending Amount
+                        </h3>
+                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                          {formatCurrency(pendingWithdrawalAmount)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rejected Withdrawal Amount */}
+                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-900">
+                  <div className="p-4">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+                          <FaTimesCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Rejected Amount
+                        </h3>
+                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
+                          {formatCurrency(rejectedWithdrawalAmount)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Table */}
@@ -730,7 +829,6 @@ const WithdrawalRequestsPage: React.FC = () => {
                   >
                     Reject
                   </Button>
-
                   <Button
                     variant="outline"
                     onClick={() => setViewOpen(false)}
@@ -738,9 +836,7 @@ const WithdrawalRequestsPage: React.FC = () => {
                   >
                     Close
                   </Button>
-
                 </div>
-
               </div>
             </DialogFooter>
           </DialogContent>
