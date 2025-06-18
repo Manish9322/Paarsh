@@ -55,4 +55,4 @@ const PracticeTestModel =
   mongoose.models.PracticeTest ||
   mongoose.model("PracticeTest", practiceTestSchema);
 
- PracticeTestModel;
+export default PracticeTestModel;

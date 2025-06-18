@@ -902,6 +902,11 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["UserPracticeAttempt", "User"],
     }),
+
+    fetchUserRefferalAdmin : builder.query({
+      query: () => "/admin/userrefferals"
+    })
+
   }),
 });
 
@@ -1021,6 +1026,7 @@ export const {
 
   useFetchReferralSettingsQuery,
   useUpdateReferralSettingsMutation,
+  useFetchUserRefferalAdminQuery,
 
   useFetchUserPracticeAttemptsQuery,
   useAddUserPracticeAttemptMutation,
