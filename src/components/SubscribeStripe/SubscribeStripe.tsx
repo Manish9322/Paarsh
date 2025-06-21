@@ -100,7 +100,7 @@ const SubscribeNewsletter: React.FC = () => {
                                         Success!
                                     </h2>
                                     <p className="text-gray-600 dark:text-gray-300 mb-6">
-                                        You have successfully subscribed to Paarshedu's newsletters. Congratulations!
+                                        You have successfully subscribed to Paarshedu newsletters. Congratulations!
                                     </p>
                                 </>
                             )}
@@ -124,7 +124,7 @@ const SubscribeNewsletter: React.FC = () => {
                                         Already Subscribed
                                     </h2>
                                     <p className="text-gray-600 dark:text-gray-300 mb-6">
-                                        This email is already subscribed to Paarshedu's newsletters.
+                                        This email is already subscribed to Paarshedu newsletters.
                                     </p>
                                 </>
                             )}
