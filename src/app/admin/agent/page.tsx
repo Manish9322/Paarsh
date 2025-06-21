@@ -26,7 +26,14 @@ import { RxCross2 } from "react-icons/rx";
 import AddAgentModal from "../../../components/Agent/AddAgent";
 import { Input } from "@/components/ui/input";
 import { skipToken } from '@reduxjs/toolkit/query/react';
-import { useDeleteAgentMutation, useFetchAgentSalesAdminQuery, useFetchAgentsQuery, useUpdateAgentMutation, useUpdateAgentTargetMutation } from "@/services/api";
+import { 
+  useDeleteAgentMutation, 
+  useFetchAgentsQuery, 
+  useUpdateAgentMutation, 
+  useCreateAgentTargetMutation,
+  useFetchAgentPerformanceQuery,
+  useFetchAgentSalesAdminQuery
+} from "@/services/api";
 import {
   Dialog,
   DialogContent,
@@ -47,7 +54,7 @@ import {
 } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-// Define Sales Data type
+// Define Sales Data type for graph
 interface SalesData {
   date: string;
   count: number;
@@ -55,28 +62,44 @@ interface SalesData {
   status: 'completed' | 'pending';
 }
 
-// Define Raw API Sales Record type based on the response
+// Define Raw API Sales Record type based on API response
 interface RawSalesRecord {
   _id: string;
-  userId: {
+  agentId: {
     _id: string;
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
+    agentCode: string;
   };
-  courseId: {
-    _id: string;
-    courseName: string;
-    price: string; // Price is a string in the response
-  };
-  orderId: string;
   amount: number;
-  agentRefCode: string;
+  saleDate: string;
   status: 'SUCCESS' | 'PENDING';
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
-  paymentId?: string;
-  signature?: string;
+  targetId?: {
+    _id: string;
+    targetAmount: number;
+    targetCount: number;
+    startDate: string;
+    endDate: string;
+    status: string;
+    targetType: string;
+  };
+}
+
+// Define Target type based on API response
+interface Target {
+  _id: string;
+  agentId: string;
+  targetAmount: number;
+  targetCount: number;
+  achievedAmount: number;
+  achievedCount: number;
+  startDate: string;
+  endDate: string;
+  status: string;
+  targetType: string;
+  amountProgress: string;
+  countProgress: string;
 }
 
 // Define Agent type
@@ -90,12 +113,104 @@ interface Agent {
   totalSale: number;
   countSale: number;
   state: string;
+  email: string;
   createdAt: string;
-  target?: {
-    count?: number;
-    price?: number;
+  activeTarget?: {
+    targetAmount: number;
+    targetCount: number;
   };
-  salesData?: SalesData[];
+}
+
+// Define Performance Data type
+interface PerformanceData {
+  agent: {
+    name: string;
+    agentCode: string;
+    totalSale: number;
+    countSale: number;
+  };
+  currentTarget: {
+    _id: string;
+    agentId: string;
+    startDate: string;
+    endDate: string;
+    targetCount: number;
+    targetAmount: number;
+    achievedCount: number;
+    achievedAmount: number;
+    status: string;
+    targetType: string;
+    countProgress: string;
+    amountProgress: string;
+    isCountAchieved: boolean;
+    isAmountAchieved: boolean;
+  } | null;
+  history: Array<{
+    _id: string;
+    agentId: string;
+    startDate: string;
+    endDate: string;
+    targetCount: number;
+    targetAmount: number;
+    achievedCount: number;
+    achievedAmount: number;
+    status: string;
+    targetType: string;
+    notes: string;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  summary: {
+    totalTargets: number;
+    completedTargets: number;
+    achievedTargets: number;
+    successRate: string;
+  };
+}
+
+// Define Sales API Response type based on provided API
+interface SalesApiResponse {
+  agent: {
+    id: string;
+    name: string;
+    email: string;
+    agentCode: string;
+    totalSale: number;
+    countSale: number;
+  };
+  sales: {
+    all: RawSalesRecord[];
+    monthly: RawSalesRecord[];
+    yearly: RawSalesRecord[];
+  };
+  summary: {
+    total: {
+      amount: number;
+      count: number;
+    };
+    monthly: {
+      amount: number;
+      count: number;
+    };
+    yearly: {
+      amount: number;
+      count: number;
+    };
+  };
+  activeTargets: Target[];
+  targetProgress: Array<{
+    targetId: string;
+    targetType: string;
+    targetAmount: number;
+    targetCount: number;
+    achievedAmount: number;
+    achievedCount: number;
+    amountProgress: string;
+    countProgress: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+  }>;
 }
 
 const AgentPage: React.FC = () => {
@@ -111,8 +226,14 @@ const AgentPage: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [agentToDelete, setAgentToDelete] = useState<string | null>(null);
   const [targetModalOpen, setTargetModalOpen] = useState(false);
-  const [targetValue, setTargetValue] = useState<number>(0);
-  const [targetType, setTargetType] = useState<"count" | "price">("count");
+  const [targetForm, setTargetForm] = useState({
+    startDate: "",
+    endDate: "",
+    targetCount: 0,
+    targetAmount: 0,
+    targetType: "monthly" as "monthly" | "quarterly" | "yearly" | "custom",
+    notes: "",
+  });
   const [timeFilter, setTimeFilter] = useState<"daily" | "yesterday" | "weekly" | "monthly" | "yearly">("monthly");
   const [chartMetric, setChartMetric] = useState<"count" | "revenue">("count");
 
@@ -133,29 +254,31 @@ const AgentPage: React.FC = () => {
   const agents: Agent[] = agentData?.data || [];
   const startIndex = (currentPage - 1) * agentsPerPage;
 
-  const [_DELETEAGENT, { isLoading: isDeleteLoading, error: deleteError }] =
-    useDeleteAgentMutation();
-  const [updateAgent] = useUpdateAgentMutation();
-  const [updateAgentTarget, { isLoading: isTargetUpdating }] = useUpdateAgentTargetMutation();
+  const [deleteAgent, { isLoading: isDeleteLoading }] = useDeleteAgentMutation();
+  const [createAgentTarget, { isLoading: isTargetCreating }] = useCreateAgentTargetMutation();
+  const { data: performanceData, isLoading: isPerformanceLoading } = 
+    useFetchAgentPerformanceQuery(selectedAgent ? { id: selectedAgent._id } : skipToken);
 
-  // Fetch sales data dynamically
-  const { data: salesDataResponse, isLoading: isSalesLoading, error: salesError } = useFetchAgentSalesAdminQuery(
-    selectedAgent ? { agentId: selectedAgent._id, timeFilter } : skipToken
+  // Fetch sales data using the new RTK query
+  const { data: salesDataResponse, isLoading: isSalesLoading } = useFetchAgentSalesAdminQuery(
+    selectedAgent ? { agentId: selectedAgent._id } : skipToken
   );
 
-  // Transform and aggregate sales data
+  // Transform and aggregate sales data for the graph
   const completedSales = useMemo(() => {
-    if (!salesDataResponse?.data?.completed) {
+    if (!salesDataResponse?.data?.sales?.all) {
       return [];
     }
 
     // Transform raw sales records to SalesData format
-    const transformedSales: SalesData[] = salesDataResponse.data.completed.map((sale: RawSalesRecord) => ({
-      date: new Date(sale.createdAt).toISOString().split('T')[0], // Format as YYYY-MM-DD
-      count: 1, // Each sale counts as 1
-      revenue: parseFloat(sale.courseId.price), // Use course price as revenue
-      status: sale.status === 'SUCCESS' ? 'completed' : 'pending',
-    }));
+    const transformedSales: SalesData[] = salesDataResponse.data.sales.all
+      .filter(sale => sale.status === 'SUCCESS') // Only completed sales
+      .map((sale: RawSalesRecord) => ({
+        date: new Date(sale.saleDate).toISOString().split('T')[0], // Format as YYYY-MM-DD
+        count: 1, // Each sale counts as 1
+        revenue: sale.amount, // Use sale.amount as revenue
+        status: 'completed',
+      }));
 
     // Aggregate by date
     const aggregatedSales = transformedSales.reduce((acc: { [key: string]: SalesData }, sale) => {
@@ -201,10 +324,13 @@ const AgentPage: React.FC = () => {
   }, [completedSales, timeFilter]);
 
   useEffect(() => {
-    if (salesError) {
+    if (salesDataResponse?.success === false) {
       toast.error("Failed to fetch sales data. Please try again.");
     }
-  }, [salesError]);
+    if (performanceData?.success === false) {
+      toast.error("Failed to fetch performance data. Please try again.");
+    }
+  }, [salesDataResponse, performanceData]);
 
   const handleSort = (field: keyof Agent) => {
     setSortField(field);
@@ -213,19 +339,17 @@ const AgentPage: React.FC = () => {
 
   const filteredAgents = agents.filter((agent) =>
     Object.values(agent).some((value) =>
-      value.toString().toLowerCase().includes(searchTerm.toLowerCase()),
+      value?.toString().toLowerCase().includes(searchTerm.toLowerCase()),
     ),
   );
 
   const sortedAgents = [...filteredAgents].sort((a, b) => {
     if (!sortField) return 0;
+    const aValue = a[sortField] ?? '';
+    const bValue = b[sortField] ?? '';
     return sortOrder === "asc"
-      ? a[sortField] > b[sortField]
-        ? 1
-        : -1
-      : a[sortField] < b[sortField]
-        ? 1
-        : -1;
+      ? aValue > bValue ? 1 : -1
+      : aValue < bValue ? 1 : -1;
   });
 
   const totalPages = Math.ceil(sortedAgents.length / agentsPerPage);
@@ -242,7 +366,7 @@ const AgentPage: React.FC = () => {
   const handleDeleteAgent = async () => {
     try {
       if (!agentToDelete) return;
-      const response = await _DELETEAGENT({ id: agentToDelete }).unwrap();
+      const response = await deleteAgent({ id: agentToDelete }).unwrap();
 
       if (response?.success) {
         toast.success("Agent deleted successfully");
@@ -251,10 +375,7 @@ const AgentPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error deleting agent:", error);
-      toast.error(
-        error?.data?.message ||
-          "Failed to Delete the agent. Please try again.",
-      );
+      toast.error("Failed to delete the agent. Please try again.");
     }
   };
 
@@ -307,29 +428,39 @@ const AgentPage: React.FC = () => {
     try {
       if (!selectedAgent?._id) return;
 
-      const response = await updateAgentTarget({
-        id: selectedAgent._id,
-        targetType,
-        targetValue
-      }).unwrap();
+      const formData = {
+        agentId: selectedAgent._id,
+        startDate: targetForm.startDate,
+        endDate: targetForm.endDate,
+        targetCount: targetForm.targetCount,
+        targetAmount: targetForm.targetAmount,
+        targetType: targetForm.targetType,
+        notes: targetForm.notes,
+      };
+
+      const response = await createAgentTarget(formData).unwrap();
       
       if (response?.success) {
-        toast.success(`Target set to ${targetValue} ${targetType === "count" ? "courses" : "rupees"}`);
+        toast.success(`Target set successfully for ${selectedAgent.firstName} ${selectedAgent.lastName}`);
         setTargetModalOpen(false);
-        setTargetValue(0);
+        setTargetForm({
+          startDate: "",
+          endDate: "",
+          targetCount: 0,
+          targetAmount: 0,
+          targetType: "monthly",
+          notes: "",
+        });
       } else {
-        throw new Error(response?.message || "Failed to update target");
+        throw new Error(response?.message || "Failed to create target");
       }
     } catch (error) {
       console.error("Error setting target:", error);
-      toast.error(
-        error?.data?.message || error?.message ||
-        "Failed to set target. Please try again."
-      );
+      toast.error("Failed to set target. Please try again.");
     }
   };
 
-  // Custom tooltip formatter for better readability
+  // Custom tooltip formatter for graph
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -362,7 +493,8 @@ const AgentPage: React.FC = () => {
         <aside
           className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:sticky md:top-0 md:h-screen md:translate-x-0`}
+          } md:sticky md:top-0 Sharp Grok, AI assistant created by xAI
+md:h-screen md:translate-x-0`}
         >
           <div className="h-16 md:h-0"></div>
           <Sidebar userRole="admin" />
@@ -384,7 +516,7 @@ const AgentPage: React.FC = () => {
                   <CardTitle className="text-xl font-bold text-white sm:text-2xl">
                     Agent Management
                   </CardTitle>
-                  <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center">
                     <Input
                       type="text"
                       placeholder="Search agents..."
@@ -586,11 +718,10 @@ const AgentPage: React.FC = () => {
                       ) : displayedAgents.length === 0 ? (
                         <TableRow>
                           <TableCell
-                            colSpan={7}
+                            colSpan={10}
                             className="py-6 text-center text-gray-500"
                           >
-                            No agents found. Try a different search term or add
-                            a new agent.
+                            No agents found. Try a different search term diaries or add a new agent.
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -613,14 +744,19 @@ const AgentPage: React.FC = () => {
                                 <p className="text-xs text-gray-500">
                                   Sales: {agent.countSale}
                                 </p>
-                                {agent.target?.count > 0 ? (
-                                  <p className="text-xs text-blue-600 dark:text-blue-400">
-                                    Target: {agent.target.count} courses
-                                  </p>
-                                ) : agent.target?.price > 0 ? (
-                                  <p className="text-xs text-green-600 dark:text-green-400">
-                                    Target: ₹{agent.target.price}
-                                  </p>
+                                {agent.activeTarget ? (
+                                  <div className="space-y-1">
+                                    {agent.activeTarget.targetCount > 0 && (
+                                      <p className="text-xs text-blue-600 dark:text-blue-400">
+                                        Target Courses: {agent.activeTarget.targetCount}
+                                      </p>
+                                    )}
+                                    {agent.activeTarget.targetAmount > 0 && (
+                                      <p className="text-xs text-green-600 dark:text-green-400">
+                                        Target Revenue: ₹{agent.activeTarget.targetAmount}
+                                      </p>
+                                    )}
+                                  </div>
                                 ) : null}
                               </div>
                               <span className="hidden sm:inline">
@@ -637,36 +773,41 @@ const AgentPage: React.FC = () => {
                               {agent.agentCode}
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
-                              {agent.countSale}
+                              ₹{agent.totalSale}
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
-                              {agent.totalSale}
+                              {agent.countSale}
                             </TableCell>
                             <TableCell className="hidden lg:table-cell">
                               {agent.state}
                             </TableCell>
                             <TableCell className="hidden lg:table-cell">
-                              {agent.target?.count > 0 ? (
-                                <div className="flex items-center">
-                                  <span className="mr-1 text-sm font-medium">
-                                    {agent.target.count}
-                                  </span>
-                                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
-                                    Courses
-                                  </span>
-                                </div>
-                              ) : agent.target?.price > 0 ? (
-                                <div className="flex items-center">
-                                  <span className="mr-1 text-sm font-medium">
-                                    ₹{agent.target.price}
-                                  </span>
-                                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                                    Revenue
-                                  </span>
+                              {agent.activeTarget ? (
+                                <div className="space-y-1">
+                                  {agent.activeTarget.targetCount > 0 && (
+                                    <div className="flex items-center">
+                                      <span className="mr-1 text-sm font-medium">
+                                        {agent.activeTarget.targetCount}
+                                      </span>
+                                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                        Courses
+                                      </span>
+                                    </div>
+                                  )}
+                                  {agent.activeTarget.targetAmount > 0 && (
+                                    <div className="flex items-center">
+                                      <span className="mr-1 text-sm font-medium">
+                                        ₹{agent.activeTarget.targetAmount}
+                                      </span>
+                                      <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                        Revenue
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               ) : (
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                                  No target set
+                                  No active target
                                 </span>
                               )}
                             </TableCell>
@@ -708,16 +849,14 @@ const AgentPage: React.FC = () => {
                                   className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-purple-50 text-purple-600 transition-all duration-200 hover:bg-purple-100 hover:text-purple-700 hover:shadow-md dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/30 dark:hover:text-purple-300"
                                   onClick={() => {
                                     setSelectedAgent(agent);
-                                    if (agent.target?.count) {
-                                      setTargetType("count");
-                                      setTargetValue(agent.target.count);
-                                    } else if (agent.target?.price) {
-                                      setTargetType("price");
-                                      setTargetValue(agent.target.price);
-                                    } else {
-                                      setTargetType("count");
-                                      setTargetValue(0);
-                                    }
+                                    setTargetForm({
+                                      startDate: "",
+                                      endDate: "",
+                                      targetCount: 0,
+                                      targetAmount: 0,
+                                      targetType: "monthly",
+                                      notes: "",
+                                    });
                                     setTargetModalOpen(true);
                                   }}
                                   aria-label="Set target for agent"
@@ -809,6 +948,14 @@ const AgentPage: React.FC = () => {
                           </div>
                           <div className="grid grid-cols-3 px-4 py-3">
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Email
+                            </span>
+                            <span className="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+                              {selectedAgent.email}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 px-4 py-3">
+                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               Contact
                             </span>
                             <span className="col-span-2 text-sm text-gray-600 dark:text-gray-400">
@@ -823,10 +970,18 @@ const AgentPage: React.FC = () => {
                               {selectedAgent.state}
                             </span>
                           </div>
+                          <div className="grid grid-cols-3 px-4 py-3">
+                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                              Agent Code
+                            </span>
+                            <span className="col-span-2 text-sm text-gray-600 dark:text-gray-400">
+                              {selectedAgent.agentCode}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-800">
+                      <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
                         <div className="bg-gray-50 px-4 py-2 dark:bg-gray-700">
                           <div className="flex items-center justify-between">
                             <h3 className="font-medium text-gray-700 dark:text-gray-300">
@@ -837,7 +992,7 @@ const AgentPage: React.FC = () => {
                                 value={chartMetric}
                                 onValueChange={(value: "count" | "revenue") => setChartMetric(value)}
                               >
-                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-200">
+                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-900">
                                   <SelectValue placeholder="Select metric" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -849,7 +1004,7 @@ const AgentPage: React.FC = () => {
                                 value={timeFilter}
                                 onValueChange={(value: typeof timeFilter) => setTimeFilter(value)}
                               >
-                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-200">
+                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-900">
                                   <SelectValue placeholder="Select period" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -864,79 +1019,372 @@ const AgentPage: React.FC = () => {
                           </div>
                         </div>
                         <div className="p-4">
-                          <div className="grid grid-cols-3 px-4 py-3">
-                            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                              Total Completed Sales
-                            </span>
-                            <div className="col-span-2 flex items-center">
-                              {isSalesLoading ? (
-                                <Skeleton className="h-4 w-20" />
-                              ) : (
-                                <>
+                          {isSalesLoading ? (
+                            <div className="space-y-4">
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-48 w-full" />
+                            </div>
+                          ) : !salesDataResponse?.success ? (
+                            <div className="flex h-64 items-center justify-center text-sm text-red-500 dark:text-red-400">
+                              Error loading sales data
+                            </div>
+                          ) : (
+                            <>
+                              <div className="grid grid-cols-3 gap-4 px-4 py-3">
+                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                  Total Sales Count
+                                </span>
+                                <div className="col-span-2 flex items-center">
                                   <span className="text-sm text-gray-900 dark:text-gray-200">
-                                    {selectedAgent.countSale}
+                                    {salesDataResponse?.data?.summary?.total?.count || 0}
                                   </span>
                                   <div className="ml-2 h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
                                     <div
                                       className="h-full rounded-full bg-blue-500"
                                       style={{
-                                        width: `${Math.min(selectedAgent.countSale * 5, 100)}%`,
+                                        width: `${Math.min((salesDataResponse?.data?.summary?.total?.count || 0) * 5, 100)}%`,
                                       }}
                                     ></div>
                                   </div>
-                                </>
-                              )}
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4 px-4 py-3">
+                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                  Total Revenue
+                                </span>
+                                <div className="col-span-2 flex items-center">
+                                  <span className="text-sm text-gray-900 dark:text-gray-200">
+                                    ₹{salesDataResponse?.data?.summary?.total?.amount || 0}
+                                  </span>
+                                  <div className="ml-2 h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
+                                    <div
+                                      className="h-full rounded-full bg-green-500"
+                                      style={{
+                                        width: `${Math.min((salesDataResponse?.data?.summary?.total?.amount || 0) / 1000, 100)}%`,
+                                      }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4 px-4 py-3">
+                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                  Monthly Sales
+                                </span>
+                                <div className="col-span-2 flex items-center">
+                                  <span className="text-sm text-gray-900 dark:text-gray-200">
+                                    {salesDataResponse?.data?.summary?.monthly?.count || 0} (₹{salesDataResponse?.data?.summary?.monthly?.amount || 0})
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4 px-4 py-3">
+                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                  Yearly Sales
+                                </span>
+                                <div className="col-span-2 flex items-center">
+                                  <span className="text-sm text-gray-900 dark:text-gray-200">
+                                    {salesDataResponse?.data?.summary?.yearly?.count || 0} (₹{salesDataResponse?.data?.summary?.yearly?.amount || 0})
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="mt-4 h-64">
+                                {filteredCompletedSales.length === 0 ? (
+                                  <div className="flex h-full items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+                                    No completed sales data available for the selected period
+                                  </div>
+                                ) : (
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart 
+                                      data={filteredCompletedSales}
+                                      margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+                                    >
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                      <XAxis 
+                                        dataKey="date" 
+                                        tick={{ fill: '#6b7280', fontSize: 12 }}
+                                        tickMargin={10}
+                                        tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                      />
+                                      <YAxis 
+                                        tick={{ fill: '#6b7280', fontSize: 12 }}
+                                        tickFormatter={(value) => chartMetric === "revenue" ? `₹${value.toLocaleString()}` : value.toString()}
+                                        width={80}
+                                      />
+                                      <Tooltip content={<CustomTooltip />} />
+                                      <Legend 
+                                        verticalAlign="top" 
+                                        height={36}
+                                        formatter={() => chartMetric === "count" ? "Sales Count" : "Revenue (₹)"}
+                                      />
+                                      <Line 
+                                        type="monotone" 
+                                        dataKey={chartMetric}
+                                        stroke={chartMetric === "count" ? "#3b82f6" : "#10b981"}
+                                        strokeWidth={2}
+                                        dot={{ r: 4 }}
+                                        activeDot={{ r: 6 }}
+                                        name={chartMetric === "count" ? "Sales Count" : "Revenue (₹)"}
+                                      />
+                                    </LineChart>
+                                  </ResponsiveContainer>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
+                        <div className="bg-gray-50 px-4 py-2 dark:bg-gray-700">
+                          <h3 className="font-medium text-gray-700 dark:text-gray-300">
+                            Target Performance
+                          </h3>
+                        </div>
+                        <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                          {isPerformanceLoading ? (
+                            <div className="p-4">
+                              <Skeleton className="h-4 w-full mb-2" />
+                              <Skeleton className="h-4 w-full mb-2" />
+                              <Skeleton className="h-4 w-full" />
                             </div>
-                          </div>
-                          <div className="mt-4 h-64">
-                            {isSalesLoading ? (
-                              <div className="flex h-full items-center justify-center">
-                                <Skeleton className="h-48 w-full" />
+                          ) : !performanceData?.success ? (
+                            <div className="p-4 text-center text-sm text-red-500 dark:text-red-400">
+                              Error loading target performance data
+                            </div>
+                          ) : (
+                            <>
+                              <div className="px-4 py-3">
+                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                  Current Target
+                                </h4>
+                                {performanceData?.data?.currentTarget ? (
+                                  <div className="mt-2 space-y-2">
+                                    <div className="grid grid-cols-3 gap-4">
+                                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                                        Type
+                                      </span>
+                                      <span className="col-span-2 text-sm text-gray-900 dark:text-white capitalize">
+                                        {performanceData.data.currentTarget.targetType}
+                                      </span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                                        Period
+                                      </span>
+                                      <span className="col-span-2 text-sm text-gray-900 dark:text-white">
+                                        {new Date(performanceData.data.currentTarget.startDate).toLocaleDateString()} - 
+                                        {new Date(performanceData.data.currentTarget.endDate).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                                        Course Sales Target
+                                      </span>
+                                      <div className="col-span-2 flex items-center">
+                                        <span className="text-sm text-gray-900 dark:text-white">
+                                          {performanceData.data.currentTarget.achievedCount} / {performanceData.data.currentTarget.targetCount}
+                                        </span>
+                                        <div className="ml-2 h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
+                                          <div
+                                            className="h-full rounded-full bg-blue-500"
+                                            style={{ width: `${performanceData.data.currentTarget.countProgress}%` }}
+                                          ></div>
+                                        </div>
+                                        <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">
+                                          ({performanceData.data.currentTarget.countProgress}%)
+                                        </span>
+                                        {performanceData.data.currentTarget.isCountAchieved && (
+                                          <span className="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                            Achieved
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                                        Revenue Target
+                                      </span>
+                                      <div className="col-span-2 flex items-center">
+                                        <span className="text-sm text-gray-900 dark:text-white">
+                                          ₹{performanceData.data.currentTarget.achievedAmount.toLocaleString()} / ₹{performanceData.data.currentTarget.targetAmount.toLocaleString()}
+                                        </span>
+                                        <div className="ml-2 h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
+                                          <div
+                                            className="h-full rounded-full bg-green-500"
+                                            style={{ width: `${performanceData.data.currentTarget.amountProgress}%` }}
+                                          ></div>
+                                        </div>
+                                        <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">
+                                          ({performanceData.data.currentTarget.amountProgress}%)
+                                        </span>
+                                        {performanceData.data.currentTarget.isAmountAchieved && (
+                                          <span className="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                            Achieved
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                                        Status
+                                      </span>
+                                      <span className="col-span-2 text-sm text-gray-900 dark:text-white capitalize">
+                                        {performanceData.data.currentTarget.status}
+                                      </span>
+                                    </div>
+                                    {performanceData.data.currentTarget.notes && (
+                                      <div className="grid grid-cols-3 gap-4">
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                                          Notes
+                                        </span>
+                                        <span className="col-span-2 text-sm text-gray-900 dark:text-white">
+                                          {performanceData.data.currentTarget.notes}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                    No current target
+                                  </p>
+                                )}
                               </div>
-                            ) : salesError ? (
-                              <div className="flex h-full items-center justify-center text-sm text-red-500 dark:text-red-400">
-                                Error loading sales data
+                              <div className="px-4 py-3">
+                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                  Target History
+                                </h4>
+                                {performanceData?.data?.history?.length > 0 ? (
+                                  <div className="mt-2 space-y-4">
+                                    {performanceData.data.history.map((target) => (
+                                      <div key={target._id} className="space-y-2 border-t border-gray-100 pt-2 dark:border-gray-700">
+                                        <div className="grid grid-cols-3 gap-4">
+                                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                                            Type
+                                          </span>
+                                          <span className="col-span-2 text-sm text-gray-900 dark:text-white capitalize">
+                                            {target.targetType}
+                                          </span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4">
+                                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                                            Period
+                                          </span>
+                                          <span className="col-span-2 text-sm text-gray-900 dark:text-white">
+                                            {new Date(target.startDate).toLocaleDateString()} - 
+                                            {new Date(target.endDate).toLocaleDateString()}
+                                          </span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4">
+                                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                                            Course Sales
+                                          </span>
+                                          <div className="col-span-2 flex items-center">
+                                            <span className="text-sm text-gray-900 dark:text-white">
+                                              {target.achievedCount} / {target.targetCount}
+                                            </span>
+                                            <div className="ml-2 h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
+                                              <div
+                                                className="h-full rounded-full bg-blue-500"
+                                                style={{ width: `${(target.achievedCount / target.targetCount * 100).toFixed(2)}%` }}
+                                              ></div>
+                                            </div>
+                                            <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">
+                                              ({(target.achievedCount / target.targetCount * 100).toFixed(2)}%)
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4">
+                                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                                            Revenue
+                                          </span>
+                                          <div className="col-span-2 flex items-center">
+                                            <span className="text-sm text-gray-900 dark:text-white">
+                                              ₹{target.achievedAmount.toLocaleString()} / ₹{target.targetAmount.toLocaleString()}
+                                            </span>
+                                            <div className="ml-2 h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
+                                              <div
+                                                className="h-full rounded-full bg-green-500"
+                                                style={{ width: `${(target.achievedAmount / target.targetAmount * 100).toFixed(2)}%` }}
+                                              ></div>
+                                            </div>
+                                            <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">
+                                              ({(target.achievedAmount / target.targetAmount * 100).toFixed(2)}%)
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4">
+                                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                                            Status
+                                          </span>
+                                          <span className="col-span-2 text-sm text-gray-900 dark:text-white capitalize">
+                                            {target.status}
+                                          </span>
+                                        </div>
+                                        {target.notes && (
+                                          <div className="grid grid-cols-3 gap-4">
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                                              Notes
+                                            </span>
+                                            <span className="col-span-2 text-sm text-gray-900 dark:text-white">
+                                              {target.notes}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                    No target history
+                                  </p>
+                                )}
                               </div>
-                            ) : filteredCompletedSales.length === 0 ? (
-                              <div className="flex h-full items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-                                No completed sales data available
+                              <div className="px-4 py-3">
+                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                  Target Summary
+                                </h4>
+                                <div className="mt-2 space-y-2">
+                                  <div className="grid grid-cols-3 gap-4">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                      Total Targets
+                                    </span>
+                                    <span className="col-span-2 text-sm text-gray-900 dark:text-white">
+                                      {performanceData?.data?.summary?.totalTargets || 0}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-4">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                      Completed Targets
+                                    </span>
+                                    <span className="col-span-2 text-sm text-gray-900 dark:text-white">
+                                      {performanceData?.data?.summary?.completedTargets || 0}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-4">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                      Achieved Targets
+                                    </span>
+                                    <div className="col-span-2 flex items-center">
+                                      <span className="text-sm text-gray-900 dark:text-white">
+                                        {performanceData?.data?.summary?.achievedTargets || 0}
+                                      </span>
+                                      <div className="ml-2 h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
+                                        <div
+                                          className="h-full rounded-full bg-purple-500"
+                                          style={{
+                                            width: `${(performanceData?.data?.summary?.achievedTargets / performanceData?.data?.summary?.totalTargets * 100) || 0}%`,
+                                          }}
+                                        ></div>
+                                      </div>
+                                      <span className="ml-2 text-xs text-gray-600 dark:text-gray-400">
+                                        ({performanceData?.data?.summary?.successRate || '0'}%)
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
                               </div>
-                            ) : (
-                              <ResponsiveContainer width="100%" height="100%">
-                                <LineChart 
-                                  data={filteredCompletedSales}
-                                  margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
-                                >
-                                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                  <XAxis 
-                                    dataKey="date" 
-                                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                                    tickMargin={10}
-                                  />
-                                  <YAxis 
-                                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                                    tickFormatter={(value) => chartMetric === "revenue" ? `₹${value}` : value}
-                                    width={60}
-                                  />
-                                  <Tooltip content={<CustomTooltip />} />
-                                  <Legend 
-                                    verticalAlign="top" 
-                                    height={36}
-                                    formatter={(value) => chartMetric === "count" ? "Sales Count" : "Revenue (₹)"}
-                                  />
-                                  <Line 
-                                    type="monotone" 
-                                    dataKey={chartMetric}
-                                    stroke={chartMetric === "count" ? "#3b82f6" : "#10b981"}
-                                    strokeWidth={2}
-                                    dot={{ r: 4 }}
-                                    activeDot={{ r: 6 }}
-                                    name={chartMetric === "count" ? "Sales Count" : "Revenue (₹)"}
-                                  />
-                                </LineChart>
-                              </ResponsiveContainer>
-                            )}
-                          </div>
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -1034,58 +1482,118 @@ const AgentPage: React.FC = () => {
                     </button>
                   </div>
                   
-                  <div className="py-4">
-                    <div className="mb-4 space-y-4">
-                      <div>
-                        <Label htmlFor="targetType" className="mb-2 block text-sm font-medium">
-                          Target Type
-                        </Label>
-                        <Select
-                          value={targetType}
-                          onValueChange={(value: "count" | "price") => {
-                            setTargetType(value);
-                            setTargetValue(0);
-                          }}
-                        >
-                          <SelectTrigger id="targetType" className="w-full dark:border-gray-700 dark:bg-gray-900">
-                            <SelectValue placeholder="Select target type" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="count">Courses Sold Count</SelectItem>
-                            <SelectItem value="price">Sales Amount Target</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div>
-                        <Label htmlFor="targetValue" className="mb-2 block text-sm font-medium">
-                          {targetType === "count" ? "Course Sales Target" : "Revenue Target"}
-                        </Label>
-                        <Input 
-                          id="targetValue"
-                          type="number" 
-                          value={targetValue}
-                          onChange={(e) => setTargetValue(Number(e.target.value))}
-                          min={0}
-                          className="w-full dark:border-gray-700 dark:bg-gray-900"
-                          placeholder={`Enter ${targetType === "count" ? "course count" : "revenue"} target`}
-                        />
-                      </div>
+                  <div className="py-4 space-y-4">
+                    <div>
+                      <Label htmlFor="targetType" className="mb-2 block text-sm font-medium">
+                        Target Type
+                      </Label>
+                      <Select
+                        value={targetForm.targetType}
+                        onValueChange={(value: "monthly" | "quarterly" | "yearly" | "custom") => 
+                          setTargetForm({ ...targetForm, targetType: value })}
+                      >
+                        <SelectTrigger id="targetType" className="w-full dark:border-gray-700 dark:bg-gray-900">
+                          <SelectValue placeholder="Select target type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                          <SelectItem value="quarterly">Quarterly</SelectItem>
+                          <SelectItem value="yearly">Yearly</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {targetType === "count" 
-                        ? "This target represents the number of courses the agent should sell." 
-                        : "This target represents the total revenue the agent should generate."}
-                    </p>
+                    
+                    <div>
+                      <Label htmlFor="startDate" className="mb-2 block text-sm font-medium">
+                        Start Date
+                      </Label>
+                      <Input 
+                        id="startDate"
+                        type="date" 
+                        value={targetForm.startDate}
+                        onChange={(e) => setTargetForm({ ...targetForm, startDate: e.target.value })}
+                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="endDate" className="mb-2 block text-sm font-medium">
+                        End Date
+                      </Label>
+                      <Input 
+                        id="endDate"
+                        type="date" 
+                        value={targetForm.endDate}
+                        onChange={(e) => setTargetForm({ ...targetForm, endDate: e.target.value })}
+                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="targetCount" className="mb-2 block text-sm font-medium">
+                        Course Sales Target
+                      </Label>
+                      <Input 
+                        id="targetCount"
+                        type="number" 
+                        value={targetForm.targetCount}
+                        onChange={(e) => setTargetForm({ ...targetForm, targetCount: Number(e.target.value) })}
+                        min={0}
+                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        placeholder="Enter course count target"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="targetAmount" className="mb-2 block text-sm font-medium">
+                        Revenue Target
+                      </Label>
+                      <Input 
+                        id="targetAmount"
+                        type="number" 
+                        value={targetForm.targetAmount}
+                        onChange={(e) => setTargetForm({ ...targetForm, targetAmount: Number(e.target.value) })}
+                        min={0}
+                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        placeholder="Enter revenue target"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="notes" className="mb-2 block text-sm font-medium">
+                        Notes
+                      </Label>
+                      <Input 
+                        id="notes"
+                        type="text" 
+                        value={targetForm.notes}
+                        onChange={(e) => setTargetForm({ ...targetForm, notes: e.target.value })}
+                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        placeholder="Enter any additional notes"
+                      />
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    Set the target period and goals for the agent.
                   </div>
                   
-                  <div className="mt-6 flex justify-end">
+                  <div className="mt-6 flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setTargetModalOpen(false)}
+                      className="w-full sm:w-auto"
+                    >
+                      Cancel
+                    </Button>
                     <Button
                       onClick={handleSetTarget}
-                      className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-                      disabled={isTargetUpdating}
+                      className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 sm:w-auto"
+                      disabled={isTargetCreating || !targetForm.startDate || !targetForm.endDate}
                     >
-                      {isTargetUpdating ? "Setting Target..." : "Set Target"}
+                      {isTargetCreating ? "Setting Target..." : "Set Target"}
                     </Button>
                   </div>
                 </div>

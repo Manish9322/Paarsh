@@ -6,6 +6,8 @@ import CourseModel from "../../../../models/Courses/Course.model";
 import { RAZORPAY_KEY_SECRET } from "../../../../config/config";
 import AgentModel from "models/Agent.model";
 import ReferralSettingsModel from "models/RefferalSetting.model";
+import TargetModel from "models/AgentTarget.model";
+import SaleModel from "models/AgentSale.model";
 import mongoose from "mongoose";
 
 export const POST = async (request) => {
@@ -87,9 +89,11 @@ export const POST = async (request) => {
     transaction.signature = razorpaySignature;
     await transaction.save();
     
+    let agent = null;
+    
     // Handle agent referral code if present
     if (transaction.agentRefCode) {
-      const agent = await AgentModel.findOne({
+      agent = await AgentModel.findOne({
         agentCode: transaction.agentRefCode,
       });
 
@@ -116,7 +120,47 @@ export const POST = async (request) => {
       );
     }
 
-    // Check if user has any valid purchased courses (in new format)
+    // Record agent sale if agent exists
+    if (agent) {
+      try {
+        const saleDate = new Date();
+        
+        // Find active target for this sale date
+        const activeTarget = await TargetModel.findOne({
+          agentId: agent._id,
+          status: "active",
+          startDate: { $lte: saleDate },
+          endDate: { $gte: saleDate }
+        });
+
+        // Create sale record
+        const newSale = new SaleModel({
+          agentId: agent._id,
+          targetId: activeTarget ? activeTarget._id : null,
+          amount: transaction.amount,
+          saleDate: saleDate,
+          description: `Course purchase: ${course.title || 'Course'}`,
+          customerName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
+        });
+
+        await newSale.save();
+
+        // Update target achievement if active target exists
+        if (activeTarget) {
+          activeTarget.achievedCount += 1;
+          activeTarget.achievedAmount += transaction.amount;
+          await activeTarget.save();
+        }
+
+        console.log(`Sale recorded for agent ${agent.agentCode}: Amount ${transaction.amount}`);
+      } catch (saleError) {
+        console.error("Error recording agent sale:", saleError);
+        // Don't fail the entire payment process if sale recording fails
+        // Just log the error and continue
+      }
+    }
+
+    // Check if user has any valid purchased courses (all data is in new format)
     const validPurchasedCourses = (user.purchasedCourses || []).filter(
       pc => pc && pc.course && pc.expiryDate
     );
@@ -164,106 +208,20 @@ export const POST = async (request) => {
       Date.now() + course.duration * 24 * 60 * 60 * 1000
     );
 
-    // Auto-migrate user's purchasedCourses if they have old format data
-    if (user.purchasedCourses && user.purchasedCourses.length > 0) {
-      const needsMigration = user.purchasedCourses.some(course => {
-        return typeof course === 'string' || 
-               (course && mongoose.Types.ObjectId.isValid(course) && !course.course);
-      });
-
-      if (needsMigration) {
-        console.log(`Auto-migrating purchasedCourses for user: ${userId}`);
-        
-        // Migrate existing courses
-        const migratedCourses = [];
-        for (const courseRef of user.purchasedCourses) {
-          let oldCourseId;
-          
-          if (typeof courseRef === 'string') {
-            oldCourseId = courseRef;
-          } else if (courseRef && courseRef.course) {
-            // Already in new format
-            migratedCourses.push(courseRef);
-            continue;
-          } else if (mongoose.Types.ObjectId.isValid(courseRef)) {
-            oldCourseId = courseRef.toString();
-          } else {
-            continue; // Skip invalid entries
-          }
-
-          try {
-            const oldCourse = await CourseModel.collection.findOne({
-              _id: new mongoose.Types.ObjectId(oldCourseId)
-            });
-
-            if (oldCourse) {
-              const durationInDays = oldCourse.duration || 365;
-              const purchaseDate = new Date();
-              const oldExpiryDate = new Date(
-                purchaseDate.getTime() + durationInDays * 24 * 60 * 60 * 1000
-              );
-
-              migratedCourses.push({
-                course: new mongoose.Types.ObjectId(oldCourseId),
-                purchaseDate: purchaseDate,
-                expiryDate: oldExpiryDate,
-                isExpired: false
-              });
-            }
-          } catch (error) {
-            console.log(`Error migrating course ${oldCourseId}:`, error.message);
-          }
-        }
-
-        // Add the new course
-        migratedCourses.push({
-          course: courseId,
-          purchaseDate: new Date(),
-          expiryDate: expiryDate,
-          isExpired: false,
-        });
-
-        // Update with all migrated courses
-        await UserModel.collection.updateOne(
-          { _id: userId },
-          {
-            $set: {
-              purchasedCourses: migratedCourses
-            }
-          }
-        );
-      } else {
-        // No migration needed, just add new course
-        await UserModel.collection.updateOne(
-          { _id: userId },
-          {
-            $push: {
-              purchasedCourses: {
-                course: courseId,
-                purchaseDate: new Date(),
-                expiryDate: expiryDate,
-                isExpired: false,
-              },
-            },
-          }
-        );
-      }
-    } else {
-      // No existing courses, just add new one
-      await UserModel.collection.updateOne(
-        { _id: userId },
-        {
-          $push: {
-            purchasedCourses: {
-              course: courseId,
-              purchaseDate: new Date(),
-              expiryDate: expiryDate,
-              isExpired: false,
-            },
+    // Add new course to user's purchased courses (using new format)
+    await UserModel.collection.updateOne(
+      { _id: userId },
+      {
+        $push: {
+          purchasedCourses: {
+            course: courseId,
+            purchaseDate: new Date(),
+            expiryDate: expiryDate,
+            isExpired: false,
           },
-        }
-      );
-    }
+        },
+      }
+    );
 
     // Add user to course's enrolledUsers
     await CourseModel.collection.updateOne(
@@ -276,6 +234,7 @@ export const POST = async (request) => {
     return NextResponse.json({
       success: true,
       message: "Payment successful, access granted",
+      saleRecorded: !!agent
     });
   } catch (error) {
     console.error("Payment verification error:", error);
