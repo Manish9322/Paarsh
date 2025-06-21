@@ -88,11 +88,16 @@ export async function POST(request) {
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user._id, "user" , sessionId);
 
-      // Update user with new session
-    user.currentSessionId = sessionId;
-    user.lastLoginAt = new Date();
-    user.sessionCreatedAt = new Date();
-    await user.save();
+    // Replace the user.save() section with:
+  await UserModel.findByIdAndUpdate(
+    user._id,
+    {
+      currentSessionId: sessionId,
+      lastLoginAt: new Date(),
+      sessionCreatedAt: new Date()
+    },
+    { runValidators: false }
+  );
 
      // Get user data without sensitive fields
     const { password: _, ...userData } = user.toObject();

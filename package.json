@@ -1,12 +1,16 @@
 {
   "name": "startup-nextjs-template",
   "version": "2.1.0",
-  "private": true,
+  "private": true,  
+  
+ 
+  
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "mark-expired": "node cron/markExpiredCourses.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -38,7 +42,7 @@
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "draft-js": "^0.11.7",
     "embla-carousel-react": "^8.5.2",
     "eslint": "^8.56.0",
@@ -62,6 +66,7 @@
     "next-auth": "^4.24.11",
     "next-pwa": "^5.6.0",
     "next-themes": "^0.2.1",
+    "node-cron": "^4.1.0",
     "nodemailer": "^6.10.1",
     "openai": "^4.86.1",
     "razorpay": "^2.9.6",

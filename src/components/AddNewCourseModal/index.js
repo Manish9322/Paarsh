@@ -56,7 +56,7 @@ import {
 const formSchema = z.object({
   courseName: z.string().min(1, "Course name is required"),
   price: z.string().min(1, "Price is required"),
-  duration: z.string().min(1, "Duration is required"),
+  duration: z.number().optional(),
   level: z.string().min(1, "Level is required"),
   languages: z.array(z.string()).optional(),
   thumbnail: z.string().optional(),
@@ -147,11 +147,11 @@ export function AddNewCourse() {
   const onSubmit = async (e) => {
     // Get the editor content from the Redux state
     const editorContent = course.editorContent;
-    
+
     // Convert languages array to comma-separated string
-    const languagesString = Array.isArray(course.languages) 
-      ? course.languages.join(', ') 
-      : course.languages || '';
+    const languagesString = Array.isArray(course.languages)
+      ? course.languages.join(", ")
+      : course.languages || "";
 
     const formattedData = {
       ...course,
@@ -239,8 +239,11 @@ export function AddNewCourse() {
     // Initialize languages as an array if it's not already
     if (!Array.isArray(course.languages)) {
       // If it's a string, split it by commas
-      if (typeof course.languages === 'string' && course.languages.trim()) {
-        const languagesArray = course.languages.split(',').map(lang => lang.trim()).filter(Boolean);
+      if (typeof course.languages === "string" && course.languages.trim()) {
+        const languagesArray = course.languages
+          .split(",")
+          .map((lang) => lang.trim())
+          .filter(Boolean);
         dispatch(updateField({ field: "languages", value: languagesArray }));
       } else {
         // Otherwise initialize as empty array
@@ -305,8 +308,10 @@ export function AddNewCourse() {
                 <SelectContent>
                   {Array.isArray(subCategories) && subCategories.length > 0 ? (
                     subCategories
-                      .filter(subCategory => 
-                        !course.category || subCategory.categoryName === course.category
+                      .filter(
+                        (subCategory) =>
+                          !course.category ||
+                          subCategory.categoryName === course.category,
                       )
                       .map((subCategory) => (
                         <SelectItem
@@ -378,13 +383,17 @@ export function AddNewCourse() {
               )}
             </div>
             <div className="w-1/2">
-              <Label htmlFor="duration">Course Duration</Label>
+              <Label htmlFor="duration">Course Duration (in days)</Label>
               <Input
                 id="duration"
                 name="duration"
                 className="mt-2 w-full"
-                type="text"
-                {...register("duration")}
+                type="number" // ✅ change this
+                {...register("duration", {
+                  valueAsNumber: true, // ✅ convert to number automatically
+                  required: "Duration is required",
+                  min: { value: 1, message: "Duration must be at least 1 day" },
+                })}
                 onChange={(e) => handleChange("duration", e.target.value)}
               />
               {errors.duration && (
@@ -467,14 +476,15 @@ export function AddNewCourse() {
               <Label htmlFor="languages">Languages</Label>
               <div className="mt-2 flex flex-col space-y-2">
                 <div className="flex flex-wrap gap-2 rounded-md border border-gray-300 bg-white p-2">
-                  {Array.isArray(course.languages) && course.languages.length > 0 ? (
+                  {Array.isArray(course.languages) &&
+                  course.languages.length > 0 ? (
                     course.languages.map((lang, index) => (
-                      <div 
-                        key={index} 
+                      <div
+                        key={index}
                         className="flex items-center rounded bg-blue-100 px-2 py-1 text-sm"
                       >
                         <span>{lang}</span>
-                        <button 
+                        <button
                           type="button"
                           className="ml-1 text-gray-500 hover:text-gray-700"
                           onClick={(e) => {
@@ -489,14 +499,25 @@ export function AddNewCourse() {
                       </div>
                     ))
                   ) : (
-                    <span className="text-sm text-gray-500">Select languages...</span>
+                    <span className="text-sm text-gray-500">
+                      Select languages...
+                    </span>
                   )}
                 </div>
                 <div className="flex gap-2">
                   <Select
                     onValueChange={(value) => {
-                      if (value && (!Array.isArray(course.languages) || !course.languages.includes(value))) {
-                        handleChange("languages", [...(Array.isArray(course.languages) ? course.languages : []), value]);
+                      if (
+                        value &&
+                        (!Array.isArray(course.languages) ||
+                          !course.languages.includes(value))
+                      ) {
+                        handleChange("languages", [
+                          ...(Array.isArray(course.languages)
+                            ? course.languages
+                            : []),
+                          value,
+                        ]);
                       }
                     }}
                   >
@@ -522,22 +543,40 @@ export function AddNewCourse() {
                         if (e.key === "Enter") {
                           e.preventDefault();
                           const value = newLanguage.trim();
-                          if (value && (!Array.isArray(course.languages) || !course.languages.includes(value))) {
-                            handleChange("languages", [...(Array.isArray(course.languages) ? course.languages : []), value]);
+                          if (
+                            value &&
+                            (!Array.isArray(course.languages) ||
+                              !course.languages.includes(value))
+                          ) {
+                            handleChange("languages", [
+                              ...(Array.isArray(course.languages)
+                                ? course.languages
+                                : []),
+                              value,
+                            ]);
                             setNewLanguage("");
                           }
                         }
                       }}
                     />
-                    <Button 
+                    <Button
                       type="button"
                       variant="secondary"
-                      className="ml-2" 
+                      className="ml-2"
                       onClick={(e) => {
                         e.preventDefault();
                         const value = newLanguage.trim();
-                        if (value && (!Array.isArray(course.languages) || !course.languages.includes(value))) {
-                          handleChange("languages", [...(Array.isArray(course.languages) ? course.languages : []), value]);
+                        if (
+                          value &&
+                          (!Array.isArray(course.languages) ||
+                            !course.languages.includes(value))
+                        ) {
+                          handleChange("languages", [
+                            ...(Array.isArray(course.languages)
+                              ? course.languages
+                              : []),
+                            value,
+                          ]);
                           setNewLanguage("");
                         }
                       }}

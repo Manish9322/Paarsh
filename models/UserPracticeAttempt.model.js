@@ -45,4 +45,4 @@
        mongoose.models.UserPracticeAttempt ||
        mongoose.model("UserPracticeAttempt", userPracticeAttemptSchema);
 
-     module.exports = UserPracticeAttemptModel;
+     export default UserPracticeAttemptModel;

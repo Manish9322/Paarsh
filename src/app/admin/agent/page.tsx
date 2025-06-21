@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +25,8 @@ import {
 import { RxCross2 } from "react-icons/rx";
 import AddAgentModal from "../../../components/Agent/AddAgent";
 import { Input } from "@/components/ui/input";
-import { useDeleteAgentMutation, useFetchAgentsQuery, useUpdateAgentMutation, useUpdateAgentTargetMutation } from "@/services/api";
+import { skipToken } from '@reduxjs/toolkit/query/react';
+import { useDeleteAgentMutation, useFetchAgentSalesAdminQuery, useFetchAgentsQuery, useUpdateAgentMutation, useUpdateAgentTargetMutation } from "@/services/api";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
+// Define Sales Data type
+interface SalesData {
+  date: string;
+  count: number;
+  revenue: number;
+  status: 'completed' | 'pending';
+}
+
+// Define Raw API Sales Record type based on the response
+interface RawSalesRecord {
+  _id: string;
+  userId: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  courseId: {
+    _id: string;
+    courseName: string;
+    price: string; // Price is a string in the response
+  };
+  orderId: string;
+  amount: number;
+  agentRefCode: string;
+  status: 'SUCCESS' | 'PENDING';
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  paymentId?: string;
+  signature?: string;
+}
 
 // Define Agent type
 interface Agent {
@@ -61,6 +95,7 @@ interface Agent {
     count?: number;
     price?: number;
   };
+  salesData?: SalesData[];
 }
 
 const AgentPage: React.FC = () => {
@@ -79,7 +114,8 @@ const AgentPage: React.FC = () => {
   const [targetModalOpen, setTargetModalOpen] = useState(false);
   const [targetValue, setTargetValue] = useState<number>(0);
   const [targetType, setTargetType] = useState<"count" | "price">("count");
-
+  const [timeFilter, setTimeFilter] = useState<"daily" | "yesterday" | "weekly" | "monthly" | "yearly">("monthly");
+  const [chartMetric, setChartMetric] = useState<"count" | "revenue">("count");
 
   // Close sidebar when screen size changes to desktop
   useEffect(() => {
@@ -94,7 +130,7 @@ const AgentPage: React.FC = () => {
   }, []);
 
   // const agentsPerPage = 10;
-  const { data: agentData, isLoading } = useFetchAgentsQuery(undefined);
+  const { data: agentData, isLoading: isAgentsLoading } = useFetchAgentsQuery(undefined);
   const agents: Agent[] = agentData?.data || [];
   const startIndex = agentsPerPage === "all" ? 0 : (currentPage - 1) * agentsPerPage;
 
@@ -102,6 +138,75 @@ const AgentPage: React.FC = () => {
     useDeleteAgentMutation();
   const [updateAgent] = useUpdateAgentMutation();
   const [updateAgentTarget, { isLoading: isTargetUpdating }] = useUpdateAgentTargetMutation();
+
+  // Fetch sales data dynamically
+  const { data: salesDataResponse, isLoading: isSalesLoading, error: salesError } = useFetchAgentSalesAdminQuery(
+    selectedAgent ? { agentId: selectedAgent._id, timeFilter } : skipToken
+  );
+
+  // Transform and aggregate sales data
+  const completedSales = useMemo(() => {
+    if (!salesDataResponse?.data?.completed) {
+      return [];
+    }
+
+    // Transform raw sales records to SalesData format
+    const transformedSales: SalesData[] = salesDataResponse.data.completed.map((sale: RawSalesRecord) => ({
+      date: new Date(sale.createdAt).toISOString().split('T')[0], // Format as YYYY-MM-DD
+      count: 1, // Each sale counts as 1
+      revenue: parseFloat(sale.courseId.price), // Use course price as revenue
+      status: sale.status === 'SUCCESS' ? 'completed' : 'pending',
+    }));
+
+    // Aggregate by date
+    const aggregatedSales = transformedSales.reduce((acc: { [key: string]: SalesData }, sale) => {
+      const { date, count, revenue } = sale;
+      if (!acc[date]) {
+        acc[date] = { date, count: 0, revenue: 0, status: 'completed' };
+      }
+      acc[date].count += count;
+      acc[date].revenue += revenue;
+      return acc;
+    }, {});
+
+    // Convert to array and sort by date
+    return Object.values(aggregatedSales).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [salesDataResponse]);
+
+  // Apply time filter to completedSales
+  const filteredCompletedSales = useMemo(() => {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (timeFilter) {
+      case 'daily':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'yesterday':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        break;
+      case 'weekly':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+        break;
+      case 'monthly':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        break;
+      case 'yearly':
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        break;
+      default:
+        startDate = new Date(0); // All time
+    }
+
+    return completedSales.filter(sale => new Date(sale.date) >= startDate);
+  }, [completedSales, timeFilter]);
+
+  useEffect(() => {
+    if (salesError) {
+      toast.error("Failed to fetch sales data. Please try again.");
+    }
+  }, [salesError]);
+
   const handleSort = (field: keyof Agent) => {
     setSortField(field);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -145,7 +250,7 @@ const AgentPage: React.FC = () => {
       if (response?.success) {
         toast.success("Agent deleted successfully");
         setDeleteConfirmOpen(false);
-        setAgentToDelete(null)
+        setAgentToDelete(null);
       }
     } catch (error) {
       console.error("Error deleting agent:", error);
@@ -160,50 +265,39 @@ const AgentPage: React.FC = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Function to generate page numbers for pagination
   const generatePaginationNumbers = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 5; // Show at most 5 page numbers
+    const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
-      // If total pages are less than max to show, display all pages
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      // Always include first page
       pageNumbers.push(1);
-
-      // Calculate start and end of page numbers to show
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(totalPages - 1, currentPage + 1);
 
-      // Adjust if we're near the beginning
       if (currentPage <= 3) {
         endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
       }
 
-      // Adjust if we're near the end
       if (currentPage >= totalPages - 2) {
         startPage = Math.max(2, totalPages - maxPagesToShow + 2);
       }
 
-      // Add ellipsis if needed before middle pages
       if (startPage > 2) {
         pageNumbers.push("...");
       }
 
-      // Add middle pages
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
 
-      // Add ellipsis if needed after middle pages
       if (endPage < totalPages - 1) {
         pageNumbers.push("...");
       }
 
-      // Always include last page if there is more than one page
       if (totalPages > 1) {
         pageNumbers.push(totalPages);
       }
@@ -238,9 +332,23 @@ const AgentPage: React.FC = () => {
     }
   };
 
+  // Custom tooltip formatter for better readability
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="rounded-lg bg-white p-3 shadow-md dark:bg-gray-800">
+          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{label}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {chartMetric === "count" ? "Sales Count" : "Revenue"}: {payload[0].value}{chartMetric === "revenue" ? " ₹" : ""}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="flex min-h-screen flex-col overflow-hidden  bg-gray-50 dark:bg-gray-900">
-      {/* Mobile Header with Menu Button */}
+    <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
         <button
           onClick={toggleSidebar}
@@ -250,21 +358,18 @@ const AgentPage: React.FC = () => {
           <Menu size={24} />
         </button>
         <h1 className="text-lg font-bold text-gray-800">Agent Management</h1>
-        <div className="w-10"></div> {/* Spacer for centering */}
+        <div className="w-10"></div>
       </div>
 
       <div className="flex flex-1">
-        {/* Sidebar - responsive with overlay for mobile */}
         <aside
           className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
             } md:sticky md:top-0 md:h-screen md:translate-x-0`}
         >
-          {/* Add padding to the top of sidebar content to prevent it from going under the navbar */}
-          <div className="h-16 md:h-0"></div> {/* Spacer for mobile header */}
+          <div className="h-16 md:h-0"></div>
           <Sidebar userRole="admin" />
         </aside>
 
-        {/* Overlay for mobile when sidebar is open */}
         {sidebarOpen && (
           <div
             className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
@@ -273,10 +378,9 @@ const AgentPage: React.FC = () => {
           ></div>
         )}
 
-        {/* Main content area */}
         <main className="w-full flex-1 overflow-x-hidden pt-16">
           <div className="container mx-auto px-4 py-6">
-            <Card className="mb-6 overflow-hidden border-none  bg-white  shadow-md dark:bg-gray-800 dark:text-white">
+            <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-800 dark:text-white">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
                 <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                   <CardTitle className="text-xl font-bold text-white sm:text-2xl">
@@ -290,6 +394,21 @@ const AgentPage: React.FC = () => {
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
+                    <Select
+                      value={timeFilter}
+                      onValueChange={(value: typeof timeFilter) => setTimeFilter(value)}
+                    >
+                      <SelectTrigger className="w-full md:w-48 dark:border-gray-700 dark:bg-gray-900">
+                        <SelectValue placeholder="Select time period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="yesterday">Yesterday</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="yearly">Yearly</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <Button
                       onClick={() => setIsModalOpen(true)}
                       className="h-10 w-full bg-white text-blue-600 transition-colors md:w-auto hover:bg-blue-50"
@@ -301,7 +420,7 @@ const AgentPage: React.FC = () => {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <Table className="dark: w-full text-black dark:text-white">
+                  <Table className="w-full text-black dark:text-white">
                     <TableHeader>
                       <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
                         <TableHead className="hidden py-3 text-center sm:table-cell">
@@ -435,10 +554,10 @@ const AgentPage: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {isLoading ? (
+                      {isAgentsLoading ? (
                         Array.from({ length: 6 }).map((_, index) => (
                           <TableRow
-                            key={index}
+                            key={`skeleton-row-${index}`}
                             className="border-b border-gray-100 dark:border-gray-700 dark:bg-gray-900"
                           >
                             <TableCell className="hidden sm:table-cell">
@@ -591,7 +710,6 @@ const AgentPage: React.FC = () => {
                                   className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-purple-50 text-purple-600 transition-all duration-200 hover:bg-purple-100 hover:text-purple-700 hover:shadow-md dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/30 dark:hover:text-purple-300"
                                   onClick={() => {
                                     setSelectedAgent(agent);
-                                    // Check if agent has any target and set the appropriate initial values
                                     if (agent.target?.count) {
                                       setTargetType("count");
                                       setTargetValue(agent.target.count);
@@ -651,8 +769,8 @@ const AgentPage: React.FC = () => {
             </Card>
 
             <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-              <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded-lg bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
-                <DialogHeader className="sticky top-0 z-10  border-b bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+              <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-lg bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
+                <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                   <div className="flex items-center justify-between gap-3">
                     <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
                       Agent Details
@@ -675,7 +793,7 @@ const AgentPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
                         <div className="bg-gray-50 px-4 py-2 dark:bg-gray-700">
                           <h3 className="font-medium text-gray-700 dark:text-gray-300">
@@ -687,7 +805,7 @@ const AgentPage: React.FC = () => {
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               Full Name
                             </span>
-                            <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                            <span className="col-span-2 text-sm text-gray-900 dark:text-white">
                               {selectedAgent.firstName} {selectedAgent.lastName}
                             </span>
                           </div>
@@ -695,7 +813,7 @@ const AgentPage: React.FC = () => {
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               Contact
                             </span>
-                            <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                            <span className="col-span-2 text-sm text-gray-600 dark:text-gray-400">
                               {selectedAgent.mobile}
                             </span>
                           </div>
@@ -703,37 +821,123 @@ const AgentPage: React.FC = () => {
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                               State
                             </span>
-                            <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                            <span className="col-span-2 text-sm text-gray-600 dark:text-gray-400">
                               {selectedAgent.state}
                             </span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
+                      <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-800">
                         <div className="bg-gray-50 px-4 py-2 dark:bg-gray-700">
-                          <h3 className="font-medium text-gray-700 dark:text-gray-300">
-                            Performance
-                          </h3>
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium text-gray-700 dark:text-gray-300">
+                              Sales Performance (Completed Sales)
+                            </h3>
+                            <div className="flex items-center gap-2">
+                              <Select
+                                value={chartMetric}
+                                onValueChange={(value: "count" | "revenue") => setChartMetric(value)}
+                              >
+                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-200">
+                                  <SelectValue placeholder="Select metric" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="count">Sales Count</SelectItem>
+                                  <SelectItem value="revenue">Revenue</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Select
+                                value={timeFilter}
+                                onValueChange={(value: typeof timeFilter) => setTimeFilter(value)}
+                              >
+                                <SelectTrigger className="w-32 dark:border-gray-700 dark:bg-gray-200">
+                                  <SelectValue placeholder="Select period" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="daily">Daily</SelectItem>
+                                  <SelectItem value="yesterday">Yesterday</SelectItem>
+                                  <SelectItem value="weekly">Weekly</SelectItem>
+                                  <SelectItem value="monthly">Monthly</SelectItem>
+                                  <SelectItem value="yearly">Yearly</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
                         </div>
-                        <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                        <div className="p-4">
                           <div className="grid grid-cols-3 px-4 py-3">
                             <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                              Sales Count
+                              Total Completed Sales
                             </span>
                             <div className="col-span-2 flex items-center">
-                              <span className="text-sm text-gray-900 dark:text-gray-200">
-                                {selectedAgent.countSale}
-                              </span>
-                              <div className="ml-2 h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
-                                <div
-                                  className="h-full rounded-full bg-blue-500"
-                                  style={{
-                                    width: `${Math.min(selectedAgent.countSale * 5, 100)}%`,
-                                  }}
-                                ></div>
-                              </div>
+                              {isSalesLoading ? (
+                                <Skeleton className="h-4 w-20" />
+                              ) : (
+                                <>
+                                  <span className="text-sm text-gray-900 dark:text-gray-200">
+                                    {selectedAgent.countSale}
+                                  </span>
+                                  <div className="ml-2 h-2 w-24 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
+                                    <div
+                                      className="h-full rounded-full bg-blue-500"
+                                      style={{
+                                        width: `${Math.min(selectedAgent.countSale * 5, 100)}%`,
+                                      }}
+                                    ></div>
+                                  </div>
+                                </>
+                              )}
                             </div>
+                          </div>
+                          <div className="mt-4 h-64">
+                            {isSalesLoading ? (
+                              <div className="flex h-full items-center justify-center">
+                                <Skeleton className="h-48 w-full" />
+                              </div>
+                            ) : salesError ? (
+                              <div className="flex h-full items-center justify-center text-sm text-red-500 dark:text-red-400">
+                                Error loading sales data
+                              </div>
+                            ) : filteredCompletedSales.length === 0 ? (
+                              <div className="flex h-full items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+                                No completed sales data available
+                              </div>
+                            ) : (
+                              <ResponsiveContainer width="100%" height="100%">
+                                <LineChart 
+                                  data={filteredCompletedSales}
+                                  margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
+                                >
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                                  <XAxis 
+                                    dataKey="date" 
+                                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                                    tickMargin={10}
+                                  />
+                                  <YAxis 
+                                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                                    tickFormatter={(value) => chartMetric === "revenue" ? `₹${value}` : value}
+                                    width={60}
+                                  />
+                                  <Tooltip content={<CustomTooltip />} />
+                                  <Legend 
+                                    verticalAlign="top" 
+                                    height={36}
+                                    formatter={(value) => chartMetric === "count" ? "Sales Count" : "Revenue (₹)"}
+                                  />
+                                  <Line 
+                                    type="monotone" 
+                                    dataKey={chartMetric}
+                                    stroke={chartMetric === "count" ? "#3b82f6" : "#10b981"}
+                                    strokeWidth={2}
+                                    dot={{ r: 4 }}
+                                    activeDot={{ r: 6 }}
+                                    name={chartMetric === "count" ? "Sales Count" : "Revenue (₹)"}
+                                  />
+                                </LineChart>
+                              </ResponsiveContainer>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -773,7 +977,6 @@ const AgentPage: React.FC = () => {
               </DialogContent>
             </Dialog>
 
-            {/* Delete Confirmation Dialog */}
             <Dialog
               open={deleteConfirmOpen}
               onOpenChange={setDeleteConfirmOpen}
@@ -811,18 +1014,15 @@ const AgentPage: React.FC = () => {
               </DialogContent>
             </Dialog>
 
-            {/* Edit Course Modal */}
             <EditAgentModal
               editOpen={editOpen}
               setEditOpen={setEditOpen}
               selectedAgent={selectedAgent}
             />
 
-            {/* Target Setting Modal */}
             {targetModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                 <div className="relative max-h-[90vh] max-w-md overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800 dark:text-white">
-                  {/* Header */}
                   <div className="mb-4 flex items-center justify-between border-b pb-3">
                     <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                       Set Target for {selectedAgent?.firstName} {selectedAgent?.lastName}
@@ -836,7 +1036,6 @@ const AgentPage: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Content */}
                   <div className="py-4">
                     <div className="mb-4 space-y-4">
                       <div>
@@ -882,7 +1081,6 @@ const AgentPage: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Footer */}
                   <div className="mt-6 flex justify-end">
                     <Button
                       onClick={handleSetTarget}
@@ -896,7 +1094,6 @@ const AgentPage: React.FC = () => {
               </div>
             )}
 
-            {/* Enhanced Pagination Controls */}
             <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
               <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -952,7 +1149,6 @@ const AgentPage: React.FC = () => {
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
 
-                  {/* Page Numbers */}
                   <div className="hidden sm:flex sm:items-center sm:space-x-1">
                     {generatePaginationNumbers().map((page, index) =>
                       page === "..." ? (
@@ -981,7 +1177,6 @@ const AgentPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Mobile Page Indicator */}
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:hidden">
                     Page {currentPage} of {totalPages || 1}
                   </span>
@@ -1000,7 +1195,6 @@ const AgentPage: React.FC = () => {
                   </Button>
                 </div>
 
-                {/* Jump to page (desktop only) */}
                 <div className="hidden items-center space-x-2 lg:flex">
                   <span className="text-sm text-gray-500 dark:text-gray-400">
                     Go to page:
@@ -1026,7 +1220,6 @@ const AgentPage: React.FC = () => {
         </main>
       </div>
 
-      {/* Custom Scrollbar Styling */}
       <style jsx global>{`
         body {
           overflow-x: hidden;

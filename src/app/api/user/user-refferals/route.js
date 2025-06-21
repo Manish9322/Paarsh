@@ -19,7 +19,7 @@ export const GET = authMiddleware(async (req) => {
 
     // Fetch users who were referred by the logged-in user
     const referredUsers = await UserModel.find({ referredBy: user._id }).select(
-      "name email createdAt purchasedCourses firstPurchaseRewardGiven",
+      "name email createdAt purchasedCourses firstPurchaseRewardGiven firstPurchaseRewardAmount",
     );
 
     const pendingReferrals = [];
@@ -39,6 +39,7 @@ export const GET = authMiddleware(async (req) => {
           joinedAt: referredUser.createdAt,
           coursesPurchased: referredUser.purchasedCourses.length,
           rewardGiven: referredUser.firstPurchaseRewardGiven,
+          rewardAmount: referredUser.firstPurchaseRewardAmount,
         });
       }
     });

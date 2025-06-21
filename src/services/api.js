@@ -121,6 +121,9 @@ export const paarshEduApi = createApi({
     "PracticeTest",
     "Withdrawal",
     "Visitor",
+    "Admin",
+    "ReferralSettings",
+
     "UserPracticeAttempt",
     "JobApplication",
     "JobPosition",
@@ -188,6 +191,19 @@ export const paarshEduApi = createApi({
         url: "user/forgot-password",
         method: "POST",
         body: email,
+      }),
+    }),
+
+    changePassword: builder.mutation({
+      query: ({ email, userId, previousPassword, newPassword }) => ({
+        url: "user/change-password",
+        method: "PUT",
+        body: {
+          email,
+          userId,
+          previousPassword,
+          newPassword,
+        },
       }),
     }),
 
@@ -317,7 +333,7 @@ export const paarshEduApi = createApi({
     // New API endpoint for updating agent targets
     updateAgentTarget: builder.mutation({
       query: ({ id, targetType, targetValue }) => ({
-        url: "/admin/agent",
+        url: "/admin/agents",
         method: "PATCH",
         body: { id, targetType, targetValue },
       }),
@@ -668,6 +684,11 @@ export const paarshEduApi = createApi({
       providesTags: ["Agent"],
     }),
 
+    fetchAgentSalesAdmin: builder.query({
+      query: ({ agentId }) => `/admin/agents/sales?agentId=${agentId}`,
+      providesTags: ["Agent"],
+    }),
+
     fetchagentCourseRefferalLink: builder.query({
       query: () => "/agent/courserefferal",
       providesTags: ["Agent"],
@@ -848,6 +869,22 @@ export const paarshEduApi = createApi({
       }),
     }),
 
+    // Referral Settings
+
+    fetchReferralSettings: builder.query({
+      query: () => "refferal-settings",
+      providesTags: ["ReferralSettings"],
+    }),
+
+    updateReferralSettings: builder.mutation({
+      query: (settings) => ({
+        url: "refferal-settings",
+        method: "PUT",
+        body: settings,
+      }),
+      invalidatesTags: ["ReferralSettings"],
+    }),
+
     // ----------------------------------------------------User Practice Attempts Apis-------------------------------------------------- //
 
     fetchUserPracticeAttempts: builder.query({
@@ -946,6 +983,10 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ['Notifications'],
     }),
+    fetchUserRefferalAdmin : builder.query({
+      query: () => "/admin/userrefferals"
+    })
+
   }),
 });
 
@@ -953,6 +994,7 @@ export const {
   useLoginMutation,
   useSignupMutation,
   useForgotPasswordMutation,
+  useChangePasswordMutation,
   useResetPasswordMutation,
   useLogoutMutation,
 
@@ -971,6 +1013,7 @@ export const {
   useDeleteAgentMutation,
   useResetAgentPasswordMutation,
   useFetchAgentQuery,
+  useFetchAgentSalesAdminQuery,
   useFetchAgentsQuery,
   useUpdateAgentTargetMutation,
 
@@ -1060,6 +1103,10 @@ export const {
 
   useTrackVisitorMutation,
   useFetchVisitorsQuery,
+
+  useFetchReferralSettingsQuery,
+  useUpdateReferralSettingsMutation,
+  useFetchUserRefferalAdminQuery,
 
   useFetchUserPracticeAttemptsQuery,
   useAddUserPracticeAttemptMutation,

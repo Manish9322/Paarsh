@@ -35,4 +35,4 @@ const UserProgressModel =
   mongoose.models.UserProgress ||
   mongoose.model("UserProgress", userProgressSchema);
 
-module.exports = UserProgressModel;
+export default UserProgressModel;

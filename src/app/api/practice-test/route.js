@@ -84,8 +84,7 @@ export const GET = async (request) => {
 
     if (id) {
       const practiceTest = await PracticeTestModel.findById(id).populate(
-        "linkedCourses",
-        "courseName"
+        "linkedCourses"
       );
       if (!practiceTest) {
         return NextResponse.json(
@@ -97,8 +96,7 @@ export const GET = async (request) => {
     }
 
     const practiceTests = await PracticeTestModel.find().populate(
-      "linkedCourses",
-      "courseName"
+      "linkedCourses"
     );
     return NextResponse.json({ success: true, data: practiceTests });
   } catch (error) {

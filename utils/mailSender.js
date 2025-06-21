@@ -32,4 +32,4 @@ const emailSender = async (options) => {
   }
 };
 
-module.exports = emailSender;
+export default emailSender;

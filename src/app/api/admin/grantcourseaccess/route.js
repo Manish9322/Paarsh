@@ -5,6 +5,7 @@ import { authMiddleware } from "../../../../../middlewares/auth"; // Adjust path
 import UserModel from "../../../../../models/User.model";
 import CourseModel from "../../../../../models/Courses/Course.model";
 import TransactionModel from "../../../../../models/Transaction.model";
+import ReferralSettingsModel from "../../../../../models/RefferalSetting.model"; // Add this import
 import { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } from "../../../../../config/config";
 import _db from "../../../../../utils/db";
 
@@ -51,8 +52,14 @@ export const POST = authMiddleware(async (request) => {
     }
 
     //  Find user and course
-    const user = await UserModel.findById(transaction.userId);
-    const course = await CourseModel.findById(transaction.courseId);
+    // Convert IDs to ObjectId for MongoDB operations
+    const userId = new mongoose.Types.ObjectId(transaction.userId);
+    const courseId = new mongoose.Types.ObjectId(transaction.courseId);
+    
+    // Get user and course details
+    const user = await UserModel.collection.findOne({ _id: userId });
+    const course = await CourseModel.collection.findOne({ _id: courseId });
+    const referralSettings = await ReferralSettingsModel.findOne();
 
     if (!user || !course) {
       return NextResponse.json(
@@ -61,8 +68,17 @@ export const POST = authMiddleware(async (request) => {
       );
     }
 
-    // Check if user already has access
-    if (user.purchasedCourses.includes(transaction.courseId)) {
+    // Check if user has any valid purchased courses (in new format)
+    const validPurchasedCourses = (user.purchasedCourses || []).filter(
+      pc => pc && pc.course && pc.expiryDate
+    );
+    
+    // Check if user already has access to this course
+    const existingPurchase = validPurchasedCourses.find(
+      (purchase) => purchase.course.toString() === transaction.courseId.toString()
+    );
+    
+    if (existingPurchase) {
       return NextResponse.json(
         { success: false, error: "Course already purchased" },
         { status: 400 }
@@ -110,10 +126,23 @@ export const POST = authMiddleware(async (request) => {
       transaction.updatedAt = new Date();
       await transaction.save({ session });
 
-      // Update user: Add course to purchasedCourses
+      // Calculate expiry date based on course duration
+      const expiryDate = new Date(
+        Date.now() + course.duration * 24 * 60 * 60 * 1000
+      );
+      const purchaseDate = new Date();
+
+      // Update user: Add course to purchasedCourses with new schema structure
+      const courseData = {
+        course: transaction.courseId,
+        purchaseDate: purchaseDate,
+        expiryDate: expiryDate,
+        isExpired: false
+      };
+
       await UserModel.findByIdAndUpdate(
         transaction.userId,
-        { $push: { purchasedCourses: transaction.courseId } },
+        { $push: { purchasedCourses: courseData } },
         { session, new: true }
       );
 
@@ -128,7 +157,7 @@ export const POST = authMiddleware(async (request) => {
       if (transaction.agentRefCode) {
         const AgentModel = mongoose.model("Agent"); // Adjust model name/path
         const agent = await AgentModel.findOne({
-          agentCode: transaction. agentRefCode,
+          agentCode: transaction.agentRefCode,
         }).session(session);
         if (agent) {
           agent.totalSale = (agent.totalSale || 0) + transaction.amount;
@@ -138,16 +167,42 @@ export const POST = authMiddleware(async (request) => {
       }
 
       // Handle referral reward if first purchase
-      const isFirstPurchase = user.purchasedCourses.length === 0;
-      if (isFirstPurchase && user.referredBy && !user.firstPurchaseRewardGiven) {
-        const referrer = await UserModel.findById(user.referredBy).session(
-          session
-        );
+      const isFirstPurchase = validPurchasedCourses.length === 0;
+      
+      // Handle referral rewards if applicable
+      if (isFirstPurchase && user.referredBy && !user.firstPurchaseRewardGiven && referralSettings) {
+        const referrerId = new mongoose.Types.ObjectId(user.referredBy);
+        const referrer = await UserModel.collection.findOne({ _id: referrerId });
+        
         if (referrer) {
-          referrer.walletBalance = (referrer.walletBalance || 0) + 500;
-          await referrer.save({ session });
-          user.firstPurchaseRewardGiven = true;
-          await user.save({ session });
+          const referredUsersCount = await UserModel.collection.countDocuments({
+            referredBy: referrerId,
+            firstPurchaseRewardGiven: true,
+          });
+          
+          if (
+            referralSettings.maxReferrals === 0 ||
+            referredUsersCount < referralSettings.maxReferrals
+          ) {
+            // Credit reward to referrer
+            await UserModel.collection.updateOne(
+              { _id: referrerId },
+              {
+                $inc: { walletBalance: referralSettings.cashbackAmount },
+              }
+            );
+            
+            // Update user's reward status
+            await UserModel.collection.updateOne(
+              { _id: userId },
+              {
+                $set: {
+                  firstPurchaseRewardGiven: true,
+                  firstPurchaseRewardAmount: referralSettings.cashbackAmount,
+                },
+              }
+            );
+          }
         }
       }
 
@@ -158,6 +213,7 @@ export const POST = authMiddleware(async (request) => {
         userId: transaction.userId,
         courseId: transaction.courseId,
         paymentId: payment.id,
+        expiryDate: expiryDate,
         adminNote,
       });
     } catch (error) {
@@ -175,6 +231,7 @@ export const POST = authMiddleware(async (request) => {
         orderId: transaction.orderId,
         userId: transaction.userId,
         courseId: transaction.courseId,
+        expiryDate: expiryDate,
       },
     });
   } catch (error) {

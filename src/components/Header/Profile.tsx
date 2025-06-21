@@ -44,18 +44,23 @@ export default function Profile() {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // Function to get user initials
-  const getUserInitials = () => {
-    if (!user?.name) return "?";
+// Function to get user initials
+const getUserInitials = () => {
+  if (!user?.name || typeof user.name !== 'string') return "?";
 
-    const nameParts = user.name.split(" ");
-    // Get first letter of first name
-    const firstInitial = nameParts[0][0];
-    // Get first letter of last name if it exists
-    const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : "";
+  // Split the name and filter out any empty strings
+  const nameParts = user.name.trim().split(" ").filter(part => part);
 
-    return (firstInitial + lastInitial).toUpperCase();
-  };
+  console.log("nameParts:", nameParts);
+
+  if (nameParts.length === 0) return "?";
+
+  const firstInitial = nameParts[0]?.[0] || "";
+  const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1]?.[0] || "" : "";
+
+
+  return (firstInitial + lastInitial).toUpperCase();
+};
 
 
 
