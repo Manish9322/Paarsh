@@ -71,6 +71,7 @@ const EnquiriesPage: React.FC = () => {
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [statusUpdateOpen, setStatusUpdateOpen] = useState(false);
   const [newStatus, setNewStatus] = useState<"pending" | "resolved" | "in-progress">("pending");
+  const [enquiriesPerPage, setEnquiriesPerPage] = useState<number | "all">(10);
 
   // Fetch enquiries
   useEffect(() => {
@@ -107,8 +108,6 @@ const EnquiriesPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const enquiriesPerPage = 10;
-
   const handleSort = (field: keyof Enquiry) => {
     setSortField(field);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -131,11 +130,14 @@ const EnquiriesPage: React.FC = () => {
         : -1;
   });
 
-  const totalPages = Math.ceil(sortedEnquiries.length / enquiriesPerPage);
-  const displayedEnquiries = sortedEnquiries.slice(
-    (currentPage - 1) * enquiriesPerPage,
-    currentPage * enquiriesPerPage,
-  );
+  const totalPages = enquiriesPerPage === "all" ? 1 : Math.ceil(sortedEnquiries.length / enquiriesPerPage);
+  const startIndex = enquiriesPerPage === "all" ? 0 : (currentPage - 1) * enquiriesPerPage;
+  const displayedEnquiries = enquiriesPerPage === "all"
+    ? sortedEnquiries
+    : sortedEnquiries.slice(
+      startIndex,
+      startIndex + enquiriesPerPage
+    );
 
   const confirmDeleteEnquiry = (enquiryId: string) => {
     setEnquiryToDelete(enquiryId);
@@ -145,13 +147,13 @@ const EnquiriesPage: React.FC = () => {
   const handleDeleteEnquiry = async () => {
     try {
       if (!enquiryToDelete) return;
-      
+
       // Make API request to delete enquiry
       const response = await fetch(`/api/enquiries?id=${enquiryToDelete}`, {
         method: "DELETE",
       });
       const result = await response.json();
-      
+
       if (result.success) {
         // Update local state
         setEnquiries(enquiries.filter(enquiry => enquiry._id !== enquiryToDelete));
@@ -159,7 +161,7 @@ const EnquiriesPage: React.FC = () => {
       } else {
         toast.error(result.message || "Failed to delete enquiry");
       }
-      
+
       setDeleteConfirmOpen(false);
       setEnquiryToDelete(null);
     } catch (error) {
@@ -183,7 +185,7 @@ const EnquiriesPage: React.FC = () => {
 
   const handleStatusUpdate = async () => {
     if (!selectedEnquiry) return;
-    
+
     try {
       // Make API request to update status
       const response = await fetch("/api/enquiries", {
@@ -196,9 +198,9 @@ const EnquiriesPage: React.FC = () => {
           status: newStatus,
         }),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         // Update local state
         setEnquiries(
@@ -212,7 +214,7 @@ const EnquiriesPage: React.FC = () => {
       } else {
         toast.error(result.message || "Failed to update status");
       }
-      
+
       setStatusUpdateOpen(false);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -320,12 +322,11 @@ const EnquiriesPage: React.FC = () => {
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside
-          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:sticky md:top-0 md:translate-x-0 md:h-screen`}
+          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } md:sticky md:top-0 md:translate-x-0 md:h-screen`}
         >
           <div className="h-16 md:h-0"></div>
-          <Sidebar  userRole="admin" />
+          <Sidebar userRole="admin" />
         </aside>
 
         {/* Overlay */}
@@ -487,11 +488,40 @@ const EnquiriesPage: React.FC = () => {
             <div className="mt-6 rounded bg-white p-4 shadow-md dark:bg-gray-800">
               <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                 <div className="text-sm text-gray-500 dark:text-white">
-                  Showing <span className="font-medium text-gray-700">{(currentPage - 1) * enquiriesPerPage + 1}</span> to{" "}
+                  Showing{" "}
                   <span className="font-medium text-gray-700">
-                    {Math.min(currentPage * enquiriesPerPage, sortedEnquiries.length)}
+                    {enquiriesPerPage === "all" ? 1 : startIndex + 1}
                   </span>{" "}
-                  of <span className="font-medium text-gray-700">{sortedEnquiries.length}</span> enquiries
+                  to{" "}
+                  <span className="font-medium text-gray-700">
+                    {enquiriesPerPage === "all" ? sortedEnquiries.length : Math.min(startIndex + enquiriesPerPage, sortedEnquiries.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium text-gray-700">
+                    {sortedEnquiries.length}
+                  </span>{" "}
+                  enquiries
+
+                  <div className="flex items-center space-x-2 pt-3">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                    <Select
+                      value={enquiriesPerPage.toString()}
+                      onValueChange={(value) => {
+                        setEnquiriesPerPage(value === "all" ? "all" : parseInt(value));
+                        setCurrentPage(1); // Reset to first page when changing entries per page
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-24 rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800">
+                        <SelectValue placeholder="Entries" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="flex items-center space-x-1">
@@ -510,11 +540,10 @@ const EnquiriesPage: React.FC = () => {
                         <Button
                           key={index}
                           onClick={() => setCurrentPage(page)}
-                          className={`h-8 w-8 rounded p-0 text-sm font-medium ${
-                            currentPage === page
-                              ? "bg-blue-600 text-white hover:bg-blue-700"
-                              : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                          }`}
+                          className={`h-8 w-8 rounded p-0 text-sm font-medium ${currentPage === page
+                            ? "bg-blue-600 text-white hover:bg-blue-700"
+                            : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                            }`}
                         >
                           {page}
                         </Button>
@@ -670,11 +699,11 @@ const EnquiriesPage: React.FC = () => {
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Current Status</h3>
                 <div className="w-fit dark:text-white">{selectedEnquiry && getStatusBadge(selectedEnquiry.status)}</div>
               </div>
-              
+
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">New Status</h3>
                 <Select
-                  value={newStatus} 
+                  value={newStatus}
                   onValueChange={(value) => setNewStatus(value as "pending" | "resolved" | "in-progress")}
                 >
                   <SelectTrigger className="w-full ">

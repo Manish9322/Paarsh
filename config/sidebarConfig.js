@@ -1,4 +1,5 @@
 import { FaHome, FaUser, FaVideo, FaBook, FaQuestion, FaPhone, FaGift, FaMoneyBill, FaPencilRuler, FaPen } from "react-icons/fa";
+import { IoNotificationsCircleSharp } from "react-icons/io5";
 import { RiFilePaperLine, RiSpyFill, RiArticleFill } from "react-icons/ri";
 
 const sidebarConfig = [
@@ -32,13 +33,21 @@ const sidebarConfig = [
       { name: "Tags", path: "/admin/tags" },
     ],
   },
-  { name: "Job Applications", path: "/admin/job-applications", icon: <RiFilePaperLine /> },
+  {
+    name: "Careers",
+    icon: <RiFilePaperLine />,
+    children: [
+      { name: "Job Posts", path: "/admin/job-posts" },
+      { name: "Job Applications", path: "/admin/job-applications" },
+    ],
+  },
   { name: "Enquiries", path: "/admin/enquiries", icon: <FaQuestion /> },
   { name: "Meeting Links", path: "/admin/meeting-links", icon: <FaVideo /> },
   { name: "Contact Requests", path: "/admin/contacts", icon: <FaPhone /> },
   { name: "Withdrawal Requests", path: "/admin/withdraw", icon: <FaMoneyBill /> },
   { name: "Transactions", path: "/admin/transactions", icon: <FaMoneyBill /> },
   {name: "visitors", path: "/admin/visitors", icon: <FaUser />},
+  {name: "Notifications", path: "/admin/push-notifications", icon: <IoNotificationsCircleSharp />},
   {name: "Referal Program", path: "/admin/referal-program", icon: <FaUser />},
   
 

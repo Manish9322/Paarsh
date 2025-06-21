@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -15,8 +15,10 @@ import {
   useDeleteUserWithdrawalRequestMutation,
   useFetchUserQuery,
   useFetchUserWithdrawalRequestQuery,
+  useValidateUpiIdMutation,
 } from "@/services/api";
 import { toast, Toaster } from "sonner";
+import { debounce } from "lodash";
 import { ArrowDownIcon } from "lucide-react";
 import { a } from "framer-motion/dist/types.d-DDSxwf0n";
 
@@ -36,6 +38,8 @@ const item = {
   hidden: { y: 20, opacity: 0 },
   show: { y: 0, opacity: 1 },
 };
+
+const UPI_ID_REGEX = /^[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}$/;
 
 // Main Wallet Component
 export default function UserWallet() {
@@ -110,7 +114,7 @@ function MainWalletView({ setView, handleViewFullHistory }) {
 
   const withdrawals = data?.data?.withdrawals || [];
 
-  const {data: userData } = useFetchUserQuery(undefined);
+  const { data: userData } = useFetchUserQuery(undefined);
 
   const user = userData?.data;
 
@@ -147,7 +151,7 @@ function MainWalletView({ setView, handleViewFullHistory }) {
                 Current Balance
               </h2>
               <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-              {user?.walletBalance ? `₹${user.walletBalance}` : "₹0.00"}
+                {user?.walletBalance ? `₹${user.walletBalance}` : "₹0.00"}
               </p>
             </div>
             <button
@@ -223,12 +227,78 @@ function WithdrawFundsView({ handleBack }) {
   const { hasAccountDetails, storedUpiId, upiId, amount, isSubmitting } =
     useSelector((state) => selectRootState(state).withdrawal);
   const [createWithdrawal] = useCreateWithdrawalRequestMutation();
+  const [validateUpi, { isLoading: isValidating }] = useValidateUpiIdMutation();
+  const [validationMessage, setValidationMessage] = useState('');
+  const [isUpiValid, setIsUpiValid] = useState(false);
+  const [isFormatValid, setIsFormatValid] = useState(true);
 
-  const handleSubmitUpi = (e) => {
-    e.preventDefault();
-    dispatch(saveUpiId(upiId));
+  // Debounced UPI validation function
+  const debouncedValidateUpi = debounce(async (upiId) => {
+    if (!upiId || !UPI_ID_REGEX.test(upiId)) {
+      setIsUpiValid(false);
+      setValidationMessage('');
+      setIsFormatValid(false);
+      return;
+    }
+
+    try {
+      const result = await validateUpi(upiId).unwrap();
+      if (result.success) {
+        setIsUpiValid(true);
+        setValidationMessage(
+          `✓ Valid UPI ID ${result.customer_name ? `linked to ${result.customer_name}` : ''}`
+        );
+      } else {
+        setIsUpiValid(false);
+        setValidationMessage(`✗ ${result.message || 'Invalid UPI ID'}`);
+      }
+    } catch (error) {
+      setIsUpiValid(false);
+      setValidationMessage(`✗ Failed to validate UPI ID: ${error?.data?.message || 'Unknown error'}`);
+    }
+  }, 500);
+
+  // Handle UPI ID input change
+  const handleUpiChange = (e) => {
+    const value = e.target.value.trim();
+    dispatch(setUpiId(value));
+    setValidationMessage('');
+    setIsUpiValid(false);
+
+    // Validate format immediately
+    setIsFormatValid(UPI_ID_REGEX.test(value) || !value);
+
+    // Trigger debounced server validation
+    if (value) {
+      debouncedValidateUpi(value);
+    }
   };
 
+  // Cleanup debounce on component unmount
+  useEffect(() => {
+    return () => {
+      debouncedValidateUpi.cancel();
+    };
+  }, []);
+
+  // Handle form submission for saving UPI ID
+  const handleSubmitUpi = async (e) => {
+    e.preventDefault();
+
+    if (!upiId || !isUpiValid) {
+      toast.error('Please enter a valid UPI ID');
+      return;
+    }
+
+    dispatch(saveUpiId(upiId));
+    toast.success('UPI ID saved successfully',
+      {
+        position: 'bottom-right',
+      }
+    );
+  };
+
+  // Handle withdrawal submission
   const handleSubmitWithdrawal = async (e) => {
     e.preventDefault();
     dispatch(setIsSubmitting(true));
@@ -241,16 +311,14 @@ function WithdrawFundsView({ handleBack }) {
 
       if (response.success) {
         toast.success(response.message);
-        dispatch(setAmount(""));
+        dispatch(setAmount(''));
         dispatch(resetUpiId());
       } else {
-        toast.error(response.message || "Failed to process withdrawal");
+        toast.error(response.message || 'Failed to process withdrawal');
       }
     } catch (error) {
-      console.error("Withdrawal error:", error);
-      toast.error(
-        error?.data?.message || "An error occurred during withdrawal"
-      );
+      console.error('Withdrawal error:', error);
+      toast.error(error?.data?.message || 'An error occurred during withdrawal');
     } finally {
       dispatch(setIsSubmitting(false));
     }
@@ -269,8 +337,7 @@ function WithdrawFundsView({ handleBack }) {
         </div>
         <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md">
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            <span className="font-semibold">Pro Tip:</span> Ensure your UPI ID is
-            valid before withdrawing
+            <span className="font-semibold">Pro Tip:</span> Ensure your UPI ID is valid before withdrawing
           </p>
         </div>
       </div>
@@ -298,15 +365,39 @@ function WithdrawFundsView({ handleBack }) {
                   >
                     UPI ID
                   </label>
-                  <input
-                    type="text"
-                    id="upiId"
-                    value={upiId}
-                    onChange={(e) => dispatch(setUpiId(e.target.value))}
-                    className="mt-1 p-4 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-blue-500"
-                    placeholder="example@upi"
-                    required
-                  />
+                  <div className="mt-1 relative">
+                    <input
+                      type="text"
+                      id="upiId"
+                      value={upiId}
+                      onChange={handleUpiChange}
+                      className={`p-4 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-blue-500 ${validationMessage
+                          ? isUpiValid
+                            ? 'border-green-500'
+                            : 'border-red-500'
+                          : !isFormatValid
+                            ? 'border-red-500'
+                            : ''
+                        }`}
+                      placeholder="example@upi"
+                      required
+                    />
+                    {isValidating && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                      </div>
+                    )}
+                  </div>
+                  {!isFormatValid && upiId && (
+                    <p className="mt-2 text-sm text-red-600">
+                      ✗ Invalid UPI ID format. It should be like example@upi
+                    </p>
+                  )}
+                  {validationMessage && (
+                    <p className={`mt-2 text-sm ${isUpiValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {validationMessage}
+                    </p>
+                  )}
                 </div>
                 <div className="flex justify-end gap-4">
                   <button
@@ -318,7 +409,11 @@ function WithdrawFundsView({ handleBack }) {
                   </button>
                   <button
                     type="submit"
-                    className="inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 text-center"
+                    disabled={isValidating || !isUpiValid || !isFormatValid}
+                    className={`inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 text-center ${isValidating || !isUpiValid || !isFormatValid
+                        ? 'opacity-50 cursor-not-allowed'
+                        : ''
+                      }`}
                   >
                     Save UPI ID
                   </button>
@@ -354,9 +449,7 @@ function WithdrawFundsView({ handleBack }) {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     UPI ID
                   </label>
-                  <p className="mt-1 text-gray-800 dark:text-white">
-                    {storedUpiId}
-                  </p>
+                  <p className="mt-1 text-gray-800 dark:text-white">{storedUpiId}</p>
                   <button
                     type="button"
                     onClick={() => dispatch(resetUpiId())}
@@ -376,11 +469,10 @@ function WithdrawFundsView({ handleBack }) {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className={`inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 text-center ${
-                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    className={`inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors duration-300 text-center ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                   >
-                    {isSubmitting ? "Processing..." : "Withdraw"}
+                    {isSubmitting ? 'Processing...' : 'Withdraw'}
                   </button>
                 </div>
               </form>
@@ -392,6 +484,7 @@ function WithdrawFundsView({ handleBack }) {
   );
 }
 
+
 // Pending Transactions View
 function PendingTransactionsView({ handleBack }) {
   const { data, isLoading, error } = useFetchUserWithdrawalRequestQuery(undefined);
@@ -400,36 +493,36 @@ function PendingTransactionsView({ handleBack }) {
 
   const [_CANCEL_TRANSACTION] = useDeleteUserWithdrawalRequestMutation();
 
-const handleCancelTransaction = async (id: any) => {
-  try {
-    const response = await _CANCEL_TRANSACTION(id).unwrap(); // throws on non-2xx status
+  const handleCancelTransaction = async (id: any) => {
+    try {
+      const response = await _CANCEL_TRANSACTION(id).unwrap(); // throws on non-2xx status
 
-    // If success is false, show specific message
-    if (!response.success) {
-      const message = response.message || "Failed to cancel the request. Please try again.";
+      // If success is false, show specific message
+      if (!response.success) {
+        const message = response.message || "Failed to cancel the request. Please try again.";
 
-      if (message === "Invalid input") {
-        toast.error("Invalid request. Please try again.");
-      } else if (message === "Withdrawal request not found") {
-        toast.error("Request not found. It may have already been deleted.");
-      } else if (message === "Cannot delete processed request") {
-        toast.error("Cannot cancel this request as it has already been processed.");
-      } else {
-        toast.error(message);
+        if (message === "Invalid input") {
+          toast.error("Invalid request. Please try again.");
+        } else if (message === "Withdrawal request not found") {
+          toast.error("Request not found. It may have already been deleted.");
+        } else if (message === "Cannot delete processed request") {
+          toast.error("Cannot cancel this request as it has already been processed.");
+        } else {
+          toast.error(message);
+        }
+
+        return;
       }
 
-      return;
+      toast.success("Withdrawal request cancelled successfully.");
+    } catch (err: any) {
+      console.error("handleCancelTransaction error:", err);
+
+      // Check if it's an API error and try to extract message
+      const errorMessage = err?.data?.message || "Something went wrong. Please try again.";
+      toast.error(errorMessage);
     }
-
-    toast.success("Withdrawal request cancelled successfully.");
-  } catch (err: any) {
-    console.error("handleCancelTransaction error:", err);
-
-    // Check if it's an API error and try to extract message
-    const errorMessage = err?.data?.message || "Something went wrong. Please try again.";
-    toast.error(errorMessage);
-  }
-};
+  };
 
 
 

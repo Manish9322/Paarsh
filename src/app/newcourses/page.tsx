@@ -84,6 +84,7 @@ const Courses = () => {
   };
 
   const randomCourses = useMemo(() => getRandomCourses(coursesData?.data, 3), [coursesData]);
+  console.log("Random Courses: ", randomCourses);
 
   const getRandomCategories = (categories, count) => {
     if (!Array.isArray(categories) || categories.length === 0) return [];
@@ -389,7 +390,7 @@ const Courses = () => {
                     >
                       <RelatedPost
                         title={course.courseName}
-                        image={course.image || "/images/blog/blog-01.jpg"}
+                        image={course.thumbnail || "/images/blog/blog-01.jpg"}
                         slug={`/${course.slug || "#"}`}
                         level={course.level || "N/A"}
                         duration={course.duration || "Unknown"}

@@ -12,6 +12,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import { ChevronUp, ChevronDown, Eye, Trash2, Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,6 +37,7 @@ const JobApplicationPage: React.FC = () => {
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
     const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [jobApplicationsPerPage, setJobApplicationsPerPage] = useState<number | "all">(10);
     const [searchTerm, setSearchTerm] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -84,8 +86,6 @@ const JobApplicationPage: React.FC = () => {
         }
     };
 
-    const applicationsPerPage = 10;
-
     const handleSort = (field: keyof JobApplication) => {
         setSortField(field);
         setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -106,12 +106,14 @@ const JobApplicationPage: React.FC = () => {
             : bValue.localeCompare(aValue);
     });
 
-    const totalPages = Math.ceil(sortedApplications.length / applicationsPerPage);
-    const startIndex = (currentPage - 1) * applicationsPerPage;
-    const displayedApplications = sortedApplications.slice(
-        startIndex,
-        startIndex + applicationsPerPage
-    );
+    const totalPages = jobApplicationsPerPage === "all" ? 1 : Math.ceil(sortedApplications.length / jobApplicationsPerPage);
+    const startIndex = jobApplicationsPerPage === "all" ? 0 : (currentPage - 1) * jobApplicationsPerPage;
+    const displayedApplications = jobApplicationsPerPage === "all"
+        ? sortedApplications
+        : sortedApplications.slice(
+            startIndex,
+            startIndex + jobApplicationsPerPage
+        );
 
     const toggleSidebar = () => {
         setSidebarOpen(!sidebarOpen);
@@ -469,11 +471,40 @@ const JobApplicationPage: React.FC = () => {
                         <div className="mt-6 rounded bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
                             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                                    Showing <span className="font-medium text-gray-700 dark:text-gray-300">{startIndex + 1}</span> to{" "}
+                                    Showing{" "}
                                     <span className="font-medium text-gray-700 dark:text-gray-300">
-                                        {Math.min(startIndex + applicationsPerPage, sortedApplications.length)}
+                                        {jobApplicationsPerPage === "all" ? 1 : startIndex + 1}
                                     </span>{" "}
-                                    of <span className="font-medium text-gray-700 dark:text-gray-300">{sortedApplications.length}</span> applications
+                                    to{" "}
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                                        {jobApplicationsPerPage === "all" ? sortedApplications.length : Math.min(startIndex + jobApplicationsPerPage, sortedApplications.length)}
+                                    </span>{" "}
+                                    of{" "}
+                                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                                        {sortedApplications.length}
+                                    </span>{" "}
+                                    applications
+
+                                    <div className="flex items-center space-x-2 pt-3">
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                                        <Select
+                                            value={jobApplicationsPerPage.toString()}
+                                            onValueChange={(value) => {
+                                                setJobApplicationsPerPage(value === "all" ? "all" : parseInt(value));
+                                                setCurrentPage(1); // Reset to first page when changing entries per page
+                                            }}
+                                        >
+                                            <SelectTrigger className="h-8 w-24 rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900">
+                                                <SelectValue placeholder="Entries" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                                <SelectItem value="10">10</SelectItem>
+                                                <SelectItem value="20">20</SelectItem>
+                                                <SelectItem value="50">50</SelectItem>
+                                                <SelectItem value="all">All</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center space-x-1">
@@ -492,11 +523,10 @@ const JobApplicationPage: React.FC = () => {
                                                 <Button
                                                     key={index}
                                                     onClick={() => setCurrentPage(page)}
-                                                    className={`h-8 w-8 rounded p-0 text-sm font-medium ${
-                                                        currentPage === page
-                                                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-                                                            : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                                                    }`}
+                                                    className={`h-8 w-8 rounded p-0 text-sm font-medium ${currentPage === page
+                                                        ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                                                        : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                                                        }`}
                                                 >
                                                     {page}
                                                 </Button>

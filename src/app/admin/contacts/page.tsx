@@ -24,6 +24,13 @@ import {
   Phone,
   Clock,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminSkeletonWrapper } from "@/components/ui/admin-skeleton-wrapper";
@@ -56,6 +63,7 @@ const ContactRequestsPage: React.FC = () => {
   const [sortField, setSortField] = useState<keyof ContactRequest | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [contactRequestsPerPage, setContactRequestsPerPage] = useState<number | "all">(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<ContactRequest | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
@@ -63,6 +71,7 @@ const ContactRequestsPage: React.FC = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
 
   const { data: contacts, isLoading: isContactsLoading } = useFetchContactsQuery(undefined);
   console.log("Contacts logged inside ContactRequestsPage : ", contacts);
@@ -92,8 +101,6 @@ const ContactRequestsPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const contactRequestsPerPage = 10;
-
   const handleSort = (field: keyof ContactRequest) => {
     setSortField(field);
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -116,11 +123,14 @@ const ContactRequestsPage: React.FC = () => {
         : -1;
   });
 
-  const totalPages = Math.ceil(sortedRequests.length / contactRequestsPerPage);
-  const displayedRequests = sortedRequests.slice(
-    (currentPage - 1) * contactRequestsPerPage,
-    currentPage * contactRequestsPerPage,
-  );
+  const totalPages = contactRequestsPerPage === "all" ? 1 : Math.ceil(sortedRequests.length / contactRequestsPerPage);
+  const startIndex = contactRequestsPerPage === "all" ? 0 : (currentPage - 1) * contactRequestsPerPage;
+  const displayedRequests = contactRequestsPerPage === "all"
+    ? sortedRequests
+    : sortedRequests.slice(
+      startIndex,
+      startIndex + contactRequestsPerPage
+    );
 
   const confirmDeleteRequest = (requestId: string) => {
     setRequestToDelete(requestId);
@@ -206,8 +216,6 @@ const ContactRequestsPage: React.FC = () => {
     }
   };
 
-  const startIndex = (currentPage - 1) * contactRequestsPerPage;
-
   // Function to generate page numbers for pagination
   const generatePaginationNumbers = () => {
     const pageNumbers = [];
@@ -283,7 +291,7 @@ const ContactRequestsPage: React.FC = () => {
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
                   <Input
                     placeholder="Search requests..."
-                    className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
+                    className="h-10 w-full rounded-md border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 md:w-64"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -544,12 +552,42 @@ const ContactRequestsPage: React.FC = () => {
             <div className="mt-6 rounded-md bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
               <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Showing <span className="font-medium text-gray-700 dark:text-gray-300">{startIndex + 1}</span> to{" "}
+                  Showing{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {Math.min(startIndex + contactRequestsPerPage, sortedRequests.length)}
+                    {contactRequestsPerPage === "all" ? 1 : startIndex + 1}
                   </span>{" "}
-                  of <span className="font-medium text-gray-700 dark:text-gray-300">{sortedRequests.length}</span> requests
+                  to{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {contactRequestsPerPage === "all" ? sortedRequests.length : Math.min(startIndex + contactRequestsPerPage, sortedRequests.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {sortedRequests.length}
+                  </span>{" "}
+                  requests
+
+                  <div className="flex items-center space-x-2 pt-2">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                    <Select
+                      value={contactRequestsPerPage.toString()}
+                      onValueChange={(value) => {
+                        setContactRequestsPerPage(value === "all" ? "all" : parseInt(value));
+                        setCurrentPage(1); // Reset to first page when changing entries per page
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-24 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800">
+                        <SelectValue placeholder="Entries" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-md border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
                 <div className="flex items-center space-x-1">
                   <Button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -568,8 +606,8 @@ const ContactRequestsPage: React.FC = () => {
                           key={`page-${page}`}
                           onClick={() => setCurrentPage(Number(page))}
                           className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${currentPage === page
-                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-                            : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                              ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                              : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
                             }`}
                           aria-label={`Page ${page}`}
                           aria-current={currentPage === page ? "page" : undefined}
@@ -609,8 +647,7 @@ const ContactRequestsPage: React.FC = () => {
                   />
                 </div>
               </div>
-            </div>
-          )}
+            </div>)}
         </div>
       </main>
 
@@ -724,17 +761,17 @@ const ContactRequestsPage: React.FC = () => {
                   </Button>
 
                   <Button
-                  variant="outline"
-                  onClick={() => setViewOpen(false)}
-                  className="w-full sm:w-auto"
-                >
-                  Close
-                </Button>
+                    variant="outline"
+                    onClick={() => setViewOpen(false)}
+                    className="w-full sm:w-auto"
+                  >
+                    Close
+                  </Button>
 
 
                 </div>
 
-                
+
 
               </div>
             </DialogFooter>

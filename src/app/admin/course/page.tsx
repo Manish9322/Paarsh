@@ -19,6 +19,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Eye, Edit, Trash2, ChevronLeft, ChevronRight, BookOpen, Menu, Video, BookPlus } from "lucide-react";
 import { EditCourse } from "../../../components/Courses/EditCourses";
 import {
@@ -98,6 +105,7 @@ const CoursePage: React.FC = () => {
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [coursesPerPage, setCoursesPerPage] = useState<number | "all">(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState<string | null>(null);
@@ -109,12 +117,15 @@ const CoursePage: React.FC = () => {
     minPrice: "",
     maxPrice: "",
   });
-  
-  const coursesPerPage = 10;
+
   const dispatch = useDispatch();
   const selectedCourse = useSelector(
     (state) => selectRootState(state).course,
   );
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
   // Fetch courses data
   const {
@@ -129,7 +140,7 @@ const CoursePage: React.FC = () => {
   // Fetch categories data
   const { data: categoriesData, isLoading: isCategoriesLoading } = useFetchCategoriesQuery(undefined);
   const categories: Category[] = categoriesData?.data || [];
-  
+
 
   const { data: courseVideoData } = useFetchCourseVideoQuery(courseid);
 
@@ -174,12 +185,14 @@ const CoursePage: React.FC = () => {
     useDeleteCourseMutation();
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredCourses.length / coursesPerPage);
-  const startIndex = (currentPage - 1) * coursesPerPage;
-  const displayedCourses = filteredCourses.slice(
-    startIndex,
-    startIndex + coursesPerPage,
-  );
+  const startIndex = coursesPerPage === "all" ? 0 : (currentPage - 1) * coursesPerPage;
+  const totalPages = coursesPerPage === "all" ? 1 : Math.ceil(filteredCourses.length / coursesPerPage);
+  const displayedCourses = coursesPerPage === "all"
+    ? filteredCourses
+    : filteredCourses.slice(
+      startIndex,
+      startIndex + coursesPerPage
+    );
 
   // Function to generate page numbers for pagination
   const generatePaginationNumbers = () => {
@@ -287,35 +300,40 @@ const CoursePage: React.FC = () => {
       {/* Mobile Header */}
       <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
         <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
+          onClick={toggleSidebar}
           className="rounded-full p-2 text-gray-600 hover:bg-gray-100"
           aria-label="Toggle sidebar"
         >
           <Menu size={24} />
         </button>
-        <h1 className="text-lg font-bold text-gray-800">Course Management</h1>
+        <h1 className="text-lg font-bold text-gray-800">User Management</h1>
         <div className="w-10"></div>
       </div>
 
-      {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-40 h-full w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:sticky md:translate-x-0`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
-        <div className="h-16 md:h-0"></div>
-        <Sidebar userRole="admin" />
+        <div className="flex h-full flex-col">
+          <div className="flex h-16 items-center justify-between px-4 md:justify-end">
+            <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
+          </div>
+          <div className="custom-scrollbar flex-1 overflow-y-auto">
+            <Sidebar userRole="admin" />
+          </div>
+        </div>
       </aside>
 
-      {/* Overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={toggleSidebar}
           aria-hidden="true"
         ></div>
       )}
 
       {/* Main Content */}
-      <main className="flex-1 overflow-x-hidden pt-16">
+      <main className="flex-1 overflow-y-auto  pt-16 md:ml-64">
         <div className="container mx-auto px-4 py-6">
           <Card className="mb-6 overflow-hidden border-none bg-white shadow-md">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
@@ -599,12 +617,36 @@ const CoursePage: React.FC = () => {
         <div className="mt-6 rounded-md bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Showing <span className="font-medium text-gray-700 dark:text-gray-300">{startIndex + 1}</span> to{" "}
+              Showing <span className="font-medium text-gray-700 dark:text-gray-300">{coursesPerPage === "all" ? 1 : startIndex + 1}</span> to{" "}
               <span className="font-medium text-gray-700 dark:text-gray-300">
-                {Math.min(startIndex + coursesPerPage, filteredCourses.length)}
+                {coursesPerPage === "all" ? filteredCourses.length : Math.min(startIndex + coursesPerPage, filteredCourses.length)}
               </span>{" "}
               of <span className="font-medium text-gray-700 dark:text-gray-300">{filteredCourses.length}</span> courses
+
+              <div className="flex items-center space-x-2 pt-3">
+                <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                <Select
+                  value={coursesPerPage.toString()}
+                  onValueChange={(value) => {
+                    setCoursesPerPage(value === "all" ? "all" : parseInt(value));
+                    setCurrentPage(1); // Reset to first page when changing entries per page
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800">
+                    <SelectValue placeholder="Entries" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
             </div>
+
+
 
             <div className="flex items-center space-x-1">
               <Button

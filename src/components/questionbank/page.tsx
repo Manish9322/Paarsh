@@ -172,11 +172,10 @@ function QuestionBank() {
           <button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
-              selectedCategory === category
-                ? "bg-blue-500 text-white"
-                : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
-            }`}
+            className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${selectedCategory === category
+              ? "bg-blue-500 text-white"
+              : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+              }`}
           >
             {category}
           </button>
@@ -248,31 +247,35 @@ function QuestionBank() {
         ) : displayedTests.length === 0 ? (
           // No Practice Tests Section
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col items-center justify-center py-12 px-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700"
-          >
-            <BookOpen className="h-12 w-12 text-gray-400 dark:text-gray-500" />
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2">
-              No Practice Tests Found
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
-              {searchTerm || selectedCategory !== "All"
-                ? "Try adjusting your search or filter criteria."
-                : "No practice tests are available for your purchased courses."}
-            </p>
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("All");
-              }}
-              className="inline-flex items-center px-6 py-3 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center justify-center py-12 px-4"
             >
-              Reset Filters
-              <ChevronRight size={18} className="ml-2" />
-            </button>
-          </motion.div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-6 mb-6">
+                <BookOpen className="w-16 h-16 text-blue-500 dark:text-blue-400" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white mb-2">
+                No Practice Tests Found
+
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
+                {searchTerm || selectedCategory !== "All"
+                  ? "Try adjusting your search or filter criteria."
+                  : "No practice tests are available for your purchased courses."}
+              </p>
+
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("All");
+                }}
+                className="inline-flex items-center px-6 py-3 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded shadow-md hover:shadow-lg transition-all duration-300"
+              >
+                Reset Filters
+                <ChevronRight size={18} className="ml-2" />
+              </button>
+            </motion.div>
         ) : (
           // Render Practice Tests
           <motion.div
@@ -314,9 +317,8 @@ function QuestionBank() {
                 <button
                   onClick={() => handleStartPractice(test._id)}
                   disabled={isNavigating === test._id}
-                  className={`w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-md shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${
-                    isNavigating === test._id ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-md shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 ${isNavigating === test._id ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                 >
                   {isNavigating === test._id ? "Loading..." : "Start Practice"}
                   <ChevronRight size={16} className="ml-1" />

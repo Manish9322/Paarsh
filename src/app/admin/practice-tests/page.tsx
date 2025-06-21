@@ -89,8 +89,9 @@ const PracticeTestPage: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [practiceTestsPerPage, setPracticeTestsPerPage] = useState<number | "all">(10);
   const [selectedTest, setSelectedTest] = useState<PracticeTest | null>(null);
-  const testsPerPage = 10;
+
 
   // Fetch data
   const { data: practiceTestsData, isLoading, error } = useFetchPracticeTestsQuery(undefined);
@@ -131,9 +132,14 @@ const PracticeTestPage: React.FC = () => {
   );
 
   // Pagination logic
-  const totalPages = Math.ceil(filteredTests.length / testsPerPage);
-  const startIndex = (currentPage - 1) * testsPerPage;
-  const displayedTests = filteredTests.slice(startIndex, startIndex + testsPerPage);
+  const startIndex = practiceTestsPerPage === "all" ? 0 : (currentPage - 1) * practiceTestsPerPage;
+  const totalPages = practiceTestsPerPage === "all" ? 1 : Math.ceil(filteredTests.length / practiceTestsPerPage);
+  const displayedTests = practiceTestsPerPage === "all"
+    ? filteredTests
+    : filteredTests.slice(
+      startIndex,
+      startIndex + practiceTestsPerPage
+    );
 
   // Generate pagination numbers
   const generatePaginationNumbers = () => {
@@ -786,7 +792,7 @@ const PracticeTestPage: React.FC = () => {
                 <>
                   <Table>
                     <TableHeader>
-                    <TableRow className="border-b  border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
+                      <TableRow className="border-b  border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
                         <TableHead>Test Name</TableHead>
                         <TableHead>Skill</TableHead>
                         <TableHead>Level</TableHead>
@@ -859,23 +865,46 @@ const PracticeTestPage: React.FC = () => {
                       ))}
                     </TableBody>
                   </Table>
+
                   <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
                     <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         Showing{" "}
                         <span className="font-medium text-gray-700 dark:text-gray-300">
-                          {startIndex + 1}
+                          {practiceTestsPerPage === "all" ? 1 : startIndex + 1}
                         </span>{" "}
                         to{" "}
                         <span className="font-medium text-gray-700 dark:text-gray-300">
-                          {Math.min(startIndex + testsPerPage, filteredTests.length)}
+                          {practiceTestsPerPage === "all" ? filteredTests.length : Math.min(startIndex + practiceTestsPerPage, filteredTests.length)}
                         </span>{" "}
                         of{" "}
                         <span className="font-medium text-gray-700 dark:text-gray-300">
                           {filteredTests.length}
                         </span>{" "}
                         tests
+
+                        <div className="flex items-center space-x-2 pt-3">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                          <Select
+                            value={practiceTestsPerPage.toString()}
+                            onValueChange={(value) => {
+                              setPracticeTestsPerPage(value === "all" ? "all" : parseInt(value));
+                              setCurrentPage(1); // Reset to first page when changing entries per page
+                            }}
+                          >
+                            <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800">
+                              <SelectValue placeholder="Entries" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="10">10</SelectItem>
+                              <SelectItem value="20">20</SelectItem>
+                              <SelectItem value="50">50</SelectItem>
+                              <SelectItem value="all">All</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
+
                       <div className="flex items-center space-x-1">
                         <Button
                           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -898,11 +927,10 @@ const PracticeTestPage: React.FC = () => {
                               <Button
                                 key={`page-${page}`}
                                 onClick={() => setCurrentPage(Number(page))}
-                                className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
-                                  currentPage === page
+                                className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${currentPage === page
                                     ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                                     : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                                }`}
+                                  }`}
                                 aria-label={`Page ${page}`}
                                 aria-current={currentPage === page ? "page" : undefined}
                               >
@@ -925,6 +953,7 @@ const PracticeTestPage: React.FC = () => {
                           <ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
+
                       <div className="hidden items-center space-x-2 lg:flex">
                         <span className="text-sm text-gray-500 dark:text-gray-400">
                           Go to page:

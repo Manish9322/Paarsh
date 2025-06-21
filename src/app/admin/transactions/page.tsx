@@ -28,11 +28,19 @@ import {
   useGrantManualCourseAccessMutation,
 } from "@/services/api";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const TransactionsPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [transactionsPerPage, setTransactionsPerPage] = useState<number | "all">(10);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [activeFilters, setActiveFilters] = useState({
@@ -58,7 +66,6 @@ const TransactionsPage = () => {
   console.log("Users data on transaction page : ", usersData);
 
   const transactions = transactionsData?.data || [];
-  const transactionsPerPage = 10;
 
   const getCourseDetails = useCallback(
     (courseId: string) => {
@@ -78,27 +85,27 @@ const TransactionsPage = () => {
 
   // Handle granting manual access
   const handleGrantAccess = async (transactionId: string) => {
-  try {
-    const adminNote = "Manual access granted due to redirect issue";
+    try {
+      const adminNote = "Manual access granted due to redirect issue";
 
-    const response = await _GRANTMANUALACCESS({ transactionId, adminNote }).unwrap();
+      const response = await _GRANTMANUALACCESS({ transactionId, adminNote }).unwrap();
 
-    const data = response?.data;
+      const data = response?.data;
 
-    if (response?.success) {
-      toast.success("✅ Course access granted successfully!");
-      refetch(); // Refresh transactions to update status
-      setPreviewOpen(false); // Close modal if open
-    } else {
-      toast.error(data?.error || "❌ Failed to grant access");
+      if (response?.success) {
+        toast.success("✅ Course access granted successfully!");
+        refetch(); // Refresh transactions to update status
+        setPreviewOpen(false); // Close modal if open
+      } else {
+        toast.error(data?.error || "❌ Failed to grant access");
+      }
+    } catch (err: any) {
+      const errorMessage =
+        err?.data?.error || err?.message || "❌ An unexpected error occurred";
+
+      toast.error(errorMessage);
     }
-  } catch (err: any) {
-    const errorMessage =
-      err?.data?.error || err?.message || "❌ An unexpected error occurred";
-
-    toast.error(errorMessage);
-  }
-};
+  };
 
 
   // Filter transactions based on search term and active filters
@@ -147,14 +154,14 @@ const TransactionsPage = () => {
     return true;
   });
 
-  const totalPages = Math.ceil(
-    filteredTransactions.length / transactionsPerPage,
-  );
-  const startIndex = (currentPage - 1) * transactionsPerPage;
-  const displayedTransactions = filteredTransactions.slice(
-    startIndex,
-    startIndex + transactionsPerPage,
-  );
+  const totalPages = transactionsPerPage === "all" ? 1 : Math.ceil(filteredTransactions.length / transactionsPerPage);
+  const startIndex = transactionsPerPage === "all" ? 0 : (currentPage - 1) * transactionsPerPage;
+  const displayedTransactions = transactionsPerPage === "all"
+    ? filteredTransactions
+    : filteredTransactions.slice(
+      startIndex,
+      startIndex + transactionsPerPage
+    );
 
   const handleFilterChange = (newFilters: any) => {
     setActiveFilters(newFilters);
@@ -232,21 +239,20 @@ const TransactionsPage = () => {
       </div>
 
       {/* Sidebar */}
-         <aside
-           className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
-             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-           }`}
-         >
-           <div className="flex h-full flex-col">
-             <div className="flex h-16 items-center justify-between px-4 md:justify-end">
-               <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
-             </div>
-             <div className="custom-scrollbar flex-1 overflow-y-auto">
-               <Sidebar userRole="admin" />
-             </div>
-           </div>
-         </aside>
-   
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex h-16 items-center justify-between px-4 md:justify-end">
+            <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
+          </div>
+          <div className="custom-scrollbar flex-1 overflow-y-auto">
+            <Sidebar userRole="admin" />
+          </div>
+        </div>
+      </aside>
+
 
       {/* Overlay */}
       {sidebarOpen && (
@@ -495,7 +501,7 @@ const TransactionsPage = () => {
                                   {transaction.orderId}
                                 </p>
                                 <p className="mt-1 text-xs text-gray-500 md:hidden">
-                                                            {transaction.userId?.name}
+                                  {transaction.userId?.name}
                                 </p>
                                 <p className="mt-1 text-xs text-gray-500 sm:hidden">
                                   ₹{transaction.amount}
@@ -503,21 +509,20 @@ const TransactionsPage = () => {
                               </div>
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
-                                                    {transaction.userId?.name}
+                              {transaction.userId?.name}
                             </TableCell>
                             <TableCell className="hidden sm:table-cell">
-                                                    {transaction.courseId?.courseName}
+                              {transaction.courseId?.courseName}
                             </TableCell>
                             <TableCell>₹{transaction.amount}</TableCell>
                             <TableCell className="hidden sm:table-cell">
                               <span
-                                className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                  transaction.status === "SUCCESS"
-                                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                    : transaction.status === "FAILED"
-                                      ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                                      : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                }`}
+                                className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${transaction.status === "SUCCESS"
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                  : transaction.status === "FAILED"
+                                    ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                  }`}
                               >
                                 {transaction.status}
                               </span>
@@ -596,7 +601,7 @@ const TransactionsPage = () => {
                               </p>
                               <p className="text-sm">
                                 {searchTerm ||
-                                Object.values(activeFilters).some(Boolean)
+                                  Object.values(activeFilters).some(Boolean)
                                   ? "Try adjusting your search or filter criteria"
                                   : "No transactions available"}
                               </p>
@@ -658,13 +663,12 @@ const TransactionsPage = () => {
                         </span>
                         <span className="col-span-2 text-sm">
                           <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                              selectedTransaction.status === "SUCCESS"
-                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                : selectedTransaction.status === "FAILED"
-                                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                            }`}
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${selectedTransaction.status === "SUCCESS"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                              : selectedTransaction.status === "FAILED"
+                                ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                              }`}
                           >
                             {selectedTransaction.status}
                           </span>
@@ -808,71 +812,76 @@ const TransactionsPage = () => {
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 Showing{" "}
                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {startIndex + 1}
+                  {transactionsPerPage === "all" ? 1 : startIndex + 1}
                 </span>{" "}
                 to{" "}
                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {Math.min(
-                    startIndex + transactionsPerPage,
-                    filteredTransactions.length,
-                  )}
+                  {transactionsPerPage === "all" ? filteredTransactions.length : Math.min(startIndex + transactionsPerPage, filteredTransactions.length)}
                 </span>{" "}
                 of{" "}
                 <span className="font-medium text-gray-700 dark:text-gray-300">
                   {filteredTransactions.length}
                 </span>{" "}
                 transactions
+
+                <div className="flex items-center space-x-2 pt-3">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                  <Select
+                    value={transactionsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setTransactionsPerPage(value === "all" ? "all" : parseInt(value));
+                      setCurrentPage(1); // Reset to first page when changing entries per page
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-24 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800">
+                      <SelectValue placeholder="Entries" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-md border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="flex items-center space-x-1">
                 <Button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-
                 <div className="hidden sm:flex sm:items-center sm:space-x-1">
                   {generatePaginationNumbers().map((page, index) =>
                     page === "..." ? (
-                      <span
-                        key={`ellipsis-${index}`}
-                        className="px-1 text-gray-400"
-                      >
+                      <span key={`ellipsis-${index}`} className="px-1 text-gray-400">
                         ...
                       </span>
                     ) : (
                       <Button
                         key={`page-${page}`}
                         onClick={() => setCurrentPage(Number(page))}
-                        className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
-                          currentPage === page
-                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-                            : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                        }`}
+                        className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${currentPage === page
+                          ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                          : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                          }`}
                         aria-label={`Page ${page}`}
                         aria-current={currentPage === page ? "page" : undefined}
                       >
                         {page}
                       </Button>
-                    ),
+                    )
                   )}
                 </div>
-
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:hidden">
                   Page {currentPage} of {totalPages || 1}
                 </span>
-
                 <Button
-                  onClick={() =>
-                    setCurrentPage((prev) =>
-                      Math.min(prev + 1, totalPages || 1),
-                    )
-                  }
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages || 1))}
                   disabled={currentPage === totalPages || totalPages === 0}
                   className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                   aria-label="Next page"
@@ -880,11 +889,8 @@ const TransactionsPage = () => {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-
               <div className="hidden items-center space-x-2 lg:flex">
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Go to page :
-                </span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Go to page :</span>
                 <Input
                   type="number"
                   min={1}

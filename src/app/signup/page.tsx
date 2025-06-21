@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { signUpValidationSchema } from "../../lib/validationSchema";
 import { useFormik } from "formik";
 import { Eye, EyeOff } from "lucide-react";
+import { GoChevronLeft } from "react-icons/go";
 import { useDispatch, useSelector } from "react-redux";
 import { selectRootState } from "@/lib/store";
 import { useSignupMutation } from "@/services/api";
@@ -62,7 +63,7 @@ const SignupPage = () => {
           refferalCode: values.referralCode, // Note: Backend uses "refferalCode" with double 'f'
           acceptTerms: values.acceptTerms
         }).unwrap();
-        
+
         if (response?.success) {
           const { accessToken, refreshToken, user } = response?.data;
           localStorage.setItem("accessToken", accessToken);
@@ -82,11 +83,11 @@ const SignupPage = () => {
         }
       } catch (err) {
         console.error("Signup failed:", err);
-        
+
         // Handle specific error cases from the backend
         if (err.status === 400) {
           const errorData = err.data;
-          
+
           if (errorData?.error === "Email already registered") {
             toast.error("Email already registered", {
               description: "This email is already in use. Please login instead.",
@@ -132,6 +133,15 @@ const SignupPage = () => {
         <div className="container mx-auto px-4">
           <div className="-mx-4 flex flex-wrap">
             <div className="w-full px-4">
+              <div className="mb-4 mx-auto max-w-[700px] ">
+                <Link
+                  href="/"
+                  className="inline-flex items-center text-primary hover:text-blue-700 transition-colors"
+                >
+                  <GoChevronLeft size={22} className="mr-1" />
+                  Back to Home
+                </Link>
+              </div>
               <div className="mx-auto max-w-[700px] rounded bg-white px-4 py-8 shadow-three dark:bg-dark sm:p-[40px] md:p-[60px]">
                 <h3 className="mb-3 text-center text-xl font-bold text-black dark:text-white sm:text-2xl md:text-3xl">
                   Create your account
@@ -306,7 +316,7 @@ const SignupPage = () => {
                         By creating account you agree the{" "}
                         <span className="font-medium text-blue-600">
                           {" "}
-                          Paarsh Edus
+                          Paarsh Edu&apos;s {" "}
                         </span>
                         <a href="#0">Terms and Conditions</a>, and our
                         <a href="#0"> Privacy Policy</a>
@@ -320,11 +330,10 @@ const SignupPage = () => {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className={`mb-4 w-full rounded transition px-6 py-3 text-white ${
-                        isLoading 
-                          ? "bg-gray-400 cursor-not-allowed" 
+                      className={`mb-4 w-full rounded transition px-6 py-3 shadow-lg text-white ${isLoading
+                          ? "bg-gray-400 cursor-not-allowed"
                           : "bg-blue-600 hover:bg-black"
-                      }`}
+                        }`}
                     >
                       {isLoading ? "Creating Account..." : "Create Account"}
                     </button>
