@@ -13,6 +13,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ChevronUp,
   ChevronDown,
   Eye,
@@ -78,6 +85,7 @@ const UserPage: React.FC = () => {
   const [sortField, setSortField] = useState<keyof Users | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage, setUsersPerPage] = useState<number | "all">(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Users | null>(null);
@@ -97,7 +105,7 @@ const UserPage: React.FC = () => {
   const [_DELETEUSER, { isLoading: isDeleteLoading }] = useDeleteUserMutation();
 
   const users = userData?.data || [];
-  const startIndex = (currentPage - 1) * agentsPerPage;
+  const startIndex = usersPerPage === "all" ? 0 : (currentPage - 1) * usersPerPage;
 
 
   const { data: transactionsData } = useFetchTransactionsQuery(undefined);
@@ -132,11 +140,13 @@ const UserPage: React.FC = () => {
     return comparison;
   });
 
-  const totalPages = Math.ceil(sortedUsers.length / agentsPerPage);
-  const displayedUsers = sortedUsers.slice(
-    (currentPage - 1) * agentsPerPage,
-    currentPage * agentsPerPage
-  );
+  const totalPages = usersPerPage === "all" ? 1 : Math.ceil(sortedUsers.length / usersPerPage);
+  const displayedUsers = usersPerPage === "all"
+    ? sortedUsers
+    : sortedUsers.slice(
+      (currentPage - 1) * usersPerPage,
+      currentPage * usersPerPage
+    );
 
   const handleEdit = (user: Users) => {
     setSelectedUser(user);
@@ -271,7 +281,7 @@ const UserPage: React.FC = () => {
                   <Input
                     type="text"
                     placeholder="Search users..."
-                    className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-white md:w-64"
+                    className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-black md:w-64"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -525,7 +535,7 @@ const UserPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="overflow-hidden rounded-lg border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
                       <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-4 py-2 dark:from-blue-900/20 dark:to-blue-900/20">
                         <h3 className="font-medium text-blue-800 dark:text-blue-300">
@@ -673,6 +683,28 @@ const UserPage: React.FC = () => {
                   {sortedUsers.length}
                 </span>{" "}
                 users
+
+                <div className="flex items-center space-x-2 pt-3">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                  <Select
+                    value={usersPerPage.toString()}
+                    onValueChange={(value) => {
+                      setUsersPerPage(value === "all" ? "all" : parseInt(value));
+                      setCurrentPage(1); // Reset to first page when changing entries per page
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800">
+                      <SelectValue placeholder="Entries" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
               </div>
 
               <div className="flex items-center space-x-1">

@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import JobModal from '@/components/jobModal';
+import JobDetailsModal from '@/components/JobDetailsModal'; // Adjust path as needed
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import SubscribeNewsletter from "@/components/SubscribeStripe/SubscribeStripe";
 import Image from "next/image";
-import { ArrowRight, Briefcase, Users, Globe, CheckCircle2, XCircle } from "lucide-react";
-
+import { ArrowRight, AlertTriangle, Briefcase, Users, Globe, CheckCircle2, XCircle } from "lucide-react";
 import { FaLightbulb, FaHospitalAlt, FaHome, } from "react-icons/fa";
 import { FaHandshakeSimple, FaUmbrellaBeach } from "react-icons/fa6";
 import { FiTarget } from "react-icons/fi";
@@ -19,53 +19,27 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/pagination';
-import { useCreateJobApplicationMutation } from '@/services/api';
+import { useCreateJobApplicationMutation, useFetchJobPositionsQuery, useFetchUserQuery } from '@/services/api';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import TeamModal from '@/components/TeamModal';
 
 interface JobListing {
-  id: number;
-  title: string;
+  _id: string;
+  position: string;
   department: string;
   location: string;
-  type: string;
+  workType: string;
   description: string;
+  salaryRange: {
+    min: number;
+    max: number;
+  };
+  skillsRequired: string[];
+  expiryDate: string;
+  isActive: boolean;
+  experienceLevel: string;
+  createdAt: string;
 }
-
-const jobListings: JobListing[] = [
-  {
-    id: 1,
-    title: "Full Stack Developer",
-    department: "Engineering",
-    location: "Remote",
-    type: "Full-time",
-    description: "We're looking for an experienced Full Stack Developer to build and maintain web applications using both frontend and backend technologies."
-  },
-  {
-    id: 2,
-    title: "Backend Developer",
-    department: "Engineering",
-    location: "Hybrid",
-    type: "Full-time",
-    description: "We're seeking a skilled Backend Developer to design and implement scalable server-side logic, APIs, and database interactions."
-  },
-  {
-    id: 3,
-    title: "Mobile App Developer",
-    department: "Engineering",
-    location: "On-site",
-    type: "Full-time",
-    description: "We're looking for a Mobile App Developer to create and maintain high-quality mobile applications for Android and iOS platforms."
-  },
-  {
-    id: 4,
-    title: "Content Editor",
-    department: "Content",
-    location: "On-site",
-    type: "Full-time",
-    description: "We're hiring a Content Editor to review, edit, and enhance learning materials ensuring clarity, accuracy, and consistency."
-  }
-];
 
 const benefits = [
   {
@@ -196,6 +170,7 @@ const companyStats = [
   { label: "Global Offices", value: "5", icon: Globe },
 ];
 
+
 export default function Careers() {
   const [selectedFaq, setSelectedFaq] = useState<number | null>(null);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
@@ -205,6 +180,8 @@ export default function Careers() {
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isJobDetailsModalOpen, setIsJobDetailsModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -216,6 +193,13 @@ export default function Careers() {
   });
 
   const [_CreateJob] = useCreateJobApplicationMutation();
+
+  const { data: jobPositionData, isLoading, error } = useFetchJobPositionsQuery(undefined);
+  console.log("Job Position Data: ", jobPositionData);
+
+  const { data: userData } = useFetchUserQuery(undefined);
+  console.log("user's data on careers page : ", userData);
+
 
   console.log("Form Data  : ", formData);
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -284,6 +268,164 @@ export default function Careers() {
       }
     }
   };
+
+  // Add useEffect to prefill form with userData and selectedJob
+  useEffect(() => {
+    if (userData?.success && userData.data) {
+      setFormData((prev) => ({
+        ...prev,
+        fullName: userData.data.name || '',
+        email: userData.data.email || '',
+        phoneNumber: userData.data.mobile || '',
+        desiredRole: selectedJob?.position || prev.desiredRole
+      }));
+    } else if (selectedJob) {
+      setFormData((prev) => ({
+        ...prev,
+        desiredRole: selectedJob.position
+      }));
+    }
+  }, [userData, selectedJob]);
+
+  // Add scroll handler for the application form
+  const scrollToApplicationForm = () => {
+    const element = document.getElementById('applicationForm');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const SkeletonCard = () => (
+    <div className="relative h-full rounded overflow-hidden border border-gray-100 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+      {/* Skeleton Department Icon */}
+      <div className="mb-6 inline-flex rounded-lg bg-blue-50 p-3 dark:bg-blue-900/30">
+        <div className="h-6 w-6 bg-gray-200 dark:bg-gray-600 animate-pulse rounded"></div>
+      </div>
+
+      {/* Skeleton Job Title */}
+      <div className="mb-4 h-6 w-3/4 bg-gray-200 dark:bg-gray-600 animate-pulse rounded"></div>
+
+      {/* Skeleton Tags */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <div className="h-6 w-20 bg-blue-100 dark:bg-blue-900/30 animate-pulse rounded-full"></div>
+        <div className="h-6 w-24 bg-green-100 dark:bg-green-900/30 animate-pulse rounded-full"></div>
+        <div className="h-6 w-20 bg-purple-100 dark:bg-purple-900/30 animate-pulse rounded-full"></div>
+      </div>
+
+      {/* Skeleton Description */}
+      <div className="mb-6 space-y-2">
+        <div className="h-4 w-full bg-gray-200 dark:bg-gray-600 animate-pulse rounded"></div>
+        <div className="h-4 w-5/6 bg-gray-200 dark:bg-gray-600 animate-pulse rounded"></div>
+        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-600 animate-pulse rounded"></div>
+      </div>
+
+      {/* Skeleton Button */}
+      <div className="mt-auto">
+        <div className="h-12 w-full bg-blue-200 dark:bg-blue-900/30 animate-pulse rounded"></div>
+      </div>
+    </div>
+  );
+
+  const ErrorState = ({ error, retry }) => (
+    <div className="text-center py-16">
+      <div className="mb-6 inline-flex rounded-lg bg-red-50 p-4 dark:bg-red-900/30">
+        <svg className="h-8 w-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h3 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
+        Unable to Load Job Positions
+      </h3>
+      <p className="mx-auto max-w-lg text-gray-600 dark:text-gray-300 mb-8">
+        {error?.message || 'An unexpected error occurred. Please try again later.'}
+      </p>
+      <Button
+        onClick={retry}
+        className="group relative inline-flex items-center gap-2 rounded bg-blue-600 px-6 py-3 text-white transition-all duration-300 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+      >
+        Try Again
+        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+        <div className="absolute inset-0 -translate-y-full bg-blue-700 transition-transform duration-300 group-hover:translate-y-0 dark:bg-blue-600" />
+      </Button>
+    </div>
+  );
+
+
+  // Fallback component for error or no job posts
+  const JobListingsFallback = ({ isError = false, retry }: { isError?: boolean; retry?: () => void }) => {
+    return (
+      <div className="col-span-full text-center py-16">
+        <div className="relative mx-auto max-w-2xl">
+          {/* Decorative Icon */}
+          <div className="mb-6 inline-flex rounded-lg bg-blue-100 p-4 dark:bg-blue-900">
+            {isError ? (
+              <AlertTriangle className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            ) : (
+              <Briefcase className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+            )}
+          </div>
+
+          {/* Message */}
+          <h3 className="mb-4 text-2xl font-bold text-black dark:text-white">
+            {isError ? 'Unable to Load Job Positions' : 'No Open Positions Right Now'}
+          </h3>
+          <p className="mx-auto max-w-lg text-lg text-black/70 dark:text-white/70 mb-8">
+            {isError
+              ? 'An unexpected error occurred. Please try again later.'
+              : 'We’re not hiring at the moment, but new opportunities arise frequently. Check back soon or submit a general application!'}
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap justify-center gap-4">
+            {isError ? (
+              <Button
+                onClick={retry}
+                className="group relative inline-flex items-center gap-2 rounded bg-blue-600 px-6 py-3 text-white 
+              hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors duration-300"
+              >
+                <span className="flex items-center gap-2">
+                  Try Again
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </span>
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  const element = document.getElementById('applicationForm');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="group relative inline-flex items-center gap-2 rounded bg-blue-600 px-6 py-3 text-white 
+              hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors duration-300"
+              >
+                <span className="flex items-center gap-2">
+                  Submit General Application
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </span>
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              className="group rounded border border-blue-500 px-6 py-3 text-blue-600 hover:bg-blue-50 
+            dark:border-blue-400 dark:text-blue-400 dark:bg-gray-800 dark:hover:bg-blue-900 transition-colors duration-300"
+              onClick={() => setIsComingSoonModalOpen(true)}
+            >
+              <span className="flex items-center gap-2">
+                Notify Me of New Openings
+                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </span>
+            </Button>
+          </div>
+
+          {/* Decorative Line */}
+          <div className="mt-8 h-1 w-24 mx-auto bg-blue-600 rounded-lg" />
+        </div>
+      </div>
+    );
+  };
+
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -503,11 +645,11 @@ export default function Careers() {
           {/* Section Header */}
           <div className="text-center mb-16">
             <span className="inline-block px-4 py-1.5 mb-4 text-sm font-semibold rounded-full 
-                    bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300">
+              bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300">
               Join Our Team
             </span>
             <h2 className="mb-5 text-3xl font-bold leading-tight text-gray-900 dark:text-white 
-                   sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight">
+             sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight">
               Open Positions at <br />
               <span className="text-blue-600 dark:text-blue-400">Every Level</span>
             </h2>
@@ -516,99 +658,129 @@ export default function Careers() {
             </p>
           </div>
 
-          {/* Job Listings Grid - Modified to show only first 3 items */}
+
+          {/* Job Listings Grid - Modified to show skeletons while loading */}
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {jobListings.slice(0, 3).map((job, index) => (
-              <motion.div
-                key={job.id}
-                variants={itemVariants}
-                initial="hidden"
-                animate="visible"
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group relative"
-              >
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 
-                       opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-20" />
+            {isLoading ? (
+              // Show 3 skeleton cards while loading
+              [...Array(3)].map((_, index) => (
+                <motion.div
+                  key={`skeleton-${index}`}
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <SkeletonCard />
+                </motion.div>
+              ))
+            ) : error ? (
+              // Show error fallback
+              <JobListingsFallback
+                isError={true}
+                retry={() => {
+                  // Add your retry logic here, e.g., refetch the job positions
+                  // Example: refetch();
+                }}
+              />
+            ) : jobPositionData?.data?.length > 0 ? (
+              // Show actual job listings when data is available
+              jobPositionData.data.slice(0, 3).map((job, index) => (
+                <motion.div
+                  key={job._id}
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="group relative"
+                >
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 
+          opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-20" />
 
-                <Card className="relative h-full rounded overflow-hidden border border-gray-100 
-                        bg-white p-6 shadow-lg transition-all duration-300 
-                        hover:shadow-xl dark:border-gray-700 dark:bg-gray-800 
-                        group-hover:border-blue-500/30 dark:group-hover:border-blue-400/30">
+                  <Card className="relative h-full rounded overflow-hidden border border-gray-100 
+          bg-white p-6 shadow-lg transition-all duration-300 
+          hover:shadow-xl dark:border-gray-700 dark:bg-gray-800 
+          group-hover:border-blue-500/30 dark:group-hover:border-blue-400/30">
 
-                  {/* Department Icon */}
-                  <div className="mb-6 inline-flex rounded-lg bg-blue-50 p-3 
-                          dark:bg-blue-900/30">
-                    <Briefcase className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
+                    {/* Department Icon */}
+                    <div className="mb-6 inline-flex rounded-lg bg-blue-50 p-3 dark:bg-blue-900/30">
+                      <Briefcase className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    </div>
 
-                  {/* Job Title */}
-                  <h3 className="mb-4 text-xl font-bold text-gray-900 dark:text-white 
-                        group-hover:text-blue-600 dark:group-hover:text-blue-400 
-                        transition-colors duration-300">
-                    {job.title}
-                  </h3>
+                    {/* Job Title */}
+                    <h3 className="mb-4 text-xl font-bold text-gray-900 dark:text-white 
+            group-hover:text-blue-600 dark:group-hover:text-blue-400 
+            transition-colors duration-300">
+                      {job.position}
+                    </h3>
 
-                  {/* Tags */}
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 
-                           text-sm font-medium text-blue-700 dark:bg-blue-900/30 
-                           dark:text-blue-300">
-                      {job.department}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 
-                           text-sm font-medium text-green-700 dark:bg-green-900/30 
-                           dark:text-green-300">
-                      {job.location}
-                    </span>
-                    <span className="inline-flex items-center rounded-full bg-purple-50 px-3 py-1 
-                           text-sm font-medium text-purple-700 dark:bg-purple-900/30 
-                           dark:text-purple-300">
-                      {job.type}
-                    </span>
-                  </div>
-
-                  {/* Description */}
-                  <p className="mb-6 text-gray-600 dark:text-gray-300 line-clamp-3">
-                    {job.description}
-                  </p>
-
-                  {/* Apply Button */}
-                  <div className="mt-auto">
-                    <Button className="group relative w-full overflow-hidden rounded bg-blue-600 
-                             px-6 py-3 text-white transition-all duration-300 
-                             hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
-                      <span className="relative z-10 flex items-center justify-center gap-2">
-                        Apply Now
-                        <ArrowRight className="h-4 w-4 transition-transform duration-300 
-                                     group-hover:translate-x-1" />
+                    {/* Tags */}
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 
+              text-sm font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                        {job.department}
                       </span>
-                      <div className="absolute inset-0 -translate-y-full bg-blue-700 
-                             transition-transform duration-300 group-hover:translate-y-0 
-                             dark:bg-blue-600" />
-                    </Button>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
+                      <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 
+              text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                        {job.location}
+                      </span>
+                      <span className="inline-flex items-center rounded-full bg-purple-50 px-3 py-1 
+              text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                        {job.workType}
+                      </span>
+                    </div>
+
+                    {/* Description */}
+                    <p className="mb-6 text-gray-600 dark:text-gray-300 line-clamp-3">
+                      {job.description}
+                    </p>
+
+                    {/* Apply Button */}
+                    <div className="mt-auto">
+                      <Button
+                        onClick={() => {
+                          setSelectedJob(job);
+                          setIsJobDetailsModalOpen(true);
+                        }}
+                        className="group relative w-full overflow-hidden rounded bg-blue-600 
+                px-6 py-3 text-white transition-all duration-300 
+                hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                      >
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                          Apply Now
+                          <ArrowRight className="h-4 w-4 transition-transform duration-300 
+                  group-hover:translate-x-1" />
+                        </span>
+                        <div className="absolute inset-0 -translate-y-full bg-blue-700 
+                transition-transform duration-300 group-hover:translate-y-0 
+                dark:bg-blue-600" />
+                      </Button>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))
+            ) : (
+              <JobListingsFallback />
+            )}
           </div>
 
           <div className="mt-12 text-center">
             <Button
               variant="outline"
               className="group rounded border-blue-500 px-8 py-4 text-blue-600 
-             hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 
-             dark:hover:bg-blue-900/30"
+       hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 
+       dark:hover:bg-blue-900/30 dark:bg-gray-800"
               onClick={() => setIsJobModalOpen(true)}
             >
               <span className="flex items-center gap-2">
-                View All {jobListings.length} Positions
+                View All {jobPositionData?.data?.length || 0} Positions
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 
-                        group-hover:translate-x-1" />
+                  group-hover:translate-x-1" />
               </span>
             </Button>
-            {jobListings.length > 3 && (
+            {jobPositionData?.data?.length > 3 && (
               <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                +{jobListings.length - 3} more positions available
+                +{jobPositionData.data.length - 3} more positions available
               </p>
             )}
           </div>
@@ -617,9 +789,19 @@ export default function Careers() {
         <JobModal
           isOpen={isJobModalOpen}
           onClose={() => setIsJobModalOpen(false)}
-          jobs={jobListings}
+          jobs={jobPositionData?.data || []}
+          onApply={(job) => {
+            setSelectedJob(job);
+            setIsJobDetailsModalOpen(true);
+          }}
         />
 
+        <JobDetailsModal
+          isOpen={isJobDetailsModalOpen}
+          onClose={() => setIsJobDetailsModalOpen(false)}
+          job={selectedJob}
+          onApply={scrollToApplicationForm}
+        />
       </section>
 
       {/* Benefits Section */}
@@ -811,7 +993,7 @@ export default function Careers() {
       </section>
 
       {/* Application Form Section */}
-      <section className="py-24 bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-850 dark:to-gray-800">
+      <section id="applicationForm" className="py-24 bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-850 dark:to-gray-800">
         <div className="container mx-auto px-4 max-w-4xl">
           {/* Section Header */}
           <div className="text-center mb-16">

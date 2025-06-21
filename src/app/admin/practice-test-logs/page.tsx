@@ -71,6 +71,7 @@ const PracticeTestLogsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [practiceAttemptsPerPage, setPracticeAttemptsPerPage] = useState<number | "all">(10);
     const [previewOpen, setPreviewOpen] = useState(false);
     const [selectedAttempt, setSelectedAttempt] = useState<PracticeAttempt | null>(null);
     const [activeFilters, setActiveFilters] = useState({
@@ -88,7 +89,6 @@ const PracticeTestLogsPage = () => {
         pollingInterval: 30000,
     }) as { data?: PracticeAttemptsResponse; isLoading: boolean; isFetching: boolean; error?: unknown; refetch: () => void };
     const attempts: PracticeAttempt[] = attemptsData?.data || [];
-    const attemptsPerPage = 10;
 
     console.log("User Name : ", users.map((user) => user.name));
     console.log("User name based on userId : ", attempts.map((attempt) => {
@@ -158,14 +158,17 @@ const PracticeTestLogsPage = () => {
         ).sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
     };
 
-    const totalPages = Math.ceil(filteredAttempts.length / attemptsPerPage);
-    const startIndex = (currentPage - 1) * attemptsPerPage;
-
+    const startIndex = practiceAttemptsPerPage === "all" ? 0 : (currentPage - 1) * practiceAttemptsPerPage;
+    const totalPages = practiceAttemptsPerPage === "all" ? 1 : Math.ceil(filteredAttempts.length / practiceAttemptsPerPage);
     const sortedAttempts = filteredAttempts.sort((a, b) =>
         new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
     );
-    const displayedAttempts = sortedAttempts.slice(startIndex, startIndex + attemptsPerPage);
-
+    const displayedAttempts = practiceAttemptsPerPage === "all"
+        ? sortedAttempts
+        : sortedAttempts.slice(
+            startIndex,
+            startIndex + practiceAttemptsPerPage
+        );
 
     useEffect(() => {
         const handleFocus = () => refetch();
@@ -654,17 +657,38 @@ const PracticeTestLogsPage = () => {
                             <div className="text-sm text-gray-500 dark:text-gray-400">
                                 Showing{" "}
                                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                                    {startIndex + 1}
+                                    {practiceAttemptsPerPage === "all" ? 1 : startIndex + 1}
                                 </span>{" "}
                                 to{" "}
                                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                                    {Math.min(startIndex + attemptsPerPage, filteredAttempts.length)}
+                                    {practiceAttemptsPerPage === "all" ? filteredAttempts.length : Math.min(startIndex + practiceAttemptsPerPage, filteredAttempts.length)}
                                 </span>{" "}
                                 of{" "}
                                 <span className="font-medium text-gray-700 dark:text-gray-300">
                                     {filteredAttempts.length}
                                 </span>{" "}
                                 attempts
+
+                                <div className="flex items-center space-x-2 pt-3">
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                                    <Select
+                                        value={practiceAttemptsPerPage.toString()}
+                                        onValueChange={(value) => {
+                                            setPracticeAttemptsPerPage(value === "all" ? "all" : parseInt(value));
+                                            setCurrentPage(1); // Reset to first page when changing entries per page
+                                        }}
+                                    >
+                                        <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800">
+                                            <SelectValue placeholder="Entries" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="10">10</SelectItem>
+                                            <SelectItem value="20">20</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="all">All</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
 
                             <div className="flex items-center space-x-1">

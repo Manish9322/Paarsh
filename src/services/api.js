@@ -122,6 +122,8 @@ export const paarshEduApi = createApi({
     "Withdrawal",
     "Visitor",
     "UserPracticeAttempt",
+    "JobApplication",
+    "JobPosition",
   ],
 
   endpoints: (builder) => ({
@@ -703,7 +705,6 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Agent"],
     }),
 
-
     // ----------------------------------------------------Offers Apis--------------------------------------------------
 
     // Offers Endpoints
@@ -866,6 +867,85 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["UserPracticeAttempt", "User"],
     }),
+
+    // ----------------------------------------------------Job Position Apis--------------------------------------------------
+
+    createJobPosition: builder.mutation({
+      query: (data) => ({
+        url: "/JobPosition",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["JobPosition"],
+    }),
+
+    fetchJobPositions: builder.query({
+      query: () => "/JobPosition",
+      providesTags: ["JobPosition"],
+    }),
+
+    updateJobPosition: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: "/JobPosition",
+        method: "PUT",
+        body: { id, ...data },
+      }),
+      invalidatesTags: ["JobPosition"],
+    }),
+
+    deleteJobPosition: builder.mutation({
+      query: (id) => ({
+        url: "/JobPosition",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["JobPosition"],
+    }),
+
+    validateUpiId: builder.mutation({
+      query: (upiId) => ({
+        url: "/validate-upi",
+        method: "POST",
+        body: { upiId },
+      }),
+      // Transform the response to match the expected format
+      transformResponse: (response) => ({
+        success: response.success,
+        customer_name: response.customer_name,
+        message: response.message,
+      }),
+      invalidatesTags: ["Payment"],
+    }),
+
+    subscribeToNewsletter: builder.mutation({
+      query: (email) => ({
+        url: "/newsletter",
+        method: "POST",
+        body: { email },
+      }),
+    }),
+
+    // ----------------------------------------------------Notifications Apis--------------------------------------------------
+    fetchNotifications: builder.query({
+      query: () => '/notifications',
+      providesTags: ['Notifications'],
+    }),
+    sendNotification: builder.mutation({
+      query: (data) => ({
+        url: '/notifications',
+        method: 'POST',
+        body: { ...data },
+      }),
+      invalidatesTags: ['Notifications'],
+    }),
+
+        deleteNotification: builder.mutation({
+      query: (id) => ({
+        url: `/notifications?id=${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Notifications'],
+    }),
   }),
 });
 
@@ -965,7 +1045,7 @@ export const {
   useCreateLeadMutation,
   useFetchLeadsQuery,
   useUpdateLeadMutation,
-  useDeleteLeadMutation, 
+  useDeleteLeadMutation,
 
   useFetchTransactionsQuery,
   useGrantManualCourseAccessMutation,
@@ -983,5 +1063,17 @@ export const {
 
   useFetchUserPracticeAttemptsQuery,
   useAddUserPracticeAttemptMutation,
+
+  useCreateJobPositionMutation,
+  useFetchJobPositionsQuery,
+  useUpdateJobPositionMutation,
+  useDeleteJobPositionMutation,
+
+  useValidateUpiIdMutation,
+  useSubscribeToNewsletterMutation,
+
+  useFetchNotificationsQuery,
+  useSendNotificationMutation,
+  useDeleteNotificationMutation,
 
 } = paarshEduApi;

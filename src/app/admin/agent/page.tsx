@@ -70,6 +70,7 @@ const AgentPage: React.FC = () => {
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [agentsPerPage, setAgentsPerPage] = useState<number | "all">(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -78,6 +79,7 @@ const AgentPage: React.FC = () => {
   const [targetModalOpen, setTargetModalOpen] = useState(false);
   const [targetValue, setTargetValue] = useState<number>(0);
   const [targetType, setTargetType] = useState<"count" | "price">("count");
+
 
   // Close sidebar when screen size changes to desktop
   useEffect(() => {
@@ -91,10 +93,10 @@ const AgentPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const agentsPerPage = 10;
-  const { data: agentData, isLoading } = useFetchAgentsQuery(undefined); 
+  // const agentsPerPage = 10;
+  const { data: agentData, isLoading } = useFetchAgentsQuery(undefined);
   const agents: Agent[] = agentData?.data || [];
-  const startIndex = (currentPage - 1) * agentsPerPage;
+  const startIndex = agentsPerPage === "all" ? 0 : (currentPage - 1) * agentsPerPage;
 
   const [_DELETEAGENT, { isLoading: isDeleteLoading, error: deleteError }] =
     useDeleteAgentMutation();
@@ -122,11 +124,13 @@ const AgentPage: React.FC = () => {
         : -1;
   });
 
-  const totalPages = Math.ceil(sortedAgents.length / agentsPerPage);
-  const displayedAgents = sortedAgents.slice(
-    (currentPage - 1) * agentsPerPage,
-    currentPage * agentsPerPage,
-  );
+  const totalPages = agentsPerPage === "all" ? 1 : Math.ceil(sortedAgents.length / agentsPerPage);
+  const displayedAgents = agentsPerPage === "all"
+    ? sortedAgents
+    : sortedAgents.slice(
+      (currentPage - 1) * agentsPerPage,
+      currentPage * agentsPerPage,
+    );
 
   const confirmDeleteAgent = (agentId: string) => {
     setAgentToDelete(agentId);
@@ -147,7 +151,7 @@ const AgentPage: React.FC = () => {
       console.error("Error deleting agent:", error);
       toast.error(
         error?.data?.message ||
-          "Failed to Delete the agent. Please try again.",
+        "Failed to Delete the agent. Please try again.",
       );
     }
   };
@@ -217,7 +221,7 @@ const AgentPage: React.FC = () => {
         targetType,
         targetValue
       }).unwrap();
-      
+
       if (response?.success) {
         toast.success(`Target set to ${targetValue} ${targetType === "count" ? "courses" : "rupees"}`);
         setTargetModalOpen(false);
@@ -252,9 +256,8 @@ const AgentPage: React.FC = () => {
       <div className="flex flex-1">
         {/* Sidebar - responsive with overlay for mobile */}
         <aside
-          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:sticky md:top-0 md:h-screen md:translate-x-0`}
+          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+            } md:sticky md:top-0 md:h-screen md:translate-x-0`}
         >
           {/* Add padding to the top of sidebar content to prevent it from going under the navbar */}
           <div className="h-16 md:h-0"></div> {/* Spacer for mobile header */}
@@ -283,7 +286,7 @@ const AgentPage: React.FC = () => {
                     <Input
                       type="text"
                       placeholder="Search agents..."
-                      className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-white md:w-64"
+                      className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black dark:text-black placeholder:text-gray-500 md:w-64"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -603,15 +606,15 @@ const AgentPage: React.FC = () => {
                                   }}
                                   aria-label="Set target for agent"
                                 >
-                                  <svg 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    width="16" 
-                                    height="16" 
-                                    viewBox="0 0 24 24" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    strokeWidth="2" 
-                                    strokeLinecap="round" 
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
                                     strokeLinejoin="round"
                                     className="transition-transform group-hover:scale-110"
                                   >
@@ -824,7 +827,7 @@ const AgentPage: React.FC = () => {
                     <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                       Set Target for {selectedAgent?.firstName} {selectedAgent?.lastName}
                     </h2>
-                    <button 
+                    <button
                       onClick={() => setTargetModalOpen(false)}
                       className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                       aria-label="Close"
@@ -832,7 +835,7 @@ const AgentPage: React.FC = () => {
                       <RxCross2 size={18} />
                     </button>
                   </div>
-                  
+
                   {/* Content */}
                   <div className="py-4">
                     <div className="mb-4 space-y-4">
@@ -856,14 +859,14 @@ const AgentPage: React.FC = () => {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       <div>
                         <Label htmlFor="targetValue" className="mb-2 block text-sm font-medium">
                           {targetType === "count" ? "Course Sales Target" : "Revenue Target"}
                         </Label>
-                        <Input 
+                        <Input
                           id="targetValue"
-                          type="number" 
+                          type="number"
                           value={targetValue}
                           onChange={(e) => setTargetValue(Number(e.target.value))}
                           min={0}
@@ -873,12 +876,12 @@ const AgentPage: React.FC = () => {
                       </div>
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {targetType === "count" 
-                        ? "This target represents the number of courses the agent should sell." 
+                      {targetType === "count"
+                        ? "This target represents the number of courses the agent should sell."
                         : "This target represents the total revenue the agent should generate."}
                     </p>
                   </div>
-                  
+
                   {/* Footer */}
                   <div className="mt-6 flex justify-end">
                     <Button
@@ -899,17 +902,42 @@ const AgentPage: React.FC = () => {
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   Showing{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {startIndex + 1}
+                    {agentsPerPage === "all" ? 1 : startIndex + 1}
                   </span>{" "}
                   to{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {Math.min(startIndex + agentsPerPage, sortedAgents.length)}
+                    {agentsPerPage === "all" ? sortedAgents.length : Math.min(startIndex + agentsPerPage, sortedAgents.length)}
                   </span>{" "}
                   of{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     {sortedAgents.length}
                   </span>{" "}
                   agents
+
+
+                  <div className="flex items-center space-x-2 pt-3">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Show :</span>
+                    <Select
+                      value={agentsPerPage.toString()}
+                      onValueChange={(value) => {
+                        setAgentsPerPage(value === "all" ? "all" : parseInt(value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-24 rounded dark:border-gray-700 dark:bg-gray-800 dark:text-white`">
+                        <SelectValue placeholder="Entries" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+
+
                 </div>
 
                 <div className="flex items-center space-x-1">
@@ -938,11 +966,10 @@ const AgentPage: React.FC = () => {
                         <Button
                           key={`page-${page}`}
                           onClick={() => setCurrentPage(Number(page))}
-                          className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
-                            currentPage === page
-                              ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-                              : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                          }`}
+                          className={`h-8 w-8 rounded p-0 text-sm font-medium ${currentPage === page
+                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                            : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                            }`}
                           aria-label={`Page ${page}`}
                           aria-current={
                             currentPage === page ? "page" : undefined

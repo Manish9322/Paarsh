@@ -657,7 +657,9 @@ export default function AgentDashboard() {
   const { data: salesData, isLoading: salesLoading } = useFetchAgentSalesQuery(undefined);
   const { data: leadsData, isLoading: leadsLoading } = useFetchLeadsQuery(undefined);
 
-  const courseSales: CourseSale[] = salesData?.data?.all?.map((tx: any) => ({
+  console.log("Sales data on agent dashboard: ", salesData);
+
+  const courseSales: CourseSale[] = salesData?.data?.completed?.map((tx: any) => ({
     id: tx._id,
     courseName: tx.courseId?.courseName || 'Unknown Course',
     studentName: tx.userId?.name || 'Unknown Student',
@@ -686,6 +688,8 @@ export default function AgentDashboard() {
   const revenue = agent.totalSale || 0;
   const salesCount = agent.countSale || 0;
   const activeLeads = leadsData?.data?.length || 0;
+
+  
 
   const cardConfig: CardConfig[] = [
     {

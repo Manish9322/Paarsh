@@ -5,32 +5,45 @@ import { Card } from "@/components/ui/card";
 import { X, ArrowRight, Briefcase, MapPin, Clock, Search } from 'lucide-react';
 
 interface JobListing {
-  id: number;
-  title: string;
+  _id: string;
+  position: string;
   department: string;
   location: string;
-  type: string;
+  workType: string;
   description: string;
+  salaryRange: {
+    min: number;
+    max: number;
+  };
+  skillsRequired: string[];
+  expiryDate: string;
+  isActive: boolean;
+  experienceLevel: string;
+  createdAt: string;
 }
 
 interface JobModalProps {
   isOpen: boolean;
   onClose: () => void;
   jobs: JobListing[];
+  onApply: (job: JobListing) => void; // New prop for apply button
 }
 
-const JobModal: React.FC<JobModalProps> = ({ isOpen, onClose, jobs }) => {
+const JobModal: React.FC<JobModalProps> = ({ isOpen, onClose, jobs, onApply }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('All');
 
-  const departments = ['All', ...new Set(jobs.map(job => job.department))];
+  // Ensure departments are derived safely
+  const departments = ['All', ...new Set(jobs?.map(job => job.department) || [])];
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+  // Filter jobs with safeguards for undefined fields
+  const filteredJobs = jobs?.filter(job => {
+    const matchesSearch = 
+      (job.position?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+      (job.description?.toLowerCase().includes(searchTerm.toLowerCase()) || '');
     const matchesDepartment = selectedDepartment === 'All' || job.department === selectedDepartment;
     return matchesSearch && matchesDepartment;
-  });
+  }) || [];
 
   return (
     <AnimatePresence>
@@ -59,7 +72,6 @@ const JobModal: React.FC<JobModalProps> = ({ isOpen, onClose, jobs }) => {
 
             {/* Content Container */}
             <div className="h-full overflow-y-auto p-6 pt-0 hide-scrollbar">
-
               {/* Enhanced Header */}
               <div className="sticky top-0 -mx-6 -mt-6 px-6 pt-6 pb-6 bg-white/95 dark:bg-gray-800/95 
                 backdrop-blur-md shadow-md dark:shadow-gray-900/20 border-b border-gray-200/50 
@@ -139,7 +151,7 @@ const JobModal: React.FC<JobModalProps> = ({ isOpen, onClose, jobs }) => {
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-6">
                 {filteredJobs.map((job, index) => (
                   <motion.div
-                    key={job.id}
+                    key={job._id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
@@ -160,7 +172,7 @@ const JobModal: React.FC<JobModalProps> = ({ isOpen, onClose, jobs }) => {
                       <h3 className="mb-4 text-xl font-bold text-gray-900 dark:text-white 
                                   group-hover:text-blue-600 dark:group-hover:text-blue-400 
                                   transition-colors duration-300">
-                        {job.title}
+                        {job.position}
                       </h3>
 
                       {/* Enhanced Tags */}
@@ -181,23 +193,26 @@ const JobModal: React.FC<JobModalProps> = ({ isOpen, onClose, jobs }) => {
                                      text-sm font-medium text-purple-700 dark:bg-purple-900/30 
                                      dark:text-purple-300">
                           <Clock className="h-4 w-4" />
-                          {job.type}
+                          {job.workType}
                         </span>
                       </div>
 
                       {/* Enhanced Description */}
-                      <p className="mb-6 text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed">
+                      <p className="mb-4 text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
                         {job.description}
                       </p>
 
                       {/* Enhanced Apply Button */}
-                      <Button className="group relative w-full overflow-hidden rounded bg-gradient-to-r 
-                                     from-blue-600 to-blue-700 px-6 py-3 text-white shadow-lg 
-                                     transition-all duration-300 hover:shadow-blue-500/25">
+                      <Button
+                        onClick={() => onApply(job)}
+                        className="group relative w-full overflow-hidden rounded bg-gradient-to-r 
+                                 from-blue-600 to-blue-700 px-6 py-3 text-white shadow-lg 
+                                 transition-all duration-300 hover:shadow-blue-500/25"
+                      >
                         <span className="relative z-10 flex items-center justify-center gap-2 font-semibold">
-                          Apply Now
+                          View Details
                           <ArrowRight className="h-4 w-4 transition-transform duration-300 
-                                             group-hover:translate-x-1" />
+                                           group-hover:translate-x-1" />
                         </span>
                       </Button>
                     </Card>

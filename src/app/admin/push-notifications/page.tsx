@@ -1,28 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, ChevronLeft, ChevronRight, Eye, RefreshCw } from "lucide-react";
+import { Menu, ChevronLeft, ChevronRight, Eye, Trash2, Send, Bell, Plus } from "lucide-react";
 import { RxCross2 } from "react-icons/rx";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FaLocationArrow } from "react-icons/fa";
-import { FaRegUser } from "react-icons/fa6";
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,112 +13,96 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "@/components/ui/table";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import { useFetchVisitorsQuery } from "@/services/api";
+import { useFetchNotificationsQuery, useSendNotificationMutation, useDeleteNotificationMutation, useFetchUsersQuery, useFetchAgentsQuery } from "@/services/api";
 import { toast } from "sonner";
 
 // Define TypeScript interfaces
-interface User {
+interface Notification {
   _id: string;
-  name?: string;
-  email?: string;
+  title: string;
+  message: string;
+  recipientType: "agent" | "student" | "user" | "all";
+  recipientIds: string[];
+  sentTime: string; // ISO date string
+  status: "sent" | "failed";
 }
 
-interface Visitor {
-  _id: string;
-  sessionId: string;
-  userId?: User | null;
-  deviceId?: string | null;
-  ipAddress: string;
-  pageUrl: string;
-  visitTime: string; // ISO date string
-  duration: number;
-  userAgent?: string;
-  referrer?: string;
-}
-
-interface VisitorsResponse {
+interface NotificationsResponse {
   success: boolean;
-  data: Visitor[];
+  data: Notification[];
 }
 
-const VisitorsPage = () => {
+const NotificationsPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [visitorsPerPage, setVisitorsPerPage] = useState<number | "all">(10);
+  const [notificationsPerPage, setNotificationsPerPage] = useState<number | "all">(10);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [selectedVisitor, setSelectedVisitor] = useState<Visitor | null>(null);
-  const [activeFilters, setActiveFilters] = useState({
-    pageUrl: "",
-    date: "",
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    message: "",
+    recipientType: "all_users" as "all_users" | "all_agents" | "user" | "agent",
+    recipientId: "", // Changed to single ID for single selection
   });
+  const [recipientSearch, setRecipientSearch] = useState(""); // For filtering dropdown options
 
-  const { data: visitorsData, isLoading, isFetching, error: fetchError, refetch } = useFetchVisitorsQuery(undefined, {
+  const { data: notificationsData, isLoading, isFetching, error: fetchError, refetch } = useFetchNotificationsQuery(undefined, {
     pollingInterval: 30000,
-  }) as { data?: VisitorsResponse; isLoading: boolean; isFetching: boolean; error?: unknown; refetch: () => void };
-  const visitors: Visitor[] = visitorsData?.data || [];
+  }) as { data?: NotificationsResponse; isLoading: boolean; isFetching: boolean; error?: unknown; refetch: () => void };
+  const [sendNotification, { isLoading: isSending }] = useSendNotificationMutation();
+  const [deleteNotification, { isLoading: isDeleting }] = useDeleteNotificationMutation();
 
-  // Aggregate by sessionId, keep latest entry for table display
-  const aggregatedVisitors: Visitor[] = Object.values(
-    visitors.reduce((acc: Record<string, Visitor>, visitor: Visitor) => {
-      const sessionId = visitor.sessionId;
-      if (!acc[sessionId] || new Date(visitor.visitTime) > new Date(acc[sessionId].visitTime)) {
-        acc[sessionId] = visitor;
-      }
-      return acc;
-    }, {})
-  );
+  const { data: usersData } = useFetchUsersQuery(undefined) as { data?: { success: boolean; data: { _id: string; name: string }[] } };
+  const users = usersData?.data || [];
+  const userOptions = users.map(user => ({
+    id: user._id,
+    name: user.name,
+  }));
+  console.log("User Options:", userOptions);
 
-  const filteredVisitors = aggregatedVisitors.filter((visitor: Visitor) => {
+  const { data: agentsData } = useFetchAgentsQuery(undefined) as { data?: { success: boolean; data: { _id: string; firstName: string, lastName: string }[] } };
+  const agents = agentsData?.data || [];
+  const agentOptions = agents.map(agent => ({
+    id: agent._id,
+    name: `${agent.firstName} ${agent.lastName}`,
+  }));
+  console.log("Agent Options:", agentOptions);
+  console.log("Agents details : ", agentsData)
+
+  const notifications: Notification[] = notificationsData?.data || [];
+
+  const filteredNotifications = notifications.filter((notification: Notification) => {
     const searchFields = [
-      visitor.sessionId,
-      visitor.userId?.name,
-      visitor.userId?.email,
-      visitor.ipAddress,
-      visitor.pageUrl,
-      visitor.userAgent,
-      visitor.referrer,
-      visitor.deviceId,
+      notification.title,
+      notification.message,
+      notification.recipientType,
+      notification.status,
     ];
-
-    const matchesSearch = searchFields.some((field) =>
+    return searchFields.some((field) =>
       field?.toString().toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    if (!matchesSearch) return false;
-
-    if (activeFilters.pageUrl && !visitor.pageUrl.toLowerCase().includes(activeFilters.pageUrl.toLowerCase())) {
-      return false;
-    }
-
-    if (activeFilters.date) {
-      const visitDate = new Date(visitor.visitTime).toISOString().split("T")[0];
-      if (visitDate !== activeFilters.date) {
-        return false;
-      }
-    }
-
-    return true;
   });
 
-  // Get all visits for the selected user/device
-  const getUserVisits = (visitor: Visitor | null): Visitor[] => {
-    if (!visitor) return [];
-    return visitors.filter((v) =>
-      (visitor.userId?._id && v.userId?._id === visitor.userId?._id) ||
-      (visitor.deviceId && v.deviceId === visitor.deviceId) ||
-      (v.ipAddress === visitor.ipAddress)
-    ).sort((a, b) => new Date(b.visitTime).getTime() - new Date(a.visitTime).getTime());
-  };
-
-  const totalPages = visitorsPerPage === "all" ? 1 : Math.ceil(filteredVisitors.length / visitorsPerPage);
-  const startIndex = visitorsPerPage === "all" ? 0 : (currentPage - 1) * visitorsPerPage;
-  const displayedVisitors = visitorsPerPage === "all"
-    ? filteredVisitors
-    : filteredVisitors.slice(
+  const totalPages = notificationsPerPage === "all" ? 1 : Math.ceil(filteredNotifications.length / notificationsPerPage);
+  const startIndex = notificationsPerPage === "all" ? 0 : (currentPage - 1) * notificationsPerPage;
+  const displayedNotifications = notificationsPerPage === "all"
+    ? filteredNotifications
+    : filteredNotifications.slice(
       startIndex,
-      startIndex + visitorsPerPage
+      startIndex + notificationsPerPage
     );
 
   useEffect(() => {
@@ -144,9 +111,64 @@ const VisitorsPage = () => {
     return () => window.removeEventListener("focus", handleFocus);
   }, [refetch]);
 
-  const handleFilterChange = (newFilters: { pageUrl: string; date: string }) => {
-    setActiveFilters(newFilters);
-    setCurrentPage(1);
+  // Filter recipient options based on search and recipientType
+  const getFilteredOptions = () => {
+    const options = formData.recipientType === "user" ? userOptions : agentOptions;
+    if (!recipientSearch) return options;
+    return options.filter(option =>
+      option.name.toLowerCase().includes(recipientSearch.toLowerCase()) ||
+      option.id.toLowerCase().includes(recipientSearch.toLowerCase())
+    );
+  };
+
+  const handleSendNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const recipientIds = formData.recipientType === "all_users" || formData.recipientType === "all_agents"
+        ? []
+        : formData.recipientId ? [formData.recipientId] : [];
+      const payload = {
+        title: formData.title,
+        message: formData.message,
+        recipientType: formData.recipientType === "all_users" ? "all" :
+          formData.recipientType === "all_agents" ? "agent" :
+            formData.recipientType,
+        recipientIds,
+      };
+      await sendNotification(payload).unwrap();
+      toast.success("Notification sent", {
+        description: "The notification has been successfully sent to the recipients.",
+        duration: 3000,
+      });
+      setFormData({ title: "", message: "", recipientType: "all_users", recipientId: "" });
+      setRecipientSearch("");
+      setSendModalOpen(false);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to send notification", {
+        description: "An error occurred while sending the notification.",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleDeleteNotification = async () => {
+    if (!selectedNotification) return;
+    try {
+      await deleteNotification(selectedNotification._id).unwrap();
+      toast.success("Notification deleted", {
+        description: "The notification has been successfully deleted.",
+        duration: 3000,
+      });
+      setDeleteOpen(false);
+      setSelectedNotification(null);
+      refetch();
+    } catch (error) {
+      toast.error("Failed to delete notification", {
+        description: "An error occurred while deleting the notification.",
+        duration: 3000,
+      });
+    }
   };
 
   const formatDate = (date: string) => {
@@ -158,31 +180,6 @@ const VisitorsPage = () => {
       minute: "2-digit",
     });
   };
-
-  const formatDuration = (seconds: number) => {
-    if (!seconds || seconds < 1) return "<1s";
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return minutes > 0 ? `${minutes}m ${remainingSeconds}s` : `${seconds}s`;
-  };
-
-  const handlePreview = (visitor: Visitor) => {
-    setSelectedVisitor(visitor);
-    setPreviewOpen(true);
-  };
-
-  const handleRefresh = () => {
-    refetch();
-    toast.success("Table refreshed", {
-      description: "Latest visitor data has been fetched.",
-      duration: 3000,
-    });
-  };
-
-  // Unique Visitors: Prioritize userId, then deviceId, then ipAddress
-  const uniqueVisitors = [...new Set(
-    aggregatedVisitors.map((v: Visitor) => v.userId?._id?.toString() || v.deviceId || v.ipAddress)
-  )].length;
 
   const generatePaginationNumbers = () => {
     const pageNumbers: (number | string)[] = [];
@@ -232,7 +229,7 @@ const VisitorsPage = () => {
         >
           <Menu size={24} />
         </button>
-        <h1 className="text-lg font-bold text-gray-800">Visitor Tracking</h1>
+        <h1 className="text-lg font-bold text-gray-800">Notifications</h1>
         <div className="w-10"></div>
       </div>
 
@@ -263,40 +260,44 @@ const VisitorsPage = () => {
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">
-                  Visitor Tracking
+                  Send Notifications
                 </CardTitle>
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
                   <Button
-                    onClick={handleRefresh}
+                    onClick={() => setSendModalOpen(true)}
+                    className="h-10 w-10 rounded-full bg-white/90 p-0 text-blue-600 hover:bg-blue-100 dark:hover:bg-gray-600"
+                    aria-label="Create new notification"
+                  >
+                    <Plus size={20} />
+                  </Button>
+                  <Button
+                    onClick={refetch}
                     disabled={isFetching}
                     className="h-10 w-10 rounded-full bg-white/90 p-0 text-blue-600 hover:bg-blue-100 dark:hover:bg-gray-600"
-                    aria-label="Refresh visitor data"
+                    aria-label="Refresh notifications"
                   >
-                    <RefreshCw
-                      size={20}
-                      className={isFetching ? "animate-spin" : ""}
-                    />
+                    <Bell size={20} className={isFetching ? "animate-spin" : ""} />
                   </Button>
                 </div>
               </div>
             </CardHeader>
 
             <CardContent className="p-4">
-              <div className="mb-6 grid gap-4 md:grid-cols-3">
+              <div className="mb-6 grid gap-4 md:grid-cols-2">
                 <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-800">
                   <div className="p-4">
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                          <FaLocationArrow className="h-5 w-5 text-blue-600 dark:text-blue-700" />
+                          <Bell className="h-5 w-5 text-blue-600 dark:text-blue-700" />
                         </div>
                       </div>
                       <div className="ml-4 flex-1">
                         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Total Visits
+                          Total Notifications
                         </h3>
                         <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
-                          {aggregatedVisitors.length.toLocaleString()}
+                          {notifications.length.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -308,54 +309,15 @@ const VisitorsPage = () => {
                     <div className="flex items-center">
                       <div className="flex-shrink-0">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                          <FaRegUser className="h-5 w-5 text-blue-600 dark:text-blue-700" />
+                          <Send className="h-5 w-5 text-blue-600 dark:text-blue-700" />
                         </div>
                       </div>
                       <div className="ml-4 flex-1">
                         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Unique Visitors
+                          Successful Notifications
                         </h3>
                         <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-white">
-                          {uniqueVisitors.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="overflow-hidden rounded-md bg-white shadow transition-all hover:shadow-md dark:bg-gray-800">
-                  <div className="p-4">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                          <svg
-                            className="h-6 w-6 text-blue-600 dark:text-blue-700"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Top Visited Page
-                        </h3>
-                        <p className="mt-1 text-base font-semibold text-gray-900 dark:text-white break-all">
-                          {aggregatedVisitors.length > 0
-                            ? Object.entries(
-                              aggregatedVisitors.reduce((acc: Record<string, number>, v: Visitor) => {
-                                acc[v.pageUrl] = (acc[v.pageUrl] || 0) + 1;
-                                return acc;
-                              }, {})
-                            ).reduce((a, b) => (b[1] > a[1] ? b : a), ["", 0])[0] || "N/A"
-                            : "N/A"}
+                          {notifications.filter(n => n.status === "sent").length.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -363,66 +325,34 @@ const VisitorsPage = () => {
                 </div>
               </div>
 
-              <div className="mb-6 grid gap-4 md:grid-cols-3">
-                <div>
-                  <Input
-                    type="text"
-                    placeholder="Filter by Page URL"
-                    value={activeFilters.pageUrl}
-                    onChange={(e) =>
-                      handleFilterChange({
-                        ...activeFilters,
-                        pageUrl: e.target.value,
-                      })
-                    }
-                    className="w-full dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <Input
-                    type="text"
-                    placeholder="Search visitors..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <Input
-                    type="date"
-                    value={activeFilters.date}
-                    onChange={(e) =>
-                      handleFilterChange({
-                        ...activeFilters,
-                        date: e.target.value,
-                      })
-                    }
-                    className="w-full dark:bg-gray-800 dark:text-white"
-                  />
-                </div>
+              <div className="mb-6">
+                <Input
+                  type="text"
+                  placeholder="Search notifications..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full dark:bg-gray-800 dark:text-white"
+                />
               </div>
 
               <div className="no-scrollbar overflow-x-auto">
                 <Table className="w-full text-black dark:text-white">
                   <TableHeader>
                     <TableRow className="border border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
-                      <TableHead className="hidden py-3 text-center sm:table-cell">
-                        #
-                      </TableHead>
-                      <TableHead className="py-3">Session ID</TableHead>
-                      <TableHead className="hidden py-3 md:table-cell">User</TableHead>
-                      <TableHead className="py-3">IP Address</TableHead>
-                      <TableHead className="hidden py-3 sm:table-cell">Page URL</TableHead>
-                      <TableHead className="hidden py-3 md:table-cell">Visit Time</TableHead>
-                      <TableHead className="py-3">Duration</TableHead>
+                      <TableHead className="hidden py-3 text-center sm:table-cell">#</TableHead>
+                      <TableHead className="py-3">Title</TableHead>
+                      <TableHead className="hidden py-3 md:table-cell">Message</TableHead>
+                      <TableHead className="py-3">Recipient Type</TableHead>
+                      <TableHead className="hidden py-3 sm:table-cell">Sent Time</TableHead>
+                      <TableHead className="py-3">Status</TableHead>
                       <TableHead className="py-3 text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {displayedVisitors.length > 0 ? (
-                      displayedVisitors.map((visitor: Visitor, index: number) => (
+                    {displayedNotifications.length > 0 ? (
+                      displayedNotifications.map((notification: Notification, index: number) => (
                         <TableRow
-                          key={visitor._id}
+                          key={notification._id}
                           className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800"
                         >
                           <TableCell className="hidden text-center font-medium sm:table-cell">
@@ -430,39 +360,64 @@ const VisitorsPage = () => {
                           </TableCell>
                           <TableCell>
                             <div className="sm:block">
-                              <p className="font-medium">{visitor.sessionId.substring(0, 8)}...</p>
+                              <p className="font-medium">{notification.title}</p>
                               <p className="mt-1 text-xs text-gray-500 md:hidden">
-                                {visitor.userId?.name || "Anonymous"}
+                                {notification.message.substring(0, 30)}...
                               </p>
                               <p className="mt-1 text-xs text-gray-500 sm:hidden">
-                                {visitor.ipAddress}
+                                {notification.recipientType}
                               </p>
                             </div>
                           </TableCell>
                           <TableCell className="hidden md:table-cell">
-                            {visitor.userId?.name || "Anonymous"}
+                            {notification.message.substring(0, 50)}...
                           </TableCell>
-                          <TableCell>{visitor.ipAddress}</TableCell>
+                          <TableCell>{notification.recipientType}</TableCell>
                           <TableCell className="hidden sm:table-cell">
-                            {visitor.pageUrl}
+                            {formatDate(notification.sentTime)}
                           </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            {formatDate(visitor.visitTime)}
+                          <TableCell>
+                            <span
+                              className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${notification.status === "sent"
+                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                }`}
+                            >
+                              {notification.status}
+                            </span>
                           </TableCell>
-                          <TableCell>{formatDuration(visitor.duration)}</TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-2">
                               <button
                                 className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
-                                onClick={() => handlePreview(visitor)}
-                                aria-label="View visitor details"
+                                onClick={() => {
+                                  setSelectedNotification(notification);
+                                  setPreviewOpen(true);
+                                }}
+                                aria-label="View notification details"
                               >
                                 <Eye
                                   size={16}
                                   className="transition-transform group-hover:scale-110"
                                 />
                                 <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
-                                  View all visits
+                                  View details
+                                </span>
+                              </button>
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                                onClick={() => {
+                                  setSelectedNotification(notification);
+                                  setDeleteOpen(true);
+                                }}
+                                aria-label="Delete notification"
+                              >
+                                <Trash2
+                                  size={16}
+                                  className="transition-transform group-hover:scale-110"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  Delete notification
                                 </span>
                               </button>
                             </div>
@@ -471,7 +426,7 @@ const VisitorsPage = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={8} className="h-32 text-center">
+                        <TableCell colSpan={7} className="h-32 text-center">
                           <div className="flex flex-col items-center justify-center space-y-2">
                             <div className="text-gray-400 dark:text-gray-500">
                               <svg
@@ -489,11 +444,9 @@ const VisitorsPage = () => {
                               </svg>
                             </div>
                             <div className="text-gray-500 dark:text-gray-400">
-                              <p className="text-base font-medium">No visitors found</p>
+                              <p className="text-base font-medium">No notifications found</p>
                               <p className="text-sm">
-                                {searchTerm || Object.values(activeFilters).some(Boolean)
-                                  ? "Try adjusting your search or filter criteria"
-                                  : "No visitors available"}
+                                {searchTerm ? "Try adjusting your search criteria" : "No notifications available"}
                               </p>
                             </div>
                           </div>
@@ -506,12 +459,95 @@ const VisitorsPage = () => {
             </CardContent>
           </Card>
 
+          <Dialog open={sendModalOpen} onOpenChange={setSendModalOpen}>
+            <DialogContent className="max-w-md rounded-md bg-white p-6 shadow-lg dark:bg-gray-800 dark:text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
+                  Send New Notification
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSendNotification} className="grid gap-4">
+                <Input
+                  type="text"
+                  placeholder="Notification Title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full dark:bg-gray-800 dark:text-white"
+                  required
+                />
+                <Textarea
+                  placeholder="Notification Message"
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className="w-full dark:bg-gray-800 dark:text-white"
+                  rows={4}
+                  required
+                />
+                <Select
+                  value={formData.recipientType}
+                  onValueChange={(value: "all_users" | "all_agents" | "user" | "agent") =>
+                    setFormData({ ...formData, recipientType: value, recipientId: "" })
+                  }
+                >
+                  <SelectTrigger className="w-full dark:bg-gray-800 dark:text-white">
+                    <SelectValue placeholder="Select Recipient Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all_users">All Users</SelectItem>
+                    <SelectItem value="all_agents">All Agents</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="agent">Agent</SelectItem>
+                  </SelectContent>
+                </Select>
+                {(formData.recipientType === "user" || formData.recipientType === "agent") && (
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder={`Search ${formData.recipientType === "user" ? "Users" : "Agents"} by name or ID`}
+                      value={recipientSearch}
+                      onChange={(e) => setRecipientSearch(e.target.value)}
+                      className="w-full dark:bg-gray-800 dark:text-white"
+                    />
+                    <Select
+                      value={formData.recipientId}
+                      onValueChange={(value) => setFormData({ ...formData, recipientId: value })}
+                    >
+                      <SelectTrigger className="w-full dark:bg-gray-800 dark:text-white mt-2">
+                        <SelectValue placeholder={`Select ${formData.recipientType === "user" ? "User" : "Agent"}`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getFilteredOptions().length > 0 ? (
+                          getFilteredOptions().map(option => (
+                            <SelectItem key={option.id} value={option.id}>
+                              {option.name} (ID: {option.id})
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
+                            No {formData.recipientType === "user" ? "users" : "agents"} available
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                <Button
+                  type="submit"
+                  disabled={isSending}
+                  className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                >
+                  {isSending ? "Sending..." : "Send Notification"}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
             <DialogContent className="no-scrollbar max-h-[90vh] max-w-2xl overflow-y-auto rounded-md bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
               <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                 <div className="flex items-center justify-between">
                   <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
-                    All Visits for {selectedVisitor?.userId?.name || selectedVisitor?.deviceId || selectedVisitor?.ipAddress || "Visitor"}
+                    Notification Details
                   </DialogTitle>
                   <RxCross2
                     className="text-gray-800 dark:text-white"
@@ -520,162 +556,134 @@ const VisitorsPage = () => {
                   />
                 </div>
               </DialogHeader>
-              {selectedVisitor ? (
+              {selectedNotification ? (
                 <div className="space-y-6 p-6">
                   <div className="overflow-hidden rounded-md border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
                     <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-4 py-2 dark:from-blue-900/20 dark:to-blue-900/20">
                       <h3 className="font-medium text-blue-800 dark:text-blue-300">
-                        Visitor Information
+                        Notification Information
                       </h3>
                     </div>
                     <div className="divide-y divide-gray-100 dark:divide-gray-700">
                       <div className="grid grid-cols-3 px-4 py-3">
                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          User Name
+                          Title
                         </span>
                         <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
-                          {selectedVisitor.userId?.name || "Anonymous"}
+                          {selectedNotification.title}
                         </span>
                       </div>
                       <div className="grid grid-cols-3 px-4 py-3">
                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Email
+                          Message
                         </span>
                         <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200 break-all">
-                          {selectedVisitor.userId?.email || "N/A"}
+                          {selectedNotification.message}
                         </span>
                       </div>
                       <div className="grid grid-cols-3 px-4 py-3">
                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          Device ID
+                          Recipient Type
                         </span>
                         <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
-                          {selectedVisitor.deviceId || "N/A"}
+                          {selectedNotification.recipientType}
                         </span>
                       </div>
                       <div className="grid grid-cols-3 px-4 py-3">
                         <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                          IP Address
+                          Recipient IDs
                         </span>
-                        <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
-                          {selectedVisitor.ipAddress}
+                        <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200 break-all">
+                          {selectedNotification.recipientIds.length > 0
+                            ? selectedNotification.recipientIds.join(", ")
+                            : "All"}
                         </span>
                       </div>
-                    </div>
-                  </div>
-
-                  <div className="overflow-hidden rounded-md border border-gray-100 transition-all hover:shadow-md dark:border-gray-700">
-                    <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-4 py-2 dark:from-blue-900/20 dark:to-blue-900/20">
-                      <h3 className="font-medium text-blue-800 dark:text-blue-300">
-                        Visit History
-                      </h3>
-                    </div>
-                    <div className="no-scrollbar overflow-x-auto">
-                      <Table className="w-full text-black dark:text-white">
-                        <TableHeader>
-                          <TableRow className="border border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
-                            <TableHead className="py-3">Session ID</TableHead>
-                            <TableHead className="py-3">Page URL</TableHead>
-                            <TableHead className="py-3">Visit Time</TableHead>
-                            <TableHead className="py-3">Duration</TableHead>
-                            <TableHead className="py-3">User Agent</TableHead>
-                            <TableHead className="py-3">Referrer</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {getUserVisits(selectedVisitor).length > 0 ? (
-                            getUserVisits(selectedVisitor).map((visit: Visitor) => (
-                              <TableRow
-                                key={visit._id}
-                                className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800"
-                              >
-                                <TableCell>
-                                  {visit.sessionId.substring(0, 8)}...
-                                </TableCell>
-                                <TableCell className="break-all">
-                                  {visit.pageUrl}
-                                </TableCell>
-                                <TableCell>
-                                  {formatDate(visit.visitTime)}
-                                </TableCell>
-                                <TableCell>
-                                  {formatDuration(visit.duration)}
-                                </TableCell>
-                                <TableCell className="break-all">
-                                  {visit.userAgent || "N/A"}
-                                </TableCell>
-                                <TableCell className="break-all">
-                                  {visit.referrer || "Direct"}
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          ) : (
-                            <TableRow>
-                              <TableCell colSpan={6} className="h-32 text-center">
-                                <div className="flex flex-col items-center justify-center space-y-2">
-                                  <div className="text-gray-400 dark:text-gray-500">
-                                    <svg
-                                      className="mx-auto h-12 w-12"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                      />
-                                    </svg>
-                                  </div>
-                                  <div className="text-gray-500 dark:text-gray-400">
-                                    <p className="text-base font-medium">No visits found</p>
-                                    <p className="text-sm">No additional visits recorded for this user.</p>
-                                  </div>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </TableBody>
-                      </Table>
+                      <div className="grid grid-cols-3 px-4 py-3">
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                          Sent Time
+                        </span>
+                        <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                          {formatDate(selectedNotification.sentTime)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 px-4 py-3">
+                        <span className="text-sm font-medium text-gray-500 walking-dead:text-gray-400">
+                          Status
+                        </span>
+                        <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
+                          {selectedNotification.status}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="flex h-40 items-center justify-center">
                   <p className="text-center text-gray-500 dark:text-gray-400">
-                    No visitor selected.
+                    No notification selected.
                   </p>
                 </div>
               )}
             </DialogContent>
           </Dialog>
 
-          { /* Pagination Controls */}
+          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <DialogContent className="max-w-md rounded-md bg-white p-6 shadow-lg dark:bg-gray-800 dark:text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
+                  Delete Notification
+                </DialogTitle>
+              </DialogHeader>
+              <div className="my-4">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Are you sure you want to delete the notification titled "{selectedNotification?.title}"?
+                  This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteOpen(false)}
+                  className="dark:border-gray-700 dark:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteNotification}
+                  disabled={isDeleting}
+                  className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           <div className="mt-6 rounded-md bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 Showing{" "}
                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {visitorsPerPage === "all" ? 1 : startIndex + 1}
+                  {notificationsPerPage === "all" ? 1 : startIndex + 1}
                 </span>{" "}
                 to{" "}
                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {visitorsPerPage === "all" ? filteredVisitors.length : Math.min(startIndex + visitorsPerPage, filteredVisitors.length)}
+                  {notificationsPerPage === "all" ? filteredNotifications.length : Math.min(startIndex + notificationsPerPage, filteredNotifications.length)}
                 </span>{" "}
                 of{" "}
                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {filteredVisitors.length}
+                  {filteredNotifications.length}
                 </span>{" "}
-                visitors
+                notifications
               
               <div className="flex items-center space-x-2 pt-3">
                 <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
                 <Select
-                  value={visitorsPerPage.toString()}
+                  value={notificationsPerPage.toString()}
                   onValueChange={(value) => {
-                    setVisitorsPerPage(value === "all" ? "all" : parseInt(value));
+                    setNotificationsPerPage(value === "all" ? "all" : parseInt(value));
                     setCurrentPage(1); // Reset to first page when changing entries per page
                   }}
                 >
@@ -691,7 +699,7 @@ const VisitorsPage = () => {
                 </Select>
               </div>
               </div>
-
+              
               <div className="flex items-center space-x-1">
                 <Button
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -757,37 +765,37 @@ const VisitorsPage = () => {
         </div>
       </main>
       <style jsx>{`
-          .no-scrollbar::-webkit-scrollbar {
-            display: none;
-          }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
 
-          .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-          }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #d1d5db;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background-color: #f9fafb;
+        }
+
+        @media (prefers-color-scheme: dark) {
           .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #d1d5db;
-            border-radius: 3px;
+            background-color: #4b5563;
           }
           .custom-scrollbar::-webkit-scrollbar-track {
-            background-color: #f9fafb;
+            background-color: #1f2937;
           }
-
-          @media (prefers-color-scheme: dark) {
-            .custom-scrollbar::-webkit-scrollbar-thumb {
-              background-color: #4b5563;
-            }
-            .custom-scrollbar::-webkit-scrollbar-track {
-              background-color: #1f2937;
-            }
-          }
-        `}</style>
+        }
+      `}</style>
     </div>
   );
 };
 
-export default VisitorsPage;
+export default NotificationsPage;

@@ -30,7 +30,7 @@ import {
 import { toast } from "sonner";
 import { useAddOfferMutation, useUpdateOfferMutation, useFetchCourcesQuery } from "@/services/api";
 import { useSelector } from "react-redux";
-import  {selectRootState} from "../../../../lib/store";
+import { selectRootState } from "../../../../lib/store";
 
 const formSchema = z.object({
   code: z.string().min(3, "Offer code must be at least 3 characters"),
@@ -122,7 +122,7 @@ export default function CreateOfferDialog({
       };
 
       if (offer.selectedOffer) {
-        await updateOffer({ 
+        await updateOffer({
           id: offer.selectedOffer._id,
           ...submitData
         }).unwrap();
@@ -138,12 +138,12 @@ export default function CreateOfferDialog({
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onOpenChange={onOpenChange}
       modal={true}
     >
-      <DialogContent 
+      <DialogContent
         className="max-h-[90vh] max-w-md overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
@@ -171,9 +171,9 @@ export default function CreateOfferDialog({
                   <FormItem>
                     <FormLabel className="text-gray-700 dark:text-gray-300">Offer Code</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="SUMMER2024" 
-                        {...field} 
+                      <Input
+                        placeholder="SUMMER2024"
+                        {...field}
                         className="border-gray-300 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       />
                     </FormControl>
@@ -248,7 +248,9 @@ export default function CreateOfferDialog({
                 name="appliedCourses"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700 dark:text-gray-300">Applied Courses</FormLabel>
+                    <FormLabel className="text-gray-700 dark:text-gray-300 ">
+                      Applied Courses
+                    </FormLabel>
                     <Select
                       onValueChange={(value) => {
                         const currentValues = field.value || [];
@@ -259,21 +261,25 @@ export default function CreateOfferDialog({
                     >
                       <FormControl>
                         <SelectTrigger className="border-gray-300 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                          <SelectValue placeholder="Select courses" />
+                          <SelectValue
+                            placeholder="Select courses"
+                            className="text-gray-900 dark:text-white"
+                          />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="dark:bg-gray-800">
+                      <SelectContent className="dark:bg-gray-800 dark:text-white">
                         {courses.map((course) => (
-                          <SelectItem 
-                            key={course._id} 
+                          <SelectItem
+                            key={course._id}
                             value={course._id}
-                            className="dark:text-white dark:focus:bg-gray-700"
+                            className="bg-gray-100 text-black dark:text-white dark:bg-gray-700 dark:focus:bg-gray-600"
                           >
                             {course.courseName}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+
                     <div className="mt-2 flex flex-wrap gap-2">
                       {field.value?.map((courseId) => {
                         const course = courses.find((c) => c._id === courseId);
@@ -283,16 +289,16 @@ export default function CreateOfferDialog({
                             key={courseId}
                             className="flex items-center gap-1 bg-blue-50 dark:bg-gray-700 px-2 py-1 rounded-md"
                           >
-                            <span className="text-sm text-blue-700 dark:text-blue-300">{course.courseName}</span>
+                            <span className="text-sm text-blue-700 dark:text-blue-300">
+                              {course.courseName}
+                            </span>
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
                               className="h-4 w-4 p-0 hover:bg-blue-100 dark:hover:bg-gray-600"
                               onClick={() => {
-                                field.onChange(
-                                  field.value.filter((id) => id !== courseId)
-                                );
+                                field.onChange(field.value.filter((id) => id !== courseId));
                               }}
                             >
                               ×
@@ -306,6 +312,7 @@ export default function CreateOfferDialog({
                 )}
               />
 
+
               <div className="flex justify-end space-x-2 pt-4 border-t dark:border-gray-700">
                 <Button
                   type="button"
@@ -315,7 +322,7 @@ export default function CreateOfferDialog({
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   type="submit"
                   className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                 >
