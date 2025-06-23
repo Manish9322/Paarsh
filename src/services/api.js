@@ -36,8 +36,12 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       result.error?.data?.error?.includes("admin");
 
     const refreshTokenToUse = isAdminRequest ? adminRefreshToken : refreshToken;
-    const refreshEndpoint = isAdminRequest ? "/admin/refreshtoken" : "/user/refreshtoken";
-    const updateTokensAction = isAdminRequest ? updateAdminTokens : updateTokens;
+    const refreshEndpoint = isAdminRequest
+      ? "/admin/refreshtoken"
+      : "/user/refreshtoken";
+    const updateTokensAction = isAdminRequest
+      ? updateAdminTokens
+      : updateTokens;
     const logoutAction = isAdminRequest ? logoutAdmin : logout;
 
     if (tokenRefreshing) {
@@ -60,12 +64,15 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
           body: { refreshToken: refreshTokenToUse },
         },
         api,
-        extraOptions
+        extraOptions,
       );
 
       if (refreshResult.data?.success) {
-        const { accessToken, refreshToken: newRefreshToken } = refreshResult.data.data;
-        api.dispatch(updateTokensAction({ accessToken, refreshToken: newRefreshToken }));
+        const { accessToken, refreshToken: newRefreshToken } =
+          refreshResult.data.data;
+        api.dispatch(
+          updateTokensAction({ accessToken, refreshToken: newRefreshToken }),
+        );
         result = await baseQuery(args, api, extraOptions);
       } else {
         api.dispatch(logoutAction());
@@ -114,12 +121,16 @@ export const paarshEduApi = createApi({
         method: "POST",
         body: { videoId, courseId, progress, completed },
       }),
-      invalidatesTags: (result, error, { courseId }) => [{ type: "Progress", id: courseId }],
+      invalidatesTags: (result, error, { courseId }) => [
+        { type: "Progress", id: courseId },
+      ],
     }),
 
     getVideoProgress: builder.query({
       query: (courseId) => `/video-progress?courseId=${courseId}`,
-      providesTags: (result, error, courseId) => [{ type: "Progress", id: courseId }],
+      providesTags: (result, error, courseId) => [
+        { type: "Progress", id: courseId },
+      ],
       transformResponse: (response) => ({
         success: true,
         data: response.data || {},
@@ -189,10 +200,10 @@ export const paarshEduApi = createApi({
     toggleUserBlock: builder.mutation({
       query: ({ userId, isBlocked }) => ({
         url: `/user/${userId}/block`,
-        method: 'PATCH',
+        method: "PATCH",
         body: { isBlocked },
       }),
-      invalidatesTags: ['Users'],
+      invalidatesTags: ["Users"],
     }),
 
     fetchUserRefferals: builder.query({
@@ -662,7 +673,7 @@ export const paarshEduApi = createApi({
     }),
 
     fetchAgentPerformance: builder.query({
-      query: ({id}) => `/admin/agents/${id}/performance`,
+      query: ({ id }) => `/admin/agents/${id}/performance`,
       providesTags: ["Agent"],
     }),
 
@@ -741,11 +752,11 @@ export const paarshEduApi = createApi({
       providesTags: ["Offer"],
     }),
 
-    fetchActiveOffers: builder.mutation({
-      query: (courseId) => ({
+    fetchActiveOffers: builder.query({
+      query: ({ courseId, userId }) => ({
         url: "/admin/offers/active",
         method: "POST",
-        body: { courseId },
+        body: { courseId, userId },
       }),
     }),
 
@@ -758,7 +769,10 @@ export const paarshEduApi = createApi({
         data: response.data.map((tx) => ({
           ...tx,
           userId: { ...tx.userId, name: tx.userId?.name || "N/A" },
-          courseId: { ...tx.courseId, courseName: tx.courseId?.courseName || "N/A" },
+          courseId: {
+            ...tx.courseId,
+            courseName: tx.courseId?.courseName || "N/A",
+          },
         })),
       }),
     }),
@@ -851,7 +865,6 @@ export const paarshEduApi = createApi({
       query: () => "/admin/userrefferals",
       providesTags: ["User"],
     }),
-    
 
     // User Practice Attempts APIs
     fetchUserPracticeAttempts: builder.query({
@@ -931,26 +944,25 @@ export const paarshEduApi = createApi({
 
     // ----------------------------------------------------Notifications Apis--------------------------------------------------
     fetchNotifications: builder.query({
-      query: () => '/notifications',
-      providesTags: ['Notifications'],
+      query: () => "/notifications",
+      providesTags: ["Notifications"],
     }),
     sendNotification: builder.mutation({
       query: (data) => ({
-        url: '/notifications',
-        method: 'POST',
+        url: "/notifications",
+        method: "POST",
         body: { ...data },
       }),
-      invalidatesTags: ['Notifications'],
+      invalidatesTags: ["Notifications"],
     }),
 
-        deleteNotification: builder.mutation({
+    deleteNotification: builder.mutation({
       query: (id) => ({
         url: `/notifications?id=${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Notifications'],
+      invalidatesTags: ["Notifications"],
     }),
- 
   }),
 });
 
@@ -1022,7 +1034,7 @@ export const {
   useUpdateOfferMutation,
   useDeleteOfferMutation,
   useFetchOffersQuery,
-  useFetchActiveOffersMutation,
+  useFetchActiveOffersQuery,
   useFetchWithdrawalRequestQuery,
   useFetchUserWithdrawalRequestQuery,
   useCreateWithdrawalRequestMutation,
@@ -1064,5 +1076,4 @@ export const {
   useFetchNotificationsQuery,
   useSendNotificationMutation,
   useDeleteNotificationMutation,
-
 } = paarshEduApi;

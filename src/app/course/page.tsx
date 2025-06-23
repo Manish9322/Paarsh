@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 import RelatedPost from "@/components/Blog/RelatedPost";
 import SubscribeNewsletter from "@/components/SubscribeStripe/SubscribeStripe";
 import TagButton from "@/components/Blog/TagButton";
@@ -25,18 +25,20 @@ import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import Purchase from "../../components/Purchase";
 
-import { useFetchCategoriesQuery, useFetchCourcebyIdQuery, useFetchCourcesQuery, useFetchUserCourseQuery } from "@/services/api";
+import {
+  useFetchActiveOffersQuery, // Changed from useFetchActiveOffersMutation
+  useFetchCategoriesQuery,
+  useFetchCourcebyIdQuery,
+  useFetchCourcesQuery,
+  useFetchUserCourseQuery,
+  useFetchUserQuery,
+} from "@/services/api";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { SkeletonThemeProvider } from "@/components/ui/skeleton-theme-provider";
 import VideoPlayer from "@/components/VideoPlayer/VideoPlayer";
-import debounce from 'lodash/debounce';
-
-
-
-// import NewsLatterBox from "@/components/Cont act/NewsLatterBox";
-// import SharePost from "@/components/Blog/SharePost";
+import debounce from "lodash/debounce";
 
 interface Course {
   id: number;
@@ -89,44 +91,67 @@ const BlogSidebarPage = () => {
   const pathname = usePathname();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  
 
   const courseId = param.get("courseId");
 
+  const { data: userData, error, isLoading } = useFetchUserQuery(undefined);
+   const user = userData?.data;
 
-
-  // Check authentication status on component mount
-  useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    setIsAuthorized(!!accessToken);
-  }, []);
-
-  const {
-    data: UserCourseData,
-  } = useFetchUserCourseQuery(undefined);
+  // Fetch RTK Queries
+  const { data: userCourseData } = useFetchUserCourseQuery(undefined, {
+    skip: !isAuthorized,
+  });
 
   const {
     data: courseData,
-    isLoading,
-    error,
-  } = useFetchCourcebyIdQuery(courseId);
+    isLoading: courseLoading,
+    error: courseError,
+  } = useFetchCourcebyIdQuery(courseId, { skip: !courseId });
 
   const {
     data: categoryData,
     isLoading: categoryLoading,
     error: categoryError,
-  } = useFetchCategoriesQuery(courseId);
+  } = useFetchCategoriesQuery(courseId, { skip: !courseId });
 
   const {
     data: coursesData,
-    error: courseError,
+    error: coursesError,
   } = useFetchCourcesQuery(undefined);
 
-  const course: Course = courseData?.data;
+  // Fetch active offers for the course and user
+  const {
+    data: activeOffersData,
+    isLoading: offersLoading,
+  } = useFetchActiveOffersQuery(
+    { courseId, userId: user?._id }, // userId can be null for unauthenticated users
+    { skip: !courseId } // Only skip if no courseId
+  );
+
+  const course = courseData?.data;
   const categories = categoryData?.data || [];
+  const activeOffer = activeOffersData?.data?.[0]; // Use the first offer (highest discount)
+
+  // Combine course with active offer
+  const courseWithOffer = useMemo(() => {
+    if (!course) return null;
+    return {
+      ...course,
+      activeOffer: activeOffer
+        ? {
+            _id: activeOffer._id,
+            code: activeOffer.code,
+            discountPercentage: activeOffer.discountPercentage,
+            validUntil: activeOffer.validUntil,
+          }
+        : null,
+    };
+  }, [course, activeOffer]);
 
   const getRandomCategories = (categories, count) => {
     if (!Array.isArray(categories) || categories.length === 0) return [];
@@ -135,8 +160,8 @@ const BlogSidebarPage = () => {
   };
 
   // Memoize random categories
-  const randomCategories = useMemo(() =>
-    getRandomCategories(categories, 6),
+  const randomCategories = useMemo(
+    () => getRandomCategories(categories, 6),
     [categories]
   );
 
@@ -157,7 +182,7 @@ const BlogSidebarPage = () => {
 
   // Optimize search function with debounce
   const debouncedSearch = useCallback(
-    debounce((query: string) => {
+    debounce((query) => {
       if (!query.trim()) {
         setSearchResults([]);
         setIsSearching(false);
@@ -167,7 +192,10 @@ const BlogSidebarPage = () => {
       setIsSearching(true);
 
       if (coursesData?.data) {
-        const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
+        const searchTerms = query
+          .toLowerCase()
+          .split(" ")
+          .filter((term) => term.length > 0);
 
         const filteredResults = coursesData.data.filter((course) => {
           const searchableContent = [
@@ -177,10 +205,10 @@ const BlogSidebarPage = () => {
             course.courseSubCategory,
           ]
             .filter(Boolean)
-            .map(item => item.toString().toLowerCase())
-            .join(' ');
+            .map((item) => item.toString().toLowerCase())
+            .join(" ");
 
-          return searchTerms.every(term => searchableContent.includes(term));
+          return searchTerms.every((term) => searchableContent.includes(term));
         });
 
         setSearchResults(filteredResults);
@@ -204,56 +232,51 @@ const BlogSidebarPage = () => {
     }
   }, [searchQuery, handleSearch]);
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  }, [handleSearch]);
+  const handleKeyPress = useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        handleSearch();
+      }
+    },
+    [handleSearch]
+  );
 
-
-  console.log("Pathname:", pathname);
-
-    const modalOpen = () => {
-      if (isAuthorized) {
-        setIsModalOpen(true);
-      } else {
-       // Construct full path with query parameters
+  const modalOpen = () => {
+    if (isAuthorized) {
+      setIsModalOpen(true);
+    } else {
+      // Construct full path with query parameters
       const queryString = param.toString();
       const fullPath = queryString ? `${pathname}?${queryString}` : pathname;
-      const redirectUrl = encodeURIComponent(fullPath); // Encode the full path
+      const redirectUrl = encodeURIComponent(fullPath);
       router.push(`/signin?redirect=${redirectUrl}`);
-      }
-    };
+    }
+  };
 
   const modalClose = () => {
     setIsModalOpen(false);
   };
 
-  const category: Category = categoryData?.data;
-  console.log("Categories : ", category);
-
-  const tagsArray = Array.isArray(course?.tags)
-    ? course.tags
-    : typeof course?.tags === "string"
-      ? (course.tags as string).split(",").map((keyword) => keyword.trim())
-      : [];
-
-  console.log("Course Data : ", course);
-  console.log("Editor Content:", course?.editorContent);
+  const tagsArray = useMemo(() => {
+    if (Array.isArray(courseWithOffer?.tags)) {
+      return courseWithOffer.tags;
+    }
+    if (typeof courseWithOffer?.tags === "string") {
+      return courseWithOffer.tags.split(",").map((keyword) => keyword.trim());
+    }
+    return [];
+  }, [courseWithOffer?.tags]);
 
   const isCoursePurchased = useMemo(() => {
-    if (!UserCourseData?.purchasedCourses || !course?._id) return false;
-    return UserCourseData.purchasedCourses.some(
-      (purchasedCourse: any) => purchasedCourse._id === course._id
+    if (!userCourseData?.purchasedCourses || !courseWithOffer?._id) return false;
+    return userCourseData.purchasedCourses.some(
+      (purchasedCourse) => purchasedCourse._id === courseWithOffer._id
     );
-  }, [UserCourseData, course]);
+  }, [userCourseData, courseWithOffer]);
 
   const handleGoToCourse = () => {
-    router.push('/total-courses');
+    router.push("/total-courses");
   };
-
-
-
 
   return (
     <SkeletonThemeProvider>
@@ -264,56 +287,98 @@ const BlogSidebarPage = () => {
               <div>
                 <div className="flex flex-col mb-8">
                   <h1 className="mb-3 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
-                    {isLoading ? <Skeleton width={300} /> : course?.courseName}
+                    {courseLoading ? (
+                      <Skeleton width={300} />
+                    ) : (
+                      courseWithOffer?.courseName
+                    )}
                   </h1>
 
                   <p className="mb-6 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    {isLoading ? <Skeleton count={2} /> : course?.tagline}
+                    {courseLoading ? (
+                      <Skeleton count={2} />
+                    ) : (
+                      courseWithOffer?.tagline
+                    )}
                   </p>
 
                   <div className="mb-8">
                     <div className="inline-flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-300 mb-6">
                       <div className="flex items-center gap-1">
                         <TbClockHour7 className="text-blue-600 text-base" />
-                        <span>{isLoading ? <Skeleton width={60} /> : course?.duration}</span>
+                        <span>
+                          {courseLoading ? (
+                            <Skeleton width={60} />
+                          ) : (
+                            courseWithOffer?.duration
+                          )}
+                        </span>
                       </div>
                       <span className="text-gray-300">•</span>
                       <div className="flex items-center gap-1">
                         <LiaSignalSolid className="text-blue-600 text-base" />
-                        <span>{isLoading ? <Skeleton width={60} /> : course?.level}</span>
+                        <span>
+                          {courseLoading ? (
+                            <Skeleton width={60} />
+                          ) : (
+                            courseWithOffer?.level
+                          )}
+                        </span>
                       </div>
                       <span className="text-gray-300">•</span>
                       <div className="flex items-center gap-1">
                         <IoLanguage className="text-blue-600 text-base" />
-                        <span className="truncate">{isLoading ? <Skeleton width={60} /> : Array.isArray(course?.languages) ? course?.languages.join(', ') : course?.languages}</span>
+                        <span className="truncate">
+                          {courseLoading ? (
+                            <Skeleton width={60} />
+                          ) : Array.isArray(courseWithOffer?.languages) ? (
+                            courseWithOffer.languages.join(", ")
+                          ) : (
+                            courseWithOffer?.languages
+                          )}
+                        </span>
                       </div>
                       <span className="text-gray-300">•</span>
                       <div className="flex items-center gap-1">
                         <PiCertificateLight className="text-blue-600 text-base" />
-                        <span>{course?.certificate ? "Certificate" : "No Certificate"}</span>
+                        <span>
+                          {courseWithOffer?.certificate
+                            ? "Certificate"
+                            : "No Certificate"}
+                        </span>
                       </div>
                     </div>
 
                     {/* Original price display for courses without offers */}
-                    {!course?.activeOffer && (
+                    {!courseWithOffer?.activeOffer && (
                       <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl p-6">
                         <div className="flex items-center gap-2">
                           <div className="flex items-center">
                             <FaIndianRupeeSign className="text-3xl text-blue-600 dark:text-blue-400" />
                             <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
-                              {isLoading ? <Skeleton width={100} /> : course?.price}
+                              {courseLoading ? (
+                                <Skeleton width={100} />
+                              ) : (
+                                courseWithOffer?.price
+                              )}
                             </span>
                           </div>
                           <div className="flex flex-col ml-2">
-                            <span className="text-sm text-gray-600 dark:text-gray-400">One-time payment</span>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">Lifetime access</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              One-time payment
+                            </span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              Lifetime access
+                            </span>
                           </div>
                         </div>
-                        {isLoading ? (
+                        {courseLoading ? (
                           <Skeleton width={150} height={48} />
                         ) : (
                           <Button
-                            onClick={isCoursePurchased ? handleGoToCourse : modalOpen}
+                            onClick={
+                              isCoursePurchased ? handleGoToCourse : modalOpen
+                            }
                             className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
                           >
                             {isCoursePurchased ? "Go to Course" : "Enroll Now"}
@@ -323,92 +388,118 @@ const BlogSidebarPage = () => {
                     )}
 
                     {/* Special offer UI for courses with active offers */}
-                    {course?.activeOffer && (new Date() <= new Date(course.activeOffer.validUntil)) && (
-                      <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl p-6 relative">
-                        {/* Offer Tag */}
-                        <div className="absolute -top-3 left-6">
-                          <div className="bg-gradient-to-r from-blue-600 to-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium shadow-sm">
-                            Special Offer - {course.activeOffer.code}
+                    {courseWithOffer?.activeOffer &&
+                      new Date() <=
+                        new Date(courseWithOffer.activeOffer.validUntil) && (
+                        <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-6 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl p-6 relative">
+                          {/* Offer Tag */}
+                          <div className="absolute -top-3 left-6">
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-600 text-white px-3 py-1 rounded-md text-sm font-medium shadow-sm">
+                              Special Offer - {courseWithOffer.activeOffer.code}
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-4">
-                          <div className="flex flex-col">
-                            {/* Price Display */}
-                            <div className="flex items-center gap-3 mb-1">
-                              {/* Original Price */}
-                              <div className="flex items-center opacity-60">
-                                <FaIndianRupeeSign className="text-xl text-blue-600 dark:text-blue-400" />
-                                <span className="text-2xl font-semibold text-blue-600 dark:text-blue-400 line-through">
-                                  {isLoading ? <Skeleton width={60} /> : course.price}
+                          <div className="flex items-center gap-4">
+                            <div className="flex flex-col">
+                              {/* Price Display */}
+                              <div className="flex items-center gap-3 mb-1">
+                                {/* Original Price */}
+                                <div className="flex items-center opacity-60">
+                                  <FaIndianRupeeSign className="text-xl text-blue-600 dark:text-blue-400" />
+                                  <span className="text-2xl font-semibold text-blue-600 dark:text-blue-400 line-through">
+                                    {courseLoading ? (
+                                      <Skeleton width={60} />
+                                    ) : (
+                                      courseWithOffer.price
+                                    )}
+                                  </span>
+                                </div>
+                                {/* Discount Badge */}
+                                <span className="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded">
+                                  {
+                                    courseWithOffer.activeOffer
+                                      .discountPercentage
+                                  }
+                                  % OFF
                                 </span>
                               </div>
-                              {/* Discount Badge */}
-                              <span className="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 rounded">
-                                {course.activeOffer.discountPercentage}% OFF
-                              </span>
-                            </div>
 
-                            {/* Discounted Price */}
-                            <div className="flex items-center">
-                              <FaIndianRupeeSign className="text-3xl text-blue-600 dark:text-blue-400" />
-                              <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
-                                {isLoading ? (
-                                  <Skeleton width={100} />
-                                ) : (
-                                  Math.round(parseFloat(course.price) * (1 - course.activeOffer.discountPercentage / 100))
-                                )}
-                              </span>
+                              {/* Discounted Price */}
+                              <div className="flex items-center">
+                                <FaIndianRupeeSign className="text-3xl text-blue-600 dark:text-blue-400" />
+                                <span className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-600 bg-clip-text text-transparent">
+                                  {courseLoading || offersLoading ? (
+                                    <Skeleton width={100} />
+                                  ) : (
+                                    Math.round(
+                                      parseFloat(courseWithOffer.price) *
+                                        (1 -
+                                          courseWithOffer.activeOffer
+                                            .discountPercentage /
+                                            100)
+                                    )
+                                  )}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="flex flex-col items-end gap-1.5">
-                          {isLoading ? (
-                            <Skeleton width={150} height={48} />
-                          ) : (
-                            <Button
-                              onClick={isCoursePurchased ? handleGoToCourse : modalOpen}
-                              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
-                            >
-                              {isCoursePurchased ? "Go to Course" : "Claim Offer"}
-                            </Button>
-                          )}
                           <div className="flex flex-col items-end gap-1.5">
-                            <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">Limited time offer</span>
-                            <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">
-                              Offer valid until {new Date(course.activeOffer.validUntil).toLocaleDateString()}
-                            </span>
+                            {courseLoading ? (
+                              <Skeleton width={150} height={48} />
+                            ) : (
+                              <Button
+                                onClick={
+                                  isCoursePurchased ? handleGoToCourse : modalOpen
+                                }
+                                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-600 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+                              >
+                                {isCoursePurchased
+                                  ? "Go to Course"
+                                  : "Claim Offer"}
+                              </Button>
+                            )}
+                            <div className="flex flex-col items-end gap-1.5">
+                              <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">
+                                Limited time offer
+                              </span>
+                              <span className="text-sm text-gray-600 dark:text-gray-400 pr-1">
+                                Offer valid until{" "}
+                                {new Date(
+                                  courseWithOffer.activeOffer.validUntil
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
-
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 </div>
                 <div>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    {/* <span className="text-blue-600 font-bold"> JavaScript </span> plays a crucial role in front-end development by making web pages interactive and user-friendly. With JavaScript, developers can create dynamic UI elements and many more. */}
-                    {isLoading ? (
+                    {courseLoading ? (
                       <Skeleton count={3} />
-                    ) : course ? (
-                      course.summaryText
+                    ) : courseWithOffer ? (
+                      courseWithOffer.summaryText
                     ) : (
                       "Loading Summary..."
                     )}
                   </p>
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <VideoPlayer
-                      thumbnailUrl={course?.thumbnail || "/images/blog/blog-details-01.jpg"}
-                      videoUrl={course?.videoLink || ""}
-                      title={course?.courseName || "Course Video"}
+                      thumbnailUrl={
+                        courseWithOffer?.thumbnail ||
+                        "/images/blog/blog-details-01.jpg"
+                      }
+                      videoUrl={courseWithOffer?.videoLink || ""}
+                      title={courseWithOffer?.courseName || "Course Video"}
                     />
                   </div>
                   <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    {isLoading ? (
+                    {courseLoading ? (
                       <Skeleton count={3} />
-                    ) : course ? (
-                      course.editorContent
+                    ) : courseWithOffer ? (
+                      courseWithOffer.editorContent
                     ) : (
                       "Loading Description..."
                     )}
@@ -417,19 +508,19 @@ const BlogSidebarPage = () => {
                     This Course Includes
                   </h3>
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    {isLoading ? (
+                    {courseLoading ? (
                       <Skeleton width={200} />
-                    ) : course ? (
-                      course.taglineIncludes
+                    ) : courseWithOffer ? (
+                      courseWithOffer.taglineIncludes
                     ) : (
                       "Loading Tagline..."
                     )}
                   </p>
                   <ul className="mb-10 list-inside list-disc text-body-color">
-                    {isLoading ? (
+                    {courseLoading ? (
                       <Skeleton count={3} />
-                    ) : course?.courseIncludes?.length > 0 ? (
-                      course.courseIncludes.map((item, index) => (
+                    ) : courseWithOffer?.courseIncludes?.length > 0 ? (
+                      courseWithOffer.courseIncludes.map((item, index) => (
                         <li
                           key={index}
                           className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg"
@@ -449,33 +540,34 @@ const BlogSidebarPage = () => {
                   </h3>
 
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    {isLoading ? (
+                    {courseLoading ? (
                       <Skeleton width={200} />
-                    ) : course ? (
-                      course.overviewTagline
+                    ) : courseWithOffer ? (
+                      courseWithOffer.overviewTagline
                     ) : (
                       "Loading Tagline..."
                     )}
                   </p>
 
                   <ul className="mb-10 list-inside list-disc text-body-color">
-                    {isLoading ? (
+                    {courseLoading ? (
                       <Skeleton count={3} />
-                    ) : course?.syllabusOverview?.length > 0 ? (
+                    ) : courseWithOffer?.syllabusOverview?.length > 0 ? (
                       <>
-                        {Array.isArray(course.syllabusOverview) ? (course.syllabusOverview
-                          .filter((topic) => topic !== "Many More") // Exclude 'Many More' if it exists
-                          .map((topic, index) => (
-                            <li
-                              key={index}
-                              className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg"
-                            >
-                              {topic}
-                            </li>
-                          ))
+                        {Array.isArray(courseWithOffer.syllabusOverview) ? (
+                          courseWithOffer.syllabusOverview
+                            .filter((topic) => topic !== "Many More")
+                            .map((topic, index) => (
+                              <li
+                                key={index}
+                                className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg"
+                              >
+                                {topic}
+                              </li>
+                            ))
                         ) : (
                           <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                            {course.syllabusOverview}
+                            {courseWithOffer.syllabusOverview}
                           </li>
                         )}
                         <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
@@ -491,10 +583,10 @@ const BlogSidebarPage = () => {
 
                   <div className="relative z-10 mb-10 overflow-hidden rounded-md bg-primary bg-opacity-10 p-8 md:p-9 lg:p-8 xl:p-9">
                     <p className="text-center text-base font-medium italic text-body-color">
-                      {isLoading ? (
+                      {courseLoading ? (
                         <Skeleton width={200} />
-                      ) : course ? (
-                        course.tagline_in_the_box
+                      ) : courseWithOffer ? (
+                        courseWithOffer.tagline_in_the_box
                       ) : (
                         "Loading Summary..."
                       )}
@@ -642,10 +734,10 @@ const BlogSidebarPage = () => {
                   </div>
 
                   <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    {isLoading ? (
+                    {courseLoading ? (
                       <Skeleton count={3} />
-                    ) : course ? (
-                      course.finalText
+                    ) : courseWithOffer ? (
+                      courseWithOffer.finalText
                     ) : (
                       "Loading Final Text..."
                     )}
@@ -657,7 +749,7 @@ const BlogSidebarPage = () => {
                         Popular Tags :
                       </h4>
                       <div className="flex flex-wrap items-center">
-                        {isLoading ? (
+                        {courseLoading ? (
                           <Skeleton width={200} count={3} />
                         ) : tagsArray.length > 0 ? (
                           tagsArray.map((keyword, index) => (
@@ -697,7 +789,7 @@ const BlogSidebarPage = () => {
                       xmlns="http://www.w3.org/2000/svg"
                     >
                       <path
-                        d="M19.4062 16.8125L13.9375 12.375C14.9375 11.0625 15.5 9.46875 15.5 7.78125C15.5 5.75 14.7188 3.875 13.2812 2.4375C10.3438 -0.5 5.5625 -0.5 2.59375 2.4375C1.1875 3.84375 0.40625 5.75 0.40625 7.75C0.40625 9.78125 1.1875 11.6562 2.625 13.0937C4.09375 14.5625 6.03125 15.3125 7.96875 15.3125C9.875 15.3125 11.75 14.5938 13.2188 13.1875L18.75 17.6562C18.8438 17.75 18.9688 17.7812 19.0938 17.7812C19.25 17.7812 19.4062 17.7188 19.5312 17.5938C19.6875 17.3438 19.6562 17 19.4062 16.8125ZM3.375 12.3438C2.15625 11.125 1.5 9.5 1.5 7.75C1.5 6 2.15625 4.40625 3.40625 3.1875C4.65625 1.9375 6.3125 1.3125 7.96875 1.3125C9.625 1.3125 11.2812 1.9375 12.5312 3.1875C13.75 4.40625 14.4375 6.03125 14.4375 7.75C14.4375 9.46875 13.7188 11.125 12.5 12.3438C10 14.8438 5.90625 14.8438 3.375 12.3438Z"
+                        d="M19.4062 16.8125L13.9375 12.375C14.9375 11.0625 15.5 9.46875 15.5 7.78125C15.5 5.75 14.7188 3.875 13.2812 2.4375C10.3438 -0.5 5.5625 -0.5 2.59375 2.4375C1.1875 3.84375 0.40625 5.75 0.40625 7.75C0.40625 9.78125 1.1875 11.6562 2.625 13.0937C4.09375 14.5625 6.03125 15.3125 7.96875 15.3125C9.875 15.3125 11.75 14.5938 13.2188 13.1875L18.75 17.6562C18.8438 17.75 18.9688 17.7812 19.0938 17.7812C19.25 17.7812 19.4062 17.7188 19.5312 17.584C37.584 17.384C38 19.4062 16.8125 19.4062 16Z"
                         fill="white"
                       />
                     </svg>
@@ -717,10 +809,12 @@ const BlogSidebarPage = () => {
                       {searchResults.map((course) => (
                         <li
                           key={course._id || course.id}
-                          className="mb-2 border-b border-body-color border-opacity-10 pb-2 dark:border-white dark:border-opacity-10"
+                          className="mb-2 border-b border-body-color border-opacity-10 pb-2 dark:border-gray-700"
                         >
                           <a
-                            href={`/blog-sidebar?courseId=${course._id || course.id}`}
+                            href={`/blog-sidebar?courseId=${
+                              course._id || course.id
+                            }`}
                             className="text-base font-medium text-body-color hover:text-primary"
                           >
                             {course.courseName}
@@ -743,22 +837,26 @@ const BlogSidebarPage = () => {
               </div>
 
               <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
-                <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
+                <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-gray-700 dark:text-white">
                   Related Courses
                 </h3>
                 <ul className="p-8">
                   {displayedCourses.map((course) => (
                     <li
                       key={course.id ?? course._id ?? course.courseName}
-                      className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10"
+                      className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-gray-700"
                     >
                       <div
                         className="cursor-pointer"
-                        onClick={() => router.push(`/blog-sidebar?courseId=${course._id || course.id || ""}`)}
+                        onClick={() =>
+                          router.push(
+                            `/blog-sidebar?courseId=${course._id || course.id || ""}`
+                          )
+                        }
                       >
                         <RelatedPost
                           title={course.courseName}
-                          image={course.image || "/images/blog/blog-01.jpg"}
+                          image={course.image || "/images/blog/course-placeholder.jpg"}
                           slug={`/${course.slug || "#"}`}
                           level={course.level || "N/A"}
                           duration={course.duration || "Unknown"}
@@ -772,7 +870,7 @@ const BlogSidebarPage = () => {
               </div>
 
               <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
-                <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
+                <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-gray-700 dark:text-white">
                   Popular Category
                 </h3>
                 <ul className="px-8 py-6">
@@ -784,7 +882,7 @@ const BlogSidebarPage = () => {
                         <li key={category._id}>
                           <a
                             href="#0"
-                            className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary"
+                            className="mb-3 inline-block text-base font-medium text-body-color hover:text-blue-600"
                           >
                             {category.name}
                           </a>
@@ -793,50 +891,53 @@ const BlogSidebarPage = () => {
                     </>
                   )}
                 </ul>
-
               </div>
 
               <div className="mb-10 rounded-sm bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
-                <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
+                <h3 className="border-b border-body-color border-opacity-10 px-8 py-4 text-lg font-semibold text-black dark:border-gray-700 dark:text-white">
                   Popular Tags
                 </h3>
                 <div className="flex flex-wrap items-center px-8 py-6">
-                  {isLoading ? (
+                  {courseLoading ? (
                     <Skeleton count={3} />
                   ) : tagsArray.length > 0 ? (
                     tagsArray.map((keyword, index) => (
                       <TagButton key={index} text={keyword} />
                     ))
                   ) : (
-                    <span className="mb-3 inline-block text-base font-medium text-body-color hover:text-primary">
+                    <span className="mb-3 inline-block text-base font-medium text-body-color hover:text-blue-600">
                       No tags available
                     </span>
                   )}
                 </div>
               </div>
-              {/* <NewsLatterBox /> */}
               <ModelOne />
               <ModelTwo />
             </div>
           </div>
         </div>
         <Feedbacks />
-      </section >
+      </section>
 
       <ModelThree />
       <Purchase
         isOpen={isModalOpen}
         onClose={modalClose}
-        course={course}
-        activeOffer={course?.activeOffer ? {
-          _id: course.activeOffer._id || '',
-          code: course.activeOffer.code,
-          discountPercentage: course.activeOffer.discountPercentage,
-          validUntil: course.activeOffer.validUntil
-        } : undefined}
+        course={courseWithOffer}
+        activeOffer={
+          courseWithOffer?.activeOffer
+            ? {
+                _id: courseWithOffer.activeOffer._id || "",
+                code: courseWithOffer.activeOffer.code,
+                discountPercentage:
+                  courseWithOffer.activeOffer.discountPercentage,
+                validUntil: courseWithOffer.activeOffer.validUntil,
+              }
+            : undefined
+        }
       />
       <SubscribeNewsletter />
-      <DownloadSyllabus courseName={course?.courseName || ''} />
+      <DownloadSyllabus courseName={courseWithOffer?.courseName || ""} />
     </SkeletonThemeProvider>
   );
 };

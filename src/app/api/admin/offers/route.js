@@ -8,10 +8,11 @@ _db();
 // Add Offer
 export const POST = authMiddleware(async (request) => {
   try {
-    const { code, discountPercentage, validFrom, validUntil, appliedCourses } = await request.json();
+    const { code, discountPercentage, validFrom, validUntil, applicableTo, courses, users  } =
+      await request.json();
 
     // Validate required fields
-    if (!code || !discountPercentage || !validFrom || !validUntil || !appliedCourses) {
+    if (!code || !discountPercentage || !validFrom || !validUntil || !applicableTo) {
       return NextResponse.json(
         { success: false, error: "All required fields must be provided" },
         { status: 400 }
@@ -25,7 +26,9 @@ export const POST = authMiddleware(async (request) => {
       validFrom: new Date(validFrom),
       validUntil: new Date(validUntil),
       isActive: true,
-      courses: appliedCourses,
+      applicableTo,
+      courses: courses || [],
+      users: users || [],
     });
 
     return NextResponse.json({
@@ -36,7 +39,7 @@ export const POST = authMiddleware(async (request) => {
   } catch (error) {
     console.error("Error creating offer:", error);
     return NextResponse.json(
-      { success: false, error: "Internal server error" },
+      { success: false, error: error.message || "Internal server error" },
       { status: 500 }
     );
   }
@@ -45,7 +48,9 @@ export const POST = authMiddleware(async (request) => {
 // Get All Offers
 export const GET = authMiddleware(async () => {
   try {
-    const offers = await OfferModel.find({}).populate("courses", "id title");
+    const offers = await OfferModel.find({})
+      .populate("courses", "id title")
+      .populate("users", "id email");
     return NextResponse.json({ success: true, data: offers });
   } catch (error) {
     console.error("Error fetching offers:", error);
@@ -75,11 +80,14 @@ export const PUT = authMiddleware(async (request) => {
           ...updateData,
           validFrom: new Date(updateData.validFrom),
           validUntil: new Date(updateData.validUntil),
-          courses: updateData.appliedCourses,
+          courses: updateData.courses || [],
+          users: updateData.users || [],
         },
       },
       { new: true, runValidators: true }
-    ).populate("courses", "id title");
+    )
+      .populate("courses", "id title")
+      .populate("users", "id email");
 
     if (!updatedOffer) {
       return NextResponse.json(
@@ -135,4 +143,4 @@ export const DELETE = authMiddleware(async (request) => {
       { status: 500 }
     );
   }
-}, ["admin"]); 
+}, ["admin"]);

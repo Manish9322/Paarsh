@@ -26,22 +26,52 @@ const offerSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    courses: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-      required: [true, "At least one course must be selected"],
-    }],
+    applicableTo: {
+      type: String,
+      enum: ["courses", "users", "both"],
+      required: [true, "Applicable target is required"],
+      default: "courses",
+    },
+    courses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Course",
+      },
+    ],
+    users: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
   }
 );
 
-// Add index for faster queries
+// Validation to ensure at least one course or user is provided based on applicableTo
+offerSchema.pre("validate", function (next) {
+  if (this.applicableTo === "courses" && (!this.courses || this.courses.length === 0)) {
+    next(new Error("At least one course must be selected for course-based offers"));
+  } else if (this.applicableTo === "users" && (!this.users || this.users.length === 0)) {
+    next(new Error("At least one user must be selected for user-based offers"));
+  } else if (
+    this.applicableTo === "both" &&
+    (!this.courses || this.courses.length === 0) &&
+    (!this.users || this.users.length === 0)
+  ) {
+    next(new Error("At least one course or user must be selected for combined offers"));
+  }
+  next();
+});
+
+// Add indexes for faster queries
 offerSchema.index({ code: 1 });
 offerSchema.index({ validFrom: 1, validUntil: 1 });
 offerSchema.index({ isActive: 1 });
+offerSchema.index({ applicableTo: 1 });
 
 const OfferModel = mongoose.models.Offer || mongoose.model("Offer", offerSchema);
 
-export default OfferModel; 
+export default OfferModel;
