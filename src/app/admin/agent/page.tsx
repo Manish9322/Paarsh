@@ -1471,18 +1471,18 @@ md:h-screen md:translate-x-0`}
 
             {targetModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                <div className="relative max-h-[90vh] max-w-md overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800 dark:text-white">
-                  <div className="mb-4 flex items-center justify-between border-b pb-3">
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                      Set Target for {selectedAgent?.firstName} {selectedAgent?.lastName}
-                    </h2>
-                    <button
+                <div className="relative max-h-[70vh] max-w-4xl scrollbar-hide overflow-y-auto rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800 dark:text-white">
+                   <button
                       onClick={() => setTargetModalOpen(false)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                      className="flex h-8 w-8  absolute top-3 right-2 rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                       aria-label="Close"
                     >
                       <RxCross2 size={18} />
                     </button>
+                  <div className="mb-4 mt-4 flex items-center justify-between border-b pb-3">
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                      Set Target for {selectedAgent?.firstName} {selectedAgent?.lastName}
+                    </h2>
                   </div>
                   
                   <div className="py-4 space-y-4">
@@ -1494,15 +1494,16 @@ md:h-screen md:translate-x-0`}
                         value={targetForm.targetType}
                         onValueChange={(value: "monthly" | "quarterly" | "yearly" | "custom") => 
                           setTargetForm({ ...targetForm, targetType: value })}
+                   
                       >
-                        <SelectTrigger id="targetType" className="w-full dark:border-gray-700 dark:bg-gray-900">
+                        <SelectTrigger id="targetType" className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                           <SelectValue placeholder="Select target type" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="quarterly">Quarterly</SelectItem>
-                          <SelectItem value="yearly">Yearly</SelectItem>
-                          <SelectItem value="custom">Custom</SelectItem>
+                        <SelectContent className="dark:border-gray-700 dark:bg-gray-900 dark:text-white" >
+                          <SelectItem  className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white  dark:hover:bg-gray-700"  value="monthly">Monthly</SelectItem>
+                          <SelectItem  className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white  dark:hover:bg-gray-700" value="quarterly">Quarterly</SelectItem>
+                          <SelectItem  className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white  dark:hover:bg-gray-700" value="yearly">Yearly</SelectItem>
+                          <SelectItem  className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-700"  value="custom">Custom</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1516,7 +1517,7 @@ md:h-screen md:translate-x-0`}
                         type="date" 
                         value={targetForm.startDate}
                         onChange={(e) => setTargetForm({ ...targetForm, startDate: e.target.value })}
-                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                         required
                       />
                     </div>
@@ -1530,7 +1531,7 @@ md:h-screen md:translate-x-0`}
                         type="date" 
                         value={targetForm.endDate}
                         onChange={(e) => setTargetForm({ ...targetForm, endDate: e.target.value })}
-                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white "
                         required
                       />
                     </div>
@@ -1545,7 +1546,7 @@ md:h-screen md:translate-x-0`}
                         value={targetForm.targetCount}
                         onChange={(e) => setTargetForm({ ...targetForm, targetCount: Number(e.target.value) })}
                         min={0}
-                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                         placeholder="Enter course count target"
                       />
                     </div>
@@ -1560,7 +1561,7 @@ md:h-screen md:translate-x-0`}
                         value={targetForm.targetAmount}
                         onChange={(e) => setTargetForm({ ...targetForm, targetAmount: Number(e.target.value) })}
                         min={0}
-                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                         placeholder="Enter revenue target"
                       />
                     </div>
@@ -1574,7 +1575,7 @@ md:h-screen md:translate-x-0`}
                         type="text" 
                         value={targetForm.notes}
                         onChange={(e) => setTargetForm({ ...targetForm, notes: e.target.value })}
-                        className="w-full dark:border-gray-700 dark:bg-gray-900"
+                        className="w-full dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                         placeholder="Enter any additional notes"
                       />
                     </div>
