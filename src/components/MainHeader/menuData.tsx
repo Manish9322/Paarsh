@@ -50,8 +50,8 @@ const menuData: Menu[] = [
       },
       {
         id: 54,
-        title: "Blog Sidebar Page",
-        path: "/blog-sidebar",
+        title: "Course Page",
+        path: "course",
         newTab: false,
       },
       {

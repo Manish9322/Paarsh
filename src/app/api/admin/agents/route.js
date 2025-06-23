@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import _db from "../../../../../utils/db";
 import bcrypt from "bcryptjs";
 import AgentModel from "../../../../../models/Agent.model";
+import TargetModel from "../../../../../models/AgentTarget.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 import { agentCredentialsMail } from "../../../../../utils/MailTemplates/agentCredentialMailTemplate";
 import emailSender from "../../../../../utils/mailSender";
@@ -120,8 +121,22 @@ export const POST = authMiddleware(async (request) => {
 // Get All Agents
 export const GET = authMiddleware(async () => {
   try {
-    const agents = await AgentModel.find();
-    return NextResponse.json({ success: true, data: agents });
+    // Fetch all agents and populate only target count and amount
+    const agents = await AgentModel.find()
+      .populate({
+        path: 'activeTarget',
+        select: 'targetAmount targetCount'
+      });
+
+    return NextResponse.json({ 
+      success: true, 
+      data: agents,
+      summary: {
+        totalAgents: agents.length,
+        agentsWithActiveTargets: agents.filter(agent => agent.activeTarget).length,
+        agentsWithoutTargets: agents.filter(agent => !agent.activeTarget).length
+      }
+    });
   } catch (error) {
     console.error("Error fetching agents:", error);
     return NextResponse.json(

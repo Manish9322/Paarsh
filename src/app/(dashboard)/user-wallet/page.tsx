@@ -310,15 +310,23 @@ function WithdrawFundsView({ handleBack }) {
       }).unwrap();
 
       if (response.success) {
-        toast.success(response.message);
+        toast.success(response.message,{
+          position: 'bottom-right',
+        });
         dispatch(setAmount(''));
         dispatch(resetUpiId());
       } else {
-        toast.error(response.message || 'Failed to process withdrawal');
+        toast.error(response.message || 'Failed to process withdrawal',{
+          position: 'bottom-right',
+        });
       }
     } catch (error) {
       console.error('Withdrawal error:', error);
-      toast.error(error?.data?.message || 'An error occurred during withdrawal');
+      toast.error(error?.data?.message || 'An error occurred during withdrawal',
+        {
+          position: 'bottom-right',
+        }
+      );
     } finally {
       dispatch(setIsSubmitting(false));
     }

@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Dialog,
   DialogContent,
@@ -9,14 +11,16 @@ import { Button } from "@/components/ui/button";
 import { useSelector, useDispatch } from "react-redux";
 import { closePreview } from "@/lib/slices/offersSlice";
 import { selectRootState } from "@/lib/store";
-import { useFetchCourcesQuery } from "@/services/api";
+import { useFetchCourcesQuery, useFetchUsersQuery } from "@/services/api";
 
 export default function OfferPreviewModal() {
   const dispatch = useDispatch();
   const offer = useSelector((state) => selectRootState(state).offers);
   const { previewOffer, isPreviewOpen } = offer;
   const { data: coursesData } = useFetchCourcesQuery({});
+  const { data: usersData } = useFetchUsersQuery({});
   const courses = coursesData?.data || [];
+  const users = usersData?.data || [];
 
   const handleClose = () => {
     dispatch(closePreview());
@@ -49,7 +53,23 @@ export default function OfferPreviewModal() {
     }).filter(Boolean);
   };
 
+  // Get user details for the applied users
+  const getAppliedUsers = () => {
+    if (!previewOffer.users || !users) return [];
+    return previewOffer.users.map(userId => {
+      const user = users.find(u => u._id === (typeof userId === 'object' ? userId._id : userId));
+      return user || null;
+    }).filter(Boolean);
+  };
+
   const appliedCourses = getAppliedCourses();
+  const appliedUsers = getAppliedUsers();
+
+  // Capitalize applicableTo for display
+  const formatApplicableTo = (applicableTo) => {
+    if (!applicableTo) return "Not specified";
+    return applicableTo.charAt(0).toUpperCase() + applicableTo.slice(1);
+  };
 
   return (
     <Dialog open={isPreviewOpen} onOpenChange={handleClose}>
@@ -83,6 +103,9 @@ export default function OfferPreviewModal() {
               <div className="text-gray-500 dark:text-gray-400">Valid Until:</div>
               <div className="font-medium">{formatDate(previewOffer.validUntil)}</div>
               
+              <div className="text-gray-500 dark:text-gray-400">Applicable To:</div>
+              <div className="font-medium">{formatApplicableTo(previewOffer.applicableTo)}</div>
+              
               <div className="text-gray-500 dark:text-gray-400">Status:</div>
               <div className="font-medium">
                 <span className={`px-2 py-0.5 text-xs rounded-full ${
@@ -108,6 +131,19 @@ export default function OfferPreviewModal() {
               <p className="text-sm text-gray-500 dark:text-gray-400 italic">No courses assigned</p>
             )}
           </div>
+          
+          <div>
+            <h4 className="font-medium mb-2 text-gray-700 dark:text-gray-300">Applied to Users:</h4>
+            {appliedUsers.length > 0 ? (
+              <ul className="space-y-1 pl-5 list-disc text-sm text-gray-600 dark:text-gray-400">
+                {appliedUsers.map((user) => (
+                  <li key={user._id}>{user.email}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400 italic">No users assigned</p>
+            )}
+          </div>
         </div>
         
         <DialogFooter>
@@ -116,4 +152,4 @@ export default function OfferPreviewModal() {
       </DialogContent>
     </Dialog>
   );
-} 
+}

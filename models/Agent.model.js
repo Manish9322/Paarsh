@@ -49,6 +49,11 @@ const agentSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    activeTarget: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Target",
+      default: null,
+    },
     totalSale: {
       type: Number,
       default: 0,
@@ -56,16 +61,6 @@ const agentSchema = new mongoose.Schema(
     countSale: {
       type: Number,
       default: 0,
-    },
-    target: {
-      count: {
-        type: Number,
-        default: 0,
-      },
-      price: {
-        type: Number,
-        default: 0,
-      },
     },
     resetToken: { type: String },
     tokenExpiry: { type: Date },

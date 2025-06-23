@@ -28,7 +28,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useAddOfferMutation, useUpdateOfferMutation, useFetchCourcesQuery } from "@/services/api";
+import {
+  useAddOfferMutation,
+  useUpdateOfferMutation,
+  useFetchCourcesQuery,
+  useFetchUsersQuery,
+} from "@/services/api";
 import { useSelector } from "react-redux";
 import { selectRootState } from "../../../../lib/store";
 
@@ -40,15 +45,46 @@ const formSchema = z.object({
     .max(100, "Maximum discount is 100%"),
   validFrom: z.string(),
   validUntil: z.string(),
-  appliedCourses: z.array(z.string()).min(1, "Select at least one course"),
-});
+  applicableTo: z.enum(["courses", "users", "both"], {
+    required_error: "Please select an applicable target",
+  }),
+  appliedCourses: z.array(z.string()).optional(),
+  appliedUsers: z.array(z.string()).optional(),
+}).refine(
+  (data) => {
+    if (data.applicableTo === "courses") {
+      return data.appliedCourses && data.appliedCourses.length > 0;
+    }
+    if (data.applicableTo === "users") {
+      return data.appliedUsers && data.appliedUsers.length > 0;
+    }
+    if (data.applicableTo === "both") {
+      return (
+        (data.appliedCourses && data.appliedCourses.length > 0) ||
+        (data.appliedUsers && data.appliedUsers.length > 0)
+      );
+    }
+    return true;
+  },
+  {
+    message: "Select at least one course or user based on applicable target",
+    path: ["appliedCourses", "appliedUsers"],
+  }
+);
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface Course {
   id: string;
+  _id: string;
   title: string;
   courseName: string;
+}
+
+interface User {
+  id: string;
+  _id: string;
+  email: string;
 }
 
 interface CreateOfferDialogProps {
@@ -63,18 +99,18 @@ export default function CreateOfferDialog({
   onSuccess,
 }: CreateOfferDialogProps) {
   const { data: coursesData } = useFetchCourcesQuery({});
+  const { data: usersData } = useFetchUsersQuery({});
   const [addOffer] = useAddOfferMutation();
   const [updateOffer] = useUpdateOfferMutation();
-  const offer = useSelector(
-    (state) => selectRootState(state).offers
-  );
+  const offer = useSelector((state) => selectRootState(state).offers);
 
   const courses = coursesData?.data || [];
+  const users = usersData?.data || [];
 
   const formatDateForInput = (date: Date | string | undefined) => {
     if (!date) return "";
     const d = new Date(date);
-    return d.toISOString().split('T')[0];
+    return d.toISOString().split("T")[0];
   };
 
   const form = useForm<FormValues>({
@@ -84,7 +120,9 @@ export default function CreateOfferDialog({
       discountPercentage: 0,
       validFrom: formatDateForInput(new Date()),
       validUntil: formatDateForInput(new Date()),
+      applicableTo: "courses",
       appliedCourses: [],
+      appliedUsers: [],
     },
   });
 
@@ -98,7 +136,9 @@ export default function CreateOfferDialog({
           discountPercentage: selectedOffer.discountPercentage || 0,
           validFrom: formatDateForInput(selectedOffer.validFrom) || formatDateForInput(new Date()),
           validUntil: formatDateForInput(selectedOffer.validUntil) || formatDateForInput(new Date()),
+          applicableTo: selectedOffer.applicableTo || "courses",
           appliedCourses: selectedOffer.courses?.map((c) => c._id || c.id) || [],
+          appliedUsers: selectedOffer.users?.map((u) => u._id || u.id) || [],
         });
       } else {
         form.reset({
@@ -106,7 +146,9 @@ export default function CreateOfferDialog({
           discountPercentage: 0,
           validFrom: formatDateForInput(new Date()),
           validUntil: formatDateForInput(new Date()),
+          applicableTo: "courses",
           appliedCourses: [],
+          appliedUsers: [],
         });
       }
     }
@@ -115,16 +157,19 @@ export default function CreateOfferDialog({
   const onSubmit = async (values: FormValues) => {
     try {
       const submitData = {
-        ...values,
+        code: values.code,
+        discountPercentage: values.discountPercentage,
         validFrom: new Date(values.validFrom).toISOString(),
         validUntil: new Date(values.validUntil).toISOString(),
-        courses: values.appliedCourses,
+        applicableTo: values.applicableTo,
+        courses: values.appliedCourses || [],
+        users: values.appliedUsers || [],
       };
 
       if (offer.selectedOffer) {
         await updateOffer({
           id: offer.selectedOffer._id,
-          ...submitData
+          ...submitData,
         }).unwrap();
         toast.success("Offer updated successfully");
       } else {
@@ -133,16 +178,15 @@ export default function CreateOfferDialog({
       }
       onSuccess();
     } catch (error: any) {
-      toast.error(error?.data?.message || `Failed to ${offer.selectedOffer ? "update" : "create"} offer`);
+      toast.error(
+        error?.data?.message ||
+          `Failed to ${offer.selectedOffer ? "update" : "create"} offer`
+      );
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-      modal={true}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <DialogContent
         className="max-h-[90vh] max-w-md overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white"
         onPointerDownOutside={(e) => e.preventDefault()}
@@ -169,7 +213,9 @@ export default function CreateOfferDialog({
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700 dark:text-gray-300">Offer Code</FormLabel>
+                    <FormLabel className="text-gray-700 dark:text-gray-300">
+                      Offer Code
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="SUMMER2024"
@@ -187,7 +233,9 @@ export default function CreateOfferDialog({
                 name="discountPercentage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700 dark:text-gray-300">Discount Percentage</FormLabel>
+                    <FormLabel className="text-gray-700 dark:text-gray-300">
+                      Discount Percentage
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -209,12 +257,14 @@ export default function CreateOfferDialog({
                   name="validFrom"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-700 dark:text-gray-300">Valid From</FormLabel>
+                      <FormLabel className="text-gray-700 dark:text-gray-300">
+                        Valid From
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="date"
                           {...field}
-                          min={new Date().toISOString().split('T')[0]}
+                          min={new Date().toISOString().split("T")[0]}
                           className="border-gray-300 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                         />
                       </FormControl>
@@ -228,7 +278,9 @@ export default function CreateOfferDialog({
                   name="validUntil"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-700 dark:text-gray-300">Valid Until</FormLabel>
+                      <FormLabel className="text-gray-700 dark:text-gray-300">
+                        Valid Until
+                      </FormLabel>
                       <FormControl>
                         <Input
                           type="date"
@@ -245,10 +297,38 @@ export default function CreateOfferDialog({
 
               <FormField
                 control={form.control}
+                name="applicableTo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 dark:text-gray-300">
+                      Applicable To
+                    </FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="border-gray-300 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                          <SelectValue placeholder="Select target" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="dark:bg-gray-800 dark:text-white">
+                        <SelectItem value="courses">Courses</SelectItem>
+                        <SelectItem value="users">Users</SelectItem>
+                        <SelectItem value="both">Both</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="appliedCourses"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-700 dark:text-gray-300 ">
+                    <FormLabel className="text-gray-700 dark:text-gray-300">
                       Applied Courses
                     </FormLabel>
                     <Select
@@ -261,10 +341,7 @@ export default function CreateOfferDialog({
                     >
                       <FormControl>
                         <SelectTrigger className="border-gray-300 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                          <SelectValue
-                            placeholder="Select courses"
-                            className="text-gray-900 dark:text-white"
-                          />
+                          <SelectValue placeholder="Select courses" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="dark:bg-gray-800 dark:text-white">
@@ -298,7 +375,9 @@ export default function CreateOfferDialog({
                               size="sm"
                               className="h-4 w-4 p-0 hover:bg-blue-100 dark:hover:bg-gray-600"
                               onClick={() => {
-                                field.onChange(field.value.filter((id) => id !== courseId));
+                                field.onChange(
+                                  field.value.filter((id) => id !== courseId)
+                                );
                               }}
                             >
                               ×
@@ -312,6 +391,73 @@ export default function CreateOfferDialog({
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="appliedUsers"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700 dark:text-gray-300">
+                      Applied Users
+                    </FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        const currentValues = field.value || [];
+                        if (!currentValues.includes(value)) {
+                          field.onChange([...currentValues, value]);
+                        }
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="border-gray-300 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                          <SelectValue placeholder="Select users" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="dark:bg-gray-800 dark:text-white">
+                        {users.map((user) => (
+                          <SelectItem
+                            key={user._id}
+                            value={user._id}
+                            className="bg-gray-100 text-black dark:text-white dark:bg-gray-700 dark:focus:bg-gray-600"
+                          >
+                            {user.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {field.value?.map((userId) => {
+                        const user = users.find((u) => u._id === userId);
+                        if (!user) return null;
+                        return (
+                          <div
+                            key={userId}
+                            className="flex items-center gap-1 bg-blue-50 dark:bg-gray-700 px-2 py-1 rounded-md"
+                          >
+                            <span className="text-sm text-blue-700 dark:text-blue-300">
+                              {user.email}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-4 w-4 p-0 hover:bg-blue-100 dark:hover:bg-gray-600"
+                              onClick={() => {
+                                field.onChange(
+                                  field.value.filter((id) => id !== userId)
+                                );
+                              }}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex justify-end space-x-2 pt-4 border-t dark:border-gray-700">
                 <Button
@@ -335,4 +481,4 @@ export default function CreateOfferDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

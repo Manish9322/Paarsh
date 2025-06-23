@@ -44,14 +44,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       : updateTokens;
     const logoutAction = isAdminRequest ? logoutAdmin : logout;
 
-    // if (!refreshTokenToUse) {
-    //   api.dispatch(logoutAction());
-    //   if (typeof window !== "undefined") {
-    //     window.location.href = "/signin";
-    //   }
-    //   return result;
-    // }
-
     if (tokenRefreshing) {
       return new Promise((resolve) => {
         const checkRefresh = setInterval(async () => {
@@ -84,16 +76,10 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
         result = await baseQuery(args, api, extraOptions);
       } else {
         api.dispatch(logoutAction());
-        // if (typeof window !== "undefined") {
-        //   window.location.href = "/signin";
-        // }
       }
     } catch (error) {
       console.error("Token refresh error:", error);
       api.dispatch(logoutAction());
-      // if (typeof window !== "undefined") {
-      //   window.location.href = "/signin";
-      // }
     } finally {
       api.dispatch(setTokenRefreshing(false));
     }
@@ -129,7 +115,6 @@ export const paarshEduApi = createApi({
     "Notifications",
     "Feedback",
   ],
-
   endpoints: (builder) => ({
     // Video Progress Endpoints
     updateVideoProgress: builder.mutation({
@@ -148,17 +133,13 @@ export const paarshEduApi = createApi({
       providesTags: (result, error, courseId) => [
         { type: "Progress", id: courseId },
       ],
-      transformResponse: (response) => {
-        // Transform the response to match the expected format
-        return {
-          success: true,
-          data: response.data || {},
-        };
-      },
+      transformResponse: (response) => ({
+        success: true,
+        data: response.data || {},
+      }),
     }),
 
-    // ----------------------------------------------------User Apis------------------------------------------------------------
-
+    // User APIs
     validateToken: builder.query({
       query: () => "/auth/validate",
       providesTags: ["User"],
@@ -189,7 +170,7 @@ export const paarshEduApi = createApi({
 
     forgotPassword: builder.mutation({
       query: (email) => ({
-        url: "user/forgot-password",
+        url: "/user/forgot-password",
         method: "POST",
         body: email,
       }),
@@ -197,20 +178,15 @@ export const paarshEduApi = createApi({
 
     changePassword: builder.mutation({
       query: ({ email, userId, previousPassword, newPassword }) => ({
-        url: "user/change-password",
+        url: "/user/change-password",
         method: "PUT",
-        body: {
-          email,
-          userId,
-          previousPassword,
-          newPassword,
-        },
+        body: { email, userId, previousPassword, newPassword },
       }),
     }),
 
     resetPassword: builder.mutation({
       query: ({ email, password, otp }) => ({
-        url: "user/forgot-password",
+        url: "/user/forgot-password",
         method: "PUT",
         body: { email, password, otp },
       }),
@@ -223,6 +199,15 @@ export const paarshEduApi = createApi({
       }),
     }),
 
+    toggleUserBlock: builder.mutation({
+      query: ({ userId, isBlocked }) => ({
+        url: `/user/${userId}/block`,
+        method: "PATCH",
+        body: { isBlocked },
+      }),
+      invalidatesTags: ["Users"],
+    }),
+
     fetchUserRefferals: builder.query({
       query: () => "/user/user-refferals",
       providesTags: ["User"],
@@ -233,8 +218,12 @@ export const paarshEduApi = createApi({
       providesTags: ["User"],
     }),
 
-    // ----------------------------------------------------Course Apis------------------------------------------------------------
+    fetchUserCourse: builder.query({
+      query: () => "/user/courses",
+      providesTags: ["Course", "User"],
+    }),
 
+    // Course APIs
     addCourse: builder.mutation({
       query: (formData) => ({
         url: "/course",
@@ -245,7 +234,7 @@ export const paarshEduApi = createApi({
     }),
 
     updateCourse: builder.mutation({
-      query: (formData, id) => ({
+      query: ({ formData, id }) => ({
         url: "/course",
         method: "PUT",
         body: { formData, id },
@@ -272,8 +261,7 @@ export const paarshEduApi = createApi({
       providesTags: ["Course"],
     }),
 
-    // ----------------------------------------------------Admin Apis-----------------------------------------------------------------------
-
+    // Admin APIs
     adminlogin: builder.mutation({
       query: (credentials) => ({
         url: "/admin/login",
@@ -283,8 +271,7 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Course"],
     }),
 
-    // ------------------------------------------------------------Agent Apis-------------------------------------------------------------
-
+    // Agent APIs
     addAgent: builder.mutation({
       query: (formData) => ({
         url: "/admin/agents",
@@ -331,18 +318,16 @@ export const paarshEduApi = createApi({
       providesTags: ["Agent"],
     }),
 
-    // New API endpoint for updating agent targets
-    updateAgentTarget: builder.mutation({
-      query: ({ id, targetType, targetValue }) => ({
-        url: "/admin/agents",
-        method: "PATCH",
-        body: { id, targetType, targetValue },
+    createAgentTarget: builder.mutation({
+      query: (formData) => ({
+        url: "/admin/agents/targetset",
+        method: "POST",
+        body: formData,
       }),
       invalidatesTags: ["Agent"],
     }),
 
-    // ------------------------------------------------------------Users Apis-------------------------------------------------------------
-
+    // Users APIs
     fetchUsers: builder.query({
       query: () => "/users",
       providesTags: ["User"],
@@ -376,8 +361,7 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["User"],
     }),
 
-    //--------------------------------------------------------------Categories Apis------------------------------------------------
-
+    // Categories APIs
     addCategory: builder.mutation({
       query: (formData) => ({
         url: "/course/category",
@@ -388,7 +372,7 @@ export const paarshEduApi = createApi({
     }),
 
     updateCategories: builder.mutation({
-      query: (formData, id) => ({
+      query: ({ formData, id }) => ({
         url: "/course/category",
         method: "PUT",
         body: { formData, id },
@@ -410,8 +394,7 @@ export const paarshEduApi = createApi({
       providesTags: ["Category"],
     }),
 
-    //--------------------------------------------------------------SubCategories Apis------------------------------------------------
-
+    // SubCategories APIs
     addSubCategory: builder.mutation({
       query: (formData) => ({
         url: "/course/subcategory",
@@ -422,7 +405,7 @@ export const paarshEduApi = createApi({
     }),
 
     updateSubCategories: builder.mutation({
-      query: (formData, id) => ({
+      query: ({ formData, id }) => ({
         url: "/course/subcategory",
         method: "PUT",
         body: { formData, id },
@@ -444,14 +427,14 @@ export const paarshEduApi = createApi({
       providesTags: ["SubCategory"],
     }),
 
-    //--------------------------------------------------------------CourseVideos Apis------------------------------------------------
-
+    // Course Videos APIs
     addCourseVideo: builder.mutation({
       query: (formData) => ({
         url: "/course/videos",
         method: "POST",
         body: formData,
       }),
+      invalidatesTags: ["CourseVideo"],
     }),
 
     fetchCourseVideo: builder.query({
@@ -465,7 +448,11 @@ export const paarshEduApi = createApi({
     }),
 
     deleteCourseVideo: builder.mutation({
-      query: (id) => ({ url: "/course/videos", method: "DELETE", body: id }),
+      query: (id) => ({
+        url: "/course/videos",
+        method: "DELETE",
+        body: id,
+      }),
       invalidatesTags: ["CourseVideo"],
     }),
 
@@ -480,12 +467,12 @@ export const paarshEduApi = createApi({
     fetchCourseProgress: builder.query({
       query: (params) => ({
         url: "/course/courseprogress",
-        params: params,
+        params,
       }),
       providesTags: ["Progress"],
     }),
 
-    //----------------------------------Payment ------------------------------------------------------------------------------
+    // Payment APIs
     createOrder: builder.mutation({
       query: ({ userId, courseId, amount, agentRefCode }) => ({
         url: "/createorder",
@@ -493,6 +480,7 @@ export const paarshEduApi = createApi({
         body: { userId, courseId, amount, agentRefCode },
       }),
     }),
+
     verifyPayment: builder.mutation({
       query: (paymentData) => ({
         url: "/paymentverification",
@@ -501,15 +489,15 @@ export const paarshEduApi = createApi({
       }),
     }),
 
-    // --------------------------------------------------------------------------------------------------------------
-
-    fetchUserCourse: builder.query({
-      query: () => "/user/courses",
-      providesTags: ["Course", "User"],
+    grantManualCourseAccess: builder.mutation({
+      query: (formData) => ({
+        url: "/admin/grantcourseaccess",
+        method: "POST",
+        body: formData,
+      }),
     }),
 
-    // ------------------------------------------------------------Contact Us Apis------------------------------------------------
-
+    // Contact Us APIs
     addContact: builder.mutation({
       query: (formData) => ({
         url: "/contactus",
@@ -542,8 +530,7 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Contact"],
     }),
 
-    // ------------------------------------------------------------Meeting Links Apis------------------------------------------------
-
+    // Meeting Links APIs
     addMeetingLink: builder.mutation({
       query: (formData) => ({
         url: "/meeting-links",
@@ -574,7 +561,7 @@ export const paarshEduApi = createApi({
     fetchMeetingLinks: builder.query({
       query: (params) => ({
         url: "/meeting-links",
-        params: params,
+        params,
       }),
       providesTags: ["MeetingLink"],
     }),
@@ -601,11 +588,10 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["MeetingLink"],
     }),
 
-    // ------------------------------------------------------------Job Application Apis------------------------------------------------
-
-    CreateJobApplication: builder.mutation({
+    // Job Application APIs
+    createJobApplication: builder.mutation({
       query: (data) => ({
-        url: `/JobApplication`,
+        url: "/JobApplication",
         method: "POST",
         body: data,
       }),
@@ -625,8 +611,7 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["JobApplication"],
     }),
 
-    // ----------------------------------------------------Withdrawal Request Apis---------------------------------------------
-
+    // Withdrawal Request APIs
     fetchWithdrawalRequest: builder.query({
       query: () => "/admin/withdrawal",
       providesTags: ["User", "Withdrawal"],
@@ -673,15 +658,24 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["User", "Withdrawal"],
     }),
 
-    // ----------------------------------------------------Agent Apis--------------------------------------------------
+    // Agent Stats and Sales APIs
 
-    fetchAgentStats: builder.query({
-      query: () => "/agent/stats",
-      providesTags: ["Agent"],
+    createAgentSale: builder.mutation({
+      query: (formData) => ({
+        url: "/agent/sale",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Agent"],
     }),
 
     fetchAgentSales: builder.query({
       query: () => "/agent/saleslist",
+      providesTags: ["Agent"],
+    }),
+
+    fetchAgentPerformance: builder.query({
+      query: ({ id }) => `/admin/agents/${id}/performance`,
       providesTags: ["Agent"],
     }),
 
@@ -727,9 +721,7 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Agent"],
     }),
 
-    // ----------------------------------------------------Offers Apis--------------------------------------------------
-
-    // Offers Endpoints
+    // Offers APIs
     addOffer: builder.mutation({
       query: (formData) => ({
         url: "/admin/offers",
@@ -741,7 +733,7 @@ export const paarshEduApi = createApi({
 
     updateOffer: builder.mutation({
       query: ({ id, ...formData }) => ({
-        url: `/admin/offers`,
+        url: "/admin/offers",
         method: "PUT",
         body: { id, ...formData },
       }),
@@ -762,18 +754,15 @@ export const paarshEduApi = createApi({
       providesTags: ["Offer"],
     }),
 
-    // Get active offers for a course
-    fetchActiveOffers: builder.mutation({
-      query: (courseId) => ({
+    fetchActiveOffers: builder.query({
+      query: ({ courseId, userId }) => ({
         url: "/admin/offers/active",
         method: "POST",
-        body: { courseId },
+        body: { courseId, userId },
       }),
     }),
 
-    // ----------------------------------------------------Transactions Apis--------------------------------------------------
-
-    // Transactions endpoint
+    // Transactions APIs
     fetchTransactions: builder.query({
       query: () => "/transactions",
       providesTags: ["Transaction"],
@@ -790,9 +779,7 @@ export const paarshEduApi = createApi({
       }),
     }),
 
-    // ----------------------------------------------------Practice Test Apis--------------------------------------------------
-
-    // Practice Test Endpoints
+    // Practice Test APIs
     addPracticeTest: builder.mutation({
       query: (formData) => ({
         url: "/practice-test",
@@ -832,19 +819,10 @@ export const paarshEduApi = createApi({
 
     fetchPracticeTestById: builder.query({
       query: (id) => `/practice-test?id=${id}`,
+      providesTags: ["PracticeTest"],
     }),
 
-    grantManualCourseAccess: builder.mutation({
-      query: (formData) => ({
-        url: "/admin/grantcourseaccess",
-        method: "POST",
-        body: formData,
-      }),
-    }),
-
-    // ----------------------------------------------------Visitor Tracking Apis-------------------------------------------------- //
-
-    // New Visitor Tracking Endpoints
+    // Visitor Tracking APIs
     trackVisitor: builder.mutation({
       query: (visitorData) => ({
         url: "/visitors",
@@ -870,24 +848,27 @@ export const paarshEduApi = createApi({
       }),
     }),
 
-    // Referral Settings
-
+    // Referral Settings APIs
     fetchReferralSettings: builder.query({
-      query: () => "refferal-settings",
+      query: () => "/refferal-settings",
       providesTags: ["ReferralSettings"],
     }),
 
     updateReferralSettings: builder.mutation({
       query: (settings) => ({
-        url: "refferal-settings",
+        url: "/refferal-settings",
         method: "PUT",
         body: settings,
       }),
       invalidatesTags: ["ReferralSettings"],
     }),
 
-    // ----------------------------------------------------User Practice Attempts Apis-------------------------------------------------- //
+    fetchUserRefferalAdmin: builder.query({
+      query: () => "/admin/userrefferals",
+      providesTags: ["User"],
+    }),
 
+    // User Practice Attempts APIs
     fetchUserPracticeAttempts: builder.query({
       query: () => "/practice-test-attempt",
       providesTags: ["UserPracticeAttempt", "User"],
@@ -966,24 +947,24 @@ export const paarshEduApi = createApi({
     // ----------------------------------------------------Notifications Apis--------------------------------------------------
     
     fetchNotifications: builder.query({
-      query: () => '/notifications',
-      providesTags: ['Notifications'],
+      query: () => "/notifications",
+      providesTags: ["Notifications"],
     }),
     sendNotification: builder.mutation({
       query: (data) => ({
-        url: '/notifications',
-        method: 'POST',
+        url: "/notifications",
+        method: "POST",
         body: { ...data },
       }),
-      invalidatesTags: ['Notifications'],
+      invalidatesTags: ["Notifications"],
     }),
 
-        deleteNotification: builder.mutation({
+    deleteNotification: builder.mutation({
       query: (id) => ({
         url: `/notifications?id=${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Notifications'],
+      invalidatesTags: ["Notifications"],
     }),
 
     fetchUserRefferalAdmin : builder.query({
@@ -1031,18 +1012,16 @@ export const {
   useForgotPasswordMutation,
   useChangePasswordMutation,
   useResetPasswordMutation,
+  useToggleUserBlockMutation,
   useLogoutMutation,
-
   useValidateTokenQuery,
   useGetUserProfileQuery,
-
   useAddCourseMutation,
   useFetchCourcesQuery,
   useAdminloginMutation,
   useUpdateCourseMutation,
   useDeleteCourseMutation,
   useFetchCourcebyIdQuery,
-
   useAddAgentMutation,
   useUpdateAgentMutation,
   useDeleteAgentMutation,
@@ -1050,40 +1029,32 @@ export const {
   useFetchAgentQuery,
   useFetchAgentSalesAdminQuery,
   useFetchAgentsQuery,
-  useUpdateAgentTargetMutation,
-
+  useCreateAgentTargetMutation,
   useFetchUserQuery,
   useFetchUserByIdQuery,
   useUpdateUserMutation,
   useDeleteUserMutation,
   useFetchUsersQuery,
   useFetchUserOngoingCoursesQuery,
-
   useAddCategoryMutation,
   useFetchCategoriesQuery,
   useUpdateCategoriesMutation,
   useDeleteCategoriesMutation,
-
   useAddSubCategoryMutation,
   useFetchSubCategoriesQuery,
   useUpdateSubCategoriesMutation,
   useDeleteSubCategoriesMutation,
-
   useAddCourseVideoMutation,
   useFetchCourseVideoQuery,
   useFetchCourseVideoByIdQuery,
   useDeleteCourseVideoMutation,
-
   useFetchUserCourseQuery,
-
   useCreateOrderMutation,
   useVerifyPaymentMutation,
-
   useFetchContactsQuery,
   useUpdateContactStatusMutation,
   useDeleteContactMutation,
   useAddContactMutation,
-
   useAddMeetingLinkMutation,
   useUpdateMeetingLinkMutation,
   useDeleteMeetingLinkMutation,
@@ -1091,58 +1062,46 @@ export const {
   useFetchMeetingLinkByIdQuery,
   useGenerateMeetingLinkMutation,
   useUpdateMeetingStatusMutation,
-
   useCreateJobApplicationMutation,
   useFetchJobApplicationsQuery,
   useDeleteJobApplicationMutation,
   useUploadResourceMutation,
-
   useUpdateVideoProgressMutation,
   useGetVideoProgressQuery,
-
   useFetchUserRefferalsQuery,
   useFetchCourseProgressQuery,
-
   useAddOfferMutation,
   useUpdateOfferMutation,
   useDeleteOfferMutation,
   useFetchOffersQuery,
-
-  useFetchActiveOffersMutation,
-
+  useFetchActiveOffersQuery,
   useFetchWithdrawalRequestQuery,
   useFetchUserWithdrawalRequestQuery,
   useCreateWithdrawalRequestMutation,
   useUpdateWithdrawalRequestMutation,
   useDeleteWithdrawalRequestMutation,
   useDeleteUserWithdrawalRequestMutation,
-
-  useFetchAgentStatsQuery,
+  useCreateAgentSaleMutation,
+  useFetchAgentPerformanceQuery,
   useFetchAgentSalesQuery,
   useFetchagentCourseRefferalLinkQuery,
   useCreateLeadMutation,
   useFetchLeadsQuery,
   useUpdateLeadMutation,
   useDeleteLeadMutation,
-
   useFetchTransactionsQuery,
   useGrantManualCourseAccessMutation,
-
   useAddPracticeTestMutation,
   useFetchPracticeTestsQuery,
   useUpdatePracticeTestMutation,
   useDeletePracticeTestMutation,
   useFetchUserPracticeTestsQuery,
-
   useFetchPracticeTestByIdQuery,
-
   useTrackVisitorMutation,
   useFetchVisitorsQuery,
-
   useFetchReferralSettingsQuery,
   useUpdateReferralSettingsMutation,
   useFetchUserRefferalAdminQuery,
-
   useFetchUserPracticeAttemptsQuery,
   useAddUserPracticeAttemptMutation,
 
@@ -1157,7 +1116,6 @@ export const {
   useFetchNotificationsQuery,
   useSendNotificationMutation,
   useDeleteNotificationMutation,
-
   useFetchFeedbacksQuery,
   useSubmitFeedbackMutation,
   useDeleteFeedbackMutation,

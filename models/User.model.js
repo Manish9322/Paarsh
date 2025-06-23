@@ -90,6 +90,10 @@ const userSchema = new mongoose.Schema({
   },
   otpToken: String,
   otpTokenExpiry: Date,
+  isBlocked: { 
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Pre-save middleware to update timestamps and session creation time

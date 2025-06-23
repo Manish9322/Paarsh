@@ -637,7 +637,7 @@ const NotificationsPage = () => {
               </DialogHeader>
               <div className="my-4">
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Are you sure you want to delete the notification titled "{selectedNotification?.title}"?
+                  Are you sure you want to delete the notification titled {selectedNotification?.title}?
                   This action cannot be undone.
                 </p>
               </div>

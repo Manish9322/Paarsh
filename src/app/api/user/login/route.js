@@ -47,6 +47,16 @@ export async function POST(request) {
       );
     }
 
+    if (user.isBlocked) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Your account has been blocked. Please contact admin",
+        },
+        { status: 400 }
+      );
+    }
+
     if (user.password === "000000") {
       return NextResponse.json(
         {
