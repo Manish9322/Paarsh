@@ -28,19 +28,20 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
+  Lock,
+  Unlock,
+  CheckCircle,
+  XCircle,
+} from "lucide-react"; // Added Lock and Unlock icons
 import {
-  useDeleteAgentMutation,
   useDeleteUserMutation,
-  useFetchCourcesQuery,
+  useFetchCourcesQuery, // Corrected typo: useFetchCourcesQuery -> useFetchCoursesQuery
   useFetchUsersQuery,
   useFetchTransactionsQuery,
-
+  useToggleUserBlockMutation, // Added the toggle mutation
 } from "../../../services/api";
-import AddAgentModal from "../../../components/Agent/AddAgent";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AdminSkeletonWrapper } from "@/components/ui/admin-skeleton-wrapper";
 import {
   Dialog,
   DialogContent,
@@ -52,7 +53,7 @@ import { RxCross2 } from "react-icons/rx";
 import { toast } from "sonner";
 import EditUserModal from "../../../components/User/EditUser";
 
-// Define Users interface first
+// Define Users interface
 interface Users {
   _id: string;
   id: number;
@@ -60,9 +61,9 @@ interface Users {
   email: string;
   mobile: string;
   createdAt: string;
+  isBlocked: boolean;
 }
 
-// Update the interface at the top of the file
 interface CourseEnrollment {
   userId: string;
   enrollmentDate: string; // ISO date string
@@ -87,26 +88,27 @@ const UserPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [usersPerPage, setUsersPerPage] = useState<number | "all">(10);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Users | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [blockConfirmOpen, setBlockConfirmOpen] = useState(false); // Added for block/unblock confirmation
+  const [userToBlock, setUserToBlock] = useState<Users | null>(null); // Added to track user for block/unblock
 
+  const { data: coursesData } = useFetchCourcesQuery(undefined); // Corrected typo
+  console.log("CourseData on User Management: ", coursesData);
 
-  const { data: coursesData } = useFetchCourcesQuery(undefined);
-  console.log("CourseData on User Management : ", coursesData);
-
-  const agentsPerPage = 10;
   const { data: userData, isLoading, error } = useFetchUsersQuery(undefined);
-  console.log("UserData on User Management : ", userData);
+  console.log("UserData on User Management: ", userData);
   const [_DELETEUSER, { isLoading: isDeleteLoading }] = useDeleteUserMutation();
+  const [toggleUserBlock, { isLoading: isBlockLoading }] =
+    useToggleUserBlockMutation(); // Added mutation hook
 
   const users = userData?.data || [];
-  const startIndex = usersPerPage === "all" ? 0 : (currentPage - 1) * usersPerPage;
-
+  const startIndex =
+    usersPerPage === "all" ? 0 : (currentPage - 1) * Number(usersPerPage);
 
   const { data: transactionsData } = useFetchTransactionsQuery(undefined);
   console.log("All Transactions Data:", transactionsData);
@@ -140,17 +142,19 @@ const UserPage: React.FC = () => {
     return comparison;
   });
 
-  const totalPages = usersPerPage === "all" ? 1 : Math.ceil(sortedUsers.length / usersPerPage);
-  const displayedUsers = usersPerPage === "all"
-    ? sortedUsers
-    : sortedUsers.slice(
-      (currentPage - 1) * usersPerPage,
-      currentPage * usersPerPage
-    );
+  const totalPages =
+    usersPerPage === "all" ? 1 : Math.ceil(sortedUsers.length / usersPerPage);
+  const displayedUsers =
+    usersPerPage === "all"
+      ? sortedUsers
+      : sortedUsers.slice(
+          (currentPage - 1) * usersPerPage,
+          currentPage * usersPerPage,
+        );
 
   const handleEdit = (user: Users) => {
     setSelectedUser(user);
-    setIsModalOpen(true);
+    setEditOpen(true);
   };
 
   const confirmDeleteUser = (userId: string) => {
@@ -171,7 +175,7 @@ const UserPage: React.FC = () => {
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error(
-        error?.data?.message || "Failed to Delete the user. Please try again."
+        error?.data?.message || "Failed to delete the user. Please try again.",
       );
     }
   };
@@ -179,6 +183,35 @@ const UserPage: React.FC = () => {
   const handleView = (user: Users) => {
     setSelectedUser(user);
     setViewOpen(true);
+  };
+
+  const confirmToggleBlock = (user: Users) => {
+    setUserToBlock(user);
+    setBlockConfirmOpen(true);
+  };
+
+  const handleToggleBlock = async () => {
+    try {
+      if (!userToBlock) return;
+      const response = await toggleUserBlock({
+        userId: userToBlock._id,
+        isBlocked: !userToBlock.isBlocked,
+      }).unwrap();
+
+      if (response?.success) {
+        toast.success(
+          `User ${userToBlock.isBlocked ? "unblocked" : "blocked"} successfully`,
+        );
+        setBlockConfirmOpen(false);
+        setUserToBlock(null);
+      }
+    } catch (error) {
+      console.error("Error toggling block status:", error);
+      toast.error(
+        error?.data?.message ||
+          "Failed to toggle block status. Please try again.",
+      );
+    }
   };
 
   const toggleSidebar = () => {
@@ -231,10 +264,8 @@ const UserPage: React.FC = () => {
     setCurrentPage(1);
   }, [searchTerm]);
 
-
-
   return (
-    <div className="flex min-h-screen flex-col overflow-hidden  bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
         <button
           onClick={toggleSidebar}
@@ -248,8 +279,9 @@ const UserPage: React.FC = () => {
       </div>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between px-4 md:justify-end">
@@ -269,9 +301,9 @@ const UserPage: React.FC = () => {
         ></div>
       )}
 
-      <main className="flex-1 overflow-y-auto  pt-16 md:ml-64">
+      <main className="flex-1 overflow-y-auto pt-16 md:ml-64">
         <div className="container mx-auto px-4 py-6">
-          <Card className="mb-6 overflow-hidden border-none  bg-white  shadow-md dark:bg-gray-800 dark:text-white">
+          <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-800 dark:text-white">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">
@@ -292,7 +324,7 @@ const UserPage: React.FC = () => {
               <div className="overflow-x-auto">
                 <Table className="w-full text-black dark:text-white">
                   <TableHeader>
-                    <TableRow className="border-b  border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
+                    <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
                       <TableHead className="hidden py-3 text-center sm:table-cell">
                         #
                       </TableHead>
@@ -375,6 +407,8 @@ const UserPage: React.FC = () => {
                             <Skeleton className="h-6 w-6 rounded-full" />
                             <Skeleton className="h-6 w-6 rounded-full" />
                             <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-6 w-6 rounded-full" />{" "}
+                            {/* Added for block button */}
                           </TableCell>
                         </TableRow>
                       ))
@@ -400,7 +434,7 @@ const UserPage: React.FC = () => {
                       displayedUsers.map((user, index) => (
                         <TableRow
                           key={user.id}
-                          className="border-b  border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                          className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                         >
                           <TableCell className="hidden text-center font-medium sm:table-cell">
                             {startIndex + index + 1}
@@ -454,6 +488,31 @@ const UserPage: React.FC = () => {
                                 </span>
                               </button>
                               <button
+                                className="bg-yellow-50 text-yellow-600 hover:bg-yellow-100 hover:text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400 dark:hover:bg-yellow-900/30 dark:hover:text-yellow-300 group relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:shadow-md"
+                                onClick={() => confirmToggleBlock(user)}
+                                aria-label={
+                                  user.isBlocked ? "Unblock user" : "Block user"
+                                }
+                                disabled={isBlockLoading}
+                              >
+                                {user.isBlocked ? (
+                                  <CheckCircle
+                                    size={16}
+                                    className="transition-transform group-hover:scale-110"
+                                  />
+                                ) : (
+                                  <XCircle
+                                    size={16}
+                                    className="transition-transform group-hover:scale-110"
+                                  />
+                                )}
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  {user.isBlocked
+                                    ? "Unblock user"
+                                    : "Block user"}
+                                </span>
+                              </button>
+                              <button
                                 className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
                                 onClick={() => confirmDeleteUser(user._id)}
                                 aria-label="Delete user"
@@ -479,7 +538,7 @@ const UserPage: React.FC = () => {
 
           <Dialog open={viewOpen} onOpenChange={setViewOpen}>
             <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto rounded-lg bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
-              <DialogHeader className="sticky top-0 z-10 border-b  bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+              <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
                 <div className="flex items-center justify-between">
                   <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
                     User Details
@@ -543,50 +602,61 @@ const UserPage: React.FC = () => {
                         </h3>
                       </div>
                       <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {coursesData?.data?.filter(course =>
-                          course.enrolledUsers?.includes(selectedUser?._id)
+                        {coursesData?.data?.filter((course) =>
+                          course.enrolledUsers?.includes(selectedUser?._id),
                         ).length > 0 ? (
-                          coursesData?.data?.filter(course =>
-                            course.enrolledUsers?.includes(selectedUser?._id)
-                          ).map((course, index) => {
-                            // Find the transaction for this course and user
-                            const transaction = transactionsData?.data?.find(
-                              t => t.courseId?._id === course._id && t.userId?._id === selectedUser._id
-                            );
+                          coursesData?.data
+                            ?.filter((course) =>
+                              course.enrolledUsers?.includes(selectedUser?._id),
+                            )
+                            .map((course, index) => {
+                              const transaction = transactionsData?.data?.find(
+                                (t) =>
+                                  t.courseId?._id === course._id &&
+                                  t.userId?._id === selectedUser._id,
+                              );
 
-                            return (
-                              <div key={index} className="space-y-2 px-4 py-3">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                    Course {index + 1}
-                                  </span>
-                                  <span className="text-xs text-gray-500 font-semibold dark:text-gray-400">
-                                    {course.price === "1" ? `₹ 1` : `₹ ${course.price}`}
-                                  </span>
+                              return (
+                                <div
+                                  key={index}
+                                  className="space-y-2 px-4 py-3"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                                      Course {index + 1}
+                                    </span>
+                                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                      {course.price === "1"
+                                        ? `₹ 1`
+                                        : `₹ ${course.price}`}
+                                    </span>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <span className="block text-sm font-medium text-gray-900 dark:text-gray-200">
+                                      {course.courseName}
+                                    </span>
+                                    {transaction ? (
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        Purchased on:{" "}
+                                        {new Date(
+                                          transaction.createdAt,
+                                        ).toLocaleDateString(undefined, {
+                                          year: "numeric",
+                                          month: "long",
+                                          day: "numeric",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}
+                                      </p>
+                                    ) : (
+                                      <p className="text-xs italic text-gray-500 dark:text-gray-400">
+                                        Purchase date not available
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="space-y-1">
-                                  <span className="block text-sm font-medium text-gray-900 dark:text-gray-200">
-                                    {course.courseName}
-                                  </span>
-                                  {transaction ? (
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                                      Purchased on: {new Date(transaction.createdAt).toLocaleDateString(undefined, {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </p>
-                                  ) : (
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-                                      Purchase date not available
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })
+                              );
+                            })
                         ) : (
                           <div className="px-4 py-3">
                             <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -610,7 +680,7 @@ const UserPage: React.FC = () => {
                           </span>
                           <span className="col-span-2 text-sm text-gray-900 dark:text-gray-200">
                             {new Date(
-                              selectedUser.createdAt
+                              selectedUser.createdAt,
                             ).toLocaleDateString(undefined, {
                               year: "numeric",
                               month: "long",
@@ -620,7 +690,6 @@ const UserPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
               ) : (
@@ -667,30 +736,88 @@ const UserPage: React.FC = () => {
             </DialogContent>
           </Dialog>
 
-          <div className="mt-6 rounded-lg bg-white  p-4 shadow-md dark:bg-gray-800 dark:text-white">
+          {/* Added Confirmation Dialog for Block/Unblock */}
+          <Dialog open={blockConfirmOpen} onOpenChange={setBlockConfirmOpen}>
+            <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                  Confirm {userToBlock?.isBlocked ? "Unblock" : "Block"} User
+                </DialogTitle>
+              </DialogHeader>
+              <div className="py-4 text-center">
+                {userToBlock?.isBlocked ? (
+                  <Unlock className="text-yellow-500 dark:text-yellow-400 mx-auto mb-4 h-12 w-12" />
+                ) : (
+                  <Lock className="text-yellow-500 dark:text-yellow-400 mx-auto mb-4 h-12 w-12" />
+                )}
+                <p className="text-gray-600 dark:text-gray-300">
+                  Are you sure you want to{" "}
+                  {userToBlock?.isBlocked ? "unblock" : "block"}{" "}
+                  {userToBlock?.name}?{" "}
+                  {userToBlock?.isBlocked
+                    ? "This will allow the user to log in again."
+                    : "This will prevent the user from logging in."}
+                </p>
+              </div>
+              <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setBlockConfirmOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant={userToBlock?.isBlocked ? "default" : "destructive"}
+                  onClick={handleToggleBlock}
+                  className="w-full sm:w-auto"
+                  disabled={isBlockLoading}
+                >
+                  {isBlockLoading
+                    ? userToBlock?.isBlocked
+                      ? "Unblocking..."
+                      : "Blocking..."
+                    : userToBlock?.isBlocked
+                      ? "Unblock User"
+                      : "Block User"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-              <div className="text-sm text-gray-500  dark:text-gray-400">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 Showing{" "}
-                <span className="font-medium text-gray-700  dark:text-gray-300">
+                <span className="font-medium text-gray-700 dark:text-gray-300">
                   {startIndex + 1}
                 </span>{" "}
                 to{" "}
-                <span className="font-medium text-gray-700  dark:text-gray-300">
-                  {Math.min(startIndex + agentsPerPage, sortedUsers.length)}
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {Math.min(
+                    startIndex +
+                      (usersPerPage === "all"
+                        ? sortedUsers.length
+                        : Number(usersPerPage)),
+                    sortedUsers.length,
+                  )}
                 </span>{" "}
                 of{" "}
-                <span className="font-medium text-gray-700  dark:text-gray-300">
+                <span className="font-medium text-gray-700 dark:text-gray-300">
                   {sortedUsers.length}
                 </span>{" "}
                 users
-
                 <div className="flex items-center space-x-2 pt-3">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Show:
+                  </span>
                   <Select
                     value={usersPerPage.toString()}
                     onValueChange={(value) => {
-                      setUsersPerPage(value === "all" ? "all" : parseInt(value));
-                      setCurrentPage(1); // Reset to first page when changing entries per page
+                      setUsersPerPage(
+                        value === "all" ? "all" : parseInt(value),
+                      );
+                      setCurrentPage(1);
                     }}
                   >
                     <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800">
@@ -704,7 +831,6 @@ const UserPage: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-
               </div>
 
               <div className="flex items-center space-x-1">
@@ -713,7 +839,7 @@ const UserPage: React.FC = () => {
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
-                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400  dark:bg-blue-900/20  dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -732,31 +858,32 @@ const UserPage: React.FC = () => {
                       <Button
                         key={`page-${page}`}
                         onClick={() => setCurrentPage(Number(page))}
-                        className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${currentPage === page
-                          ? "bg-blue-600 text-white hover:bg-blue-700  dark:bg-blue-700 dark:hover:bg-blue-800"
-                          : "bg-blue-50 text-blue-600 hover:bg-blue-100  dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                          }`}
+                        className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
+                          currentPage === page
+                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                            : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                        }`}
                         aria-label={`Page ${page}`}
                         aria-current={currentPage === page ? "page" : undefined}
                       >
                         {page}
                       </Button>
-                    )
+                    ),
                   )}
                 </div>
 
-                <span className="text-sm font-medium text-gray-700  dark:text-gray-300 sm:hidden">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 sm:hidden">
                   Page {currentPage} of {totalPages || 1}
                 </span>
 
                 <Button
                   onClick={() =>
                     setCurrentPage((prev) =>
-                      Math.min(prev + 1, totalPages || 1)
+                      Math.min(prev + 1, totalPages || 1),
                     )
                   }
                   disabled={currentPage === totalPages || totalPages === 0}
-                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400  dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                   aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -764,7 +891,7 @@ const UserPage: React.FC = () => {
               </div>
 
               <div className="hidden items-center space-x-2 lg:flex">
-                <span className="text-sm text-gray-500  dark:text-gray-400">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   Go to page:
                 </span>
                 <Input
@@ -778,7 +905,7 @@ const UserPage: React.FC = () => {
                       setCurrentPage(value);
                     }
                   }}
-                  className="h-8 w-16 rounded-md border-gray-300 text-center text-sm  dark:border-gray-700 dark:bg-gray-800"
+                  className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
                   aria-label="Go to page"
                 />
               </div>

@@ -186,6 +186,15 @@ export const paarshEduApi = createApi({
       }),
     }),
 
+    toggleUserBlock: builder.mutation({
+      query: ({ userId, isBlocked }) => ({
+        url: `/user/${userId}/block`,
+        method: 'PATCH',
+        body: { isBlocked },
+      }),
+      invalidatesTags: ['Users'],
+    }),
+
     fetchUserRefferals: builder.query({
       query: () => "/user/user-refferals",
       providesTags: ["User"],
@@ -951,6 +960,7 @@ export const {
   useForgotPasswordMutation,
   useChangePasswordMutation,
   useResetPasswordMutation,
+  useToggleUserBlockMutation,
   useLogoutMutation,
   useValidateTokenQuery,
   useGetUserProfileQuery,
