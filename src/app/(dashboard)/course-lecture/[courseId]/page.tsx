@@ -9,10 +9,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Star } from "lucide-react";
+import { toast } from "sonner";
 import {
   useFetchCourseVideoByIdQuery,
   useGetVideoProgressQuery,
   useUpdateVideoProgressMutation,
+  useSubmitFeedbackMutation,
+  useFetchFeedbacksQuery,
+  useFetchUserQuery,
 } from "../../../../services/api";
 import {
   ChevronLeft,
@@ -181,18 +188,25 @@ export default function CourseLecturePage() {
   const [dynamicDuration, setDynamicDuration] = useState<string>("00:00");
   const [showQualityOptions, setShowQualityOptions] = useState(false);
   const [currentQuality, setCurrentQuality] = useState("1080p");
-  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(
-    null,
-  );
+  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null,);
   const [remainingTime, setRemainingTime] = useState("00:00");
   const [isSaving, setIsSaving] = useState(false);
   const [courseProgress, setCourseProgress] = useState(0);
-  const [lastSyncedProgress, setLastSyncedProgress] = useState<{
-    [key: string]: number;
-  }>({});
+  const [lastSyncedProgress, setLastSyncedProgress] = useState<{ [key: string]: number; }>({});
   const [notification, setNotification] = useState<string | null>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [hasGivenFeedback, setHasGivenFeedback] = useState(false);
+
+
+  const { data: userData } = useFetchUserQuery(undefined);
+  const userId = userData?.data?._id;
+  const { data: feedbacksData } = useFetchFeedbacksQuery(undefined);
+  const [submitFeedback, { isLoading: isSubmittingFeedback }] = useSubmitFeedbackMutation();
+
   console.log("currentVideo:", currentVideo);
 
   // Sync topics and videos with courseVideoData
@@ -541,33 +555,33 @@ export default function CourseLecturePage() {
     }
   };
 
-const toggleFullscreen = () => {
-  if (!videoContainerRef.current) return;
+  const toggleFullscreen = () => {
+    if (!videoContainerRef.current) return;
 
-  if (!document.fullscreenElement) {
-    videoContainerRef.current.requestFullscreen().catch(err => {
-      console.error(`Error attempting to enable fullscreen: ${err.message}`);
-    });
-    // Lock orientation to landscape for mobile devices if supported
-    if (screen.orientation && 'lock' in screen.orientation && typeof screen.orientation.lock === 'function') {
-      screen.orientation.lock('landscape').catch(err => {
-        console.error(`Error locking orientation: ${err.message}`);
+    if (!document.fullscreenElement) {
+      videoContainerRef.current.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
       });
+      // Lock orientation to landscape for mobile devices if supported
+      if (screen.orientation && 'lock' in screen.orientation && typeof screen.orientation.lock === 'function') {
+        screen.orientation.lock('landscape').catch(err => {
+          console.error(`Error locking orientation: ${err.message}`);
+        });
+      } else {
+        console.warn('Screen orientation lock is not supported in this browser.');
+      }
+      setIsFullscreen(true);
     } else {
-      console.warn('Screen orientation lock is not supported in this browser.');
+      document.exitFullscreen();
+      // Unlock orientation when exiting fullscreen if supported
+      if (screen.orientation && 'unlock' in screen.orientation && typeof screen.orientation.unlock === 'function') {
+        screen.orientation.unlock();
+      } else {
+        console.warn('Screen orientation unlock is not supported in this browser.');
+      }
+      setIsFullscreen(false);
     }
-    setIsFullscreen(true);
-  } else {
-    document.exitFullscreen();
-    // Unlock orientation when exiting fullscreen if supported
-    if (screen.orientation && 'unlock' in screen.orientation && typeof screen.orientation.unlock === 'function') {
-      screen.orientation.unlock();
-    } else {
-      console.warn('Screen orientation unlock is not supported in this browser.');
-    }
-    setIsFullscreen(false);
-  }
-};
+  };
 
   const handleFastForward = () => {
     if (videoRef) {
@@ -671,6 +685,54 @@ const toggleFullscreen = () => {
     }
   };
 
+
+  // Function to handle feedback submission
+
+  const handleFeedbackSubmit = async () => {
+    if (!feedbackText || feedbackRating === 0 || !userId) {
+      toast.error("Please provide feedback and rating.");
+      return;
+    }
+    try {
+      await submitFeedback({
+        feedbackText,
+        rating: feedbackRating,
+        userId,
+        courseId, // Pass courseId for backend association
+      }).unwrap();
+      toast.success("Thank you for your feedback!", {
+        position: "bottom-right",
+      });
+      setFeedbackModalOpen(false);
+      setHasGivenFeedback(true);
+      setFeedbackText("");
+      setFeedbackRating(0);
+    } catch (err) {
+      toast.error("Failed to submit feedback.");
+    }
+  };
+
+
+  useEffect(() => {
+    if (!userId || !courseId || !feedbacksData?.data) return;
+
+    // Check if feedback for this course by this user exists
+    const alreadyGiven = feedbacksData.data.some(
+      (fb) =>
+        fb.userId?._id === userId &&
+        fb.courseId &&
+        (fb.courseId._id === courseId || fb.courseId === courseId)
+    );
+    setHasGivenFeedback(alreadyGiven);
+
+    // Show modal if progress >= 50% and feedback not given
+    if (courseProgress >= 50 && !alreadyGiven) {
+      setFeedbackModalOpen(true);
+    } else {
+      setFeedbackModalOpen(false); // Hide if already given
+    }
+  }, [courseProgress, userId, feedbacksData, courseId]);
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Navbar */}
@@ -741,7 +803,7 @@ const toggleFullscreen = () => {
             {/* Video Player */}
             {isLoading ? (
               <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl bg-gray-200 shadow-lg">
-                <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-600"></div>
+                <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
                 <span className="ml-3 text-gray-600">Loading video...</span>
               </div>
             ) : isError ? (
@@ -791,7 +853,7 @@ const toggleFullscreen = () => {
                       onClick={handleProgressClick}
                     >
                       <div
-                        className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
+                        className="absolute h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
                         style={{ width: `${videoProgress}%` }}
                       />
                       <div
@@ -805,7 +867,7 @@ const toggleFullscreen = () => {
                       <div className="flex items-center gap-3">
                         <button
                           onClick={handlePlayPause}
-                          className="text-white transition-colors hover:text-indigo-300"
+                          className="text-white transition-colors hover:text-blue-300"
                           aria-label={
                             isPlaying ? "Pause video" : "Play video"
                           }
@@ -825,14 +887,14 @@ const toggleFullscreen = () => {
                         </button>
                         <button
                           onClick={handleRewind}
-                          className="text-white hover:text-indigo-300"
+                          className="text-white hover:text-blue-300"
                           aria-label="Rewind 10 seconds"
                         >
                           <Rewind className="h-6 w-6" />
                         </button>
                         <button
                           onClick={handleFastForward}
-                          className="text-white hover:text-indigo-300"
+                          className="text-white hover:text-blue-300"
                           aria-label="Fast forward 10 seconds"
                         >
                           <FastForward className="h-6 w-6" />
@@ -844,7 +906,7 @@ const toggleFullscreen = () => {
                         >
                           <button
                             onClick={toggleMute}
-                            className="text-white hover:text-indigo-300"
+                            className="text-white hover:text-blue-300"
                             aria-label={isMuted ? "Unmute" : "Mute"}
                           >
                             {isMuted || volume === 0 ? (
@@ -862,7 +924,7 @@ const toggleFullscreen = () => {
                                 step="0.1"
                                 value={volume}
                                 onChange={handleVolumeChange}
-                                className="w-full accent-indigo-500"
+                                className="w-full accent-blue-500"
                                 aria-label="Volume control"
                               />
                             </div>
@@ -876,7 +938,7 @@ const toggleFullscreen = () => {
                             onClick={() =>
                               setShowSpeedOptions(!showSpeedOptions)
                             }
-                            className="text-sm text-white hover:text-indigo-300"
+                            className="text-sm text-white hover:text-blue-300"
                             aria-label="Change playback speed"
                           >
                             {playbackSpeed}x
@@ -887,8 +949,8 @@ const toggleFullscreen = () => {
                                 <button
                                   key={speed}
                                   onClick={() => handleSpeedChange(speed)}
-                                  className={`block w-full rounded px-2 py-1 text-left text-sm hover:bg-indigo-500/20 ${playbackSpeed === speed
-                                    ? "bg-indigo-500/30 text-indigo-300"
+                                  className={`block w-full rounded px-2 py-1 text-left text-sm hover:bg-blue-500/20 ${playbackSpeed === speed
+                                    ? "bg-blue-500/30 text-blue-300"
                                     : "text-white"
                                     }`}
                                 >
@@ -901,7 +963,7 @@ const toggleFullscreen = () => {
 
                         <button
                           onClick={toggleFullscreen}
-                          className="text-white hover:text-indigo-300"
+                          className="text-white hover:text-blue-300"
                           aria-label={
                             isFullscreen
                               ? "Exit fullscreen"
@@ -970,8 +1032,8 @@ const toggleFullscreen = () => {
                   <h2 className="mb-2 text-xl font-semibold text-gray-900">
                     {currentVideo?.title}
                   </h2>
-                  <div className="mb-4 rounded-md bg-indigo-50 p-3">
-                    <h3 className="flex items-center gap-2 text-sm font-medium text-indigo-700">
+                  <div className="mb-4 rounded-md bg-blue-50 p-3">
+                    <h3 className="flex items-center gap-2 text-sm font-medium text-blue-700">
                       <Sparkles className="h-4 w-4" />
                       AI-Powered Summary
                     </h3>
@@ -996,7 +1058,7 @@ const toggleFullscreen = () => {
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${currentVideo?.difficulty === "Beginner"
                           ? "bg-green-100 text-green-700"
                           : currentVideo?.difficulty === "Intermediate"
-                            ? "bg-indigo-100 text-indigo-700"
+                            ? "bg-blue-100 text-blue-700"
                             : "bg-purple-100 text-purple-700"
                           }`}
                       >
@@ -1017,7 +1079,7 @@ const toggleFullscreen = () => {
                           onChange={(e) =>
                             setTranscriptSearch(e.target.value)
                           }
-                          className="rounded-full border-none bg-gray-100 pl-10 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500"
+                          className="rounded-full border-none bg-gray-100 pl-10 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                       <ScrollArea className="h-64">
@@ -1033,7 +1095,7 @@ const toggleFullscreen = () => {
                                 onClick={() =>
                                   handleTranscriptClick(line.timestamp)
                                 }
-                                className="w-full rounded p-2 text-left text-sm text-gray-600 transition-colors hover:bg-indigo-100"
+                                className="w-full rounded p-2 text-left text-sm text-gray-600 transition-colors hover:bg-blue-100"
                               >
                                 <span className="text-xs text-gray-400">
                                   {new Date(line.timestamp * 1000)
@@ -1058,7 +1120,7 @@ const toggleFullscreen = () => {
                     <div className="space-y-2">
                       <a
                         href={currentVideo.resource}
-                        className="flex items-center gap-2 text-sm text-indigo-600 hover:underline"
+                        className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -1074,7 +1136,7 @@ const toggleFullscreen = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-4 flex items-center gap-2 border-gray-300 text-xs hover:bg-indigo-50"
+                    className="mt-4 flex items-center gap-2 border-gray-300 text-xs hover:bg-blue-50"
                   >
                     <Code className="h-3.5 w-3.5" />
                     AR Preview (Coming Soon)
@@ -1086,7 +1148,7 @@ const toggleFullscreen = () => {
                     placeholder="Add your notes here..."
                     defaultValue={currentVideo?.notes}
                   />
-                  <Button className="mt-2 bg-indigo-600 text-white hover:bg-indigo-700">
+                  <Button className="mt-2 bg-blue-600 text-white hover:bg-blue-700">
                     Save Notes
                   </Button>
                 </TabsContent>
@@ -1099,14 +1161,14 @@ const toggleFullscreen = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Playlist Section */}
         <div className="relative lg:fixed lg:top-16 lg:right-0 w-full lg:w-1/4 h-auto lg:h-[calc(100vh-4rem)] bg-white shadow-lg lg:z-40 flex flex-col overflow-hidden">
           {/* Sidebar Header (Fixed) */}
           <div className="p-4 space-y-4 flex-shrink-0">
 
             {/* Course Progress */}
-            <div className="flex items-center gap-3 rounded-md bg-gradient-to-r from-indigo-600 to-purple-600 p-3 text-white shadow-md">
+            <div className="flex items-center gap-3 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 p-3 text-white shadow-md">
               <Trophy className="h-5 w-5 text-yellow-300" />
               <div className="flex-1">
                 <div className="text-sm font-semibold">
@@ -1137,12 +1199,12 @@ const toggleFullscreen = () => {
                 placeholder="Search lectures..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="rounded-full border-none bg-gray-100 pl-10 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-indigo-500"
+                className="rounded-full border-none bg-gray-100 pl-10 text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
               />
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 transform text-gray-700 hover:text-indigo-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 transform text-gray-700 hover:text-blue-600"
                 aria-label="Voice control (coming soon)"
                 disabled
               >
@@ -1156,7 +1218,7 @@ const toggleFullscreen = () => {
             <ScrollArea className="h-[calc(100vh-16rem)] p-4">
               {isLoading ? (
                 <div className="flex h-32 items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
+                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"></div>
                   <span className="ml-3 text-gray-600">Loading videos...</span>
                 </div>
               ) : isError ? (
@@ -1193,8 +1255,8 @@ const toggleFullscreen = () => {
                           {topic.videos.map((video) => (
                             <div
                               key={video.id}
-                              className={`group overflow-hidden rounded-md border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-indigo-400 hover:shadow-lg ${currentVideo?.id === video.id
-                                ? "border-indigo-400 bg-indigo-50 shadow-lg"
+                              className={`group overflow-hidden rounded-md border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-blue-400 hover:shadow-lg ${currentVideo?.id === video.id
+                                ? "border-blue-400 bg-blue-50 shadow-lg"
                                 : ""
                                 }`}
                             >
@@ -1206,7 +1268,7 @@ const toggleFullscreen = () => {
                                   <div className="relative h-8 w-8 flex-shrink-0">
                                     {video.completed ? (
                                       <CheckCircle2
-                                        className="animate-scale-in h-8 w-8 text-indigo-600"
+                                        className="animate-scale-in h-8 w-8 text-blue-600"
                                         aria-label="Video completed"
                                       />
                                     ) : (
@@ -1223,7 +1285,7 @@ const toggleFullscreen = () => {
                                               a 15.9155 15.9155 0 0 1 0 -31.831"
                                           />
                                           <path
-                                            className="fill-none stroke-indigo-600 stroke-2 transition-all duration-500"
+                                            className="fill-none stroke-blue-600 stroke-2 transition-all duration-500"
                                             strokeDasharray={`${video.progress || 0}, 100`}
                                             d="M18 2.0845
                                               a 15.9155 15.9155 0 0 1 0 31.831
@@ -1239,13 +1301,13 @@ const toggleFullscreen = () => {
                                       {video.title}
                                     </h4>
                                     <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
-                                      <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-indigo-700">
+                                      <span className="rounded bg-blue-100 px-1.5 py-0.5 text-blue-700">
                                         {video.difficulty}
                                       </span>
                                       {/* {video.progress &&
                                         video.progress > 0 &&
                                         !video.completed && (
-                                          <span className="text-indigo-600">
+                                          <span className="text-blue-600">
                                             {Math.round(video.progress)}% watched
                                           </span>
                                         )} */}
@@ -1263,7 +1325,7 @@ const toggleFullscreen = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-indigo-600 hover:bg-indigo-100"
+                                  className="text-blue-600 hover:bg-blue-100"
                                   onClick={() => handleVideoClick(video)}
                                 >
                                   <Play className="mr-1 h-4 w-4" />
@@ -1272,7 +1334,7 @@ const toggleFullscreen = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="text-indigo-600 hover:bg-indigo-100"
+                                  className="text-blue-600 hover:bg-blue-100"
                                   onClick={() => handleFavorite(video)}
                                 >
                                   <Heart className="mr-1 h-4 w-4" />
@@ -1286,7 +1348,7 @@ const toggleFullscreen = () => {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="flex items-center gap-2 border-indigo-300 text-xs text-indigo-700 hover:bg-indigo-100"
+                                      className="flex items-center gap-2 border-blue-300 text-xs text-blue-700 hover:bg-blue-100"
                                       disabled={!video.resource}
                                       onClick={() =>
                                         video.resource &&
@@ -1303,7 +1365,7 @@ const toggleFullscreen = () => {
                                     <Button
                                       variant="outline"
                                       size="sm"
-                                      className="flex items-center gap-2 border-indigo-300 text-xs text-indigo-700 hover:bg-indigo-100"
+                                      className="flex items-center gap-2 border-blue-300 text-xs text-blue-700 hover:bg-blue-100"
                                       onClick={() =>
                                         video.notes &&
                                         window.open(
@@ -1343,7 +1405,7 @@ const toggleFullscreen = () => {
                                     video.learningObjectives.length > 0 && (
                                       <div className="mb-4 rounded-md bg-white p-3 shadow-sm">
                                         <div className="mb-2 flex items-center gap-2">
-                                          <BookOpenCheck className="h-4 w-4 text-indigo-600" />
+                                          <BookOpenCheck className="h-4 w-4 text-blue-600" />
                                           <h4 className="text-sm font-medium text-gray-900">
                                             Learning Objectives
                                           </h4>
@@ -1355,7 +1417,7 @@ const toggleFullscreen = () => {
                                                 key={index}
                                                 className="flex items-start gap-2 text-sm text-gray-600"
                                               >
-                                                <div className="mt-2 h-1.5 w-1.5 rounded-full bg-indigo-400"></div>
+                                                <div className="mt-2 h-1.5 w-1.5 rounded-full bg-blue-400"></div>
                                                 <span>{objective}</span>
                                               </li>
                                             ),
@@ -1368,7 +1430,7 @@ const toggleFullscreen = () => {
                                     video.codeExamples.length > 0 && (
                                       <div className="mb-4 rounded-md bg-white p-3 shadow-sm">
                                         <div className="mb-2 flex items-center gap-2">
-                                          <Code className="h-4 w-4 text-indigo-600" />
+                                          <Code className="h-4 w-4 text-blue-600" />
                                           <h4 className="text-sm font-medium text-gray-900">
                                             Code Examples
                                           </h4>
@@ -1389,7 +1451,7 @@ const toggleFullscreen = () => {
                                   {video.resource && (
                                     <div className="rounded-md bg-white p-3 shadow-sm">
                                       <div className="mb-2 flex items-center gap-2">
-                                        <FileText className="h-4 w-4 text-indigo-600" />
+                                        <FileText className="h-4 w-4 text-blue-600" />
                                         <h4 className="text-sm font-medium text-gray-900">
                                           Resource
                                         </h4>
@@ -1398,7 +1460,7 @@ const toggleFullscreen = () => {
                                         <Button
                                           variant="ghost"
                                           size="sm"
-                                          className="w-full justify-start text-sm text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900"
+                                          className="w-full justify-start text-sm text-blue-700 hover:bg-blue-100 hover:text-blue-900"
                                           onClick={() =>
                                             window.open(
                                               video.resource,
@@ -1437,12 +1499,46 @@ const toggleFullscreen = () => {
             </ScrollArea>
           </div>
 
+          <Dialog open={feedbackModalOpen} onOpenChange={setFeedbackModalOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Course Feedback</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Textarea
+                  placeholder="How was your experience so far?"
+                  value={feedbackText}
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  rows={4}
+                />
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      size={28}
+                      className={star <= feedbackRating ? "fill-blue-400 text-blue-400" : "text-gray-300"}
+                      onClick={() => setFeedbackRating(star)}
+                      style={{ cursor: "pointer" }}
+                    />
+                  ))}
+                </div>
+                <Button
+                  onClick={handleFeedbackSubmit}
+                  disabled={isSubmittingFeedback || !feedbackText || feedbackRating === 0}
+                  className="w-full bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  {isSubmittingFeedback ? "Submitting..." : "Submit Feedback"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {/* Sidebar Footer (Fixed) */}
           <div className="p-4 border-t bg-gray-50 flex-shrink-0">
             <Button
               onClick={handleGenerateCertificate}
               className={`w-full flex items-center justify-center gap-2 text-sm py-2 ${courseProgress === 100
-                ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
                 : "bg-gray-300 cursor-not-allowed text-gray-600"
                 }`}
               disabled={courseProgress !== 100}

@@ -123,10 +123,11 @@ export const paarshEduApi = createApi({
     "Visitor",
     "Admin",
     "ReferralSettings",
-
     "UserPracticeAttempt",
     "JobApplication",
     "JobPosition",
+    "Notifications",
+    "Feedback",
   ],
 
   endpoints: (builder) => ({
@@ -963,6 +964,7 @@ export const paarshEduApi = createApi({
     }),
 
     // ----------------------------------------------------Notifications Apis--------------------------------------------------
+    
     fetchNotifications: builder.query({
       query: () => '/notifications',
       providesTags: ['Notifications'],
@@ -983,9 +985,42 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ['Notifications'],
     }),
+
     fetchUserRefferalAdmin : builder.query({
       query: () => "/admin/userrefferals"
-    })
+    }),
+
+    // ----------------------------------------------------Feedbacks Apis--------------------------------------------------
+
+    fetchFeedbacks: builder.query({
+      query: () => "/feedbacks",
+      providesTags: ["Feedback"],
+      transformResponse: (response) => ({
+        ...response,
+        data: response.data.map((fb) => ({
+          ...fb,
+          userId: { ...fb.userId, name: fb.userId?.name || "N/A" },
+        })),
+      }),
+    }),
+
+    submitFeedback: builder.mutation({
+      query: (formData) => ({
+        url: "/feedbacks",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Feedback"],
+    }),
+
+    deleteFeedback: builder.mutation({
+      query: (id) => ({
+        url: "/feedbacks",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["Feedback"],
+    }),
 
   }),
 });
@@ -1122,5 +1157,10 @@ export const {
   useFetchNotificationsQuery,
   useSendNotificationMutation,
   useDeleteNotificationMutation,
+
+  useFetchFeedbacksQuery,
+  useSubmitFeedbackMutation,
+  useDeleteFeedbackMutation,
+
 
 } = paarshEduApi;
