@@ -34,7 +34,7 @@ export const GET = authMiddleware(async (request) => {
       return {
         courseId: course._id,
         courseName: course.courseName,
-        referralLink: `${BASE_URL}/blog-sidebar?courseId=${slug}&ref=${agent.agentCode}`,
+        referralLink: `${BASE_URL}/course?courseId=${slug}&ref=${agent.agentCode}`,
       };
     });
 

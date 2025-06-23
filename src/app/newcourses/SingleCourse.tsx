@@ -38,7 +38,7 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
   const router = useRouter();
 
   const handleCardClick = () => {
-    router.push(`/blog-sidebar?courseId=${_id}`);
+    router.push(`/course?courseId=${_id}`);
   };
 
   return (
@@ -70,7 +70,7 @@ const SingleCourse = ({ course, isGrid }: { course: Course; isGrid: boolean }) =
 
                 <div className={`px-6 py-4 w-full ${isGrid ? 'flex flex-col justify-center' : 'py-0 text-start flex flex-col justify-center w-full md:w-1/2'}`}>
                   <h3 className={` ${isGrid ? ' text-xl font-bold text-black hover:text-primary dark:text-white dark:hover:text-primary sm:text-2xl' : 'text-start font-bold text-xl'}`}>
-                    <Link href='/blog-sidebar'>
+                    <Link href='/course'>
                       {courseName}
                     </Link>
                   </h3>

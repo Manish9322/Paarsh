@@ -386,7 +386,7 @@ const Courses = () => {
                   >
                     <div
                       className="cursor-pointer"
-                      onClick={() => router.push(`/blog-sidebar?courseId=${course._id}`)}
+                      onClick={() => router.push(`/course?courseId=${course._id}`)}
                     >
                       <RelatedPost
                         title={course.courseName}
