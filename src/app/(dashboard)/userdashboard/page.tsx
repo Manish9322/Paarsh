@@ -75,9 +75,6 @@ export default function UserDashboard() {
   // Check if any query is still loading
   const isLoading = isLoadingPracticeTests || isLoadingOngoingCourses || isLoadingProgress || isLoadingTotalCourses || isLoadingUser || isLoadingTransactions;
 
- 
-  localStorage.setItem("userId", userData?.data._id);
-  console.log("userId in local storage : ", localStorage.getItem("userId"));
 
   const latestTransaction = transactions?.data
     ?.filter(

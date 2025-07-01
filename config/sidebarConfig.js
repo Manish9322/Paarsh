@@ -41,6 +41,7 @@ const sidebarConfig = [
       { name: "Job Applications", path: "/admin/job-applications" },
     ],
   },
+  { name: "Feedbacks", path: "/admin/feedbacks", icon: <FaPen /> },
   { name: "Enquiries", path: "/admin/enquiries", icon: <FaQuestion /> },
   { name: "Meeting Links", path: "/admin/meeting-links", icon: <FaVideo /> },
   { name: "Contact Requests", path: "/admin/contacts", icon: <FaPhone /> },
