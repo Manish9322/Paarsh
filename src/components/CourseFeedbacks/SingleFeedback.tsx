@@ -1,4 +1,5 @@
 import { Feedback } from "@/types/feedback";
+import { JSX } from "react";
 
 const starIcon = (
   <svg width="18" height="16" viewBox="0 0 18 16" className="fill-current">
@@ -9,7 +10,7 @@ const starIcon = (
 const SingleFeedback = ({ feedback }: { feedback: Feedback }) => {
   const { star, name, content, designation } = feedback;
 
-  let ratingIcons = [];
+  let ratingIcons: JSX.Element[] = [];
   for (let index = 0; index < star; index++) {
     ratingIcons.push(
       <span key={index} className="text-yellow">

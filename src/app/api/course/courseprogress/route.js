@@ -13,7 +13,7 @@ export const GET = authMiddleware(async (request) => {
     // Find all user progress documents
     const userProgressList = await UserProgressModel.find({ userId });
 
-    console.log("User Progress:", userProgressList);
+   
 
     const completedCourses = [];
     const allCoursesProgress = [];

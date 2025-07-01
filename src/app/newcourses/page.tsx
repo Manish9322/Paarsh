@@ -38,7 +38,7 @@ const PageName = () => {
 const Courses = () => {
   const [isGrid, setIsGrid] = useState(true);
   const [showMore, setShowMore] = useState(false); // State to manage showing more courses
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>("");
   const [showAll, setShowAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -49,7 +49,7 @@ const Courses = () => {
 
   const router = useRouter();
   const param = useSearchParams();
-  const courseId = param.get("courseId");
+  const courseId = param?.get("courseId");
 
   
   // TITLE CASE FUNCTION

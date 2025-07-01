@@ -43,3 +43,11 @@ export const SMTP_PASS = process.env.SMTP_PASS;
 export const EMAIL_FROM = process.env.EMAIL_FROM;
 
 export const BREVO_API_KEY = process.env.BREVO_API_KEY;
+
+export const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+export const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+export const VAPID_SUBJECT = process.env.VAPID_SUBJECT;
+export const REDIS_URL = process.env.REDIS_URL;
+export const NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+export const NEXT_PUBLIC_VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+export const NOTIFICATION_SECRET = process.env.NOTIFICATION_SECRET;

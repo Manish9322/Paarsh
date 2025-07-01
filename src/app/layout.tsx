@@ -20,23 +20,26 @@ import TrackVisitor from "../components/TrackVisitors/TrackVisitors";
 import AuthInitializer from "../components/AuthIntializer";
 
 
+
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 
-  // Service Worker Registration
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/service-worker.js")
-        .then((registration) => {
-          console.log("Service Worker registered with scope:", registration.scope);
-        })
-        .catch((error) => {
-          console.error("Service Worker registration failed:", error);
-        });
+ useEffect(() => {
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js") // ✅ This is what next-pwa builds from custom-sw.js
+          .then((registration) => {
+            console.log("✅ Service Worker registered with scope:", registration.scope);
+          })
+          .catch((error) => {
+            console.error("❌ Service Worker registration failed:", error);
+          });
+      });
     }
   }, []);
+
 
   return (
     <html suppressHydrationWarning lang="en">
@@ -101,25 +104,26 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     }
   }, [dispatch, isAuthenticated]);
 
-  const isAgentPage = pathname.startsWith("/agent");
+  const isAgentPage = pathname?.startsWith("/agent");
   const isErrorPage = pathname === "/error";
-  const isAuthPage = ["/signin", "/signup", "/forgot-password", "/reset-password"].includes(pathname);
-  const isAdminPage = pathname.startsWith("/admin");
-  const isDashboardPage = pathname.includes("/(dashboard)") ||
-    pathname.startsWith("/userdashboard") ||
-    pathname.startsWith("/total-courses") ||
-    pathname.startsWith("/ongoing-courses") ||
-    pathname.startsWith("/certificates") ||
-    pathname.startsWith("/question-bank") ||
-    pathname.startsWith("/profile") ||
-    pathname.startsWith("/refer-earn") ||
-    pathname.startsWith("/user-wallet") ||
-    pathname.startsWith("/view-links") ||
-    pathname.startsWith("/faq") ||
-    pathname.startsWith("/course-lecture") ||
-    pathname.startsWith("/delete-account");
+  const isAuthPage = ["/signin", "/signup", "/forgot-password", "/reset-password"].includes(pathname ?? "");
+  const isAdminPage = pathname?.startsWith("/admin") ?? false;
+  const isDashboardPage = pathname?.includes("/(dashboard)") ||
+    pathname?.startsWith("/userdashboard") ||
+    pathname?.startsWith("/total-courses") ||
+    pathname?.startsWith("/ongoing-courses") ||
+    pathname?.startsWith("/certificates") ||
+    pathname?.startsWith("/question-bank") ||
+    pathname?.startsWith("/profile") ||
+    pathname?.startsWith("/refer-earn") ||
+    pathname?.startsWith("/user-wallet") ||
+    pathname?.startsWith("/view-links") ||
+    pathname?.startsWith("/faq") ||
+    pathname?.startsWith("/course-lecture") ||
+    pathname?.startsWith("/delete-account");
   return (
     <>
+   
       {!isAdminPage && !isAuthPage && !isDashboardPage && !isErrorPage && !isAgentPage && <Header />}
       {children}
       {!isAdminPage && !isAuthPage && !isDashboardPage && !isErrorPage && !isAgentPage && <Footer />}

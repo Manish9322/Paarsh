@@ -1,117 +1,133 @@
-import { NextResponse } from "next/server";
-import _db from "../../../../utils/db";
-import CourseModel from "../../../../models/Courses/Course.model";
-import CourseVideoModel from "../../../../models/Courses/CouresVideo.model";
-import { authMiddleware } from "../../../../middlewares/auth";
-import { uploadBase64ToVPS } from "../../../../utils/uploadfile";
+  import { NextResponse } from "next/server";
+  import _db from "../../../../utils/db";
+  import CourseModel from "../../../../models/Courses/Course.model";
+  import CourseVideoModel from "../../../../models/Courses/CouresVideo.model";
+  import { authMiddleware } from "../../../../middlewares/auth";
+  import { uploadBase64ToVPS } from "../../../../utils/uploadfile";
+  import notificationHelper from "../../../../utils/notificationHelper";
+  import { initWorkerIfNeeded } from "../../../lib/server/workerInit";
+  _db();
 
-_db();
+    initWorkerIfNeeded();
 
-// Add Course
+  // Add Course
 
-export const POST = authMiddleware(async (request) => {
-  try {
-    const {
-      category,
-      subcategory,
-      courseName,
-      duration,
-      price,
-      level,
-      languages,
-      instructor,
-      thumbnail, // Base64 Image
-      syllabus, // Base64 PDF
-      summaryText,
-      tagline,
-      taglineIncludes,
-      overviewTagline,
-      editorContent,
-      finalText,
-      tagline_in_the_box,
-      videoLink,
-      courseIncludes = [],
-      syllabusOverview = [],
-      thoughts = [],
-      tags = [],
-      availability,
-      certificate = false,
-      featuredCourse = false,
-    } = await request.json();
+  export const POST = authMiddleware(async (request) => {
+    try {
 
-    // Validate required fields
-    if (
-      !category ||
-      !courseName ||
-      !duration ||
-      !price ||
-      !languages ||
-      !level ||
-      !instructor ||
-      !tagline
-    ) {
+      const { user } = request;
+
+      const {
+        category,
+        subcategory,
+        courseName,
+        duration,
+        price,
+        level,  
+        languages,
+        instructor,
+        thumbnail, // Base64 Image
+        syllabus, // Base64 PDF
+        summaryText,
+        tagline,
+        taglineIncludes,
+        overviewTagline,
+        editorContent,
+        finalText,
+        tagline_in_the_box,
+        videoLink,
+        courseIncludes = [],
+        syllabusOverview = [],
+        thoughts = [],
+        tags = [],
+        availability,
+        certificate = false,
+        featuredCourse = false,
+      } = await request.json();
+
+      // Validate required fields
+      if (
+        !category ||
+        !courseName ||
+        !duration ||
+        !price ||
+        !languages ||
+        !level ||
+        !instructor ||
+        !tagline
+      ) {
+        return NextResponse.json(
+          { success: false, error: "All required fields must be provided" },
+          { status: 400 },
+        );
+      }
+
+      const thumbnailUrl = thumbnail
+        ? await uploadBase64ToVPS(thumbnail, "thumbnail")
+        : null;
+      const syllabusUrl = syllabus
+        ? await uploadBase64ToVPS(syllabus, "syllabus")
+        : null;
+      const videoUrl = videoLink
+        ? await uploadBase64ToVPS(videoLink, "videoLink")
+        : null;
+
+      
+
+      // Create new course
+      const newCourse = new CourseModel({
+        category,
+        subcategory,
+        courseName,
+        duration,
+        price,
+        level,
+        languages,
+        instructor,
+        thumbnail: thumbnailUrl,
+        syllabus: syllabusUrl,
+        summaryText,
+        editorContent,
+        tagline,
+        taglineIncludes,
+        overviewTagline,
+        finalText,
+        tagline_in_the_box,
+        videoLink: videoUrl,
+        courseIncludes,
+        syllabusOverview,
+        thoughts,
+        tags,
+        availability,
+        certificate,
+        featuredCourse,
+      });
+
+      await newCourse.save();
+
+        // ✅ Send notification to all users after creation
+    const result = await notificationHelper.notifyNewCourse({
+        courseName,
+        courseId: newCourse._id,
+        createdBy: user._id,
+      });
+
+      console.log("Notification job result:", result);
+
+
+      return NextResponse.json({
+        success: true,
+        message: "Course created successfully",
+        data: newCourse,
+      });
+    } catch (error) {
+      console.error("Error while creating course:", error);
       return NextResponse.json(
-        { success: false, error: "All required fields must be provided" },
-        { status: 400 },
+        { success: false, error: "Internal server error" },
+        { status: 500 },
       );
     }
-
-    const thumbnailUrl = thumbnail
-      ? await uploadBase64ToVPS(thumbnail, "thumbnail")
-      : null;
-    const syllabusUrl = syllabus
-      ? await uploadBase64ToVPS(syllabus, "syllabus")
-      : null;
-    const videoUrl = videoLink
-      ? await uploadBase64ToVPS(videoLink, "videoLink")
-      : null;
-
-    
-
-    // Create new course
-    const newCourse = new CourseModel({
-      category,
-      subcategory,
-      courseName,
-      duration,
-      price,
-      level,
-      languages,
-      instructor,
-      thumbnail: thumbnailUrl,
-      syllabus: syllabusUrl,
-      summaryText,
-      editorContent,
-      tagline,
-      taglineIncludes,
-      overviewTagline,
-      finalText,
-      tagline_in_the_box,
-      videoLink: videoUrl,
-      courseIncludes,
-      syllabusOverview,
-      thoughts,
-      tags,
-      availability,
-      certificate,
-      featuredCourse,
-    });
-
-    await newCourse.save();
-
-    return NextResponse.json({
-      success: true,
-      message: "Course created successfully",
-      data: newCourse,
-    });
-  } catch (error) {
-    console.error("Error while creating course:", error);
-    return NextResponse.json(
-      { success: false, error: "Internal server error" },
-      { status: 500 },
-    );
-  }
-}, ["admin"]);
+  }, ["admin"]);
 
 //  Get All Courses
 export const GET = async () => {

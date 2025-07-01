@@ -239,7 +239,7 @@ const WithdrawalRequestsPage: React.FC = () => {
   const startIndex = (currentPage - 1) * withdrawalRequestsPerPage;
 
   const generatePaginationNumbers = () => {
-    const pageNumbers = [];
+    const pageNumbers: (number | string)[] = [];
     const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {

@@ -132,12 +132,12 @@ function ViewLinks() {
     }
   };
 
-  const getPlatformIcon = (platform: string) => {
+  const getPlatformIcon = (platform: string): string | undefined => {
     switch(platform) {
       case "Google Meet": return "https://upload.wikimedia.org/wikipedia/commons/9/9b/Google_Meet_icon.svg";
       case "Zoom": return "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Zoom_Communications_Logo.svg/1200px-Zoom_Communications_Logo.svg.png";
       case "Microsoft Teams": return "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Microsoft_Office_Teams_%282018%E2%80%93present%29.svg/1200px-Microsoft_Office_Teams_%282018%E2%80%93present%29.svg.png";
-      default: return null;
+      default: return undefined;
     }
   };
 

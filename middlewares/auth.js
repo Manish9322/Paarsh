@@ -41,9 +41,6 @@ export function authMiddleware(handler, allowedRoles = ["user"]) {
         }
       }
 
-
-      console.log("token: ", token);
-
       if (!token) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Token missing"  },
@@ -61,9 +58,6 @@ export function authMiddleware(handler, allowedRoles = ["user"]) {
         } catch (jwtError) {}
       }        
 
-      console.log("decoded: ", decoded);
-      console.log("role: ", role);
-
       if (!decoded || !role) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Invalid token", forceLogout: true },
@@ -73,8 +67,6 @@ export function authMiddleware(handler, allowedRoles = ["user"]) {
 
       const Model = ROLE_MODEL_MAP[role];
       const user = await Model.findById(decoded.userId).lean();
-
-     console.log("user from middleware: ", user);
 
       if (!user) {
         return NextResponse.json(

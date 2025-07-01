@@ -12,6 +12,7 @@ import {
   HelpCircle,
   MessageSquare,
   Camera,
+  Bell,
 } from "lucide-react";
 import { PiUserCircleThin } from "react-icons/pi";
 import { useRouter } from "next/navigation";
@@ -29,6 +30,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+// Import notification components
+import NotificationContainer from "../Notification/NotificationContainer"; // Main notification component
+import SimpleNotificationBell from "../Notification/SimpleNotificationBell"; // Fallback component
 
 export default function Profile() {
   const { data: userData, error, isLoading } = useFetchUserQuery(undefined);
@@ -39,51 +43,50 @@ export default function Profile() {
   const user = userData?.data;
 
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null); // Ref for detecting outside clicks
+  const dropdownRef = useRef<HTMLDivElement>(null); // Ref for detecting outside clicks
+
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const dispatch = useDispatch();
   const router = useRouter();
 
-// Function to get user initials
-const getUserInitials = () => {
-  if (!user?.name || typeof user.name !== 'string') return "?";
+  // Function to get user initials
+  const getUserInitials = () => {
+    if (!user?.name || typeof user.name !== 'string') return "?";
 
-  // Split the name and filter out any empty strings
-  const nameParts = user.name.trim().split(" ").filter(part => part);
+    // Split the name and filter out any empty strings
+    const nameParts = user.name.trim().split(" ").filter(part => part);
 
-  console.log("nameParts:", nameParts);
+    console.log("nameParts:", nameParts);
 
-  if (nameParts.length === 0) return "?";
+    if (nameParts.length === 0) return "?";
 
-  const firstInitial = nameParts[0]?.[0] || "";
-  const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1]?.[0] || "" : "";
+    const firstInitial = nameParts[0]?.[0] || "";
+    const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1]?.[0] || "" : "";
 
+    return (firstInitial + lastInitial).toUpperCase();
+  };
 
-  return (firstInitial + lastInitial).toUpperCase();
-};
+  const handleLogout = async () => {
+    try {
+      // Call the logout mutation (likely defined in your RTK Query API slice)
+      await _LOGOUT({}).unwrap();
 
+      // Optionally: You could show a toast here if needed
+      toast.success("Logged out successfully");
 
+    } catch (err) {
+      console.error("Logout request failed:", err);
+      // Optionally: show error toast or message
+      // toast.error("Logout failed. Please try again.");
+    } finally {
+      // Clear tokens & session from Redux and localStorage
+      dispatch(logout());
 
- const handleLogout = async () => {
-   try {
-     // Call the logout mutation (likely defined in your RTK Query API slice)
-     await _LOGOUT({}).unwrap();
- 
-     // Optionally: You could show a toast here if needed
-     toast.success("Logged out successfully");
- 
-   } catch (err) {
-     console.error("Logout request failed:", err);
-     // Optionally: show error toast or message
-     // toast.error("Logout failed. Please try again.");
-   } finally {
-     // Clear tokens & session from Redux and localStorage
-     dispatch(logout());
- 
-     // Redirect user to signin page
-     router.push("/");
-   }
- };
+      // Redirect user to signin page
+      router.push("/");
+    }
+  };
 
   const handleLogoutClick = () => {
     setLogoutConfirmOpen(true);
@@ -132,81 +135,94 @@ const getUserInitials = () => {
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      {/* Profile Initials Trigger */}
-      <div className="cursor-pointer p-2" onClick={toggleMenu}>
-        {renderProfileContent()}
+    <div className="ml-4 flex items-center gap-4">
+      {/* Notification Container - with fallback */}
+      <div className="relative">
+        <NotificationContainer />
+        {/* Fallback Simple Bell - remove this after SocketContext is properly setup */}
+        {/* <SimpleNotificationBell 
+          onToggleDropdown={() => setIsNotificationOpen(!isNotificationOpen)}
+          unreadCount={3}
+        /> */}
       </div>
 
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 w-56 rounded-md border border-gray-200 bg-white p-4 shadow-lg">
-          {/* Loading State */}
-          {isLoading ? (
-            <div className="flex items-center justify-center py-2">
-              <PiUserCircleThin className="h-6 w-6 text-blue-600" />
-              <p className="ml-2 text-gray-500">Loading user data...</p>
-            </div>
-          ) : error ? (
-            <p className="text-center text-red-500">Failed to load user</p>
-          ) : (
-            <>
-              {/* User sInfo */}
-              <div className="mb-4 flex items-center gap-3">
-                <User size={24} className="text-gray-600" />
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {user?.name}
-                  </p>
-                  <p className="text-xs text-gray-600">{user?.email}</p>
-                </div>
-              </div>
-
-              {/* Logout Button */}
-              <button
-                onClick={handleLogoutClick}
-                className="flex w-full items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-white hover:bg-red-700"
-              >
-                <LogOut size={18} />
-                Logout
-              </button>
-            </>
-          )}
+      {/* Profile Section */}
+      <div className="relative" ref={dropdownRef}>
+        {/* Profile Initials Trigger */}
+        <div className="cursor-pointer p-2" onClick={toggleMenu}>
+          {renderProfileContent()}
         </div>
-      )}
 
-      {/* Logout Confirmation Dialog */}
-      <Dialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
-        <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-              Confirm Logout
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4 text-center">
-            <LogOut className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
-            <p className="text-gray-600 dark:text-gray-300">
-              Are you sure you want to log out of your account?
-            </p>
+        {/* Dropdown Menu */}
+        {isOpen && (
+          <div className="absolute right-0 z-50 mt-2 w-56 rounded-md border border-gray-200 bg-white p-4 shadow-lg">
+            {/* Loading State */}
+            {isLoading ? (
+              <div className="flex items-center justify-center py-2">
+                <PiUserCircleThin className="h-6 w-6 text-blue-600" />
+                <p className="ml-2 text-gray-500">Loading user data...</p>
+              </div>
+            ) : error ? (
+              <p className="text-center text-red-500">Failed to load user</p>
+            ) : (
+              <>
+                {/* User Info */}
+                <div className="mb-4 flex items-center gap-3">
+                  <User size={24} className="text-gray-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-gray-600">{user?.email}</p>
+                  </div>
+                </div>
+
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogoutClick}
+                  className="flex w-full items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-white hover:bg-red-700"
+                >
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              </>
+            )}
           </div>
-          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setLogoutConfirmOpen(false)}
-              className="w-full sm:w-auto"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleLogoutConfirm}
-              className="w-full sm:w-auto"
-            >
-              Logout
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+
+        {/* Logout Confirmation Dialog */}
+        <Dialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
+          <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                Confirm Logout
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4 text-center">
+              <LogOut className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
+              <p className="text-gray-600 dark:text-gray-300">
+                Are you sure you want to log out of your account?
+              </p>
+            </div>
+            <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setLogoutConfirmOpen(false)}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleLogoutConfirm}
+                className="w-full sm:w-auto"
+              >
+                Logout
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

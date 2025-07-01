@@ -164,6 +164,8 @@ export function EditCourse({ editOpen, setEditOpen }) {
       languages: languagesString,
     };
 
+    console.log("formattedData", formattedData);
+
     try {
       const response = await _UPDATECOURSE({
         id: course._id,

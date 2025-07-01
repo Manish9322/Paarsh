@@ -48,7 +48,7 @@ const DownloadSyllabus: React.FC<DownloadSyllabusProps> = ({ courseName }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     
     // Get course ID from URL for the API query
-    const courseId = searchParams.get("courseId") || "";
+    const courseId = searchParams?.get("courseId") || "";
     const { data: courseData } = useFetchCourcebyIdQuery(courseId);
 
     console.log("Course Data:", courseData); // Debugging line to check course data
@@ -59,7 +59,7 @@ const DownloadSyllabus: React.FC<DownloadSyllabusProps> = ({ courseName }) => {
             setFormData(prev => ({ 
                 ...prev, 
                 courseName,
-                courseId: searchParams.get("courseId") || ""
+                courseId: searchParams?.get("courseId") || ""
             }));
             return;
         }
@@ -145,7 +145,7 @@ const DownloadSyllabus: React.FC<DownloadSyllabusProps> = ({ courseName }) => {
                 subject: `Syllabus Download Request - ${formData.courseName || "Course"}`,
                 message: `User has requested to download the syllabus for ${formData.courseName || "a course"}.`,
                 status: "pending",
-                courseId: formData.courseId || searchParams.get("courseId") || "",
+                courseId: formData.courseId || searchParams?.get("courseId") || "",
                 courseName: formData.courseName || "",
                 courseDetails, // Add course details to the enquiry
                 source: "syllabus_download",

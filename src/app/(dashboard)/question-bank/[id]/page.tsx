@@ -33,7 +33,8 @@ interface Answer {
 
 const PracticeTest = () => {
   const router = useRouter();
-  const { id } = useParams();
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
   const [view, setView] = useState<"pre-test" | "test" | "results">("pre-test");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answer[]>([]);

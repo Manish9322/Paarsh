@@ -72,7 +72,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
         } relative flex h-full flex-col overflow-hidden border-r border-gray-200 bg-white text-black shadow-lg transition-all duration-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white`}
       >
         {/* Sidebar Header */}
-        <div
+        {/* <div
           className={`flex items-center px-4 py-4 ${isOpen ? "justify-start" : "justify-center"}`}
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 shadow-md">
@@ -88,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userRole }) => {
               Dashboard
             </motion.span>
           )}
-        </div>
+        </div> */}
 
         {/* Sidebar Content */}
         <nav

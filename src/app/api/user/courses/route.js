@@ -39,8 +39,6 @@ export const GET = authMiddleware(async (req) => {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    console.log("Raw purchased courses:", existingUser.purchasedCourses);
-
     // Extract course IDs from the buffer data
     const courseIds = [];
     const purchasedCoursesWithIds = [];
@@ -68,8 +66,6 @@ export const GET = authMiddleware(async (req) => {
       }
     });
 
-    console.log("Extracted course IDs:", courseIds);
-
     if (courseIds.length === 0) {
       return NextResponse.json(
         { purchasedCourses: [] },
@@ -82,7 +78,6 @@ export const GET = authMiddleware(async (req) => {
       _id: { $in: courseIds } 
     }).select("courseName price duration level thumbnail instructor");
     
-    console.log("Found courses:", courses);
     
     // Create a map for quick lookup
     const courseMap = courses.reduce((map, course) => {
@@ -95,7 +90,6 @@ export const GET = authMiddleware(async (req) => {
       courseId: { $in: courseIds },
     }).populate("courseId", "courseName");
 
-    console.log("Found course videos:", courseVideos);
 
     // Create response with manual population
     const purchasedCoursesWithVideos = purchasedCoursesWithIds.map((course) => {

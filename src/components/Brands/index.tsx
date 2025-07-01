@@ -30,8 +30,8 @@ const SingleBrand = ({ brand }: { brand: Brand }) => {
       <div
         className="mx-0.5 relative h-16 w-full opacity-70 transition hover:opacity-100 dark:opacity-60 dark:hover:opacity-100"
       >
-        <Image src={imageLight} alt={name} fill className="hidden dark:block" />
-        <Image src={image} alt={name} fill className="block dark:hidden" />
+        <Image src={imageLight ?? "/fallback.png"} alt={name} fill className="hidden dark:block" />
+        <Image src={image ?? "/fallback.png"} alt={name} fill className="block dark:hidden" />
       </div>
     </div>
   );

@@ -28,14 +28,21 @@
         "name": "next"
       }
     ],
-    "target": "ES2017"
+    "target": "ES2017",
+    "strictNullChecks": true
   },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
-, "src/components/Sidebar/Sidebar.tsx", "src/components/Courses/AddCourse.js", "src/components/Categories/AddCategory.js", "src/components/AddNewCourseModal/index.js", "src/components/Editor/index.tsx", "src/components/CommingSoonModal/index.jsx"  ],
+    "**/*.tsx",
+    "src/components/Sidebar/Sidebar.tsx",
+    "src/components/Courses/AddCourse.js",
+    "src/components/Categories/AddCategory.js",
+    "src/components/AddNewCourseModal/index.js",
+    "src/components/Editor/index.tsx",
+    "src/components/CommingSoonModal/index.jsx"
+  ],
   "exclude": [
     "node_modules"
   ]

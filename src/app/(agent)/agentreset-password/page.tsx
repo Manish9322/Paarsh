@@ -10,8 +10,8 @@ import { toast } from "sonner";
 const ResetPasswordPage = () => {
   const params = useSearchParams();
   const router = useRouter();
-  const resetToken = params.get("token");
-  const email = params.get("email");
+  const resetToken = params?.get("token");
+  const email = params?.get("email");
   
   const [isSuccess, setIsSuccess] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -26,7 +26,7 @@ const ResetPasswordPage = () => {
       .min(8, 'Password must be at least 8 characters')
       .required('New password is required'),
     confirmPassword: Yup.string()
-      .oneOf([Yup.ref('newPassword'), null], 'Passwords must match')
+      .oneOf([Yup.ref('newPassword'), undefined], 'Passwords must match')
       .required('Confirm password is required'),
   });
 
@@ -177,7 +177,6 @@ const ResetPasswordPage = () => {
             </label>
             <input
               type="email"
-              name="email"
               readOnly
               className="w-full rounded border dark:border-none border-gray-300 bg-gray-50 px-4 py-2.5 text-base text-dark dark:bg-gray-600 dark:text-white cursor-not-allowed"
               {...formik.getFieldProps('email')}
@@ -195,7 +194,6 @@ const ResetPasswordPage = () => {
             <div className="relative">
               <input
                 type={showNewPassword ? "text" : "password"}
-                name="newPassword"
                 placeholder="Enter your new password"
                 className="w-full rounded border dark:border-none border-gray-300 bg-gray-100 px-4 py-2.5 pr-12 text-base text-dark focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 {...formik.getFieldProps('newPassword')}
@@ -233,7 +231,6 @@ const ResetPasswordPage = () => {
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
                 placeholder="Confirm your new password"
                 className="w-full rounded border dark:border-none border-gray-300 bg-gray-100 px-4 py-2.5 pr-12 text-base text-dark focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 {...formik.getFieldProps('confirmPassword')}

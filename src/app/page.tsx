@@ -17,8 +17,22 @@ import SubscribeNewsletter from "@/components/SubscribeStripe/SubscribeStripe";
 
 export const metadata: Metadata = {
   title: "Paarsh Edu : Solution for Better Learning.",
-  description: "This is a Home for New Learners.",
-  // other metadata
+  description: "Join Paarsh Edu and kickstart your learning journey today!",
+  openGraph: {
+    title: "Paarsh Edu : Solution for Better Learning.",
+    description: "Join Paarsh Edu and kickstart your learning journey today!",
+    url: "https://paarshedu.com",
+    siteName: "Paarsh Edu",
+    type: "website",
+    images: [
+      {
+        url: "https://paarshedu.com/PaarshEdu/uploads/1750829515742-thumbnail.png", // 🔁 Must be publicly accessible full URL
+        width: 1200,
+        height: 630,
+        alt: "Paarsh Edu - Learn Smarter",
+      },
+    ],
+  },
 };
 
 export default function Home() {

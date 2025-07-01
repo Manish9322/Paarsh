@@ -218,7 +218,7 @@ const ContactRequestsPage: React.FC = () => {
 
   // Function to generate page numbers for pagination
   const generatePaginationNumbers = () => {
-    const pageNumbers = [];
+    const pageNumbers: (number | string)[] = [];
     const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
