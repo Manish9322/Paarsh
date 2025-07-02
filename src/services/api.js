@@ -945,7 +945,7 @@ export const paarshEduApi = createApi({
     }),
 
     // ----------------------------------------------------Notifications Apis--------------------------------------------------
-    
+
     fetchNotifications: builder.query({
       query: ({ page = 1, limit = 10, isRead }) => {
         const params = new URLSearchParams({ page, limit });
@@ -961,7 +961,7 @@ export const paarshEduApi = createApi({
 
     sendNotification: builder.mutation({
       query: (data) => ({
-        url: "/notifications",
+        url: "/notifications/send",
         method: "POST",
         body: { ...data },
       }),
@@ -1043,8 +1043,8 @@ export const paarshEduApi = createApi({
       providesTags: ["Role"],
     }),
 
-    fetchUserRefferalAdmin : builder.query({
-      query: () => "/admin/userrefferals"
+    fetchUserRefferalAdmin: builder.query({
+      query: () => "/admin/userrefferals",
     }),
 
     // ----------------------------------------------------Feedbacks Apis--------------------------------------------------
@@ -1078,7 +1078,6 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["Feedback"],
     }),
-
   }),
 });
 
@@ -1205,6 +1204,4 @@ export const {
   useFetchFeedbacksQuery,
   useSubmitFeedbackMutation,
   useDeleteFeedbackMutation,
-
-
 } = paarshEduApi;

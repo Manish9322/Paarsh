@@ -475,11 +475,11 @@ function OngoingCourse() {
 
                 {/* Price and Progress status */}
                 <div className="mb-3 flex items-center justify-between text-sm">
-                  {course.price && course.price !== "N/A" && (
+                  {/* {course.price && course.price !== "N/A" && (
                     <span className="font-semibold text-green-600 dark:text-green-400">
                       ₹{course.price}
                     </span>
-                  )}
+                  )} */}
                   <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium">
                     <Clock size={12} className="mr-1" />
                     In Progress ({course.progress}%)

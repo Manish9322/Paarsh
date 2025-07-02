@@ -18,7 +18,7 @@ const NotificationSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['course_purchase', 'new_course', 'user_registration', 'new_offer', 'new_blog', 'job_application', 'enquiry', 'withdrawal_request'],
+    enum: ['course_purchase', 'new_course', 'user_registration', 'new_offer', 'new_blog', 'job_application', 'enquiry', 'withdrawal_request','custom_push'],
     index: true
   },
   link: {

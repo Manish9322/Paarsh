@@ -8,6 +8,7 @@ import { sendPushNotification } from './webpush.js';
 import UserModel from 'models/User.model.js';
 import { getSocket } from '../lib/socket.js';
 import { bootstrapSocketForWorker } from '../../utils/initSocketForWorker.js';
+import AgentModel from 'models/Agent.model.js';
 
 bootstrapSocketForWorker(); // 🔥 Full Socket.IO initialized now in worker
 
@@ -167,12 +168,12 @@ async function processSingleNotification(data) {
 }
 
 async function processBroadcastNotification(data) {
-  const { message, type, link, metadata, excludeUserId } = data;
+  const { message, type, link, metadata, excludeUserId, recipientType } = data;
 
   console.log('📡 Processing broadcast notification...');
   
   // Get all active users (implement your user fetching logic)
-  const users = await getAllActiveUsers(excludeUserId);
+  const users = await getAllActiveUsers(excludeUserId, recipientType);
   
   if (users.length === 0) {
     console.log('ℹ️ No active users found for broadcast');
@@ -260,14 +261,27 @@ function getNotificationTitle(type) {
     job_application: '💼 Job Application Received',
     enquiry: '❓ New Enquiry',
     withdrawal_request: '💰 Withdrawal Request',
-    test_notification: '🧪 Test Alert'
+    test_notification: '🧪 Test Alert',
+    custom_push: '🔔 Custom Notification'
   };
   return titles[type] || '🔔 Notification';
 }
 
-async function getAllActiveUsers(excludeUserId) {
-  const query = excludeUserId ? { _id: { $ne: excludeUserId } } : {};
-  const users = await UserModel.find(query);
-  console.log(`🔍 Found ${users.length} active users for notifications`);
+async function getAllActiveUsers(excludeUserId, recipientType) {
+  let query = excludeUserId ? { _id: { $ne: excludeUserId } } : {};
+  let users = [];
+
+  if (recipientType === 'all') {
+    // Fetch both users and agents
+    const regularUsers = await UserModel.find(query);
+    const agents = await AgentModel.find(query);
+    users = [...regularUsers, ...agents];
+  } else if (recipientType === 'users') {
+    users = await UserModel.find(query);
+  } else if (recipientType === 'agents') {
+    users = await AgentModel.find(query);
+  }
+
+  console.log(`🔍 Found ${users.length} active recipients for notifications (recipientType: ${recipientType})`);
   return users;
 }

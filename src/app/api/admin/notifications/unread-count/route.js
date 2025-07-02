@@ -25,4 +25,4 @@ export const GET = authMiddleware(async (req) => {
       { status: 500 }
     );
   }
-}, ["admin"]);
+}, ["admin", "agent"]);
