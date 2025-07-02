@@ -58,7 +58,22 @@ const AdsPage = () => {
 
     const dispatch = useDispatch();
     const formData = useSelector((state: RootState) => state.ad.form);
-    const selectedAd = useSelector((state: RootState) => state.ad.selectedAd);
+    // Define the Ad type (adjust fields as per your actual data model)
+    interface Ad {
+        _id: string;
+        name: string;
+        destination: string;
+        imageUrl: string;
+        title: string;
+        description: string;
+        buttonText: string;
+        buttonLink: string;
+        status: string;
+        startDate: string;
+        endDate: string;
+    }
+
+    const selectedAd = useSelector((state: RootState) => state.ad.selectedAd) as Ad | null;
 
     // const [formData, setFormData] = useState({
     //     name: "",
@@ -191,6 +206,10 @@ const AdsPage = () => {
     };
 
     const handleUpdateAd = async () => {
+        if (!selectedAd) {
+            toast.error("❌ No ad selected for update.");
+            return;
+        }
         try {
             const response = await updateAd({ id: selectedAd._id, ...formData }).unwrap();
             if (response.success) {
@@ -204,8 +223,8 @@ const AdsPage = () => {
         }
     };
 
-    const generatePaginationNumbers = () => {
-        const pageNumbers = [];
+    const generatePaginationNumbers = (): (number | string)[] => {
+        const pageNumbers: (number | string)[] = [];
         const maxPagesToShow = 5;
 
         if (totalPages <= maxPagesToShow) {

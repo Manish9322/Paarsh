@@ -380,9 +380,9 @@ function TotalCourses() {
 
                 {/* Price and expiry info */}
                 <div className="mb-3 flex items-center justify-between text-sm">
-                  <span className="font-semibold text-green-600 dark:text-green-400">
+                  {/* <span className="font-semibold text-green-600 dark:text-green-400">
                     ₹{purchasedCourse.course.price}
-                  </span>
+                  </span> */}
                   <span className={`text-xs ${
                     purchasedCourse.isExpired 
                       ? "text-red-500 dark:text-red-400" 

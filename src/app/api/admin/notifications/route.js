@@ -52,4 +52,4 @@ export const GET = authMiddleware(async (req) => {
     console.error("Error fetching notifications:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-}, ["admin"]);
+}, ["admin", "agent"]);

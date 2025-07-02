@@ -155,7 +155,7 @@ export const SocketProvider = ({ children }) => {
   }, [tokens]); // 👈 only depends on tokens now
 
   return (
-    <SocketContext.Provider value={{ socket: socketInstance, isConnected, user, realtimeNotification }}>
+    <SocketContext.Provider value={{ socket: socketInstance, isConnected, user, realtimeNotification, tokens }}>
       {children}
     </SocketContext.Provider>
   );

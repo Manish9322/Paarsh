@@ -961,7 +961,7 @@ export const paarshEduApi = createApi({
 
     sendNotification: builder.mutation({
       query: (data) => ({
-        url: "/notifications",
+        url: "/notifications/send",
         method: "POST",
         body: { ...data },
       }),

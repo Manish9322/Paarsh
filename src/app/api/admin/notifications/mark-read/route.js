@@ -50,4 +50,4 @@ export const POST = authMiddleware(async (req) => {
     console.error("Error marking notifications:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-}, ["admin"]);
+}, ["admin", "agent"]);

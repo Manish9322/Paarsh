@@ -42,12 +42,13 @@ const Navbar = () => {
 
   // Socket context
   const socketContext = useContext(SocketContext);
-  const { socket, isConnected, user } = socketContext || {};
+  const { socket, isConnected, tokens } = socketContext || {};
 
   // Fetch unread notification count
   const { data: unreadCountData, refetch: refetchUnreadCount } =
     useFetchAdminUnreadNotificationCountQuery(undefined, {
-      skip: !user,
+       skip: !tokens?.adminAccessToken,
+       refetchOnMountOrArgChange: true,
     });
 
   const unreadCount = unreadCountData?.data?.unreadCount || 0;
