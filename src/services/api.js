@@ -1078,6 +1078,39 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["Feedback"],
     }),
+
+    // ---------------------------------------------------- Ads Apis --------------------------------------------------
+
+    fetchAds: builder.query({
+      query: () => "/ads",
+      providesTags: ["Ad"],
+    }),
+
+    createAd: builder.mutation({
+      query: (adData) => ({
+        url: "/ads",
+        method: "POST",
+        body: adData,
+      }),
+      invalidatesTags: ["Ad"],
+    }),
+
+    updateAd: builder.mutation({
+      query: ({ id, ...adData }) => ({
+        url: "/ads",
+        method: "PUT",
+        body: { id, ...adData },
+      }),
+      invalidatesTags: ["Ad"],
+    }),
+    deleteAd: builder.mutation({
+      query: (id) => ({
+        url: "/ads",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["Ad"],
+    }),
   }),
 });
 
@@ -1204,4 +1237,9 @@ export const {
   useFetchFeedbacksQuery,
   useSubmitFeedbackMutation,
   useDeleteFeedbackMutation,
+
+  useFetchAdsQuery,
+  useCreateAdMutation,
+  useUpdateAdMutation,
+  useDeleteAdMutation,
 } = paarshEduApi;

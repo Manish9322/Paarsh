@@ -19,8 +19,6 @@ import { Toaster } from "sonner";
 import TrackVisitor from "../components/TrackVisitors/TrackVisitors";
 import AuthInitializer from "../components/AuthIntializer";
 
-
-
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -44,6 +42,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html suppressHydrationWarning lang="en">
       <head>
+        <title>Paarsh Edu : Solution for Better Learning.</title>
+        <meta name="description" content="Join Paarsh Edu and kickstart your learning journey today!" />
+        {/* Open Graph Meta Tags */}
+        <meta property="og:title" content="Paarsh Edu : Solution for Better Learning." />
+        <meta property="og:description" content="Join Paarsh Edu and kickstart your learning journey today!" />
+        <meta property="og:url" content="https://paarshedu.com" />
+        <meta property="og:site_name" content="Paarsh Edu" />
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:image"
+          content="https://paarshedu.com/PaarshEdu/uploads/1750829515742-thumbnail.png"
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Paarsh Edu - Learn Smarter" />
+
         <link rel="manifest" href="/manifest.json" />
         <meta
           name="google-site-verification"
