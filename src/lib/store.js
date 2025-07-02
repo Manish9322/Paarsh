@@ -12,6 +12,7 @@ import userReducer from "../lib/slices/userSlice";
 import withdrawalReducer from "../lib/slices/withdrawalSlice";
 import attributionReducer from "./slices/attributionSlice";
 import offersReducer from "../lib/slices/offersSlice";
+import adReducer from "../lib/slices/adSlice";
 
 // Combine all reducers
 const rootReducer = combineReducers({
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   withdrawal: withdrawalReducer,
   attribution: attributionReducer,
   offers: offersReducer,
+  ad: adReducer,
 
   [paarshEduApi.reducerPath]: paarshEduApi.reducer, // Include RTK Query API slice
 });

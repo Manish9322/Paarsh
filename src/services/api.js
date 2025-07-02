@@ -945,7 +945,7 @@ export const paarshEduApi = createApi({
     }),
 
     // ----------------------------------------------------Notifications Apis--------------------------------------------------
-    
+
     fetchNotifications: builder.query({
       query: () => "/notifications",
       providesTags: ["Notifications"],
@@ -967,8 +967,8 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Notifications"],
     }),
 
-    fetchUserRefferalAdmin : builder.query({
-      query: () => "/admin/userrefferals"
+    fetchUserRefferalAdmin: builder.query({
+      query: () => "/admin/userrefferals",
     }),
 
     // ----------------------------------------------------Feedbacks Apis--------------------------------------------------
@@ -1003,6 +1003,38 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Feedback"],
     }),
 
+    // ---------------------------------------------------- Ads Apis --------------------------------------------------
+
+    fetchAds: builder.query({
+      query: () => "/ads",
+      providesTags: ["Ad"],
+    }),
+
+    createAd: builder.mutation({
+      query: (adData) => ({
+        url: "/ads",
+        method: "POST",
+        body: adData,
+      }),
+      invalidatesTags: ["Ad"],
+    }),
+
+    updateAd: builder.mutation({
+      query: ({ id, ...adData }) => ({
+        url: "/ads",
+        method: "PUT",
+        body: { id, ...adData },
+      }),
+      invalidatesTags: ["Ad"],
+    }),
+    deleteAd: builder.mutation({
+      query: (id) => ({
+        url: "/ads",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["Ad"],
+    }),
   }),
 });
 
@@ -1120,5 +1152,8 @@ export const {
   useSubmitFeedbackMutation,
   useDeleteFeedbackMutation,
 
-
+  useFetchAdsQuery,
+  useCreateAdMutation,
+  useUpdateAdMutation,
+  useDeleteAdMutation,
 } = paarshEduApi;
