@@ -9,12 +9,12 @@ const starIcon = (
 const SingleTestimonial = ({ testimonial }: { testimonial: Testimonial }) => {
   const { star, name, image, content, designation } = testimonial;
 
-  let ratingIcons = [];
+  let ratingIcons: React.ReactNode[] = [];
   for (let index = 0; index < star; index++) {
     ratingIcons.push(
       <span key={index} className="text-yellow">
         {starIcon}
-      </span>,
+      </span>
     );
   }
 

@@ -142,7 +142,7 @@ const formatDuration = (seconds: number): string => {
 export default function CourseLecturePage() {
   const router = useRouter();
   const params = useParams();
-  const courseId = params.courseId as string;
+  const courseId = params?.courseId as string;
 
   const {
     data: courseVideoData,
@@ -295,11 +295,13 @@ export default function CourseLecturePage() {
           ) {
             return prev;
           }
+          if (!prev) return null;
           return {
             ...prev,
+            id: prev.id ?? "", // Ensure id is always a string
             progress: progressInfo?.progress || 0,
             completed: progressInfo?.completed || false,
-          };
+          } as VideoItem;
         });
         setVideoProgress(progressInfo?.progress || 0);
       }

@@ -141,7 +141,6 @@ const ForgotPasswordPage = () => {
             </label>
             <input
               type="email"
-              name="email"
               placeholder="Enter your Email Here"
               className="w-full rounded border dark:border-none border-gray-300 bg-gray-100 px-4 py-2.5 text-base text-dark focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               {...formik.getFieldProps('email')}

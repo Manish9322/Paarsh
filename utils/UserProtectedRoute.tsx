@@ -25,13 +25,13 @@ export default function UserProtectedRoute({ children }) {
   useEffect(() => {
     if (!isAuthenticated || !accessToken) {
       setIsValidating(false);
-      router.push(`/signin?redirect=${encodeURIComponent(pathname)}`);
+      router.push(`/signin?redirect=${encodeURIComponent(pathname ?? "")}`);
     } else if (
       error &&
       (error.data?.forceLogout || error.data?.sessionInvalid || error.data?.tokenExpired)
     ) {
       dispatch(logout());
-      router.push(`/signin?redirect=${encodeURIComponent(pathname)}`);
+      router.push(`/signin?redirect=${encodeURIComponent(pathname ?? "")}`);
       setIsValidating(false);
     } else if (!isLoading) {
       setIsValidating(false);

@@ -234,7 +234,7 @@ export const paarshEduApi = createApi({
     }),
 
     updateCourse: builder.mutation({
-      query: ({ formData, id }) => ({
+      query: (formData, id) => ({
         url: "/course",
         method: "PUT",
         body: { formData, id },
@@ -947,9 +947,18 @@ export const paarshEduApi = createApi({
     // ----------------------------------------------------Notifications Apis--------------------------------------------------
 
     fetchNotifications: builder.query({
-      query: () => "/notifications",
+      query: ({ page = 1, limit = 10, isRead }) => {
+        const params = new URLSearchParams({ page, limit });
+
+        if (typeof isRead === "boolean") {
+          params.append("isRead", isRead.toString());
+        }
+
+        return `/notifications?${params.toString()}`;
+      },
       providesTags: ["Notifications"],
     }),
+
     sendNotification: builder.mutation({
       query: (data) => ({
         url: "/notifications",
@@ -965,6 +974,73 @@ export const paarshEduApi = createApi({
         method: "DELETE",
       }),
       invalidatesTags: ["Notifications"],
+    }),
+
+    markNotificationAsRead: builder.mutation({
+      query: (payload) => ({
+        url: `/notifications/mark-read`,
+        method: "POST",
+        body:
+          typeof payload === "string"
+            ? { notificationIds: [payload] }
+            : payload, // Handles { markAll: true } or other objects
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+
+    fetchUnreadNotificationCount: builder.query({
+      query: () => "/notifications/unread-count",
+    }),
+
+    subscribePushNotifications: builder.mutation({
+      query: (subscription) => ({
+        url: "/notifications/subscribe",
+        method: "POST",
+        body: subscription,
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+
+    fetchAdminNotifications: builder.query({
+      query: ({ page = 1, limit = 10, isRead }) => {
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: limit.toString(),
+        });
+
+        if (typeof isRead === "boolean") {
+          params.append("isRead", isRead.toString());
+        }
+
+        return `/admin/notifications?${params.toString()}`;
+      },
+      providesTags: ["Notifications"],
+    }),
+
+    markAdminNotificationAsRead: builder.mutation({
+      query: (payload) => ({
+        url: `/admin/notifications/mark-read`,
+        method: "POST",
+        body:
+          typeof payload === "string"
+            ? { notificationIds: [payload] }
+            : payload, // Handles { markAll: true } or other objects
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+
+    fetchAdminUnreadNotificationCount: builder.query({
+      query: () => "/admin/notifications/unread-count",
+    }),
+
+    fetchMe: builder.query({
+      query: () => "/me",
+      providesTags: ["User"],
+    }),
+
+    fetchRole: builder.query({
+      query: () => "/admin/loginuser",
+      providesTags: ["Role"],
     }),
 
     fetchUserRefferalAdmin: builder.query({
@@ -1148,6 +1224,16 @@ export const {
   useFetchNotificationsQuery,
   useSendNotificationMutation,
   useDeleteNotificationMutation,
+  useMarkNotificationAsReadMutation,
+  useFetchUnreadNotificationCountQuery,
+  useSubscribePushNotificationsMutation,
+
+  useFetchAdminNotificationsQuery,
+  useMarkAdminNotificationAsReadMutation,
+  useFetchAdminUnreadNotificationCountQuery,
+
+  useFetchMeQuery,
+  useFetchRoleQuery,
   useFetchFeedbacksQuery,
   useSubmitFeedbackMutation,
   useDeleteFeedbackMutation,

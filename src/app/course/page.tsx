@@ -41,6 +41,7 @@ import VideoPlayer from "@/components/VideoPlayer/VideoPlayer";
 import debounce from "lodash/debounce";
 
 interface Course {
+  slug: string;
   id: number;
   _id: string;
   availability: string;
@@ -92,12 +93,12 @@ const BlogSidebarPage = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
+  const [searchResults, setSearchResults] = useState<Course[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   
 
-  const courseId = param.get("courseId");
+  const courseId = param?.get("courseId");
 
   const { data: userData, error, isLoading } = useFetchUserQuery(undefined);
    const user = userData?.data;
@@ -246,9 +247,9 @@ const BlogSidebarPage = () => {
       setIsModalOpen(true);
     } else {
       // Construct full path with query parameters
-      const queryString = param.toString();
+      const queryString = param?.toString();
       const fullPath = queryString ? `${pathname}?${queryString}` : pathname;
-      const redirectUrl = encodeURIComponent(fullPath);
+      const redirectUrl = encodeURIComponent(fullPath ?? "");
       router.push(`/signin?redirect=${redirectUrl}`);
     }
   };
@@ -806,13 +807,13 @@ const BlogSidebarPage = () => {
                       Search Results ({searchResults.length})
                     </h4>
                     <ul className="max-h-60 overflow-y-auto">
-                      {searchResults.map((course) => (
+                      {searchResults.map((course: Course) => (
                         <li
                           key={course._id || course.id}
                           className="mb-2 border-b border-body-color border-opacity-10 pb-2 dark:border-gray-700"
                         >
                           <a
-                            href={`/blog-sidebar?courseId=${
+                            href={`/course?courseId=${
                               course._id || course.id
                             }`}
                             className="text-base font-medium text-body-color hover:text-primary"
@@ -841,7 +842,7 @@ const BlogSidebarPage = () => {
                   Related Courses
                 </h3>
                 <ul className="p-8">
-                  {displayedCourses.map((course) => (
+                  {displayedCourses.map((course: Course) => (
                     <li
                       key={course.id ?? course._id ?? course.courseName}
                       className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-gray-700"
@@ -850,13 +851,13 @@ const BlogSidebarPage = () => {
                         className="cursor-pointer"
                         onClick={() =>
                           router.push(
-                            `/blog-sidebar?courseId=${course._id || course.id || ""}`
+                            `/course?courseId=${course._id || course.id || ""}`
                           )
                         }
                       >
                         <RelatedPost
                           title={course.courseName}
-                          image={course.image || "/images/blog/course-placeholder.jpg"}
+                          image={course.thumbnail || "/images/blog/course-placeholder.jpg"}
                           slug={`/${course.slug || "#"}`}
                           level={course.level || "N/A"}
                           duration={course.duration || "Unknown"}

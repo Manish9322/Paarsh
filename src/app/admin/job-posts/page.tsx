@@ -82,7 +82,9 @@ const JobPositionsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState<JobPosition | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<JobPosition | null>(
+    null,
+  );
   const [isEditMode, setIsEditMode] = useState(false);
   const [sortField, setSortField] = useState<keyof JobPosition>("position");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -90,9 +92,29 @@ const JobPositionsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [positionToDelete, setPositionToDelete] = useState<string | null>(null);
-  const [jobPositionsPerPage, setJobPositionsPerPage] = useState<number | "all">(10);
+  const [jobPositionsPerPage, setJobPositionsPerPage] = useState<
+    number | "all"
+  >(10);
 
-  const [formData, setFormData] = useState({
+  interface FormSkill {
+    label: string;
+    value: string;
+  }
+
+  interface FormData {
+    position: string;
+    department: string;
+    location: string;
+    workType: string;
+    description: string;
+    skillsRequired: FormSkill[];
+    expiryDate: string;
+    salaryRangeMin: string;
+    salaryRangeMax: string;
+    experienceLevel: string;
+  }
+
+  const [formData, setFormData] = useState<FormData>({
     position: "",
     department: "",
     location: "",
@@ -105,7 +127,11 @@ const JobPositionsPage = () => {
     experienceLevel: "",
   });
 
-  const { data: positionsData, isLoading, error } = useFetchJobPositionsQuery(undefined);
+  const {
+    data: positionsData,
+    isLoading,
+    error,
+  } = useFetchJobPositionsQuery(undefined);
   console.log("Positions Data:", positionsData);
   const [createJobPosition] = useCreateJobPositionMutation();
   const [updateJobPosition] = useUpdateJobPositionMutation();
@@ -120,7 +146,9 @@ const JobPositionsPage = () => {
   }, [error]);
 
   const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { name: string; value: any },
+    e:
+      | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | { name: string; value: any },
   ) => {
     if ("target" in e) {
       const { name, value } = e.target;
@@ -138,11 +166,17 @@ const JobPositionsPage = () => {
       location: formData.location,
       workType: formData.workType,
       description: formData.description,
-      skillsRequired: formData.skillsRequired.map((s: { value: string }) => s.value),
+      skillsRequired: formData.skillsRequired.map(
+        (s: { value: string }) => s.value,
+      ),
       expiryDate: formData.expiryDate,
       salaryRange: {
-        min: formData.salaryRangeMin ? Number(formData.salaryRangeMin) : undefined,
-        max: formData.salaryRangeMax ? Number(formData.salaryRangeMax) : undefined,
+        min: formData.salaryRangeMin
+          ? Number(formData.salaryRangeMin)
+          : undefined,
+        max: formData.salaryRangeMax
+          ? Number(formData.salaryRangeMax)
+          : undefined,
       },
       experienceLevel: formData.experienceLevel,
     };
@@ -187,7 +221,10 @@ const JobPositionsPage = () => {
       location: position.location,
       workType: position.workType,
       description: position.description,
-      skillsRequired: position.skillsRequired.map((s) => ({ label: s, value: s })),
+      skillsRequired: position.skillsRequired.map((s) => ({
+        label: s,
+        value: s,
+      })),
       expiryDate: position.expiryDate.split("T")[0],
       salaryRangeMin: position.salaryRange?.min?.toString() || "",
       salaryRangeMax: position.salaryRange?.max?.toString() || "",
@@ -234,21 +271,22 @@ const JobPositionsPage = () => {
     });
   }, [filteredPositions, sortField, sortOrder]);
 
-
-  const totalPages = jobPositionsPerPage === "all" ? 1 : Math.ceil(sortedPositions.length / jobPositionsPerPage);
-  const startIndex = jobPositionsPerPage === "all" ? 0 : (currentPage - 1) * jobPositionsPerPage;
-  const displayedPositions = jobPositionsPerPage === "all"
-    ? sortedPositions
-    : sortedPositions.slice(
-      startIndex,
-      startIndex + jobPositionsPerPage
-    );
+  const totalPages =
+    jobPositionsPerPage === "all"
+      ? 1
+      : Math.ceil(sortedPositions.length / jobPositionsPerPage);
+  const startIndex =
+    jobPositionsPerPage === "all" ? 0 : (currentPage - 1) * jobPositionsPerPage;
+  const displayedPositions =
+    jobPositionsPerPage === "all"
+      ? sortedPositions
+      : sortedPositions.slice(startIndex, startIndex + jobPositionsPerPage);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   // Function to generate page numbers for pagination
   const generatePaginationNumbers = () => {
-    const pageNumbers = [];
+    const pageNumbers: (number | string)[] = [];
     const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
@@ -270,7 +308,7 @@ const JobPositionsPage = () => {
       }
 
       if (startPage > 2) {
-        pageNumbers.push('...');
+        pageNumbers.push("...");
       }
 
       for (let i = startPage; i <= endPage; i++) {
@@ -278,7 +316,7 @@ const JobPositionsPage = () => {
       }
 
       if (endPage < totalPages - 1) {
-        pageNumbers.push('...');
+        pageNumbers.push("...");
       }
 
       if (totalPages > 1) {
@@ -290,7 +328,7 @@ const JobPositionsPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Mobile Header */}
       <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm dark:bg-gray-800 dark:text-white md:hidden">
         <button
@@ -300,14 +338,16 @@ const JobPositionsPage = () => {
         >
           <Menu size={24} />
         </button>
-        <h1 className="text-lg font-bold text-gray-800 dark:text-white">Job Positions</h1>
+        <h1 className="text-lg font-bold text-gray-800 dark:text-white">
+          Job Positions
+        </h1>
         <div className="w-10"></div>
       </div>
 
       <div className="flex flex-1">
         {/* Sidebar */}
         <aside
-          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:sticky md:top-0 md:translate-x-0 md:h-screen`}
+          className={`fixed left-0 top-0 z-40 h-screen w-64 transform overflow-y-auto bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:sticky md:top-0 md:h-screen md:translate-x-0`}
         >
           <div className="h-16 md:h-0"></div>
           <Sidebar userRole="admin" />
@@ -325,7 +365,7 @@ const JobPositionsPage = () => {
         {/* Main Content */}
         <main className="w-full flex-1 overflow-x-hidden pt-16">
           <div className="container mx-auto px-4 py-6">
-            <Card className="mb-6 overflow-hidden border border-gray-100 bg-white shadow-md dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+            <Card className="mb-6 overflow-hidden border border-gray-100 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800 dark:text-white">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
                 <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                   <CardTitle className="text-xl font-bold text-white sm:text-2xl">
@@ -344,7 +384,7 @@ const JobPositionsPage = () => {
                         resetForm();
                         setIsModalOpen(true);
                       }}
-                      className="h-10 w-full rounded bg-white text-blue-600 transition-colors md:w-auto hover:bg-blue-50"
+                      className="h-10 w-full rounded bg-white text-blue-600 transition-colors hover:bg-blue-50 md:w-auto"
                     >
                       <Plus className="mr-2 h-4 w-4" /> Add Position
                     </Button>
@@ -356,7 +396,9 @@ const JobPositionsPage = () => {
                   <Table className="w-full text-gray-900 dark:text-white">
                     <TableHeader>
                       <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
-                        <TableHead className="hidden py-3 sm:table-cell">#</TableHead>
+                        <TableHead className="hidden py-3 sm:table-cell">
+                          #
+                        </TableHead>
                         <TableHead
                           className="cursor-pointer py-3"
                           onClick={() => handleSort("position")}
@@ -365,7 +407,11 @@ const JobPositionsPage = () => {
                             Position
                             {sortField === "position" && (
                               <span className="ml-1">
-                                {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                {sortOrder === "asc" ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
                               </span>
                             )}
                           </div>
@@ -378,7 +424,11 @@ const JobPositionsPage = () => {
                             Department
                             {sortField === "department" && (
                               <span className="ml-1">
-                                {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                {sortOrder === "asc" ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
                               </span>
                             )}
                           </div>
@@ -391,7 +441,11 @@ const JobPositionsPage = () => {
                             Location
                             {sortField === "location" && (
                               <span className="ml-1">
-                                {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                {sortOrder === "asc" ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
                               </span>
                             )}
                           </div>
@@ -404,18 +458,27 @@ const JobPositionsPage = () => {
                             Work Type
                             {sortField === "workType" && (
                               <span className="ml-1">
-                                {sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                {sortOrder === "asc" ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
                               </span>
                             )}
                           </div>
                         </TableHead>
-                        <TableHead className="py-3 text-center">Actions</TableHead>
+                        <TableHead className="py-3 text-center">
+                          Actions
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {isLoading ? (
                         Array.from({ length: 7 }).map((_, i) => (
-                          <TableRow key={i} className="border-b border-gray-100 dark:border-gray-700">
+                          <TableRow
+                            key={i}
+                            className="border-b border-gray-100 dark:border-gray-700"
+                          >
                             <TableCell className="hidden sm:table-cell">
                               <Skeleton className="h-4 w-6 dark:bg-gray-700" />
                             </TableCell>
@@ -442,7 +505,10 @@ const JobPositionsPage = () => {
                         ))
                       ) : displayedPositions.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="py-6 text-center text-gray-500 dark:text-gray-400">
+                          <TableCell
+                            colSpan={6}
+                            className="py-6 text-center text-gray-500 dark:text-gray-400"
+                          >
                             No positions found
                           </TableCell>
                         </TableRow>
@@ -468,11 +534,19 @@ const JobPositionsPage = () => {
                                   {pos.workType}
                                 </p>
                               </div>
-                              <span className="hidden font-medium md:inline">{pos.position}</span>
+                              <span className="hidden font-medium md:inline">
+                                {pos.position}
+                              </span>
                             </TableCell>
-                            <TableCell className="hidden md:table-cell">{pos.department}</TableCell>
-                            <TableCell className="hidden lg:table-cell">{pos.location}</TableCell>
-                            <TableCell className="hidden xl:table-cell">{pos.workType}</TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {pos.department}
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              {pos.location}
+                            </TableCell>
+                            <TableCell className="hidden xl:table-cell">
+                              {pos.workType}
+                            </TableCell>
                             <TableCell>
                               <div className="flex items-center justify-center gap-2">
                                 <button
@@ -483,14 +557,20 @@ const JobPositionsPage = () => {
                                   }}
                                   aria-label="View position"
                                 >
-                                  <Eye size={16} className="transition-transform group-hover:scale-110" />
+                                  <Eye
+                                    size={16}
+                                    className="transition-transform group-hover:scale-110"
+                                  />
                                 </button>
                                 <button
                                   className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                   onClick={() => handleEdit(pos)}
                                   aria-label="Edit position"
                                 >
-                                  <Edit size={16} className="transition-transform group-hover:scale-110" />
+                                  <Edit
+                                    size={16}
+                                    className="transition-transform group-hover:scale-110"
+                                  />
                                 </button>
                                 <button
                                   className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
@@ -500,7 +580,10 @@ const JobPositionsPage = () => {
                                   }}
                                   aria-label="Delete position"
                                 >
-                                  <Trash2 size={16} className="transition-transform group-hover:scale-110" />
+                                  <Trash2
+                                    size={16}
+                                    className="transition-transform group-hover:scale-110"
+                                  />
                                 </button>
                               </div>
                             </TableCell>
@@ -523,27 +606,35 @@ const JobPositionsPage = () => {
                   </span>{" "}
                   to{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-300">
-                    {jobPositionsPerPage === "all" ? sortedPositions.length : Math.min(startIndex + jobPositionsPerPage, sortedPositions.length)}
+                    {jobPositionsPerPage === "all"
+                      ? sortedPositions.length
+                      : Math.min(
+                          startIndex + jobPositionsPerPage,
+                          sortedPositions.length,
+                        )}
                   </span>{" "}
                   of{" "}
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     {sortedPositions.length}
                   </span>{" "}
                   positions
-
                   <div className="flex items-center space-x-2 pt-3">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Show:
+                    </span>
                     <Select
                       value={jobPositionsPerPage.toString()}
                       onValueChange={(value) => {
-                        setJobPositionsPerPage(value === "all" ? "all" : parseInt(value));
+                        setJobPositionsPerPage(
+                          value === "all" ? "all" : parseInt(value),
+                        );
                         setCurrentPage(1); // Reset to first page when changing entries per page
                       }}
                     >
                       <SelectTrigger className="h-8 w-24 rounded border-gray-300 dark:border-gray-700 dark:bg-gray-900">
                         <SelectValue placeholder="Entries" />
                       </SelectTrigger>
-                      <SelectContent className="rounded border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                      <SelectContent className="rounded border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                         <SelectItem value="10">10</SelectItem>
                         <SelectItem value="20">20</SelectItem>
                         <SelectItem value="50">50</SelectItem>
@@ -555,7 +646,9 @@ const JobPositionsPage = () => {
 
                 <div className="flex items-center space-x-1">
                   <Button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
                     className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                     aria-label="Previous page"
@@ -563,27 +656,33 @@ const JobPositionsPage = () => {
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <div className="hidden sm:flex sm:items-center sm:space-x-1">
-                    {generatePaginationNumbers().map((page, index) => (
-                      typeof page === 'number' ? (
+                    {generatePaginationNumbers().map((page, index) =>
+                      typeof page === "number" ? (
                         <Button
                           key={index}
                           onClick={() => setCurrentPage(page)}
-                          className={`h-8 w-8 rounded p-0 text-sm font-medium ${currentPage === page
+                          className={`h-8 w-8 rounded p-0 text-sm font-medium ${
+                            currentPage === page
                               ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                               : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                            }`}
+                          }`}
                         >
                           {page}
                         </Button>
                       ) : (
-                        <span key={index} className="px-2 text-gray-400 dark:text-gray-500">
+                        <span
+                          key={index}
+                          className="px-2 text-gray-400 dark:text-gray-500"
+                        >
                           {page}
                         </span>
-                      )
-                    ))}
+                      ),
+                    )}
                   </div>
                   <Button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
                     className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                     aria-label="Next page"
@@ -593,7 +692,9 @@ const JobPositionsPage = () => {
                 </div>
 
                 <div className="hidden items-center space-x-2 lg:flex">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Go to page:</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Go to page:
+                  </span>
                   <Input
                     type="number"
                     min={1}
@@ -605,7 +706,7 @@ const JobPositionsPage = () => {
                         setCurrentPage(value);
                       }
                     }}
-                    className="h-8 w-16 rounded border-gray-300 text-center text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-white"
+                    className="h-8 w-16 rounded border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white"
                     aria-label="Go to page"
                   />
                 </div>
@@ -617,8 +718,8 @@ const JobPositionsPage = () => {
 
       {/* Add/Edit Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white custom-scrollbar">
-          <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
+        <DialogContent className="custom-scrollbar max-h-[90vh] max-w-2xl overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
+          <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                 {isEditMode ? "Edit Job Position" : "Add Job Position"}
@@ -645,10 +746,15 @@ const JobPositionsPage = () => {
               </Button>
             </div>
           </DialogHeader>
-          <form onSubmit={handleFormSubmit} className="p-6 space-y-4">
+          <form onSubmit={handleFormSubmit} className="space-y-4 p-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="position" className="text-sm font-medium text-gray-500 dark:text-gray-400">Position</Label>
+                <Label
+                  htmlFor="position"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
+                  Position
+                </Label>
                 <Input
                   id="position"
                   name="position"
@@ -659,7 +765,12 @@ const JobPositionsPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="department" className="text-sm font-medium text-gray-500 dark:text-gray-400">Department</Label>
+                <Label
+                  htmlFor="department"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
+                  Department
+                </Label>
                 <Input
                   id="department"
                   name="department"
@@ -672,7 +783,12 @@ const JobPositionsPage = () => {
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="location" className="text-sm font-medium text-gray-500 dark:text-gray-400">Location</Label>
+                <Label
+                  htmlFor="location"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
+                  Location
+                </Label>
                 <Input
                   id="location"
                   name="location"
@@ -683,24 +799,44 @@ const JobPositionsPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="workType" className="text-sm font-medium text-gray-500 dark:text-gray-400">Work Type</Label>
+                <Label
+                  htmlFor="workType"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
+                  Work Type
+                </Label>
                 <Select
                   value={formData.workType}
-                  onValueChange={(value) => handleFormChange({ name: "workType", value })}
+                  onValueChange={(value) =>
+                    handleFormChange({ name: "workType", value })
+                  }
                 >
                   <SelectTrigger className="h-10 rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     <SelectValue placeholder="Select work type" />
                   </SelectTrigger>
-                  <SelectContent className="rounded border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                    {["Full-time", "Part-time", "Contract", "Internship"].map((type) => (
-                      <SelectItem key={type} value={type} className="hover:bg-gray-100 dark:hover:bg-gray-700">{type}</SelectItem>
-                    ))}
+                  <SelectContent className="rounded border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                    {["Full-time", "Part-time", "Contract", "Internship"].map(
+                      (type) => (
+                        <SelectItem
+                          key={type}
+                          value={type}
+                          className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                          {type}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-medium text-gray-500 dark:text-gray-400">Description</Label>
+              <Label
+                htmlFor="description"
+                className="text-sm font-medium text-gray-500 dark:text-gray-400"
+              >
+                Description
+              </Label>
               <Textarea
                 id="description"
                 name="description"
@@ -711,14 +847,24 @@ const JobPositionsPage = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="skillsRequired" className="text-sm font-medium text-gray-500 dark:text-gray-400">Skills Required</Label>
+              <Label
+                htmlFor="skillsRequired"
+                className="text-sm font-medium text-gray-500 dark:text-gray-400"
+              >
+                Skills Required
+              </Label>
               <Select
                 onValueChange={(value) => {
-                  const currentValues = formData.skillsRequired || [];
-                  if (!currentValues.some((s: { value: string }) => s.value === value)) {
+                  const matchedSkill = skillsOptions.find(
+                    (s) => s.value === value,
+                  );
+                  if (matchedSkill) {
                     setFormData((prev) => ({
                       ...prev,
-                      skillsRequired: [...currentValues, { label: skillsOptions.find((s) => s.value === value)?.label, value }],
+                      skillsRequired: [
+                        ...prev.skillsRequired,
+                        { label: matchedSkill.label, value },
+                      ],
                     }));
                   }
                 }}
@@ -726,7 +872,7 @@ const JobPositionsPage = () => {
                 <SelectTrigger className="h-10 rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                   <SelectValue placeholder="Select skills" />
                 </SelectTrigger>
-                <SelectContent className="rounded border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                <SelectContent className="rounded border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                   {skillsOptions.map((skill) => (
                     <SelectItem
                       key={skill.value}
@@ -739,33 +885,44 @@ const JobPositionsPage = () => {
                 </SelectContent>
               </Select>
               <div className="mt-2 flex flex-wrap gap-2">
-                {formData.skillsRequired?.map((skill: { value: string; label: string }) => (
-                  <div
-                    key={skill.value}
-                    className="flex items-center gap-1 rounded bg-blue-50 px-2 py-1 dark:bg-blue-900/20"
-                  >
-                    <span className="text-sm text-blue-700 dark:text-blue-300">{skill.label}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-4 w-4 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30"
-                      onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          skillsRequired: prev.skillsRequired.filter((s: { value: string }) => s.value !== skill.value),
-                        }));
-                      }}
+                {formData.skillsRequired?.map(
+                  (skill: { value: string; label: string }) => (
+                    <div
+                      key={skill.value}
+                      className="flex items-center gap-1 rounded bg-blue-50 px-2 py-1 dark:bg-blue-900/20"
                     >
-                      ×
-                    </Button>
-                  </div>
-                ))}
+                      <span className="text-sm text-blue-700 dark:text-blue-300">
+                        {skill.label}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            skillsRequired: prev.skillsRequired.filter(
+                              (s: { value: string }) => s.value !== skill.value,
+                            ),
+                          }));
+                        }}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="expiryDate" className="text-sm font-medium text-gray-500 dark:text-gray-400">Expiry Date</Label>
+                <Label
+                  htmlFor="expiryDate"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
+                  Expiry Date
+                </Label>
                 <Input
                   id="expiryDate"
                   name="expiryDate"
@@ -777,17 +934,30 @@ const JobPositionsPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="experienceLevel" className="text-sm font-medium text-gray-500 dark:text-gray-400">Experience Level</Label>
+                <Label
+                  htmlFor="experienceLevel"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
+                  Experience Level
+                </Label>
                 <Select
                   value={formData.experienceLevel}
-                  onValueChange={(value) => handleFormChange({ name: "experienceLevel", value })}
+                  onValueChange={(value) =>
+                    handleFormChange({ name: "experienceLevel", value })
+                  }
                 >
                   <SelectTrigger className="h-10 rounded border border-gray-300 bg-white p-2 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white">
                     <SelectValue placeholder="Select level" />
                   </SelectTrigger>
-                  <SelectContent className="rounded border border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                  <SelectContent className="rounded border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                     {["Entry", "Mid", "Senior"].map((level) => (
-                      <SelectItem key={level} value={level} className="hover:bg-gray-100 dark:hover:bg-gray-700">{level}</SelectItem>
+                      <SelectItem
+                        key={level}
+                        value={level}
+                        className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        {level}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -795,7 +965,12 @@ const JobPositionsPage = () => {
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="salaryRangeMin" className="text-sm font-medium text-gray-500 dark:text-gray-400">Salary Min</Label>
+                <Label
+                  htmlFor="salaryRangeMin"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
+                  Salary Min
+                </Label>
                 <Input
                   id="salaryRangeMin"
                   name="salaryRangeMin"
@@ -806,7 +981,12 @@ const JobPositionsPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="salaryRangeMax" className="text-sm font-medium text-gray-500 dark:text-gray-400">Salary Max</Label>
+                <Label
+                  htmlFor="salaryRangeMax"
+                  className="text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
+                  Salary Max
+                </Label>
                 <Input
                   id="salaryRangeMax"
                   name="salaryRangeMax"
@@ -826,7 +1006,10 @@ const JobPositionsPage = () => {
               >
                 Cancel
               </Button>
-              <Button type="submit" className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 sm:w-auto">
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 sm:w-auto"
+              >
                 {isEditMode ? "Update" : "Create"}
               </Button>
             </DialogFooter>
@@ -836,8 +1019,8 @@ const JobPositionsPage = () => {
 
       {/* View Modal */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white custom-scrollbar">
-          <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:bg-gray-800 dark:border-gray-700">
+        <DialogContent className="custom-scrollbar max-h-[90vh] max-w-2xl overflow-y-auto rounded bg-white p-0 shadow-lg dark:bg-gray-800 dark:text-white">
+          <DialogHeader className="sticky top-0 z-10 border-b bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                 Job Position Details
@@ -865,63 +1048,108 @@ const JobPositionsPage = () => {
             </div>
           </DialogHeader>
           {selectedPosition && (
-            <div className="p-6 space-y-4">
+            <div className="space-y-4 p-6">
               <div className="space-y-2">
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">Position Details</h3>
+                <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                  Position Details
+                </h3>
                 <div className="rounded border border-gray-100 p-4 dark:border-gray-700">
                   <div className="grid gap-2">
                     <div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Position:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">{selectedPosition.position}</span>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Position:
+                      </span>
+                      <span className="ml-2 text-gray-900 dark:text-white">
+                        {selectedPosition.position}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Department:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">{selectedPosition.department}</span>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Department:
+                      </span>
+                      <span className="ml-2 text-gray-900 dark:text-white">
+                        {selectedPosition.department}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Location:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">{selectedPosition.location}</span>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Location:
+                      </span>
+                      <span className="ml-2 text-gray-900 dark:text-white">
+                        {selectedPosition.location}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Work Type:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">{selectedPosition.workType}</span>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Work Type:
+                      </span>
+                      <span className="ml-2 text-gray-900 dark:text-white">
+                        {selectedPosition.workType}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="space-y-2">
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">Description</h3>
+                <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                  Description
+                </h3>
                 <div className="rounded border border-gray-100 p-4 dark:border-gray-700">
-                  <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{selectedPosition.description}</p>
+                  <p className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+                    {selectedPosition.description}
+                  </p>
                 </div>
               </div>
               <div className="space-y-2">
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">Additional Information</h3>
+                <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                  Additional Information
+                </h3>
                 <div className="rounded border border-gray-100 p-4 dark:border-gray-700">
                   <div className="grid gap-2">
                     <div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Skills Required:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">{selectedPosition.skillsRequired.join(", ")}</span>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Expiry Date:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">{new Date(selectedPosition.expiryDate).toLocaleDateString()}</span>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Salary Range:</span>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Skills Required:
+                      </span>
                       <span className="ml-2 text-gray-900 dark:text-white">
-                        {selectedPosition.salaryRange.min && selectedPosition.salaryRange.max
+                        {selectedPosition.skillsRequired.join(", ")}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Expiry Date:
+                      </span>
+                      <span className="ml-2 text-gray-900 dark:text-white">
+                        {new Date(
+                          selectedPosition.expiryDate,
+                        ).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Salary Range:
+                      </span>
+                      <span className="ml-2 text-gray-900 dark:text-white">
+                        {selectedPosition.salaryRange.min &&
+                        selectedPosition.salaryRange.max
                           ? `$${selectedPosition.salaryRange.min} - $${selectedPosition.salaryRange.max}`
                           : "Not specified"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Experience Level:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">{selectedPosition.experienceLevel}</span>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Experience Level:
+                      </span>
+                      <span className="ml-2 text-gray-900 dark:text-white">
+                        {selectedPosition.experienceLevel}
+                      </span>
                     </div>
                     <div>
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Status:</span>
-                      <span className="ml-2 text-gray-900 dark:text-white">{selectedPosition.isActive ? "Active" : "Inactive"}</span>
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Status:
+                      </span>
+                      <span className="ml-2 text-gray-900 dark:text-white">
+                        {selectedPosition.isActive ? "Active" : "Inactive"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -942,7 +1170,8 @@ const JobPositionsPage = () => {
           <div className="py-4 text-center">
             <Trash2 className="mx-auto mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
             <p className="text-gray-600 dark:text-gray-300">
-              Are you sure you want to delete this job position? This action cannot be undone.
+              Are you sure you want to delete this job position? This action
+              cannot be undone.
             </p>
           </div>
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -977,7 +1206,7 @@ const JobPositionsPage = () => {
         .custom-scrollbar::-webkit-scrollbar-track {
           background-color: #f9fafb;
         }
-        
+
         @media (prefers-color-scheme: dark) {
           .custom-scrollbar::-webkit-scrollbar-thumb {
             background-color: #4b5563;

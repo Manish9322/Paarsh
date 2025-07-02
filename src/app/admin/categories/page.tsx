@@ -138,7 +138,7 @@ const AdminPage: React.FC = () => {
 
   // Function to generate page numbers for pagination
   const generatePaginationNumbers = () => {
-    const pageNumbers = [];
+    const pageNumbers: (number | string)[] = [];
     const maxPagesToShow = 5; // Show at most 5 page numbers
 
     if (totalPages <= maxPagesToShow) {

@@ -23,7 +23,7 @@ const SigninPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
-  const [loginData, setLoginData] = useState(null);
+  const [loginData, setLoginData] = useState<{ email: string; password: string } | null>(null);
 
   // Check if user is already authenticated and redirect if needed
   // useEffect(() => {
@@ -73,10 +73,10 @@ const SigninPage = () => {
           dispatch(resetForm({ formName: "loginForm" }));
 
           // Get redirect URL from query parameter, fallback to response.data.redirect, then /userdashboard
-          const redirect = searchParams.get('redirect');
+          const redirect = searchParams?.get('redirect');
           const redirectUrl = redirect
             ? decodeURIComponent(redirect)
-            : response?.data?.redirect || '/userdashboard';
+            : response?.data?.redirect || '/';
 
           // Validate redirectUrl to ensure it's a safe internal path
           const isValidRedirect = redirectUrl.startsWith('/');
@@ -84,7 +84,7 @@ const SigninPage = () => {
           // Delay navigation to allow toast to be visible
           setTimeout(() => {
             setIsRedirecting(true);
-            router.push(isValidRedirect ? redirectUrl : '/userdashboard');
+            router.push(isValidRedirect ? redirectUrl : '/');
           }, 2000);
         } else {
           toast.error("Login Failed", {
@@ -156,7 +156,7 @@ const SigninPage = () => {
           dispatch(resetForm({ formName: "loginForm" }));
 
           // Get redirect URL
-          const redirect = searchParams.get('redirect');
+          const redirect = searchParams?.get('redirect');
           const redirectUrl = redirect
             ? decodeURIComponent(redirect)
             : response?.data?.redirect || '/userdashboard';
@@ -236,7 +236,6 @@ const SigninPage = () => {
                   </label>
                   <input
                     type="email"
-                    name="email"
                     placeholder="Enter your Email"
                     className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:text-body-color-dark dark:shadow-two dark:focus:border-primary dark:focus:shadow-none"
                     {...formik.getFieldProps("email")}
@@ -259,7 +258,6 @@ const SigninPage = () => {
                   <div className="relative w-full">
                     <input
                       type={showPassword ? "text" : "password"}
-                      name="password"
                       placeholder="Enter your Password"
                       className="border-stroke w-full rounded-sm border bg-[#f8f8f8] px-6 py-3 pr-12 text-base text-body-color outline-none transition-all duration-300 focus:border-primary dark:border-transparent dark:bg-[#2C303B] dark:text-body-color-dark dark:shadow-two dark:focus:border-primary dark:focus:shadow-none"
                       {...formik.getFieldProps("password")}

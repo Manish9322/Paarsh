@@ -376,7 +376,7 @@ export default function CreateOfferDialog({
                               className="h-4 w-4 p-0 hover:bg-blue-100 dark:hover:bg-gray-600"
                               onClick={() => {
                                 field.onChange(
-                                  field.value.filter((id) => id !== courseId)
+                                  (field.value ?? []).filter((id) => id !== courseId)
                                 );
                               }}
                             >
@@ -444,7 +444,7 @@ export default function CreateOfferDialog({
                               className="h-4 w-4 p-0 hover:bg-blue-100 dark:hover:bg-gray-600"
                               onClick={() => {
                                 field.onChange(
-                                  field.value.filter((id) => id !== userId)
+                                  (field.value ?? []).filter((id) => id !== userId)
                                 );
                               }}
                             >

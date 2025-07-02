@@ -4,111 +4,131 @@ import _db from "../../../../../utils/db";
 import mongoose from "mongoose";
 import UserModel from "models/User.model";
 import WithdrawalRequestModel from "models/Withdrawal.model";
-
+ import notificationHelper from "../../../../../utils/notificationHelper";
 
 _db();
 
 function createResponse(success, message, data = null, status = 200) {
-  return NextResponse.json({
-    success,
-    message,
-    ...(data && { data }),
-    toast: {
-      type: success ? 'success' : 'error',
-      message
+  return NextResponse.json(
+    {
+      success,
+      message,
+      ...(data && { data }),
+      toast: {
+        type: success ? "success" : "error",
+        message,
+      },
+      timestamp: new Date().toISOString(),
     },
-    timestamp: new Date().toISOString()
-  }, { status });
+    { status },
+  );
 }
 
-export const POST = authMiddleware(async (req) => {
-  try {
-    const { user } = req;
+export const POST = authMiddleware(
+  async (req) => {
+    try {
+      const { user } = req;
 
-    if (!user) {
-      return createResponse(false, "User is not authenticated", null, 401);
+      if (!user) {
+        return createResponse(false, "User is not authenticated", null, 401);
+      }
+
+      const body = await req.json();
+      const { amount, upiId } = body;
+
+      // Validate input
+      if (!amount || typeof amount !== "number") {
+        return createResponse(false, "Invalid amount provided", null, 400);
+      }
+
+      if (!upiId || typeof upiId !== "string") {
+        return createResponse(false, "Invalid UPI ID provided", null, 400);
+      }
+
+      if (amount <= 0) {
+        return createResponse(
+          false,
+          "Amount must be greater than 0",
+          null,
+          400,
+        );
+      }
+
+      const dbUser = await UserModel.findById(user._id);
+      if (!dbUser) {
+        return createResponse(false, "User not found", null, 404);
+      }
+
+      if (dbUser.walletBalance < amount) {
+        return createResponse(false, "Insufficient balance", null, 400);
+      }
+
+      const withdrawal = await WithdrawalRequestModel.create({
+        userId: user._id,
+        amount,
+        upiId,
+        status: "Pending",
+        requestedAt: new Date(),
+      });
+
+      dbUser.walletBalance -= amount;
+      await dbUser.save();
+
+      await notificationHelper.notifyWithdrawalRequest({
+        userId: dbUser._id,
+        userName: dbUser.name,
+        amount: amount,
+        requestId: withdrawal._id,
+      });
+
+      return createResponse(
+        true,
+        "Withdrawal request submitted successfully!",
+        { withdrawalId: withdrawal._id },
+      );
+    } catch (error) {
+      console.error("Withdrawal request error:", error);
+      return createResponse(
+        false,
+        "An error occurred while processing your request",
+        null,
+        500,
+      );
     }
+  },
+  ["user"],
+);
 
-    const body = await req.json();
-    const { amount, upiId } = body;
+export const GET = authMiddleware(
+  async (req) => {
+    try {
+      const { user } = req;
 
-    // Validate input
-    if (!amount || typeof amount !== 'number') {
-      return createResponse(false, "Invalid amount provided", null, 400);
+      if (!user) {
+        return createResponse(false, "User is not authenticated", null, 401);
+      }
+
+      const withdrawals = await WithdrawalRequestModel.find({
+        userId: user._id,
+      })
+        .sort({ requestedAt: -1 })
+        .lean();
+
+      return createResponse(true, "Withdrawal history fetched successfully", {
+        withdrawals,
+      });
+    } catch (error) {
+      console.error("Error fetching withdrawal history:", error);
+      return createResponse(
+        false,
+        "An error occurred while fetching withdrawal history",
+        null,
+        500,
+      );
     }
-
-    if (!upiId || typeof upiId !== 'string') {
-      return createResponse(false, "Invalid UPI ID provided", null, 400);
-    }
-
-    if (amount <= 0) {
-      return createResponse(false, "Amount must be greater than 0", null, 400);
-    }
-
-    const dbUser = await UserModel.findById(user._id);
-    if (!dbUser) {
-      return createResponse(false, "User not found", null, 404);
-    }
-
-    if (dbUser.walletBalance < amount) {
-      return createResponse(false, "Insufficient balance", null, 400);
-    }
-
-    const withdrawal = await WithdrawalRequestModel.create({
-      userId: user._id,
-      amount,
-      upiId,
-      status: "Pending",
-      requestedAt: new Date()
-    });
-
-    dbUser.walletBalance -= amount;
-    await dbUser.save();
-
-    return createResponse(
-      true,
-      "Withdrawal request submitted successfully!",
-      { withdrawalId: withdrawal._id }
-    );
-  } catch (error) {
-    console.error("Withdrawal request error:", error);
-    return createResponse(
-      false,
-      "An error occurred while processing your request",
-      null,
-      500
-    );
-  }
-}, ["user"]);
-
-export const GET = authMiddleware(async (req) => {
-  try {
-    const { user } = req;
-
-    if (!user) {
-      return createResponse(false, "User is not authenticated", null, 401);
-    }
-
-    const withdrawals = await WithdrawalRequestModel.find({ userId: user._id })
-      .sort({ requestedAt: -1 })
-      .lean();
-
-    return createResponse(
-      true,
-      "Withdrawal history fetched successfully",
-      { withdrawals }
-    );
-  } catch (error) {
-    console.error("Error fetching withdrawal history:", error);
-    return createResponse(
-      false,
-      "An error occurred while fetching withdrawal history",
-      null,
-      500
-    );
-  }
-}, ["user"]);
-
+  },
+  ["user"],
+);
 
 export const DELETE = authMiddleware(
   async (req) => {
@@ -127,7 +147,8 @@ export const DELETE = authMiddleware(
 
       session.startTransaction();
 
-      const withdrawal = await WithdrawalRequestModel.findById(id).session(session);
+      const withdrawal =
+        await WithdrawalRequestModel.findById(id).session(session);
       if (!withdrawal) {
         await session.abortTransaction();
         return NextResponse.json(
@@ -162,7 +183,10 @@ export const DELETE = authMiddleware(
 
       await session.commitTransaction();
       return NextResponse.json(
-        { success: true, message: "Withdrawal request cancelled and amount refunded" },
+        {
+          success: true,
+          message: "Withdrawal request cancelled and amount refunded",
+        },
         { status: 200 },
       );
     } catch (err) {
@@ -178,4 +202,3 @@ export const DELETE = authMiddleware(
   },
   ["user"],
 );
-

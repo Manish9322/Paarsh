@@ -4,6 +4,7 @@ import UserModel from "../../../../../models/User.model";
 import _db from "../../../../../utils/db";
 import validator from "validator";
 import generateTokens from "../../../../../utils/generateTokens";
+import notificationHelper from '../../../../../utils/notificationHelper';
 
 _db();
 
@@ -54,7 +55,7 @@ export async function POST(request) {
         {
           success: false,
           error: "Email already registered",
-          redirect: "/login",
+          redirect: "/signin",
         },
         { status: 400 },
       );
@@ -96,6 +97,13 @@ export async function POST(request) {
     await newUser.save();
 
     const { accessToken, refreshToken } = generateTokens(newUser._id);
+
+      // Trigger admin notification
+    await notificationHelper.notifyUserRegistration({
+      userId: newUser._id,
+      userName: name,
+      email
+    });
 
     return NextResponse.json({
       success: true,

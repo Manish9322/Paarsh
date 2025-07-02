@@ -35,7 +35,7 @@ import { Label } from "@/components/ui/label"
 
 export function PreviewCourse() {
 
-  const [items, setItems] = useState([[], [], [], []]);
+  const [items, setItems] = useState<string[][]>([[], [], [], []]);
   const [inputValues, setInputValues] = useState(['', '', '', '']);
 
   const handleInputChange = (index, e) => {

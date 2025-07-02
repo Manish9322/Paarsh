@@ -14,7 +14,7 @@ const ResetPasswordPage = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const emailFromParams = searchParams.get('email') || '';
+  const emailFromParams = searchParams?.get('email') || '';
 
   const [resetPassword, { isLoading, error }] = useResetPasswordMutation();
 
@@ -176,8 +176,6 @@ const ResetPasswordPage = () => {
                     </label>
                     <input
                       type="email"
-                      name="email"
-                      id="email"
                       placeholder="No Need To Change"
                       readOnly
                       className="w-full rounded border dark:border-none border-gray-300 bg-gray-100 px-4 py-2.5 text-base text-dark focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white cursor-not-allowed"
@@ -194,7 +192,6 @@ const ResetPasswordPage = () => {
                     </label>
                     <input
                       type="text"
-                      name="otp"
                       id="otp"
                       placeholder="Enter OTP Here"
                       maxLength={6}
@@ -214,7 +211,6 @@ const ResetPasswordPage = () => {
                     </label>
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      name="password"
                       id="password"
                       placeholder="Enter Password Here"
                       className="w-full rounded border border-gray-300 dark:border-none bg-gray-100 px-4 py-2.5 text-base text-dark focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
@@ -239,7 +235,6 @@ const ResetPasswordPage = () => {
                     </label>
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
-                      name="confirmPassword"
                       id="confirmPassword"
                       placeholder="Confirm Password"
                       className="w-full rounded border border-gray-300 dark:border-none bg-gray-100 px-4 py-2.5 text-base text-dark focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"

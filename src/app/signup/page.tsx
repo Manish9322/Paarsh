@@ -28,7 +28,7 @@ const SignupPage = () => {
   const [_SIGNUP, { isLoading, error }] = useSignupMutation();
 
   const param = useSearchParams();
-  const ref = param.get("ref");
+  const ref = param?.get("ref");
 
   useEffect(() => {
     // If referral code is provided in URL, set it in the form

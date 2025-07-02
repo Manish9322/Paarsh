@@ -174,7 +174,7 @@ const companyStats = [
 export default function Careers() {
   const [selectedFaq, setSelectedFaq] = useState<number | null>(null);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isComingSoonModalOpen, setIsComingSoonModalOpen] = useState(false);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);

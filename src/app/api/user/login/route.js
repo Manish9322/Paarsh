@@ -122,7 +122,7 @@ export async function POST(request) {
         name: user.name,
          sessionId,
         user: userData,
-        redirect: "/userdashboard",
+        redirect: "/",
       },
     });
   } catch (error) {

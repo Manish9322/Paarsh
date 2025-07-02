@@ -9,8 +9,12 @@ import ReferralSettingsModel from "models/RefferalSetting.model";
 import TargetModel from "models/AgentTarget.model";
 import SaleModel from "models/AgentSale.model";
 import mongoose from "mongoose";
+import _db from "../../../../utils/db";
+import notificationHelper from "../../../../utils/notificationHelper";
 
-export const POST = async (request) => {
+_db();
+
+export const POST = async (request) => {  
   try {
     // Check for signature in headers (webhook style)
     let razorpaySignature = request.headers.get("x-razorpay-signature");
@@ -230,6 +234,16 @@ export const POST = async (request) => {
         $addToSet: { enrolledUsers: userId },
       }
     );
+
+     // ✅ Send notification after purchase success
+    await notificationHelper.notifyCoursesPurchase({
+      userId,
+      courseId,
+      courseName: course.title,
+      purchaseAmount: transaction.amount,
+      userName: user.name || `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+    });
+
 
     return NextResponse.json({
       success: true,

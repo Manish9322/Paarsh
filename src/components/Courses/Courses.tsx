@@ -20,7 +20,7 @@ interface Category {
 
 const CoursesPage = () => {
   const param = useSearchParams();
-  const courseId = param.get("courseId");
+  const courseId = param?.get("courseId");
 
   // Fetch categories without passing courseId (which might be causing issues)
   const { data: categoryData, isLoading: categoryLoading, error: categoryError } = useFetchCategoriesQuery(undefined);

@@ -195,8 +195,8 @@ const CoursePage: React.FC = () => {
     );
 
   // Function to generate page numbers for pagination
-  const generatePaginationNumbers = () => {
-    const pageNumbers = [];
+  const generatePaginationNumbers = (): (number | string)[] => {
+    const pageNumbers: (number | string)[] = [];
     const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {

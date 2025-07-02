@@ -219,7 +219,7 @@ const UserPage: React.FC = () => {
   };
 
   const generatePaginationNumbers = () => {
-    const pageNumbers = [];
+    const pageNumbers: (number | string)[] = [];
     const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
