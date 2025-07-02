@@ -161,16 +161,16 @@ const handleLogout = async () => {
           <div className="flex items-center justify-between mb-6">
             <Link href="/" className="flex items-center">
               <Image
-                src="/images/logo/PAARSHEDU_LOGO.png"
+                src="/images/logo/LOGO_DARK.png"
                 alt="logo"
-                width={120}
+                width={140}
                 height={30}
                 className="w-32 dark:hidden"
               />
               <Image
-                src="/images/logo/PAARSHEDU.png"
+                src="/images/logo/LOGO_LIGHT.png"
                 alt="logo"
-                width={120}
+                width={140}
                 height={30}
                 className="hidden w-32 dark:block"
               />

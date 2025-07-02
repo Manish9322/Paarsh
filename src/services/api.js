@@ -1111,8 +1111,35 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["Ad"],
     }),
+
+    // ---------------------------------------------------- Enquiries Apis --------------------------------------------------
+
+    fetchEnquiries: builder.query({
+      query: () => "/enquiries",
+      providesTags: ["Enquiry"],
+    }),
+
+    createEnquiry: builder.mutation({
+      query: (enquiryData) => ({
+        url: "/enquiries",
+        method: "POST",
+        body: enquiryData,
+      }),
+      invalidatesTags: ["Enquiry"],
+    }),
+
+    deleteEnquiry: builder.mutation({
+      query: (id) => ({
+        url: `/enquiries?id=${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Enquiry"],
+    }),
+
+
   }),
 });
+
 
 export const {
   useLoginMutation,
@@ -1242,4 +1269,9 @@ export const {
   useCreateAdMutation,
   useUpdateAdMutation,
   useDeleteAdMutation,
+
+  useFetchEnquiriesQuery,
+  useCreateEnquiryMutation,
+  useDeleteEnquiryMutation,
+
 } = paarshEduApi;

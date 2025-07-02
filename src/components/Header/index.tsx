@@ -245,16 +245,16 @@ const Header = () => {
                   }`}
               >
                 <Image
-                  src="/images/logo/PAARSHEDU_LOGO.png"
+                  src="/images/logo/LOGO_DARK.png"
                   alt="logo"
-                  width={140}
+                  width={160}
                   height={30}
                   className="w-full dark:hidden"
                 />
                 <Image
-                  src="/images/logo/PAARSHEDU.png"
+                  src="/images/logo/LOGO_LIGHT.png"
                   alt="logo"
-                  width={140}
+                  width={160}
                   height={30}
                   className="hidden w-full dark:block"
                 />
