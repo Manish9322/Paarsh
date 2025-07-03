@@ -1033,6 +1033,29 @@ export const paarshEduApi = createApi({
       query: () => "/admin/notifications/unread-count",
     }),
 
+    getNotificationLogs: builder.query({
+      query: () => "/notifications/send",
+      providesTags: ["Notifications"],
+    }),
+
+    deleteNotificationLog: builder.mutation({
+      query: (jobId) => ({
+        url: "/notifications/send",
+        method: "DELETE",
+        body: { jobId },
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+
+    resendNotification: builder.mutation({
+      query: (jobId) => ({
+        url: "/notifications/send",
+        method: "PUT",
+        body: { jobId },
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+
     fetchMe: builder.query({
       query: () => "/me",
       providesTags: ["User"],
@@ -1231,6 +1254,10 @@ export const {
   useFetchAdminNotificationsQuery,
   useMarkAdminNotificationAsReadMutation,
   useFetchAdminUnreadNotificationCountQuery,
+
+  useGetNotificationLogsQuery,
+  useDeleteNotificationLogMutation,
+  useResendNotificationMutation,
 
   useFetchMeQuery,
   useFetchRoleQuery,
