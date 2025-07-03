@@ -276,14 +276,14 @@ const Navbar = () => {
               className="header-logo block w-full transition-transform duration-300 hover:scale-110"
             >
               <Image
-                src="/images/logo/PAARSHEDU_LOGO.png"
+                src="/images/logo/LOGO_DARK.png"
                 alt="logo"
                 width={140}
                 height={30}
                 className="w-full dark:hidden"
               />
               <Image
-                src="/images/logo/PAARSHEDU.png"
+                src="/images/logo/LOGO_LIGHT.png"
                 alt="logo"
                 width={140}
                 height={30}
