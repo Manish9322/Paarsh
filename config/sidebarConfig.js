@@ -28,6 +28,7 @@ const sidebarConfig = [
     name: "Aptitude Tests",
     icon: <FaPencilRuler />,
     children: [
+      { name: "Colleges", path: "/admin/colleges" },
       { name: "Aptitude Test Logs", path: "/admin/aptitude-tests" },
       { name: "Aptitude Test Results", path: "/admin/aptitude-test-results" },
     ],
