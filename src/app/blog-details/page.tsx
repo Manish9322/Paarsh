@@ -1,20 +1,56 @@
+"use client";
+
 import SharePost from "@/components/Blog/SharePost";
 import TagButton from "@/components/Blog/TagButton";
 import Image from "next/image";
 import ModelOne from "@/components/View-Models/modelOne";
 
-import { Metadata } from "next";
+// import { Metadata } from "next";
 import RelatedPost from "@/components/Blog/RelatedPost";
 import ModelTwo from "@/components/View-Models/modelTwo";
 import Link from "next/link";
+import { useFetchBlogByIdQuery, useFetchBlogsQuery } from "@/services/api";
+import { useSearchParams } from "next/navigation";
+import SideBlogs from "@/components/Blog/SideBlogs";
+// import blogData from "@/components/Blog/blogData";
 
-export const metadata: Metadata = {
-  title: "Blog Details Page | Free Next.js Template for Startup and SaaS",
-  description: "This is Blog Details Page for Startup Nextjs Template",
-  // other metadata
-};
+// export const metadata: Metadata = {
+//   title: "Blog Details Page | Free Next.js Template for Startup and SaaS",
+//   description: "This is Blog Details Page for Startup Nextjs Template",
+// };
 
 const BlogDetailsPage = () => {
+  const params = useSearchParams();
+  const blogId = params?.get("blogId");
+
+  console.log("blogId : ", blogId);
+
+  const {
+    data: allBlogsData,
+    isLoading: allBlogsLoading,
+    error: allBlogsError,
+  } = useFetchBlogsQuery(undefined);
+
+  // Extract blogs array from the query data
+  const shuffledBlogs = [...(allBlogsData?.blogs || allBlogsData || [])].sort(() => Math.random() - 0.5).slice(0, 3);
+
+
+  const {
+    data: blogsData,
+    isLoading: blogsLoading,
+    error: blogsError,
+  } = useFetchBlogByIdQuery(blogId, { skip: !blogId });
+  const blogs = blogsData?.blogs || [];
+  console.log("blogs Data : ", blogsData);
+  console.log("Author Name : ", blogsData?.blog?.author?.name);
+
+  const date = new Date(blogsData?.blog?.createdAt);
+  const formattedDate = date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
   return (
     <>
       <section className="pb-[120px] pt-[150px]">
@@ -23,7 +59,7 @@ const BlogDetailsPage = () => {
             <div className="w-full lg:w-2/3">
               <div className="p-8">
                 <h1 className="mb-8 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight">
-                  Demystifying MVC Framework in PHP
+                  {blogsData?.blog?.title}
                 </h1>
                 <div className="mb-10 flex flex-wrap items-center justify-between border-b border-body-color border-opacity-10 pb-4 dark:border-white dark:border-opacity-10">
                   <div className="flex flex-wrap items-center">
@@ -31,7 +67,10 @@ const BlogDetailsPage = () => {
                       <div className="mr-4">
                         <div className="relative h-10 w-10 overflow-hidden rounded-full">
                           <Image
-                            src="/images/blog/aaditya.jpg"
+                            src={
+                              blogsData?.blog?.author?.image ||
+                              "/images/blog/blog-details-01.jpg"
+                            }
                             alt="author"
                             fill
                           />
@@ -39,7 +78,7 @@ const BlogDetailsPage = () => {
                       </div>
                       <div className="w-full">
                         <span className="mb-1 text-base font-medium text-body-color">
-                          By <span>Aditya mahajan</span>
+                          By <span>{blogsData?.blog?.author?.name}</span>
                         </span>
                       </div>
                     </div>
@@ -63,9 +102,9 @@ const BlogDetailsPage = () => {
                             <path d="M13.2637 3.3697H7.64754V2.58105C8.19721 2.43765 8.62738 1.91189 8.62738 1.31442C8.62738 0.597464 8.02992 0 7.28906 0C6.54821 0 5.95074 0.597464 5.95074 1.31442C5.95074 1.91189 6.35702 2.41376 6.93058 2.58105V3.3697H1.31442C0.597464 3.3697 0 3.96716 0 4.68412V13.2637C0 13.9807 0.597464 14.5781 1.31442 14.5781H13.2637C13.9807 14.5781 14.5781 13.9807 14.5781 13.2637V4.68412C14.5781 3.96716 13.9807 3.3697 13.2637 3.3697ZM6.6677 1.31442C6.6677 0.979841 6.93058 0.716957 7.28906 0.716957C7.62364 0.716957 7.91042 0.979841 7.91042 1.31442C7.91042 1.649 7.64754 1.91189 7.28906 1.91189C6.95448 1.91189 6.6677 1.6251 6.6677 1.31442ZM1.31442 4.08665H13.2637C13.5983 4.08665 13.8612 4.34954 13.8612 4.68412V6.45261H0.716957V4.68412C0.716957 4.34954 0.979841 4.08665 1.31442 4.08665ZM13.2637 13.8612H1.31442C0.979841 13.8612 0.716957 13.5983 0.716957 13.2637V7.16957H13.8612V13.2637C13.8612 13.5983 13.5983 13.8612 13.2637 13.8612Z" />
                           </svg>
                         </span>
-                        12 Jan 2024
+                        {formattedDate}
                       </p>
-                      <p className="mr-5 flex items-center text-base font-medium text-body-color">
+                      {/* <p className="mr-5 flex items-center text-base font-medium text-body-color">
                         <span className="mr-3">
                           <svg
                             width="18"
@@ -79,8 +118,9 @@ const BlogDetailsPage = () => {
                           </svg>
                         </span>
                         50
-                      </p>
-                      <p className="flex items-center text-base font-medium text-body-color">
+                      </p> */}
+
+                      {/* <p className="flex items-center text-base font-medium text-body-color">
                         <span className="mr-3">
                           <svg
                             width="20"
@@ -93,33 +133,26 @@ const BlogDetailsPage = () => {
                           </svg>
                         </span>
                         35
-                      </p>
+                      </p> */}
                     </div>
                   </div>
                   <div className="mb-5">
-                  <Link
-    href="/contact"
-    className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
-  >
-    Get In Touch
-  </Link>
+                    <Link
+                      href="/contact"
+                      className="inline-flex items-center justify-center rounded-full bg-blue-600 px-4 py-2 text-sm font-semibold text-white"
+                    >
+                      Get In Touch
+                    </Link>
                   </div>
                 </div>
                 <div>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    In the realm of web development, the Model-View-Controller
-                    (MVC) architectural pattern stands as one of the most
-                    influential paradigms. It provides a structured approach to
-                    designing web applications, promoting modularity,
-                    scalability, and maintainability. In this guide, we will
-                    delve into the MVC framework in PHP, exploring its key
-                    components, principles, and benefits.
-                  </p>
-
                   <div className="mb-10 w-full overflow-hidden rounded">
                     <div className="relative aspect-[97/60] w-full sm:aspect-[97/44]">
                       <Image
-                        src="/images/blog/tutorial.png"
+                        src={
+                          blogsData?.blog?.image ||
+                          "/images/blog/blog-details-01.jpg"
+                        }
                         alt="image"
                         fill
                         className="object-cover object-center"
@@ -127,252 +160,21 @@ const BlogDetailsPage = () => {
                     </div>
                   </div>
                   <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    MVC separates an application into three interconnected
-                    components, each with its distinct responsibility
-                    <br />
-                    <strong className="text-primary dark:text-white">
-                      Model:
-                    </strong>
-                    The model represents the applications data and business
-                    logic. It encapsulates the data structure, database
-                    interactions, and validation rules. In MVC, the model is
-                    responsible for managing data persistence and state.
+                    {blogsData?.blog?.paragraph}
                   </p>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    <strong className="text-primary dark:text-white">
-                      View:
-                    </strong>
-                    The view is responsible for presenting data to the user in a
-                    visually appealing format. It encompasses the HTML markup,
-                    CSS styling, and client-side scripting necessary to render
-                    the user interface. Views are typically components that
-                    receive data from the controller and display it to the user.
-                    <br />
-                    <strong className="text-primary dark:text-white">
-                      Controller:
-                    </strong>
-                    The controller acts as an intermediary between the model and
-                    the view. It processes user requests, invokes the
-                    appropriate methods in the model to retrieve or manipulate
-                    data, and selects the appropriate view to render the
-                    response. Controllers handle user input, orchestrate
-                    business logic, and coordinate the flow of data between the
-                    model and the view.
-                  </p>
-                  <p className="mb-8 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    In PHP, models typically represent data entities and
-                    interact with the database. They encapsulate data access
-                    logic and provide methods for querying, inserting, updating,
-                    and deleting records.
-                    {/* <strong className="text-primary dark:text-white">
-                      malesuada
-                    </strong> */}
-                    Views in PHP are responsible for generating HTML markup to
-                    render the user interface. They receive data from the
-                    controller and use it to dynamically generate the content
-                    displayed to the user. Views can include HTML templates with
-                    embedded PHP code or utilize template engines for better
-                    separation of concerns.
-                  </p>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    Semper auctor neque vitae tempus quam pellentesque nec.
-                    Controllers in PHP handle user requests, process input data,
-                    and interact with models to retrieve or manipulate data.
-                    They select the appropriate view to render the response and
-                    pass data to the view for presentation. Controllers are
-                    responsible for defining application routes and managing the
-                    overall application flow. sed.
-                  </p>
-                  <h3 className="font-xl mb-10 font-bold leading-tight text-black dark:text-white sm:text-2xl sm:leading-tight lg:text-xl lg:leading-tight xl:text-2xl xl:leading-tight">
-                    Benefits of MVC Framework in PHP:
-                  </h3>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed"></p>
-                  <ul className="mb-10 list-inside list-disc text-body-color">
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                      Separation of Concerns: MVC promotes a clear separation of
-                      concerns, making it easier to manage code complexity and
-                      maintainability.
-                    </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                      Modularity: Components in MVC are modular and reusable,
-                      allowing developers to build and extend applications more
-                      efficiently.
-                    </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                      Testability: With distinct components, it becomes easier
-                      to write unit tests for models, views, and controllers
-                      independently.
-                    </li>
-                    <li className="mb-2 text-base font-medium text-body-color sm:text-lg lg:text-base xl:text-lg">
-                      Scalability: MVC facilitates the scalability of web
-                      applications by enabling developers to add new features or
-                      modify existing ones without impacting other parts of the
-                      system.
-                    </li>
-                  </ul>
-                  <div className="relative z-10 mb-10 overflow-hidden rounded-md bg-primary bg-opacity-10 p-8 md:p-9 lg:p-8 xl:p-9">
-                    <p className="text-center text-base font-medium italic text-body-color">
-                      The MVC framework in PHP provides a robust architectural
-                      pattern for building scalable and maintainable web
-                      applications.
-                    </p>
-                    <span className="absolute left-0 top-0 z-[-1]">
-                      <svg
-                        width="132"
-                        height="109"
-                        viewBox="0 0 132 109"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          opacity="0.5"
-                          d="M33.0354 90.11C19.9851 102.723 -3.75916 101.834 -14 99.8125V-15H132C131.456 -12.4396 127.759 -2.95278 117.318 14.5117C104.268 36.3422 78.7114 31.8952 63.2141 41.1934C47.7169 50.4916 49.3482 74.3435 33.0354 90.11Z"
-                          fill="url(#paint0_linear_111:606)"
-                        />
-                        <path
-                          opacity="0.5"
-                          d="M33.3654 85.0768C24.1476 98.7862 1.19876 106.079 -9.12343 108.011L-38.876 22.9988L100.816 -25.8905C100.959 -23.8126 99.8798 -15.5499 94.4164 0.87754C87.5871 21.4119 61.9822 26.677 49.5641 38.7512C37.146 50.8253 44.8877 67.9401 33.3654 85.0768Z"
-                          fill="url(#paint1_linear_111:606)"
-                        />
-                        <defs>
-                          <linearGradient
-                            id="paint0_linear_111:606"
-                            x1="94.7523"
-                            y1="82.0246"
-                            x2="8.40951"
-                            y2="52.0609"
-                            gradientUnits="userSpaceOnUse"
-                          >
-                            <stop stopColor="white" stopOpacity="0.06" />
-                            <stop
-                              offset="1"
-                              stopColor="white"
-                              stopOpacity="0"
-                            />
-                          </linearGradient>
-                          <linearGradient
-                            id="paint1_linear_111:606"
-                            x1="90.3206"
-                            y1="58.4236"
-                            x2="1.16149"
-                            y2="50.8365"
-                            gradientUnits="userSpaceOnUse"
-                          >
-                            <stop stopColor="white" stopOpacity="0.06" />
-                            <stop
-                              offset="1"
-                              stopColor="white"
-                              stopOpacity="0"
-                            />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                    </span>
-                    <span className="absolute bottom-0 right-0 z-[-1]">
-                      <svg
-                        width="53"
-                        height="30"
-                        viewBox="0 0 53 30"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <circle
-                          opacity="0.8"
-                          cx="37.5"
-                          cy="37.5"
-                          r="37.5"
-                          fill="#4A6CF7"
-                        />
-                        <mask
-                          id="mask0_111:596"
-                          style={{ maskType: "alpha" }}
-                          maskUnits="userSpaceOnUse"
-                          x="0"
-                          y="0"
-                          width="75"
-                          height="75"
-                        >
-                          <circle
-                            opacity="0.8"
-                            cx="37.5"
-                            cy="37.5"
-                            r="37.5"
-                            fill="#4A6CF7"
-                          />
-                        </mask>
-                        <g mask="url(#mask0_111:596)">
-                          <circle
-                            opacity="0.8"
-                            cx="37.5"
-                            cy="37.5"
-                            r="37.5"
-                            fill="url(#paint0_radial_111:596)"
-                          />
-                          <g opacity="0.8" filter="url(#filter0_f_111:596)">
-                            <circle
-                              cx="40.8089"
-                              cy="19.853"
-                              r="15.4412"
-                              fill="white"
-                            />
-                          </g>
-                        </g>
-                        <defs>
-                          <filter
-                            id="filter0_f_111:596"
-                            x="4.36768"
-                            y="-16.5881"
-                            width="72.8823"
-                            height="72.8823"
-                            filterUnits="userSpaceOnUse"
-                            colorInterpolationFilters="sRGB"
-                          >
-                            <feFlood
-                              floodOpacity="0"
-                              result="BackgroundImageFix"
-                            />
-                            <feBlend
-                              mode="normal"
-                              in="SourceGraphic"
-                              in2="BackgroundImageFix"
-                              result="shape"
-                            />
-                            <feGaussianBlur
-                              stdDeviation="10.5"
-                              result="effect1_foregroundBlur_111:596"
-                            />
-                          </filter>
-                          <radialGradient
-                            id="paint0_radial_111:596"
-                            cx="0"
-                            cy="0"
-                            r="1"
-                            gradientUnits="userSpaceOnUse"
-                            gradientTransform="translate(37.5 37.5) rotate(90) scale(40.2574)"
-                          >
-                            <stop stopOpacity="0.47" />
-                            <stop offset="1" stopOpacity="0" />
-                          </radialGradient>
-                        </defs>
-                      </svg>
-                    </span>
-                  </div>
-                  <p className="mb-10 text-base font-medium leading-relaxed text-body-color sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed">
-                    By separating concerns into models, views, and controllers,
-                    developers can organize code more effectively, enhance
-                    testability, and streamline the development process.
-                  </p>
+
                   <div className="items-center justify-between sm:flex">
                     <div className="mb-5">
                       <h4 className="mb-3 text-sm font-medium text-body-color">
                         Popular Tags :
                       </h4>
-                      <div className="flex items-center">
-                        <TagButton text="Design" />
-                        <TagButton text="Development" />
-                        <TagButton text="PHP" />
+                      <div className="flex flex-wrap items-center gap-2">
+                        {blogsData?.blog?.tags?.map((tag, index) => (
+                          <TagButton key={index} text={tag} />
+                        ))}
                       </div>
                     </div>
+
                     <div className="mb-5">
                       <h5 className="mb-3 text-sm font-medium text-body-color sm:text-right">
                         Share this post :
@@ -392,50 +194,30 @@ const BlogDetailsPage = () => {
                   Most Read Blog
                 </h3>
                 <ul className="p-8">
-                  <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
-                    <RelatedPost
-                      title="Deep Learning Research Review Week 3: Natural Language Processing"
-                      image="/images/blog/ml.jpg"
-                      slug="#"
-                      date="12 Feb 2025"
-                      level={""}
-                      duration={""}
-                      certificate={""}
-                    />
-                  </li>
-                  <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
-                    <RelatedPost
-                      title="How Object Detection Evolved: From Region Proposals and Haar Cascades to Zero-Shot Techniques"
-                      image="/images/blog/post-01.jpg"
-                      slug="#"
-                      date="12 Feb 2025"
-                      level={""}
-                      duration={""}
-                      certificate={""}
-                    />
-                  </li>
-                  <li className="mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10">
-                    <RelatedPost
-                      title="Implement React Pagination Using React Hooks and React Paginate"
-                      image="/images/blog/post-02.jpg"
-                      slug="#"
-                      date="15 Feb, 2024"
-                      level={""}
-                      duration={""}
-                      certificate={""}
-                    />
-                  </li>
-                  <li>
-                    <RelatedPost
-                      title="Redefining the Database for AI: Why MongoDB Acquired Voyage AI"
-                      image="/images/blog/ai.jpg"
-                      slug="#"
-                      date="05 Jun, 2024"
-                      level={""}
-                      duration={""}
-                      certificate={""}
-                    />
-                  </li>
+                  {shuffledBlogs?.slice(0, 3).map((blog, index) => (
+                    <li
+                      key={blog._id}
+                      className={`${
+                        index < 2
+                          ? "mb-6 border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10"
+                          : ""
+                      }`}
+                    >
+                      <SideBlogs
+                        title={blog.title}
+                        image={blog.image || "/images/blog/blog-details-01.jpg"}
+                        slug={`/blog-details?blogId=${blog._id}`}
+                        date={new Date(blog.createdAt).toLocaleDateString(
+                          "en-GB",
+                          {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          },
+                        )}
+                      />
+                    </li>
+                  ))}
                 </ul>
               </div>
               <ModelOne />

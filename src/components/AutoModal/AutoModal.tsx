@@ -76,7 +76,7 @@ export default function AutoModal() {
               <div className="space-y-4 sm:space-y-5 mt-6 sm:mt-8">
                 <div className="bg-blue-500/20 rounded-lg p-3 sm:p-4">
                   <p className="font-semibold text-base sm:text-lg">Limited Time Offer</p>
-                  <p className="text-xl sm:text-2xl font-bold mt-1">₹2,499 only</p>
+                  <p className="text-xl sm:text-2xl font-bold mt-1">₹4,999 only</p>
                   <p className="text-blue-100 text-xs mt-1">for complete course access</p>
                 </div>
                 

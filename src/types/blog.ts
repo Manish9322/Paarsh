@@ -1,15 +1,16 @@
-type Author = {
-  name: string;
-  image: string;
-  designation: string;
-};
-
-export type Blog = {
-  id: number;
+export interface Blog {
+  _id: string;
   title: string;
   paragraph: string;
   image: string;
-  author: Author;
+  author: {
+    name: string;
+    designation: string;
+    image: string;
+    authorimage?: string;
+  };
   tags: string[];
   publishDate: string;
-};
+  createdAt?: string;
+  updatedAt?: string;
+}

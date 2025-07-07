@@ -1,14 +1,13 @@
 import { Testimonial } from "@/types/testimonial";
 import SectionTitle from "../Common/SectionTitle";
 import SingleTestimonial from "./SingleTestimonial";
-
 const testimonialData: Testimonial[] = [
   {
     id: 1,
     name: "Praful Jadhav",
     designation: "Jr. UI Engineer @Artify Inc.",
     content:
-      " Paarsh infotech , it gives me such an good experience and helps me to improve my knowledge, It gives me opportunity to take decision by myself.",
+      "PaarshEdu has been an incredible experience, enhancing my skills across multiple domains. It empowers me to make informed decisions and grow professionally.",
     image: "/images/testimonials/auth-01.png",
     star: 5,
   },
@@ -17,7 +16,7 @@ const testimonialData: Testimonial[] = [
     name: "Mitesh Dalavi",
     designation: "Asocciate Software Developer @LinkClick",
     content:
-      "I have never worked a part-time job with such intensity and dedication before.My internship was such a valuable experience and I learned so much!I am very grateful for the opportunity",
+      "My internship with PaarshEdu was intense and rewarding. I gained invaluable knowledge from diverse fields, and I'm truly grateful for this unique learning opportunity.",
     image: "/images/testimonials/auth-02.png",
     star: 5,
   },
@@ -26,7 +25,7 @@ const testimonialData: Testimonial[] = [
     name: "Nilesh Sawant",
     designation: "Jr. Software Developer @Lineicons",
     content:
-      "A positive company culture that values innovation, teamwork, and open communication can help employees feel engaged and motivated and The work environment is also better",
+      "PaarshEdu fosters a vibrant learning culture through its online cross-department platform, encouraging innovation and collaboration. The engaging environment motivates me to expand my expertise across departments.",
     image: "/images/testimonials/auth-03.png",
     star: 5,
   },
@@ -34,7 +33,7 @@ const testimonialData: Testimonial[] = [
 
 const Testimonials = () => {
   return (
-    <section className="dark:bg-bg-color-dark bg-gray-light relative z-10 py-16 md:py-20 lg:py-28">
+    <section className="relative z-10 bg-gray-light py-16 dark:bg-bg-color-dark md:py-20 lg:py-28">
       <div className="container">
         <SectionTitle
           title="What Our Students Says"

@@ -134,7 +134,8 @@ function MainLayout({ children }: { children: React.ReactNode }) {
     pathname?.startsWith("/view-links") ||
     pathname?.startsWith("/faq") ||
     pathname?.startsWith("/course-lecture") ||
-    pathname?.startsWith("/delete-account");
+    pathname?.startsWith("/delete-account") ||
+    pathname?.startsWith("/aptitude-test");
   return (
     <>
    

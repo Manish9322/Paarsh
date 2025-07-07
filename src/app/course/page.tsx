@@ -312,7 +312,8 @@ const BlogSidebarPage = () => {
                             <Skeleton width={60} />
                           ) : (
                             courseWithOffer?.duration
-                          )}
+                          )}{" "}
+                          days
                         </span>
                       </div>
                       <span className="text-gray-300">•</span>

@@ -114,6 +114,7 @@ export const paarshEduApi = createApi({
     "JobPosition",
     "Notifications",
     "Feedback",
+    "Blog",
   ],
   endpoints: (builder) => ({
     // Video Progress Endpoints
@@ -1136,10 +1137,46 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Enquiry"],
     }),
 
+    // ---------------------------------------------------- Blogs Apis --------------------------------------------------
 
+    fetchBlogs: builder.query({
+      query: () => "blogs",
+      providesTags: ["Blog"],
+    }),
+
+    fetchBlogById: builder.query({
+      query: (blogId) => `/blogs/${blogId}`,
+      providesTags: (result, error, id) => [{ type: "Blog", id }],
+    }),
+
+    createBlog: builder.mutation({
+      query: (blog) => ({
+        url: "blogs",
+        method: "POST",
+        body: blog,
+      }),
+      invalidatesTags: ["Blog"],
+    }),
+
+    updateBlog: builder.mutation({
+      query: ({ id, blog }) => ({
+        url: "blogs",
+        method: "PUT",
+        body: { id, ...blog },
+      }),
+      invalidatesTags: ["Blog"],
+    }),
+
+    deleteBlog: builder.mutation({
+      query: (id) => ({
+        url: "blogs",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["Blog"],
+    }),
   }),
 });
-
 
 export const {
   useLoginMutation,
@@ -1273,5 +1310,11 @@ export const {
   useFetchEnquiriesQuery,
   useCreateEnquiryMutation,
   useDeleteEnquiryMutation,
+
+  useFetchBlogsQuery,
+  useFetchBlogByIdQuery,
+  useCreateBlogMutation,
+  useUpdateBlogMutation,
+  useDeleteBlogMutation,
 
 } = paarshEduApi;

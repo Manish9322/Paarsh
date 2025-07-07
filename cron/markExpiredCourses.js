@@ -21,7 +21,7 @@ const checkExpiredCourses = async () => {
     if (updated) await user.save();
   }
 
-  console.log("✅ Checked and updated expired courses");
+  console.log("Checked and updated expired courses");
 };
 
 // Run immediately
