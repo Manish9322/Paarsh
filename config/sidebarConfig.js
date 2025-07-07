@@ -25,10 +25,18 @@ const sidebarConfig = [
     ],
   },
   {
+    name: "Aptitude Tests",
+    icon: <FaPencilRuler />,
+    children: [
+      { name: "Aptitude Test Logs", path: "/admin/aptitude-tests" },
+      { name: "Aptitude Test Results", path: "/admin/aptitude-test-results" },
+    ],
+  },
+  {
     name: "Blogs",
     icon: <RiArticleFill />,
     children: [
-      { name: "Posts", path: "/admin/posts" },
+      { name: "Posts", path: "/admin/blogs" },
       { name: "Categories", path: "/admin/categories" },
       { name: "Tags", path: "/admin/tags" },
     ],

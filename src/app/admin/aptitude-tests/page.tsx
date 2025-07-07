@@ -1,0 +1,593 @@
+"use client";
+
+import { useState } from "react";
+import { FaRegCopy } from "react-icons/fa6";
+import Sidebar from "@/components/Sidebar/Sidebar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import {
+  Menu,
+  Search,
+  Plus,
+  Trash2,
+  ChevronLeft,
+  ChevronRight,
+  Link,
+} from "lucide-react";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface AptitudeTest {
+  _id: string;
+  testName: string;
+  collegeName: string;
+  studentCount: number;
+  createdAt: string;
+  testLink: string;
+}
+
+const AptitudePage = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [testToDelete, setTestToDelete] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [testsPerPage, setTestsPerPage] = useState<number | "all">(10);
+  const [newTestName, setNewTestName] = useState("");
+  const [newCollegeName, setNewCollegeName] = useState("");
+  const [tests, setTests] = useState<AptitudeTest[]>([
+    {
+      _id: "test_1",
+      testName: "Math Aptitude Test 2025",
+      collegeName: "ABC University",
+      studentCount: 150,
+      createdAt: new Date("2025-06-01T10:00:00Z").toISOString(),
+      testLink: `/aptitude-test?test=${encodeURIComponent("Math Aptitude Test 2025")}&college=${encodeURIComponent("ABC University")}`,
+    },
+    {
+      _id: "test_2",
+      testName: "General Knowledge Quiz",
+      collegeName: "XYZ College",
+      studentCount: 200,
+      createdAt: new Date("2025-06-15T14:00:00Z").toISOString(),
+      testLink: `/aptitude-test?test=${encodeURIComponent("General Knowledge Quiz")}&college=${encodeURIComponent("XYZ College")}`,
+    },
+  ]);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleCreateTest = () => {
+    if (!newTestName || !newCollegeName) {
+      toast.error("Please fill in both test name and college name");
+      return;
+    }
+
+    const newTest: AptitudeTest = {
+      _id: `test_${Date.now()}`,
+      testName: newTestName,
+      collegeName: newCollegeName,
+      studentCount: 0,
+      createdAt: new Date().toISOString(),
+      testLink: `/aptitude-test?test=${encodeURIComponent(newTestName)}&college=${encodeURIComponent(newCollegeName)}`,
+    };
+
+    setTests([...tests, newTest]);
+    setCreateDialogOpen(false);
+    setNewTestName("");
+    setNewCollegeName("");
+    toast.success("Aptitude test created successfully");
+  };
+
+  const handleDeleteTest = (id: string) => {
+    setTests(tests.filter((test) => test._id !== id));
+    setDeleteDialogOpen(false);
+    setTestToDelete(null);
+    toast.success("Aptitude test deleted successfully");
+  };
+
+  const filteredTests = tests.filter(
+    (test) =>
+      test.testName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      test.collegeName.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  const startIndex =
+    testsPerPage === "all" ? 0 : (currentPage - 1) * testsPerPage;
+  const totalPages =
+    testsPerPage === "all" ? 1 : Math.ceil(filteredTests.length / testsPerPage);
+  const displayedTests =
+    testsPerPage === "all"
+      ? filteredTests
+      : filteredTests.slice(startIndex, startIndex + testsPerPage);
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const generatePaginationNumbers = () => {
+    const pageNumbers: (number | string)[] = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1);
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+
+      if (currentPage <= 3) {
+        endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
+      }
+      if (currentPage >= totalPages - 2) {
+        startPage = Math.max(2, totalPages - maxPagesToShow + 2);
+      }
+
+      if (startPage > 2) pageNumbers.push("...");
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+      if (endPage < totalPages - 1) pageNumbers.push("...");
+      if (totalPages > 1) pageNumbers.push(totalPages);
+    }
+    return pageNumbers;
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
+      {/* Mobile Header */}
+      <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
+        <button
+          onClick={toggleSidebar}
+          className="rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          aria-label="Toggle sidebar"
+        >
+          <Menu size={24} />
+        </button>
+        <h1 className="text-lg font-bold text-gray-800">Aptitude Management</h1>
+        <div className="w-10"></div>
+      </div>
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex h-16 items-center justify-between px-4 md:justify-end">
+            <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
+          </div>
+          <div className="custom-scrollbar flex-1 overflow-y-auto">
+            <Sidebar userRole="admin" />
+          </div>
+        </div>
+      </aside>
+
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
+          onClick={toggleSidebar}
+          aria-hidden="true"
+        ></div>
+      )}
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto pt-16 md:ml-64">
+        <div className="container mx-auto px-4 py-6">
+          <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-800 dark:text-white">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
+              <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+                <CardTitle className="text-xl font-bold text-white sm:text-2xl">
+                  Aptitude Tests Management
+                </CardTitle>
+                <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
+                  <Input
+                    type="text"
+                    placeholder="Search tests..."
+                    className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-black md:w-64"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <Button
+                    onClick={() => setCreateDialogOpen(true)}
+                    className="h-10 w-full rounded bg-white text-blue-600 transition-colors hover:bg-blue-50 md:w-auto"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add New Test
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-0">
+              {/* Table */}
+              <div className="m-4 overflow-x-auto">
+                <Table className="w-full text-black dark:text-white">
+                  <TableHeader>
+                    <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
+                      <TableHead className="hidden py-3 text-center sm:table-cell">
+                        #
+                      </TableHead>
+                      <TableHead className="py-3">Test Name</TableHead>
+                      <TableHead className="hidden py-3 md:table-cell">
+                        College Name
+                      </TableHead>
+                      <TableHead className="hidden py-3 lg:table-cell">
+                        Students
+                      </TableHead>
+                      <TableHead className="hidden py-3 xl:table-cell">
+                        Created At
+                      </TableHead>
+                      <TableHead className="py-3 text-center">
+                        Actions
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {displayedTests.length === 0 ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={6}
+                          className="py-6 text-center text-gray-500 dark:text-gray-400"
+                        >
+                          No tests found.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      displayedTests.map((test, index) => (
+                        <TableRow
+                          key={test._id}
+                          className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+                        >
+                          <TableCell className="hidden text-center font-medium sm:table-cell">
+                            {startIndex + index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <div className="md:hidden">
+                              <p className="font-medium">{test.testName}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                {test.collegeName}
+                              </p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Created: {formatDate(test.createdAt)}
+                              </p>
+                            </div>
+                            <span className="hidden font-medium md:inline">
+                              {test.testName}
+                            </span>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {test.collegeName}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {test.studentCount}
+                          </TableCell>
+                          <TableCell className="hidden xl:table-cell">
+                            {formatDate(test.createdAt)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-600 transition-all duration-200 hover:bg-green-100 hover:text-green-700 hover:shadow-md dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30 dark:hover:text-green-300"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(test.testLink);
+                                  toast.success(
+                                    "Test link copied to clipboard",
+                                  );
+                                }}
+                                aria-label="Copy test link"
+                              >
+                                <FaRegCopy
+                                  size={16}
+                                  className="transition-transform group-hover:scale-110"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  Copy test link
+                                </span>
+                              </button>
+
+                              <a
+                                href={test.testLink}
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
+                                aria-label="View test"
+                              >
+                                <Link
+                                  size={16}
+                                  className="transition-transform group-hover:scale-110"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  View test
+                                </span>
+                              </a>
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                                onClick={() => {
+                                  setTestToDelete(test._id);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                aria-label="Delete test"
+                              >
+                                <Trash2
+                                  size={16}
+                                  className="transition-transform group-hover:scale-110"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  Delete test
+                                </span>
+                              </button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Create Test Dialog */}
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                  Create New Aptitude Test
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
+                  Enter the details for the new aptitude test.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Test Name
+                  </label>
+                  <Input
+                    type="text"
+                    value={newTestName}
+                    onChange={(e) => setNewTestName(e.target.value)}
+                    placeholder="Enter test name"
+                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    College Name
+                  </label>
+                  <Input
+                    type="text"
+                    value={newCollegeName}
+                    onChange={(e) => setNewCollegeName(e.target.value)}
+                    placeholder="Enter college name"
+                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+                  />
+                </div>
+              </div>
+              <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setCreateDialogOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateTest} className="w-full sm:w-auto">
+                  Create Test
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                  Confirm Deletion
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
+                  Are you sure you want to delete this test? This action cannot
+                  be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteDialogOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => testToDelete && handleDeleteTest(testToDelete)}
+                  className="w-full sm:w-auto"
+                >
+                  Delete Test
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Pagination */}
+          <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
+            <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Showing{" "}
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {testsPerPage === "all" ? 1 : startIndex + 1}
+                </span>{" "}
+                to{" "}
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {testsPerPage === "all"
+                    ? filteredTests.length
+                    : Math.min(startIndex + testsPerPage, filteredTests.length)}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-gray-700 dark:text-gray-300">
+                  {filteredTests.length}
+                </span>{" "}
+                tests
+                <div className="flex items-center space-x-2 pt-2">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Show:
+                  </span>
+                  <Select
+                    value={testsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setTestsPerPage(
+                        value === "all" ? "all" : parseInt(value),
+                      );
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                      <SelectValue placeholder="Entries" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="all">All</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-1">
+                <Button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+
+                <div className="hidden sm:flex sm:items-center sm:space-x-1">
+                  {generatePaginationNumbers().map((page, index) =>
+                    typeof page === "number" ? (
+                      <Button
+                        key={`page-${page}`}
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
+                          currentPage === page
+                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                            : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                        }`}
+                        aria-label={`Page ${page}`}
+                        aria-current={currentPage === page ? "page" : undefined}
+                      >
+                        {page}
+                      </Button>
+                    ) : (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="px-1 text-gray-400"
+                      >
+                        {page}
+                      </span>
+                    ),
+                  )}
+                </div>
+
+                <Button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="hidden items-center space-x-2 lg:flex">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Go to page:
+                </span>
+                <Input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={currentPage}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (value >= 1 && value <= totalPages) {
+                      setCurrentPage(value);
+                    }
+                  }}
+                  className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
+                  aria-label="Go to page"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Custom Scrollbar Styling */}
+      <style jsx global>{`
+        body {
+          overflow-x: hidden;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #d1d5db;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background-color: #f9fafb;
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #1f2937;
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default AptitudePage;
