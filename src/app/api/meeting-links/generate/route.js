@@ -1,7 +1,9 @@
 const { NextResponse } = require("next/server");
-const { dbConnect } = require("../../../../../utils/db");
+import _db from "../../../../../utils/db";
 const { authMiddleware } = require("../../../../../middlewares/auth");
 const axios = require("axios");
+
+await _db();
 
 // Helper function to generate a random meeting ID and passcode
 const generatePlaceholderMeeting = () => {
@@ -204,16 +206,7 @@ function generateOtherMeeting() {
 export const POST = authMiddleware(async (req) => {
   try {
     const { user } = req;
-    
-    // Check if user is admin
-    if (!user.isAdmin) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized access" },
-        { status: 403 }
-      );
-    }
-    
-    await dbConnect();
+        
     const body = await req.json();
     
     // Validate required fields
@@ -261,4 +254,4 @@ export const POST = authMiddleware(async (req) => {
       { status: 500 }
     );
   }
-}); 
+}, ["admin"]); 

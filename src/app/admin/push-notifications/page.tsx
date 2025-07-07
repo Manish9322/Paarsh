@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState } from "react";
-import { Bell, Plus } from "lucide-react";
+import { Bell, Plus, Trash2, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +14,13 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import { useSendNotificationMutation } from "@/services/api";
+import {
+  useSendNotificationMutation,
+  useGetNotificationLogsQuery,
+  useDeleteNotificationLogMutation,
+  useResendNotificationMutation,
+} from "@/services/api";
+import { format } from "date-fns";
 
 const NotificationsPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,7 +31,12 @@ const NotificationsPage = () => {
     recipientType: "all" as "all" | "users" | "agents",
   });
   const [sendNotification, { isLoading: isSending }] = useSendNotificationMutation();
+  const { data: logs, isLoading: isLoadingLogs } = useGetNotificationLogsQuery(undefined);
+  const [deleteNotificationLog] = useDeleteNotificationLogMutation();
+  const [resendNotification] = useResendNotificationMutation();
 
+  console.log("Notification Logs:", logs);
+  
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -50,6 +60,57 @@ const NotificationsPage = () => {
       });
     }
   };
+
+
+
+  const handleDeleteLog = async (jobId: string) => {
+    try {
+      await deleteNotificationLog(jobId).unwrap();
+      toast.success("Notification log deleted", {
+        description: "The notification log has been successfully deleted.",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error deleting notification log:", error);
+      toast.error("Failed to delete notification log", {
+        description: "An error occurred while deleting the notification log.",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleResendNotification = async (jobId: string) => {
+    try {
+      await resendNotification(jobId).unwrap();
+      toast.success("Notification re-queued", {
+        description: "The notification has been successfully re-queued for sending.",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Error re-queuing notification:", error);
+      toast.error("Failed to re-queue notification", {
+        description: "An error occurred while re-queuing the notification.",
+        duration: 3000,
+      });
+    }
+  };
+
+  // Group logs by date
+  type NotificationLog = {
+    jobId: string;
+    title: string;
+    message: string;
+    recipientType: string;
+    status: string;
+    sentAt: string;
+  };
+
+  const groupedLogs = (logs?.logs as NotificationLog[] | undefined)?.reduce((acc, log) => {
+    const date = format(new Date(log.sentAt), "yyyy-MM-dd");
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(log);
+    return acc;
+  }, {} as Record<string, NotificationLog[]>);
 
   return (
     <div className="flex min-h-screen">
@@ -124,6 +185,73 @@ const NotificationsPage = () => {
                   </Button>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Notification Logs Section */}
+          <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-900">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
+              <CardTitle className="text-xl font-bold text-white sm:text-2xl">
+                Notification Logs
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4">
+              {isLoadingLogs ? (
+                <p>Loading logs...</p>
+              ) : !groupedLogs || Object.keys(groupedLogs).length === 0 ? (
+                <p>No notification logs found.</p>
+              ) : (
+                Object.entries(groupedLogs).map(([date, logs]) => (
+                  <div key={date} className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                      {format(new Date(date), "MMMM dd, yyyy")}
+                    </h3>
+                    <div className="mt-2 space-y-4">
+                      {logs.map((log) => (
+                        <div
+                          key={log.jobId}
+                          className="rounded-md border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-800"
+                        >
+                          <div className="flex justify-between">
+                            <div>
+                              <h4 className="text-md font-medium text-gray-900 dark:text-white">
+                                {log.title}
+                              </h4>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {log.message}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                Recipient: {log.recipientType} | Status: {log.status} | Sent:{" "}
+                                {format(new Date(log.sentAt), "HH:mm")}
+                              </p>
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button
+                                onClick={() => handleResendNotification(log.jobId)}
+                                variant="outline"
+                                size="sm"
+                                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-500"
+                              >
+                                <RefreshCw size={16} className="mr-2" />
+                                Resend
+                              </Button>
+                              <Button
+                                onClick={() => handleDeleteLog(log.jobId)}
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-500"
+                              >
+                                <Trash2 size={16} className="mr-2" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
 
