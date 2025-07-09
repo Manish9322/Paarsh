@@ -115,6 +115,7 @@ export const paarshEduApi = createApi({
     "Notifications",
     "Feedback",
     "Blog",
+    "Questions",
   ],
   endpoints: (builder) => ({
     // Video Progress Endpoints
@@ -1198,6 +1199,63 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["Blog"],
     }),
+
+    // ---------------------------------------------------- College Apis --------------------------------------------------
+
+    createCollege: builder.mutation({
+      query: (collegeData) => ({
+        url: "/admin/colleges",
+        method: "POST",
+        body: collegeData,
+      }),
+      invalidatesTags: ["College"],
+    }),
+
+    updateCollege: builder.mutation({
+      query: ({ id, ...collegeData }) => ({
+        url: `/admin/colleges/${id}`,
+        method: "PUT",
+        body: collegeData,
+      }),
+      invalidatesTags: ["College"],
+    }),
+
+    deleteCollege: builder.mutation({
+      query: (id) => ({
+        url: `/admin/colleges/${id}`,
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["College"],
+    }),
+
+    getColleges: builder.query({
+      query: () => "/admin/colleges",
+      providesTags: ["College"],
+    }),
+
+    getCollegeResults: builder.query({
+      query: (collegeId) => `/admin/colleges/${collegeId}/results`,
+      providesTags: ["Results"],
+    }),
+
+    addQuestions: builder.mutation({
+      query: (body) => ({
+        url: "/aptitude-test-questions",
+        method: "POST",
+        body,
+      }),
+      providesTags: ["Questions"],
+    }),
+
+    fetchQuestions: builder.query({
+      query: () => "/aptitude-test-questions",
+      providesTags: ["Questions"],
+      transformResponse: (response) => ({
+        success: true,
+        data: response,
+      }),
+    }),
   }),
 });
 
@@ -1344,4 +1402,12 @@ export const {
   useUpdateBlogMutation,
   useDeleteBlogMutation,
 
+  useCreateCollegeMutation,
+  useGetCollegesQuery,
+  useUpdateCollegeMutation,
+  useDeleteCollegeMutation,
+  useGetCollegeResultsQuery,
+
+  useAddQuestionsMutation,
+  useFetchQuestionsQuery,
 } = paarshEduApi;
