@@ -605,7 +605,7 @@ const TestResultsPage = () => {
                   Student Answers
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
-                  Review the student's answers and the correct answers.
+                  Review the students answers and the correct answers.
                 </DialogDescription>
               </DialogHeader>
               <div className="max-h-[60vh] space-y-4 overflow-y-auto">
@@ -619,7 +619,7 @@ const TestResultsPage = () => {
                     </p>
                     <p className="mt-2 text-sm">
                       <span className="font-medium text-gray-700 dark:text-gray-200">
-                        Student's Answer:
+                        Students Answer:
                       </span>{" "}
                       <span
                         className={

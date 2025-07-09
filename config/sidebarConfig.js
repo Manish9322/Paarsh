@@ -34,15 +34,7 @@ const sidebarConfig = [
       { name: "Student Test Results", path: "/admin/student-test-results" },
     ],
   },
-  {
-    name: "Blogs",
-    icon: <RiArticleFill />,
-    children: [
-      { name: "Posts", path: "/admin/blogs" },
-      { name: "Categories", path: "/admin/categories" },
-      { name: "Tags", path: "/admin/tags" },
-    ],
-  },
+ { name: "Blogs", path: "/admin/blogs", icon: <FaBook /> },
   {
     name: "Careers",
     icon: <RiFilePaperLine />,
