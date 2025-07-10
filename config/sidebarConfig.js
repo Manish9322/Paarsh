@@ -29,19 +29,12 @@ const sidebarConfig = [
     icon: <FaPencilRuler />,
     children: [
       { name: "Colleges", path: "/admin/colleges" },
-      { name: "Aptitude Test Logs", path: "/admin/aptitude-tests" },
-      { name: "Aptitude Test Results", path: "/admin/aptitude-test-results" },
+      { name: "Create New Test", path: "/admin/aptitude-tests" },
+      { name: "Aptitude Test Logs", path: "/admin/aptitude-test-logs" },
+      { name: "Student Test Results", path: "/admin/student-test-results" },
     ],
   },
-  {
-    name: "Blogs",
-    icon: <RiArticleFill />,
-    children: [
-      { name: "Posts", path: "/admin/blogs" },
-      { name: "Categories", path: "/admin/categories" },
-      { name: "Tags", path: "/admin/tags" },
-    ],
-  },
+ { name: "Blogs", path: "/admin/blogs", icon: <FaBook /> },
   {
     name: "Careers",
     icon: <RiFilePaperLine />,

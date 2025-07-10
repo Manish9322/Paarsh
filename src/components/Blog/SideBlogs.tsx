@@ -6,11 +6,13 @@ const SideBlogs = ({
   slug,
   title,
   date,
+  tags,
 }: {
   image: string;
   slug: string;
   title: string;
-  date: string
+  date: string;
+  tags: string;
 }) => {
   return (
     <div className="flex items-center lg:block xl:flex">
@@ -31,10 +33,13 @@ const SideBlogs = ({
         <div className="flex mb-2">
           
         </div>
-        <div className="flex mb-2">
+        <div className="flex flex-row justify-between gap-2 mb-2">
           <p className="text-xs font-medium text-body-color">
-            {date}
+            {date}  
           </p>
+          <div className="text-xs font-medium text-white bg-black dark:bg-blue-500 rounded-xl px-2 py-1">
+            {tags}
+          </div>
         </div>
 
       </div>

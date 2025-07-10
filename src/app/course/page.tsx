@@ -39,6 +39,8 @@ import { Button } from "@/components/ui/button";
 import { SkeletonThemeProvider } from "@/components/ui/skeleton-theme-provider";
 import VideoPlayer from "@/components/VideoPlayer/VideoPlayer";
 import debounce from "lodash/debounce";
+import { useSelector } from "react-redux";
+import { selectRootState } from "@/lib/store";
 
 interface Course {
   slug: string;
@@ -95,8 +97,10 @@ const BlogSidebarPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Course[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  
+
+    const isAuthenticated = useSelector(
+    (state) => selectRootState(state).userAuth.isAuthenticated,
+  );
 
   const courseId = param?.get("courseId");
 
@@ -105,7 +109,7 @@ const BlogSidebarPage = () => {
 
   // Fetch RTK Queries
   const { data: userCourseData } = useFetchUserCourseQuery(undefined, {
-    skip: !isAuthorized,
+    skip: !isAuthenticated,
   });
 
   const {
@@ -243,7 +247,7 @@ const BlogSidebarPage = () => {
   );
 
   const modalOpen = () => {
-    if (isAuthorized) {
+    if (isAuthenticated) {
       setIsModalOpen(true);
     } else {
       // Construct full path with query parameters

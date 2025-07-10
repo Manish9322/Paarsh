@@ -14,7 +14,11 @@ import SideBlogs from "@/components/Blog/SideBlogs";
 // };
 
 const Blog = () => {
-  const { data: blogsData, isLoading: blogsLoading, error: blogsError } = useFetchBlogsQuery(undefined);
+  const {
+    data: blogsData,
+    isLoading: blogsLoading,
+    error: blogsError,
+  } = useFetchBlogsQuery(undefined);
   const blogs = blogsData?.blogs || [];
 
   return (
@@ -35,13 +39,15 @@ const Blog = () => {
                     .fill(0)
                     .map((_, i) => (
                       <div key={i} className="w-full">
-                        <div className="h-64 w-full bg-gray-200 animate-pulse rounded-sm"></div>
+                        <div className="h-64 w-full animate-pulse rounded-sm bg-gray-200"></div>
                       </div>
                     ))}
                 </div>
               )}
               {blogsError && <p>Error loading blogs: {blogsError.message}</p>}
-              {!blogsLoading && !blogsError && blogs.length === 0 && <p>No blogs found.</p>}
+              {!blogsLoading && !blogsError && blogs.length === 0 && (
+                <p>No blogs found.</p>
+              )}
               {!blogsLoading && !blogsError && blogs.length > 0 && (
                 <div className="flex flex-col space-y-12">
                   {blogs.map((blog) => (
@@ -62,7 +68,13 @@ const Blog = () => {
                     Popular Category
                   </h3>
                   <ul className="px-8 py-6">
-                    {["IT", "NON-IT", "ANIMATION", "GRAPHICS DESIGNING", "LANGUAGES"].map((category) => (
+                    {[
+                      "IT",
+                      "NON-IT",
+                      "ANIMATION",
+                      "GRAPHICS DESIGNING",
+                      "LANGUAGES",
+                    ].map((category) => (
                       <li key={category}>
                         <a
                           href={`/blog?category=${category.toLowerCase()}`}
@@ -76,26 +88,36 @@ const Blog = () => {
                 </div>
 
                 {/* Must Read */}
-                <div className="rounded-lg bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
+                <div className="rounded bg-white shadow-three dark:bg-gray-dark dark:shadow-none">
                   <h3 className="border-b border-body-color border-opacity-10 px-6 py-4 text-lg font-semibold text-black dark:border-white dark:border-opacity-10 dark:text-white">
                     Must Read
                   </h3>
                   <ul className="space-y-6 p-6">
                     {blogsLoading && <li>Loading related posts...</li>}
                     {blogsError && <li>Error loading related posts</li>}
-                    {!blogsLoading && !blogsError && blogs.length === 0 && <li>No related posts found.</li>}
+                    {!blogsLoading && !blogsError && blogs.length === 0 && (
+                      <li>No related posts found.</li>
+                    )}
                     {!blogsLoading &&
                       !blogsError &&
                       blogs.slice(0, 4).map((blog) => (
                         <li
                           key={blog._id}
-                          className="border-b border-body-color border-opacity-10 pb-6 dark:border-white dark:border-opacity-10 last:border-b-0"
+                          className="border-b border-body-color border-opacity-10 pb-6 last:border-b-0 dark:border-white dark:border-opacity-10"
                         >
                           <SideBlogs
                             title={blog.title}
                             image={blog.image || "/images/favicon.png"}
                             slug={`/blog-details?blogId=${blog._id}`}
-                            date={formatRelativeTime(blog.publishDate)}
+                            tags={blog.tags[0]}
+                            date={new Date(blog.publishDate).toLocaleDateString(
+                              "en-GB",
+                              {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
                           />
                         </li>
                       ))}

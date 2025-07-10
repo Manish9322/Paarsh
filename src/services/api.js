@@ -124,6 +124,7 @@ export const paarshEduApi = createApi({
     "Test",
     "Results",
     "Role",
+    "Questions",
   ],
   endpoints: (builder) => ({
     // Video Progress Endpoints

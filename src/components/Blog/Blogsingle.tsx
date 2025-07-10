@@ -5,7 +5,18 @@ import Link from "next/link";
 import type { Blog } from "@/types/blog";
 import { formatRelativeTime } from "../../../utils/formatRelativeTime";
 
+// Simple function to strip HTML tags for preview
+const stripHtmlTags = (html: string) => {
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 const Blogsingle = ({ blog }: { blog: Blog }) => {
+  // Truncate plain text for preview (100 characters)
+  const truncatedContent = stripHtmlTags(blog.paragraph).slice(0, 100) + "...";
+
   return (
     <section>
       <Link
@@ -20,6 +31,10 @@ const Blogsingle = ({ blog }: { blog: Blog }) => {
               <div className="flex w-full flex-col overflow-hidden rounded bg-white shadow-md transition duration-300 hover:shadow-lg dark:bg-dark md:flex-row">
                 {/* Blog Image */}
                 <div className="relative h-[250px] w-full md:h-auto md:w-1/2">
+                  <span className="absolute right-3 top-3 z-20 inline-flex items-center justify-center rounded-full bg-primary px-2 py-1 text-sm font-semibold capitalize text-white dark:bg-blue-500 dark:text-white">
+                    {blog.tags[0] || "No Tag"}
+                  </span>
+
                   <Image
                     src={blog.image || "/images/favicon.png"}
                     alt={blog.title}
@@ -39,9 +54,9 @@ const Blogsingle = ({ blog }: { blog: Blog }) => {
                   <h3 className="mb-4 text-xl font-bold text-black hover:text-primary dark:text-white">
                     {blog.title}
                   </h3>
-                  {/* Truncated Paragraph (100 characters) */}
+                  {/* Truncated Plain Text */}
                   <p className="mb-6 border-b border-opacity-10 pb-6 text-base font-medium text-body-color dark:border-opacity-10 dark:text-white">
-                    {blog.paragraph.slice(0, 100)}...
+                    {truncatedContent}
                   </p>
 
                   {/* Author & Publish Date */}
@@ -74,9 +89,21 @@ const Blogsingle = ({ blog }: { blog: Blog }) => {
 
                     {/* Publish Date */}
                     <div className="inline-block">
-                      <h4 className="mb-1 text-sm font-medium text-dark dark:text-white">
-                        {formatRelativeTime(blog.publishDate)}
-                      </h4>
+                      <div className="w-full">
+                        <h4 className="mb-1 text-sm font-medium text-dark dark:text-white">
+                          Publish Date
+                        </h4>
+                        <p className="text-xs text-body-color">
+                          {new Date(blog.publishDate).toLocaleDateString(
+                            "en-GB",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -85,7 +112,7 @@ const Blogsingle = ({ blog }: { blog: Blog }) => {
                     href={`/blog-details?blogId=${blog._id}`}
                     className="hover:text-primary-dark flex items-center space-x-2 pt-4 text-primary transition duration-300 dark:text-white dark:hover:text-gray-300"
                   >
-                    <span>Read More</span>
+                    <span className="text-sm font-medium">Read More</span>
                     <svg
                       className="h-3 w-3 transform text-gray-800 transition duration-300 hover:translate-x-1 dark:text-white"
                       aria-hidden="true"

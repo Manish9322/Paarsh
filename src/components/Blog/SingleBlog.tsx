@@ -9,10 +9,10 @@ const SingleBlog = ({ blog }: { blog: Blog }) => {
   return (
     <div className="group relative overflow-hidden rounded-sm bg-white shadow-one duration-300 hover:shadow-two dark:bg-dark dark:hover:shadow-gray-dark">
       <Link
-        href={`/blog-details/${blog._id}`}
+        href={`/blog-details?blogId=${blog._id}`}
         className="relative block aspect-[37/22] w-full"
       >
-        <span className="absolute right-6 top-6 z-20 inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold capitalize text-white dark:text-black dark:bg-primary">
+        <span className="absolute right-3 top-3 z-20 inline-flex items-center justify-center rounded-full bg-primary px-2 py-1 text-sm font-semibold capitalize text-white dark:bg-blue-500 dark:text-white">
           {blog.tags[0] || "No Tag"}
         </span>
         <Image
@@ -28,7 +28,7 @@ const SingleBlog = ({ blog }: { blog: Blog }) => {
       <div className="p-6 sm:p-8 md:px-6 md:py-8 lg:p-8 xl:px-5 xl:py-8 2xl:p-8">
         <h3>
           <Link
-            href={`/blog-details/${blog._id}`}
+            href={`/blog-details?blogId=${blog._id}`}
             className="mb-4 block text-xl font-bold text-black hover:text-primary dark:text-white dark:hover:text-primary sm:text-2xl"
           >
             {blog.title}
@@ -56,7 +56,9 @@ const SingleBlog = ({ blog }: { blog: Blog }) => {
               <h4 className="mb-1 text-sm font-medium text-dark dark:text-white">
                 By {blog.author.name}
               </h4>
-              <p className="text-xs text-body-color">{blog.author.designation}</p>
+              <p className="text-xs text-body-color">
+                {blog.author.designation}
+              </p>
             </div>
           </div>
           <div className="inline-block">
@@ -64,7 +66,14 @@ const SingleBlog = ({ blog }: { blog: Blog }) => {
               Date
             </h4>
             <p className="text-xs text-body-color">
-              {formatRelativeTime(blog.publishDate)}
+              {new Date(blog.publishDate).toLocaleDateString(
+                "en-GB",
+                {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                },
+              )}
             </p>
           </div>
         </div>

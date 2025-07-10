@@ -55,8 +55,8 @@ const Navbar: React.FC = () => {
           aria-label="Toggle theme"
         >
           {theme === "dark" ? 
-            <FiSun size={20} className="text-amber-400" /> : 
-            <FiMoon size={20} className="text-blue-600" />
+            <FiSun size={20} className="text-gray-600" /> : 
+            <FiMoon size={20} className="text-gray-600" />
           }
         </motion.button>
 

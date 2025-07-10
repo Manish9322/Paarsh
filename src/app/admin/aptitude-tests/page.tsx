@@ -4,6 +4,17 @@ import { useState, useEffect } from "react";
 import { FaRegCopy } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Menu, Upload } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -19,17 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Menu, Plus, Trash2, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import {
@@ -65,8 +67,37 @@ interface TestWithCollegeName extends Test {
   collegeName: string;
 }
 
-const AptitudePage = () => {
+interface QuestionData {
+  id?: string;
+  question?: string;
+  option1?: string;
+  option2?: string;
+  option3?: string;
+  option4?: string;
+  answer?: string;
+  category?: string;
+  explanation?: string;
+}
+
+interface ParsedQuestion {
+  question: string;
+  options: { text: string; isCorrect: boolean }[];
+  correctAnswer: string;
+  category: string;
+  explanation: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+const CreateAptitudeTest = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [parsedQuestions, setParsedQuestions] = useState<ParsedQuestion[]>([]);
+  const [isParsing, setIsParsing] = useState(false);
+  const [addQuestions, { isLoading: isAddingQuestions }] = useAddQuestionsMutation();
+
+  // Table state
   const [searchTerm, setSearchTerm] = useState("");
   const [createTestDialogOpen, setCreateTestDialogOpen] = useState(false);
   const [deleteTestDialogOpen, setDeleteTestDialogOpen] = useState(false);
@@ -141,9 +172,9 @@ const AptitudePage = () => {
     ? filteredTests
     : filteredTests.slice(startIndex, startIndex + testsPerPage);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  // Fetch all questions
+  const { data, isLoading: isQuestionsLoading, error } = useFetchQuestionsQuery(undefined);
+  const allQuestions: ParsedQuestion[] = data?.data || [];
 
   const handleCreateTest = async () => {
     const { collegeId, testDuration, questionsPerTest, passingScore, allowRetake } = testForm;
@@ -238,31 +269,210 @@ const AptitudePage = () => {
   const generatePaginationNumbers = () => {
     const pageNumbers: (number | string)[] = [];
     const maxPagesToShow = 5;
-
     if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i);
-      }
+      for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
     } else {
       pageNumbers.push(1);
       let startPage = Math.max(2, currentPage - 1);
       let endPage = Math.min(totalPages - 1, currentPage + 1);
-
-      if (currentPage <= 3) {
-        endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
-      }
-      if (currentPage >= totalPages - 2) {
-        startPage = Math.max(2, totalPages - maxPagesToShow + 2);
-      }
-
+      if (currentPage <= 3) endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
+      if (currentPage >= totalPages - 2) startPage = Math.max(2, totalPages - maxPagesToShow + 2);
       if (startPage > 2) pageNumbers.push("...");
-      for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-      }
+      for (let i = startPage; i <= endPage; i++) pageNumbers.push(i);
       if (endPage < totalPages - 1) pageNumbers.push("...");
       if (totalPages > 1) pageNumbers.push(totalPages);
     }
     return pageNumbers;
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setSelectedFile(null);
+      setParsedQuestions([]);
+      return;
+    }
+
+    const validTypes = ["application/json", "text/csv"];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please upload a JSON or CSV file");
+      setSelectedFile(null);
+      setParsedQuestions([]);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      setSelectedFile(null);
+      setParsedQuestions([]);
+      return;
+    }
+
+    setSelectedFile(file);
+    parseFile(file);
+  };
+
+  const parseFile = (file: File) => {
+    setIsParsing(true);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        let questions: ParsedQuestion[] = [];
+
+        if (file.type === "application/json") {
+          questions = parseJsonFile(content);
+        } else if (file.type === "text/csv") {
+          questions = parseCsvFile(content);
+        }
+
+        if (questions.length > 100) {
+          toast.error("Maximum 100 questions allowed per test");
+          setParsedQuestions([]);
+          return;
+        }
+
+        if (questions.length === 0) {
+          toast.error("No valid questions found in the file");
+          setParsedQuestions([]);
+          return;
+        }
+
+        setParsedQuestions(questions);
+        toast.success(`${questions.length} questions parsed successfully`);
+      } catch (error) {
+        toast.error("Error parsing file. Please ensure the file is correctly formatted.");
+        setParsedQuestions([]);
+      } finally {
+        setIsParsing(false);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const parseJsonFile = (content: string): ParsedQuestion[] => {
+    const data = JSON.parse(content);
+    if (!data.questions || !Array.isArray(data.questions)) {
+      throw new Error("JSON file must contain a 'questions' array");
+    }
+
+    return data.questions
+      .filter((item: any) => isValidQuestion(item))
+      .map((item: any) => {
+        const correctOption = item.options.find((opt: any) => opt.isCorrect);
+        if (!correctOption) {
+          throw new Error("Each question must have exactly one correct option");
+        }
+        return {
+          question: item.question,
+          options: item.options.map((opt: any) => ({
+            text: opt.text,
+            isCorrect: opt.isCorrect,
+          })),
+          correctAnswer: correctOption.text,
+          category: item.category,
+          explanation: item.explanation || "",
+          isActive: item.isActive !== undefined ? item.isActive : true,
+          createdAt: item.createdAt || new Date().toISOString(),
+        };
+      });
+  };
+
+  const parseCsvFile = (content: string): ParsedQuestion[] => {
+    const rows = content.split("\n").map((row) => row.split(",").map((cell) => cell.trim()));
+    const headers = rows[0];
+    const questions: ParsedQuestion[] = [];
+
+    if (
+      !headers.includes("question") ||
+      !headers.includes("answer") ||
+      !headers.includes("category") ||
+      !headers.some((header) => header.startsWith("option"))
+    ) {
+      throw new Error("CSV must include columns: question, option1, option2, option3, option4, answer, category");
+    }
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (row.length < headers.length) continue;
+
+      const questionData: QuestionData = {};
+      headers.forEach((header, index) => {
+        questionData[header] = row[index] ? row[index].trim() : "";
+      });
+
+      if (
+        typeof questionData.question === "string" &&
+        questionData.question.trim() &&
+        typeof questionData.answer === "string" &&
+        questionData.answer.trim() &&
+        typeof questionData.option1 === "string" &&
+        questionData.option1.trim() &&
+        typeof questionData.option2 === "string" &&
+        questionData.option2.trim() &&
+        typeof questionData.option3 === "string" &&
+        questionData.option3.trim() &&
+        typeof questionData.option4 === "string" &&
+        questionData.option4.trim() &&
+        typeof questionData.category === "string" &&
+        questionData.category.trim()
+      ) {
+        const question: ParsedQuestion = {
+          question: questionData.question,
+          options: [
+            { text: questionData.option1, isCorrect: questionData.option1 === questionData.answer },
+            { text: questionData.option2, isCorrect: questionData.option2 === questionData.answer },
+            { text: questionData.option3, isCorrect: questionData.option3 === questionData.answer },
+            { text: questionData.option4, isCorrect: questionData.option4 === questionData.answer },
+          ],
+          correctAnswer: questionData.answer,
+          category: questionData.category as ParsedQuestion["category"],
+          explanation: questionData.explanation || "",
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        };
+        if (isValidQuestion(question)) {
+          questions.push(question);
+        }
+      }
+    }
+
+    return questions;
+  };
+
+  const isValidQuestion = (item: any): boolean => {
+    return (
+      typeof item.question === "string" &&
+      item.question.trim() !== "" &&
+      Array.isArray(item.options) &&
+      item.options.length === 4 &&
+      item.options.every(
+        (opt: any) => typeof opt.text === "string" && opt.text.trim() !== "" && typeof opt.isCorrect === "boolean"
+      ) &&
+      item.options.filter((opt: any) => opt.isCorrect).length === 1 &&
+      ["aptitude", "logical", "quantitative", "verbal", "technical"].includes(item.category)
+    );
+  };
+
+  const handleAddQuestions = async () => {
+    if (parsedQuestions.length === 0) {
+      toast.error("No questions to add. Please upload a valid file.");
+      return;
+    }
+
+    try {
+      await addQuestions({ questions: parsedQuestions }).unwrap();
+      toast.success(`${parsedQuestions.length} questions added successfully`);
+      setPreviewDialogOpen(false);
+      setSelectedFile(null);
+      setParsedQuestions([]);
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Error adding questions");
+    }
   };
 
   return (
@@ -282,7 +492,9 @@ const AptitudePage = () => {
       </div>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between px-4 md:justify-end">
@@ -309,7 +521,7 @@ const AptitudePage = () => {
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">
-                  Aptitude Tests Management
+                  Aptitude Questions
                 </CardTitle>
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
                   <Input
@@ -329,7 +541,6 @@ const AptitudePage = () => {
                 </div>
               </div>
             </CardHeader>
-
             <CardContent className="p-0">
               <div className="m-4 overflow-x-auto">
                 <Table className="w-full text-black dark:text-white">
@@ -592,21 +803,9 @@ const AptitudePage = () => {
           <div className="mt-6 rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800 dark:text-white">
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {testsPerPage === "all" ? 1 : startIndex + 1}
-                </span>{" "}
-                to{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {testsPerPage === "all"
-                    ? filteredTests.length
-                    : Math.min(startIndex + testsPerPage, filteredTests.length)}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {filteredTests.length}
-                </span>{" "}
-                tests
+                Showing {testsPerPage === "all" ? 1 : startIndex + 1} to{" "}
+                {testsPerPage === "all" ? filteredTests.length : Math.min(startIndex + (testsPerPage as number), filteredTests.length)} of{" "}
+                {filteredTests.length} tests
                 <div className="flex items-center space-x-2 pt-2">
                   <span className="text-sm text-gray-500 dark:text-gray-400">
                     Show:
@@ -618,7 +817,7 @@ const AptitudePage = () => {
                       setCurrentPage(1);
                     }}
                   >
-                    <SelectTrigger className="h-8 w-24 rounded border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 dark:text-white">
+                    <SelectTrigger className="h-8 w-24 rounded-md border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                       <SelectValue placeholder="Entries" />
                     </SelectTrigger>
                     <SelectContent>
@@ -630,7 +829,6 @@ const AptitudePage = () => {
                   </Select>
                 </div>
               </div>
-
               <div className="flex items-center space-x-1">
                 <Button
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -638,9 +836,9 @@ const AptitudePage = () => {
                   className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-700 dark:disabled:text-gray-600"
                   aria-label="Previous page"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <span className="sr-only">Previous</span>
+                  ←
                 </Button>
-
                 <div className="hidden sm:flex sm:items-center sm:space-x-1">
                   {generatePaginationNumbers().map((page, index) =>
                     typeof page === "number" ? (
@@ -658,30 +856,24 @@ const AptitudePage = () => {
                         {page}
                       </Button>
                     ) : (
-                      <span
-                        key={`ellipsis-${index}`}
-                        className="px-1 text-gray-400"
-                      >
+                      <span key={`ellipsis-${index}`} className="px-1 text-gray-400">
                         {page}
                       </span>
-                    ),
+                    )
                   )}
                 </div>
-
                 <Button
                   onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-700 dark:disabled:text-gray-600"
                   aria-label="Next page"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <span className="sr-only">Next</span>
+                  →
                 </Button>
               </div>
-
               <div className="hidden items-center space-x-2 lg:flex">
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Go to page:
-                </span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Go to page:</span>
                 <Input
                   type="number"
                   min={1}
@@ -701,6 +893,70 @@ const AptitudePage = () => {
           </div>
         </div>
       </main>
+
+      {/* Preview Questions Dialog */}
+      <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+        <DialogContent className="max-w-3xl dark:bg-gray-800 dark:text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+              Preview Questions
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
+              Review the parsed questions before adding them to the test.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {parsedQuestions.map((question, index) => (
+              <div
+                key={index}
+                className="mb-4 rounded-lg border p-4 dark:border-gray-600 dark:bg-gray-700"
+              >
+                <p className="font-medium text-gray-800 dark:text-gray-100">
+                  Question {index + 1}: {question.question}
+                </p>
+                <ul className="mt-2 list-disc pl-5 text-sm text-gray-600 dark:text-gray-300">
+                  {question.options.map((option, optIndex) => (
+                    <li
+                      key={optIndex}
+                      className={option.isCorrect ? "text-green-600 dark:text-green-400" : ""}
+                    >
+                      {option.text}
+                      {option.isCorrect && " (Correct)"}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                  Category: {question.category}
+                </p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  Correct Answer: {question.correctAnswer}
+                </p>
+                {question.explanation && (
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                    Explanation: {question.explanation}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+          <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setPreviewDialogOpen(false)}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddQuestions}
+              className="w-full sm:w-auto"
+              disabled={isParsing || isAddingQuestions}
+            >
+              {isAddingQuestions ? "Adding..." : "Add Questions"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Custom Scrollbar Styling */}
       <style jsx global>{`
@@ -733,4 +989,12 @@ const AptitudePage = () => {
   );
 };
 
-export default AptitudePage;
+export default CreateAptitudeTest;
+function useFetchQuestionsQuery(undefined: undefined): { data: any; isLoading: any; error: any; } {
+  throw new Error("Function not implemented.");
+}
+
+function useAddQuestionsMutation(): [any, { isLoading: any; }] {
+  throw new Error("Function not implemented.");
+}
+
