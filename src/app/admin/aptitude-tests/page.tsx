@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaRegCopy } from "react-icons/fa6";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -21,15 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import {
-  Menu,
-  Search,
-  Plus,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-  Link,
-} from "lucide-react";
+import { Menu, Plus, Trash2, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -40,92 +31,201 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import Sidebar from "@/components/Sidebar/Sidebar";
+import {
+  useFetchCollegesQuery,
+  useLazyGetTestsQuery,
+  useCreateTestMutation,
+  useDeleteTestMutation,
+} from "@/services/api";
 
-interface AptitudeTest {
+interface College {
   _id: string;
-  testName: string;
-  collegeName: string;
-  studentCount: number;
+  name: string;
+  email: string;
+  createdAt: string;
+  testIds: string[];
+}
+
+interface Test {
+  testId: string;
+  college: string;
+  testDuration: number;
+  testSettings: {
+    questionsPerTest: number;
+    passingScore: number;
+    allowRetake: boolean;
+  };
   createdAt: string;
   testLink: string;
+  studentCount: number;
+}
+
+interface TestWithCollegeName extends Test {
+  collegeName: string;
 }
 
 const AptitudePage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [testToDelete, setTestToDelete] = useState<string | null>(null);
+  const [createTestDialogOpen, setCreateTestDialogOpen] = useState(false);
+  const [deleteTestDialogOpen, setDeleteTestDialogOpen] = useState(false);
+  const [testToDelete, setTestToDelete] = useState<{ testId: string; collegeId: string } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [testsPerPage, setTestsPerPage] = useState<number | "all">(10);
-  const [newTestName, setNewTestName] = useState("");
-  const [newCollegeName, setNewCollegeName] = useState("");
-  const [tests, setTests] = useState<AptitudeTest[]>([
-    {
-      _id: "test_1",
-      testName: "Math Aptitude Test 2025",
-      collegeName: "ABC University",
-      studentCount: 150,
-      createdAt: new Date("2025-06-01T10:00:00Z").toISOString(),
-      testLink: `/aptitude-test?test=${encodeURIComponent("Math Aptitude Test 2025")}&college=${encodeURIComponent("ABC University")}`,
-    },
-    {
-      _id: "test_2",
-      testName: "General Knowledge Quiz",
-      collegeName: "XYZ College",
-      studentCount: 200,
-      createdAt: new Date("2025-06-15T14:00:00Z").toISOString(),
-      testLink: `/aptitude-test?test=${encodeURIComponent("General Knowledge Quiz")}&college=${encodeURIComponent("XYZ College")}`,
-    },
-  ]);
+  const [testForm, setTestForm] = useState({
+    collegeId: "",
+    testDuration: "",
+    questionsPerTest: "",
+    passingScore: "",
+    allowRetake: false,
+  });
+  const [allTests, setAllTests] = useState<TestWithCollegeName[]>([]);
+  const [isLoadingTests, setIsLoadingTests] = useState(false);
+
+  const { data: collegesData, isLoading: isLoadingColleges, error: collegesError } = useFetchCollegesQuery(undefined);
+  const [triggerGetTests, { isLoading: isLoadingTestsQuery, error: testsError }] = useLazyGetTestsQuery();
+  const [createTest, { isLoading: isCreatingTest }] = useCreateTestMutation();
+  const [deleteTest, { isLoading: isDeletingTest }] = useDeleteTestMutation();
+
+  const colleges = collegesData?.colleges || [];
+
+  // Fetch tests for all colleges
+  useEffect(() => {
+    const fetchAllTests = async () => {
+      setIsLoadingTests(true);
+      try {
+        const testsPromises = colleges.map(async (college: College) => {
+          const tests = await triggerGetTests(college._id).unwrap();
+          return tests.map((test: Test) => ({
+            ...test,
+            studentCount: 0,
+            collegeName: college.name,
+          }));
+        });
+        const testsArrays = await Promise.all(testsPromises);
+        const flattenedTests = testsArrays.flat();
+        setAllTests(flattenedTests);
+      } catch (err: any) {
+        toast.error(err?.data?.message || "Failed to load tests");
+      } finally {
+        setIsLoadingTests(false);
+      }
+    };
+
+    if (colleges.length > 0) {
+      fetchAllTests();
+    }
+  }, [colleges, triggerGetTests]);
+
+  // Handle errors
+  useEffect(() => {
+    if (collegesError) {
+      toast.error(collegesError?.data?.message || "Failed to load colleges");
+    }
+    if (testsError) {
+      toast.error(testsError?.data?.message || "Failed to load tests");
+    }
+  }, [collegesError, testsError]);
+
+  // Filter tests based on search term
+  const filteredTests = allTests.filter(
+    (test: TestWithCollegeName) =>
+      test.testId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      test.collegeName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Paginate tests
+  const startIndex = testsPerPage === "all" ? 0 : (currentPage - 1) * testsPerPage;
+  const displayedTests = testsPerPage === "all"
+    ? filteredTests
+    : filteredTests.slice(startIndex, startIndex + testsPerPage);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const handleCreateTest = () => {
-    if (!newTestName || !newCollegeName) {
-      toast.error("Please fill in both test name and college name");
+  const handleCreateTest = async () => {
+    const { collegeId, testDuration, questionsPerTest, passingScore, allowRetake } = testForm;
+    if (!collegeId || !testDuration || !questionsPerTest || !passingScore) {
+      toast.error("Please fill in all required fields");
       return;
     }
-
-    const newTest: AptitudeTest = {
-      _id: `test_${Date.now()}`,
-      testName: newTestName,
-      collegeName: newCollegeName,
-      studentCount: 0,
-      createdAt: new Date().toISOString(),
-      testLink: `/aptitude-test?test=${encodeURIComponent(newTestName)}&college=${encodeURIComponent(newCollegeName)}`,
-    };
-
-    setTests([...tests, newTest]);
-    setCreateDialogOpen(false);
-    setNewTestName("");
-    setNewCollegeName("");
-    toast.success("Aptitude test created successfully");
+    try {
+      const response = await createTest({
+        collegeId,
+        testDuration: parseInt(testDuration),
+        testSettings: {
+          questionsPerTest: parseInt(questionsPerTest),
+          passingScore: parseInt(passingScore),
+          allowRetake,
+        },
+      }).unwrap();
+      setCreateTestDialogOpen(false);
+      setTestForm({ collegeId: "", testDuration: "", questionsPerTest: "", passingScore: "", allowRetake: false });
+      toast.success(`Test created successfully: ${response.data.testLink}`);
+      // Refresh tests
+      const tests = await triggerGetTests(collegeId).unwrap();
+      const college = colleges.find((c: College) => c._id === collegeId);
+      setAllTests((prev) => [
+        ...prev,
+        ...tests.map((test: Test) => ({
+          ...test,
+          studentCount: 0,
+          collegeName: college?.name || "",
+        })),
+      ]);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to create test");
+    }
   };
 
-  const handleDeleteTest = (id: string) => {
-    setTests(tests.filter((test) => test._id !== id));
-    setDeleteDialogOpen(false);
-    setTestToDelete(null);
-    toast.success("Aptitude test deleted successfully");
+  const handleDeleteTest = async () => {
+    if (!testToDelete) return;
+    try {
+      await deleteTest(testToDelete).unwrap();
+      setDeleteTestDialogOpen(false);
+      setTestToDelete(null);
+      toast.success("Test deleted successfully");
+      // Remove deleted test from state
+      setAllTests((prev) => prev.filter((test) => test.testId !== testToDelete.testId));
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to delete test");
+    }
   };
 
-  const filteredTests = tests.filter(
-    (test) =>
-      test.testName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      test.collegeName.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const handleCopyLink = async (testLink: string) => {
+    try {
+      await navigator.clipboard.writeText(testLink);
+      toast.success("Test link copied to clipboard");
+    } catch (err) {
+      toast.error("Failed to copy test link");
+    }
+  };
 
-  const startIndex =
-    testsPerPage === "all" ? 0 : (currentPage - 1) * testsPerPage;
-  const totalPages =
-    testsPerPage === "all" ? 1 : Math.ceil(filteredTests.length / testsPerPage);
-  const displayedTests =
-    testsPerPage === "all"
-      ? filteredTests
-      : filteredTests.slice(startIndex, startIndex + testsPerPage);
+  const handleShareLink = async (testLink: string, testId: string) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Aptitude Test: ${testId}`,
+          text: `Take the aptitude test: ${testId}`,
+          url: testLink,
+        });
+        toast.success("Test link shared successfully");
+      } catch (err) {
+        toast.error("Failed to share test link");
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(testLink);
+        toast.success("Test link copied to clipboard (sharing not supported)");
+      } catch (err) {
+        toast.error("Failed to copy test link");
+      }
+    }
+  };
+
+  const totalPages = testsPerPage === "all" ? 1 : Math.ceil(filteredTests.length / testsPerPage);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
@@ -166,17 +266,18 @@ const AptitudePage = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-850 dark:to-gray-800">
       {/* Mobile Header */}
-      <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
-        <button
+      <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm dark:bg-gray-800 md:hidden">
+        <Button
           onClick={toggleSidebar}
-          className="rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          variant="ghost"
+          className="p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           aria-label="Toggle sidebar"
         >
           <Menu size={24} />
-        </button>
-        <h1 className="text-lg font-bold text-gray-800">Aptitude Management</h1>
+        </Button>
+        <h1 className="text-lg font-bold text-gray-800 dark:text-white">Aptitude Management</h1>
         <div className="w-10"></div>
       </div>
 
@@ -185,7 +286,7 @@ const AptitudePage = () => {
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between px-4 md:justify-end">
-            <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
+            <h1 className="text-xl font-bold md:hidden dark:text-white">Dashboard</h1>
           </div>
           <div className="custom-scrollbar flex-1 overflow-y-auto">
             <Sidebar userRole="admin" />
@@ -203,8 +304,8 @@ const AptitudePage = () => {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pt-16 md:ml-64">
-        <div className="container mx-auto px-4 py-6">
-          <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-800 dark:text-white">
+        <div className="container mx-auto px-4 py-12">
+          <Card className="mb-6 border border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">
@@ -213,14 +314,14 @@ const AptitudePage = () => {
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
                   <Input
                     type="text"
-                    placeholder="Search tests..."
-                    className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-black md:w-64"
+                    placeholder="Search tests or colleges..."
+                    className="h-10 w-full rounded border border-gray-200 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:border-gray-600 dark:bg-gray-700/50 dark:text-white"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <Button
-                    onClick={() => setCreateDialogOpen(true)}
-                    className="h-10 w-full rounded bg-white text-blue-600 transition-colors hover:bg-blue-50 md:w-auto"
+                    onClick={() => setCreateTestDialogOpen(true)}
+                    className="h-10 w-full rounded bg-white text-blue-600 hover:bg-blue-50 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-600 md:w-auto"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add New Test
@@ -230,7 +331,6 @@ const AptitudePage = () => {
             </CardHeader>
 
             <CardContent className="p-0">
-              {/* Table */}
               <div className="m-4 overflow-x-auto">
                 <Table className="w-full text-black dark:text-white">
                   <TableHeader>
@@ -238,35 +338,42 @@ const AptitudePage = () => {
                       <TableHead className="hidden py-3 text-center sm:table-cell">
                         #
                       </TableHead>
-                      <TableHead className="py-3">Test Name</TableHead>
-                      <TableHead className="hidden py-3 md:table-cell">
-                        College Name
-                      </TableHead>
-                      <TableHead className="hidden py-3 lg:table-cell">
-                        Students
-                      </TableHead>
-                      <TableHead className="hidden py-3 xl:table-cell">
-                        Created At
-                      </TableHead>
-                      <TableHead className="py-3 text-center">
-                        Actions
-                      </TableHead>
+                      <TableHead className="py-3">College Name</TableHead>
+                      <TableHead className="py-3">Test ID</TableHead>
+                      <TableHead className="py-3 text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {displayedTests.length === 0 ? (
+                    {isLoadingColleges || isLoadingTests ? (
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="hidden sm:table-cell">
+                            <Skeleton className="h-6 w-8" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-48" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-48" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-24" />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : displayedTests.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={6}
+                          colSpan={4}
                           className="py-6 text-center text-gray-500 dark:text-gray-400"
                         >
                           No tests found.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      displayedTests.map((test, index) => (
+                      displayedTests.map((test: TestWithCollegeName, index: number) => (
                         <TableRow
-                          key={test._id}
+                          key={test.testId}
                           className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                         >
                           <TableCell className="hidden text-center font-medium sm:table-cell">
@@ -274,77 +381,63 @@ const AptitudePage = () => {
                           </TableCell>
                           <TableCell>
                             <div className="md:hidden">
-                              <p className="font-medium">{test.testName}</p>
+                              <p className="font-medium">{test.collegeName}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                {test.collegeName}
-                              </p>
-                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                Created: {formatDate(test.createdAt)}
+                                Test: {test.testId}
                               </p>
                             </div>
                             <span className="hidden font-medium md:inline">
-                              {test.testName}
+                              {test.collegeName}
                             </span>
                           </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            {test.collegeName}
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            {test.studentCount}
-                          </TableCell>
-                          <TableCell className="hidden xl:table-cell">
-                            {formatDate(test.createdAt)}
-                          </TableCell>
+                          <TableCell>{test.testId}</TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-2">
-                              <button
-                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-600 transition-all duration-200 hover:bg-green-100 hover:text-green-700 hover:shadow-md dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30 dark:hover:text-green-300"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(test.testLink);
-                                  toast.success(
-                                    "Test link copied to clipboard",
-                                  );
-                                }}
+                              <Button
+                                variant="ghost"
+                                onClick={() => handleCopyLink(test.testLink)}
+                                className="group relative h-8 w-8 p-0"
                                 aria-label="Copy test link"
                               >
                                 <FaRegCopy
                                   size={16}
-                                  className="transition-transform group-hover:scale-110"
+                                  className="text-green-600 transition-transform group-hover:scale-110 dark:text-green-400"
                                 />
                                 <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
                                   Copy test link
                                 </span>
-                              </button>
-
-                              <a
-                                href={test.testLink}
-                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
-                                aria-label="View test"
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                onClick={() => handleShareLink(test.testLink, test.testId)}
+                                className="group relative h-8 w-8 p-0"
+                                aria-label="Share test link"
                               >
-                                <Link
+                                <Share2
                                   size={16}
-                                  className="transition-transform group-hover:scale-110"
+                                  className="text-blue-600 transition-transform group-hover:scale-110 dark:text-blue-400"
                                 />
                                 <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
-                                  View test
+                                  Share test link
                                 </span>
-                              </a>
-                              <button
-                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                              </Button>
+                              <Button
+                                variant="ghost"
                                 onClick={() => {
-                                  setTestToDelete(test._id);
-                                  setDeleteDialogOpen(true);
+                                  setTestToDelete({ testId: test.testId, collegeId: test.college });
+                                  setDeleteTestDialogOpen(true);
                                 }}
+                                className="group relative h-8 w-8 p-0"
                                 aria-label="Delete test"
                               >
                                 <Trash2
                                   size={16}
-                                  className="transition-transform group-hover:scale-110"
+                                  className="text-red-600 transition-transform group-hover:scale-110 dark:text-red-400"
                                 />
                                 <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
                                   Delete test
                                 </span>
-                              </button>
+                              </Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -357,81 +450,137 @@ const AptitudePage = () => {
           </Card>
 
           {/* Create Test Dialog */}
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+          <Dialog open={createTestDialogOpen} onOpenChange={(open) => {
+            setCreateTestDialogOpen(open);
+            if (!open) setTestForm({ collegeId: "", testDuration: "", questionsPerTest: "", passingScore: "", allowRetake: false });
+          }}>
+            <DialogContent className="max-w-md border border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white">
               <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                  Create New Aptitude Test
+                <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Create New Test
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
-                  Enter the details for the new aptitude test.
+                  Select a college and enter test details.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Test Name
+                  <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                    College
+                  </label>
+                  <Select
+                    value={testForm.collegeId}
+                    onValueChange={(value) => setTestForm({ ...testForm, collegeId: value })}
+                  >
+                    <SelectTrigger className="w-full rounded border border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700/50">
+                      <SelectValue placeholder="Select a college" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {colleges.map((college: College) => (
+                        <SelectItem key={college._id} value={college._id}>
+                          {college.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                    Test Duration (minutes)
                   </label>
                   <Input
-                    type="text"
-                    value={newTestName}
-                    onChange={(e) => setNewTestName(e.target.value)}
-                    placeholder="Enter test name"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+                    type="number"
+                    value={testForm.testDuration}
+                    onChange={(e) => setTestForm({ ...testForm, testDuration: e.target.value })}
+                    placeholder="Enter duration in minutes"
+                    className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                    required
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    College Name
+                  <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                    Questions Per Test
                   </label>
                   <Input
-                    type="text"
-                    value={newCollegeName}
-                    onChange={(e) => setNewCollegeName(e.target.value)}
-                    placeholder="Enter college name"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+                    type="number"
+                    value={testForm.questionsPerTest}
+                    onChange={(e) => setTestForm({ ...testForm, questionsPerTest: e.target.value })}
+                    placeholder="Enter number of questions"
+                    className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                    required
                   />
                 </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                    Passing Score
+                  </label>
+                  <Input
+                    type="number"
+                    value={testForm.passingScore}
+                    onChange={(e) => setTestForm({ ...testForm, passingScore: e.target.value })}
+                    placeholder="Enter passing score"
+                    className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                    required
+                  />
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={testForm.allowRetake}
+                    onChange={(e) => setTestForm({ ...testForm, allowRetake: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                  />
+                  <label className="ml-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Allow Retake
+                  </label>
+                </div>
               </div>
-              <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <DialogFooter className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button
                   variant="outline"
-                  onClick={() => setCreateDialogOpen(false)}
-                  className="w-full sm:w-auto"
+                  onClick={() => setCreateTestDialogOpen(false)}
+                  className="w-full rounded border-blue-500 px-6 py-3 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/30 sm:w-auto"
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleCreateTest} className="w-full sm:w-auto">
+                <Button
+                  onClick={handleCreateTest}
+                  disabled={isCreatingTest}
+                  className="w-full rounded bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 sm:w-auto"
+                >
                   Create Test
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
 
-          {/* Delete Confirmation Dialog */}
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+          {/* Delete Test Confirmation Dialog */}
+          <Dialog open={deleteTestDialogOpen} onOpenChange={(open) => {
+            setDeleteTestDialogOpen(open);
+            if (!open) setTestToDelete(null);
+          }}>
+            <DialogContent className="max-w-md border border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white">
               <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                   Confirm Deletion
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
-                  Are you sure you want to delete this test? This action cannot
-                  be undone.
+                  Are you sure you want to delete this test? This action cannot be undone.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button
                   variant="outline"
-                  onClick={() => setDeleteDialogOpen(false)}
-                  className="w-full sm:w-auto"
+                  onClick={() => setDeleteTestDialogOpen(false)}
+                  className="w-full rounded border-blue-500 px-6 py-3 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/30 sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => testToDelete && handleDeleteTest(testToDelete)}
-                  className="w-full sm:w-auto"
+                  onClick={handleDeleteTest}
+                  disabled={isDeletingTest}
+                  className="w-full rounded bg-red-500 px-6 py-3 text-white hover:bg-red-600 dark:bg-red-500 dark:hover:bg-red-600 sm:w-auto"
                 >
                   Delete Test
                 </Button>
@@ -440,7 +589,7 @@ const AptitudePage = () => {
           </Dialog>
 
           {/* Pagination */}
-          <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
+          <div className="mt-6 rounded-lg bg-white p-4 shadow-lg dark:bg-gray-800 dark:text-white">
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 Showing{" "}
@@ -465,13 +614,11 @@ const AptitudePage = () => {
                   <Select
                     value={testsPerPage.toString()}
                     onValueChange={(value) => {
-                      setTestsPerPage(
-                        value === "all" ? "all" : parseInt(value),
-                      );
+                      setTestsPerPage(value === "all" ? "all" : parseInt(value));
                       setCurrentPage(1);
                     }}
                   >
-                    <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                    <SelectTrigger className="h-8 w-24 rounded border-gray-200 dark:border-gray-600 dark:bg-gray-700/50 dark:text-white">
                       <SelectValue placeholder="Entries" />
                     </SelectTrigger>
                     <SelectContent>
@@ -486,11 +633,9 @@ const AptitudePage = () => {
 
               <div className="flex items-center space-x-1">
                 <Button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                  className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-700 dark:disabled:text-gray-600"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -502,9 +647,9 @@ const AptitudePage = () => {
                       <Button
                         key={`page-${page}`}
                         onClick={() => setCurrentPage(page)}
-                        className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
+                        className={`h-8 w-8 rounded p-0 text-sm font-medium ${
                           currentPage === page
-                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                             : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
                         }`}
                         aria-label={`Page ${page}`}
@@ -524,11 +669,9 @@ const AptitudePage = () => {
                 </div>
 
                 <Button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                  className="h-8 w-8 rounded bg-blue-50 p-0 text-blue-600 hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-700 dark:disabled:text-gray-600"
                   aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -550,7 +693,7 @@ const AptitudePage = () => {
                       setCurrentPage(value);
                     }
                   }}
-                  className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
+                  className="h-8 w-16 rounded border-gray-200 text-center text-sm dark:border-gray-600 dark:bg-gray-700/50 dark:text-white"
                   aria-label="Go to page"
                 />
               </div>

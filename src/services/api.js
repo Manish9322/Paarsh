@@ -11,12 +11,16 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState }) => {
     const accessToken = localStorage.getItem("accessToken");
     const adminAccessToken = localStorage.getItem("admin_access_token");
+    const studentAccessToken = localStorage.getItem("student_access_token");
 
     if (accessToken) {
       headers.set("Authorization", `Bearer ${accessToken}`);
     }
     if (adminAccessToken) {
       headers.set("Admin-Authorization", `Bearer ${adminAccessToken}`);
+    }
+    if (studentAccessToken) {
+      headers.set("Student-Authorization", `Bearer ${studentAccessToken}`);
     }
 
     return headers;
@@ -115,6 +119,11 @@ export const paarshEduApi = createApi({
     "Notifications",
     "Feedback",
     "Blog",
+    "College",
+    "Student",
+    "Test",
+    "Results",
+    "Role",
   ],
   endpoints: (builder) => ({
     // Video Progress Endpoints
@@ -1198,6 +1207,178 @@ export const paarshEduApi = createApi({
       }),
       invalidatesTags: ["Blog"],
     }),
+
+    // Apptitude Test Apis
+
+    createCollege: builder.mutation({
+      query: (collegeData) => ({
+        url: "/admin/aptitude-test/colleges",
+        method: "POST",
+        body: collegeData,
+      }),
+      invalidatesTags: ["College"],
+    }),
+
+    updateCollege: builder.mutation({
+      query: ({id , data}) => ({
+        url: `/admin/aptitude-test/colleges?collegeId=${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["College"],
+    }),
+  
+    deleteCollege: builder.mutation({
+      query: (id) => ({
+        url: `/admin/aptitude-test/colleges?collegeId=${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["College"],
+    }),
+
+    fetchColleges: builder.query({
+      query: () => "/admin/aptitude-test/colleges",
+      providesTags: ["College"],
+    }),
+
+    getCollegeResults: builder.query({
+      query: (collegeId) => `/admin/aptitude-test/colleges/${collegeId}/results`,
+      providesTags: ["Results"],
+    }),
+
+    // Question Endpoints 
+
+     createQuestion: builder.mutation({
+      query: (questionData) => ({
+        url: '/questions',
+        method: 'POST',
+        body: questionData,
+      }),
+      invalidatesTags: ['Questions'],
+    }),
+
+    updateQuestion: builder.mutation({
+      query: ({ id, ...questionData }) => ({
+        url: `/questions/${id}`,
+        method: 'PUT',
+        body: questionData,
+      }),
+      invalidatesTags: ['Questions'],
+    }),
+    
+    deleteQuestion: builder.mutation({
+      query: (id) => ({
+        url: `/questions/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Questions'],
+    }),
+
+    // Student endpoints
+   registerStudent: builder.mutation({
+      query: (studentData) => ({
+        url: '/admin/aptitude-test/student/register',
+        method: 'POST',
+        body: studentData,
+      }),
+    }),
+
+   loginStudent: builder.mutation({
+      query: (credentials) => ({
+        url: '/admin/aptitude-test/student/login',
+        method: 'POST',
+        body: credentials,
+      }),
+    }),
+
+    // Test endpoints
+    createTestSession: builder.mutation({
+      query: (testSessionData) => ({
+        url: '/admin/aptitude-test/session',
+        method: 'POST',
+        body: testSessionData,
+      }),
+      invalidatesTags: ['TestSession'],
+    }),
+
+    startTestSession: builder.mutation({
+      query: (sessionData) => ({
+        url: '/admin/aptitude-test/start',
+        method: 'POST',
+        body: sessionData,
+      }),
+    }),
+
+    saveAnswer: builder.mutation({
+      query: ({ sessionId, questionId, selectedAnswer }) => ({
+        url: `/admin/aptitude-test/session/${sessionId}/answer`,
+        method: 'PATCH',
+        body: { questionId, selectedAnswer },
+      }),
+    }),
+
+    submitTest: builder.mutation({
+      query: ({ sessionId, answers }) => ({
+        url: `/admin/aptitude-test/session/${sessionId}/submit`,
+        method: "POST",
+        body: { sessionId, answers },
+      }),
+      invalidatesTags: ["Test", "Results"],
+    }),
+
+    getTestSessions: builder.query({
+      query: ({ page = 1, limit = 10, search = '' }) => ({
+        url: `?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
+        method: 'GET',
+      }),
+      providesTags: ['TestSession'],
+    }),
+
+    reportViolation: builder.mutation({
+      query: (violationData) => ({
+        url: "/aptitude-test/violation",
+        method: "POST",
+        body: violationData,
+      }),
+    }),
+
+    createTest: builder.mutation({
+      query: (testData) => ({
+        url: '/admin/aptitude-test/colleges/test',
+        method: 'POST',
+        body: testData,
+      }),
+    }),
+
+    getTestInfo: builder.query({
+      query: ({ sessionId, testId, collegeId }) =>
+        `/admin/aptitude-test?sessionId=${sessionId}&testId=${testId}&collegeId=${collegeId}`,
+      transformResponse: (response) => response.data,
+    }),
+
+    getTestInstruction: builder.query({
+      query: ({ sessionId, testId, collegeId }) =>
+        `/admin/aptitude-test/instructions?sessionId=${sessionId}&testId=${testId}&collegeId=${collegeId}`,
+      transformResponse: (response) => response.data,
+    }),
+
+    getTests: builder.query({
+      query: (collegeId) => `/admin/aptitude-test/colleges/test?collegeId=${collegeId}`,
+      transformResponse: (response) => response.data,
+      providesTags: (result, error, collegeId) => [{ type: 'Tests', id: collegeId }],
+    }),
+ 
+    deleteTest: builder.mutation({
+      query: ({ testId, collegeId }) => ({
+        url: `/admin/aptitude-test/colleges/test?testId=${testId}&collegeId=${collegeId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, { collegeId }) => [
+        { type: 'Tests', id: collegeId },
+        'Colleges',
+      ],
+    }),
+
   }),
 });
 
@@ -1344,4 +1525,29 @@ export const {
   useUpdateBlogMutation,
   useDeleteBlogMutation,
 
+  useCreateCollegeMutation,
+  useFetchCollegesQuery,
+  useUpdateCollegeMutation,
+  useDeleteCollegeMutation,
+  useGetCollegeResultsQuery,
+  useRegisterStudentMutation,
+  useLoginStudentMutation,
+  useSubmitTestMutation,
+  useReportViolationMutation,
+
+  useCreateQuestionMutation,
+  useUpdateQuestionMutation,
+  useDeleteQuestionMutation,
+
+  useGetTestSessionsQuery,
+  useCreateTestSessionMutation,
+
+  useStartTestSessionMutation,
+  useSaveAnswerMutation,
+  useGetTestInfoQuery,
+  useGetTestInstructionQuery,
+  useCreateTestMutation,
+  useLazyGetTestsQuery,
+  useGetTestsQuery,
+  useDeleteTestMutation,
 } = paarshEduApi;
