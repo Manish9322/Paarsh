@@ -1,6 +1,8 @@
+// app/(dashboard)/colleges/page.tsx
 "use client";
 
 import { useState } from "react";
+import { FaRegCopy } from "react-icons/fa6";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,13 +24,13 @@ import {
 import { Input } from "@/components/ui/input";
 import {
   Menu,
-  Search,
   Plus,
   Trash2,
   ChevronLeft,
   ChevronRight,
   Eye,
   Edit2,
+  Link as LinkIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -39,6 +41,13 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  useFetchCollegesQuery,
+  useCreateCollegeMutation,
+  useUpdateCollegeMutation,
+  useDeleteCollegeMutation,
+} from "../../../services/api";
 
 interface College {
   _id: string;
@@ -53,6 +62,7 @@ interface College {
     passingScore: number;
     allowRetake: boolean;
   };
+  studentCount?: number;
 }
 
 const CollegesPage = () => {
@@ -62,72 +72,39 @@ const CollegesPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [newTestLinkDialogOpen, setNewTestLinkDialogOpen] = useState(false);
   const [collegeToDelete, setCollegeToDelete] = useState<string | null>(null);
+  const [collegeForNewTestLink, setCollegeForNewTestLink] = useState<string | null>(null);
   const [selectedCollege, setSelectedCollege] = useState<College | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [collegesPerPage, setCollegesPerPage] = useState<number | "all">(10);
   const [newCollegeName, setNewCollegeName] = useState("");
   const [newCollegeEmail, setNewCollegeEmail] = useState("");
-  const [newTestLink, setNewTestLink] = useState("");
   const [newTestDuration, setNewTestDuration] = useState<number | "">(120);
-  const [newQuestionsPerTest, setNewQuestionsPerTest] = useState<number | "">(
-    100,
-  );
+  const [newQuestionsPerTest, setNewQuestionsPerTest] = useState<number | "">(100);
   const [newPassingScore, setNewPassingScore] = useState<number | "">(60);
   const [newAllowRetake, setNewAllowRetake] = useState(false);
   const [editCollegeName, setEditCollegeName] = useState("");
   const [editCollegeEmail, setEditCollegeEmail] = useState("");
-  const [editTestLink, setEditTestLink] = useState("");
   const [editTestDuration, setEditTestDuration] = useState<number | "">("");
-  const [editQuestionsPerTest, setEditQuestionsPerTest] = useState<number | "">(
-    "",
-  );
+  const [editQuestionsPerTest, setEditQuestionsPerTest] = useState<number | "">("");
   const [editPassingScore, setEditPassingScore] = useState<number | "">("");
   const [editAllowRetake, setEditAllowRetake] = useState(false);
   const [editIsActive, setEditIsActive] = useState(false);
 
-  // Mock data, replace with API call
-  const [colleges, setColleges] = useState<College[]>([
-    {
-      _id: "college_1",
-      name: "ABC University",
-      email: "contact@abcuniversity.edu",
-      testLink: "/aptitude-test/abc-university-2025",
-      testDuration: 120,
-      isActive: true,
-      createdAt: new Date("2025-06-01T10:00:00Z").toISOString(),
-      testSettings: {
-        questionsPerTest: 100,
-        passingScore: 60,
-        allowRetake: false,
-      },
-    },
-    {
-      _id: "college_2",
-      name: "XYZ College",
-      email: "info@xyzcollege.edu",
-      testLink: "/aptitude-test/xyz-college-2025",
-      testDuration: 90,
-      isActive: true,
-      createdAt: new Date("2025-06-15T14:00:00Z").toISOString(),
-      testSettings: {
-        questionsPerTest: 80,
-        passingScore: 70,
-        allowRetake: true,
-      },
-    },
-  ]);
+  // RTK Query hooks
+  const { data: collegesData, isLoading, error } = useFetchCollegesQuery(undefined);
+  const [createCollege, { isLoading: isCreating }] = useCreateCollegeMutation();
+  const [updateCollege, { isLoading: isUpdating }] = useUpdateCollegeMutation();
+  const [deleteCollege, { isLoading: isDeleting }] = useDeleteCollegeMutation();
+  const [generateTestLink, { isLoading: isGeneratingTestLink }] = useGenerateTestLinkMutation();
 
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const handleCreateCollege = () => {
+  const colleges = collegesData?.colleges || [];
+  const handleCreateCollege = async () => {
     if (
       !newCollegeName ||
       !newCollegeEmail ||
-      !newTestLink ||
       newTestDuration === "" ||
       newQuestionsPerTest === "" ||
       newPassingScore === ""
@@ -136,39 +113,35 @@ const CollegesPage = () => {
       return;
     }
 
-    const newCollege: College = {
-      _id: `college_${Date.now()}`,
-      name: newCollegeName,
-      email: newCollegeEmail,
-      testLink: newTestLink,
-      testDuration: Number(newTestDuration),
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      testSettings: {
-        questionsPerTest: Number(newQuestionsPerTest),
-        passingScore: Number(newPassingScore),
-        allowRetake: newAllowRetake,
-      },
-    };
-
-    setColleges([...colleges, newCollege]);
-    setCreateDialogOpen(false);
-    setNewCollegeName("");
-    setNewCollegeEmail("");
-    setNewTestLink("");
-    setNewTestDuration(120);
-    setNewQuestionsPerTest(100);
-    setNewPassingScore(60);
-    setNewAllowRetake(false);
-    toast.success("College created successfully");
+    try {
+      const result = await createCollege({
+        name: newCollegeName,
+        email: newCollegeEmail,
+        testDuration: Number(newTestDuration),
+        testSettings: {
+          questionsPerTest: Number(newQuestionsPerTest),
+          passingScore: Number(newPassingScore),
+          allowRetake: newAllowRetake,
+        },
+      }).unwrap();
+      setCreateDialogOpen(false);
+      setNewCollegeName("");
+      setNewCollegeEmail("");
+      setNewTestDuration(120);
+      setNewQuestionsPerTest(100);
+      setNewPassingScore(60);
+      setNewAllowRetake(false);
+      toast.success("College created successfully");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to create college");
+    }
   };
 
-  const handleEditCollege = () => {
+  const handleEditCollege = async () => {
     if (
       !selectedCollege ||
       !editCollegeName ||
       !editCollegeEmail ||
-      !editTestLink ||
       editTestDuration === "" ||
       editQuestionsPerTest === "" ||
       editPassingScore === ""
@@ -177,49 +150,62 @@ const CollegesPage = () => {
       return;
     }
 
-    setColleges(
-      colleges.map((college) =>
-        college._id === selectedCollege._id
-          ? {
-              ...college,
-              name: editCollegeName,
-              email: editCollegeEmail,
-              testLink: editTestLink,
-              testDuration: Number(editTestDuration),
-              isActive: editIsActive,
-              testSettings: {
-                questionsPerTest: Number(editQuestionsPerTest),
-                passingScore: Number(editPassingScore),
-                allowRetake: editAllowRetake,
-              },
-            }
-          : college,
-      ),
-    );
-    setEditDialogOpen(false);
-    setSelectedCollege(null);
-    setEditCollegeName("");
-    setEditCollegeEmail("");
-    setEditTestLink("");
-    setEditTestDuration("");
-    setEditQuestionsPerTest("");
-    setEditPassingScore("");
-    setEditAllowRetake(false);
-    setEditIsActive(false);
-    toast.success("College updated successfully");
+    try {
+      const result = await updateCollege({
+        id: selectedCollege._id,
+        data: {
+          name: editCollegeName,
+          email: editCollegeEmail,
+          testDuration: Number(editTestDuration),
+          isActive: editIsActive,
+          testSettings: {
+            questionsPerTest: Number(editQuestionsPerTest),
+            passingScore: Number(editPassingScore),
+            allowRetake: editAllowRetake,
+          },
+        },
+      }).unwrap();
+      setEditDialogOpen(false);
+      setSelectedCollege(null);
+      setEditCollegeName("");
+      setEditCollegeEmail("");
+      setEditTestDuration("");
+      setEditQuestionsPerTest("");
+      setEditPassingScore("");
+      setEditAllowRetake(false);
+      setEditIsActive(false);
+      toast.success("College updated successfully");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update college");
+    }
   };
 
-  const handleDeleteCollege = (id: string) => {
-    setColleges(colleges.filter((college) => college._id !== id));
-    setDeleteDialogOpen(false);
-    setCollegeToDelete(null);
-    toast.success("College deleted successfully");
+  const handleDeleteCollege = async (id: string) => {
+    try {
+      await deleteCollege(id).unwrap();
+      setDeleteDialogOpen(false);
+      setCollegeToDelete(null);
+      toast.success("College deleted successfully");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to delete college");
+    }
+  };
+
+  const handleGenerateNewTestLink = async (collegeId: string) => {
+    try {
+      await generateTestLink(collegeId).unwrap();
+      setNewTestLinkDialogOpen(false);
+      setCollegeForNewTestLink(null);
+      toast.success("New test link generated successfully");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to generate new test link");
+    }
   };
 
   const filteredColleges = colleges.filter(
     (college) =>
       college.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      college.email.toLowerCase().includes(searchTerm.toLowerCase()),
+      college.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const startIndex =
@@ -271,6 +257,10 @@ const CollegesPage = () => {
     return pageNumbers;
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Mobile Header */}
@@ -287,7 +277,9 @@ const CollegesPage = () => {
       </div>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between px-4 md:justify-end">
@@ -320,7 +312,7 @@ const CollegesPage = () => {
                   <Input
                     type="text"
                     placeholder="Search colleges..."
-                    className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-black md:w-64"
+                    className="h-10 w-full rounded border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-black md:w-64"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -336,7 +328,6 @@ const CollegesPage = () => {
             </CardHeader>
 
             <CardContent className="p-0">
-              {/* Table */}
               <div className="m-4 overflow-x-auto">
                 <Table className="w-full text-black dark:text-white">
                   <TableHeader>
@@ -351,6 +342,9 @@ const CollegesPage = () => {
                       <TableHead className="hidden py-3 lg:table-cell">
                         Test Duration
                       </TableHead>
+                      <TableHead className="hidden py-3 lg:table-cell">
+                        Students
+                      </TableHead>
                       <TableHead className="hidden py-3 xl:table-cell">
                         Status
                       </TableHead>
@@ -363,7 +357,24 @@ const CollegesPage = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {displayedColleges.length === 0 ? (
+                    {isLoading ? (
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell colSpan={7}>
+                            <Skeleton className="h-12 w-full" />
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : error ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={7}
+                          className="py-6 text-center text-red-500 dark:text-red-400"
+                        >
+                          {error?.data?.message || "Failed to load colleges"}
+                        </TableCell>
+                      </TableRow>
+                    ) : displayedColleges.length === 0 ? (
                       <TableRow>
                         <TableCell
                           colSpan={7}
@@ -391,8 +402,10 @@ const CollegesPage = () => {
                                 Duration: {college.testDuration} min
                               </p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                Status:{" "}
-                                {college.isActive ? "Active" : "Inactive"}
+                                Students: {college.studentCount || 0}
+                              </p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Status: {college.isActive ? "Active" : "Inactive"}
                               </p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                 Created: {formatDate(college.createdAt)}
@@ -407,6 +420,9 @@ const CollegesPage = () => {
                           </TableCell>
                           <TableCell className="hidden lg:table-cell">
                             {college.testDuration} min
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            {college.studentCount || 0}
                           </TableCell>
                           <TableCell className="hidden xl:table-cell">
                             <span
@@ -425,6 +441,22 @@ const CollegesPage = () => {
                           <TableCell>
                             <div className="flex items-center justify-center gap-2">
                               <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-green-50 text-green-600 transition-all duration-200 hover:bg-green-100 hover:text-green-700 hover:shadow-md dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30 dark:hover:text-green-300"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(college.testLink);
+                                  toast.success("Test link copied to clipboard");
+                                }}
+                                aria-label="Copy test link"
+                              >
+                                <FaRegCopy
+                                  size={16}
+                                  className="transition-transform group-hover:scale-110"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  Copy test link
+                                </span>
+                              </button>
+                              <button
                                 className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                 onClick={() => {
                                   setSelectedCollege(college);
@@ -441,22 +473,15 @@ const CollegesPage = () => {
                                 </span>
                               </button>
                               <button
-                                className="bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300 group relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:shadow-md"
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
                                 onClick={() => {
                                   setSelectedCollege(college);
                                   setEditCollegeName(college.name);
                                   setEditCollegeEmail(college.email);
-                                  setEditTestLink(college.testLink);
                                   setEditTestDuration(college.testDuration);
-                                  setEditQuestionsPerTest(
-                                    college.testSettings.questionsPerTest,
-                                  );
-                                  setEditPassingScore(
-                                    college.testSettings.passingScore,
-                                  );
-                                  setEditAllowRetake(
-                                    college.testSettings.allowRetake,
-                                  );
+                                  setEditQuestionsPerTest(college.testSettings.questionsPerTest);
+                                  setEditPassingScore(college.testSettings.passingScore);
+                                  setEditAllowRetake(college.testSettings.allowRetake);
                                   setEditIsActive(college.isActive);
                                   setEditDialogOpen(true);
                                 }}
@@ -468,6 +493,22 @@ const CollegesPage = () => {
                                 />
                                 <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
                                   Edit college
+                                </span>
+                              </button>
+                              <button
+                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-purple-50 text-purple-600 transition-all duration-200 hover:bg-purple-100 hover:text-purple-700 hover:shadow-md dark:bg-purple-900/20 dark:text-purple-400 dark:hover:bg-purple-900/30 dark:hover:text-purple-300"
+                                onClick={() => {
+                                  setCollegeForNewTestLink(college._id);
+                                  setNewTestLinkDialogOpen(true);
+                                }}
+                                aria-label="Generate new test link"
+                              >
+                                <LinkIcon
+                                  size={16}
+                                  className="transition-transform group-hover:scale-110"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  Generate new test link
                                 </span>
                               </button>
                               <button
@@ -535,18 +576,6 @@ const CollegesPage = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Test Link
-                  </label>
-                  <Input
-                    type="text"
-                    value={newTestLink}
-                    onChange={(e) => setNewTestLink(e.target.value)}
-                    placeholder="Enter test link"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                     Test Duration (minutes)
                   </label>
                   <Input
@@ -554,7 +583,7 @@ const CollegesPage = () => {
                     value={newTestDuration}
                     onChange={(e) =>
                       setNewTestDuration(
-                        e.target.value === "" ? "" : Number(e.target.value),
+                        e.target.value === "" ? "" : Number(e.target.value)
                       )
                     }
                     placeholder="Enter test duration"
@@ -570,7 +599,7 @@ const CollegesPage = () => {
                     value={newQuestionsPerTest}
                     onChange={(e) =>
                       setNewQuestionsPerTest(
-                        e.target.value === "" ? "" : Number(e.target.value),
+                        e.target.value === "" ? "" : Number(e.target.value)
                       )
                     }
                     placeholder="Enter number of questions"
@@ -586,7 +615,7 @@ const CollegesPage = () => {
                     value={newPassingScore}
                     onChange={(e) =>
                       setNewPassingScore(
-                        e.target.value === "" ? "" : Number(e.target.value),
+                        e.target.value === "" ? "" : Number(e.target.value)
                       )
                     }
                     placeholder="Enter passing score"
@@ -616,6 +645,7 @@ const CollegesPage = () => {
                 <Button
                   onClick={handleCreateCollege}
                   className="w-full sm:w-auto"
+                  disabled={isCreating}
                 >
                   Create College
                 </Button>
@@ -669,6 +699,14 @@ const CollegesPage = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    Students
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {selectedCollege?.studentCount || 0}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
                     Status
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
@@ -680,8 +718,7 @@ const CollegesPage = () => {
                     Created At
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {selectedCollege?.createdAt &&
-                      formatDate(selectedCollege.createdAt)}
+                    {selectedCollege?.createdAt && formatDate(selectedCollege.createdAt)}
                   </p>
                 </div>
                 <div>
@@ -689,15 +726,13 @@ const CollegesPage = () => {
                     Test Settings
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Questions Per Test:{" "}
-                    {selectedCollege?.testSettings.questionsPerTest}
+                    Questions Per Test: {selectedCollege?.testSettings.questionsPerTest}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
                     Passing Score: {selectedCollege?.testSettings.passingScore}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Allow Retake:{" "}
-                    {selectedCollege?.testSettings.allowRetake ? "Yes" : "No"}
+                    Allow Retake: {selectedCollege?.testSettings.allowRetake ? "Yes" : "No"}
                   </p>
                 </div>
               </div>
@@ -751,18 +786,6 @@ const CollegesPage = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Test Link
-                  </label>
-                  <Input
-                    type="text"
-                    value={editTestLink}
-                    onChange={(e) => setEditTestLink(e.target.value)}
-                    placeholder="Enter test link"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
                     Test Duration (minutes)
                   </label>
                   <Input
@@ -770,7 +793,7 @@ const CollegesPage = () => {
                     value={editTestDuration}
                     onChange={(e) =>
                       setEditTestDuration(
-                        e.target.value === "" ? "" : Number(e.target.value),
+                        e.target.value === "" ? "" : Number(e.target.value)
                       )
                     }
                     placeholder="Enter test duration"
@@ -786,7 +809,7 @@ const CollegesPage = () => {
                     value={editQuestionsPerTest}
                     onChange={(e) =>
                       setEditQuestionsPerTest(
-                        e.target.value === "" ? "" : Number(e.target.value),
+                        e.target.value === "" ? "" : Number(e.target.value)
                       )
                     }
                     placeholder="Enter number of questions"
@@ -802,7 +825,7 @@ const CollegesPage = () => {
                     value={editPassingScore}
                     onChange={(e) =>
                       setEditPassingScore(
-                        e.target.value === "" ? "" : Number(e.target.value),
+                        e.target.value === "" ? "" : Number(e.target.value)
                       )
                     }
                     placeholder="Enter passing score"
@@ -846,8 +869,39 @@ const CollegesPage = () => {
                 <Button
                   onClick={handleEditCollege}
                   className="w-full sm:w-auto"
+                  disabled={isUpdating}
                 >
                   Save Changes
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Generate New Test Link Dialog */}
+          <Dialog open={newTestLinkDialogOpen} onOpenChange={setNewTestLinkDialogOpen}>
+            <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                  Generate New Test Link
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
+                  Are you sure you want to generate a new test link for this college? The old link will be invalidated.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setNewTestLinkDialogOpen(false)}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => collegeForNewTestLink && handleGenerateNewTestLink(collegeForNewTestLink)}
+                  className="w-full sm:w-auto"
+                  disabled={isGeneratingTestLink}
+                >
+                  Generate New Link
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -861,8 +915,7 @@ const CollegesPage = () => {
                   Confirm Deletion
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
-                  Are you sure you want to delete this college? This action
-                  cannot be undone.
+                  Are you sure you want to delete this college? This action cannot be undone.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -875,10 +928,9 @@ const CollegesPage = () => {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() =>
-                    collegeToDelete && handleDeleteCollege(collegeToDelete)
-                  }
+                  onClick={() => collegeToDelete && handleDeleteCollege(collegeToDelete)}
                   className="w-full sm:w-auto"
+                  disabled={isDeleting}
                 >
                   Delete College
                 </Button>
@@ -887,125 +939,115 @@ const CollegesPage = () => {
           </Dialog>
 
           {/* Pagination */}
-          <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
-            <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {collegesPerPage === "all" ? 1 : startIndex + 1}
-                </span>{" "}
-                to{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {collegesPerPage === "all"
-                    ? filteredColleges.length
-                    : Math.min(
-                        startIndex + collegesPerPage,
-                        filteredColleges.length,
-                      )}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {filteredColleges.length}
-                </span>{" "}
-                colleges
-                <div className="flex items-center space-x-2 pt-2">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Show:
-                  </span>
-                  <Select
-                    value={collegesPerPage.toString()}
-                    onValueChange={(value) => {
-                      setCollegesPerPage(
-                        value === "all" ? "all" : parseInt(value),
-                      );
-                      setCurrentPage(1);
-                    }}
+          {!isLoading && !error && (
+            <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
+              <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Showing{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {collegesPerPage === "all" ? 1 : startIndex + 1}
+                  </span>{" "}
+                  to{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {collegesPerPage === "all"
+                      ? filteredColleges.length
+                      : Math.min(startIndex + collegesPerPage, filteredColleges.length)}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {filteredColleges.length}
+                  </span>{" "}
+                  colleges
+                  <div className="flex items-center space-x-2 pt-2">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      Show:
+                    </span>
+                    <Select
+                      value={collegesPerPage.toString()}
+                      onValueChange={(value) => {
+                        setCollegesPerPage(value === "all" ? "all" : parseInt(value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                        <SelectValue placeholder="Entries" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-1">
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                    aria-label="Previous page"
                   >
-                    <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-                      <SelectValue placeholder="Entries" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                      <SelectItem value="all">All</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
 
-              <div className="flex items-center space-x-1">
-                <Button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
-                  disabled={currentPage === 1}
-                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
+                  <div className="hidden sm:flex sm:items-center sm:space-x-1">
+                    {generatePaginationNumbers().map((page, index) =>
+                      typeof page === "number" ? (
+                        <Button
+                          key={`page-${page}`}
+                          onClick={() => setCurrentPage(page)}
+                          className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
+                            currentPage === page
+                              ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                              : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                          }`}
+                          aria-label={`Page ${page}`}
+                          aria-current={currentPage === page ? "page" : undefined}
+                        >
+                          {page}
+                        </Button>
+                      ) : (
+                        <span key={`ellipsis-${index}`} className="px-1 text-gray-400">
+                          {page}
+                        </span>
+                      )
+                    )}
+                  </div>
 
-                <div className="hidden sm:flex sm:items-center sm:space-x-1">
-                  {generatePaginationNumbers().map((page, index) =>
-                    typeof page === "number" ? (
-                      <Button
-                        key={`page-${page}`}
-                        onClick={() => setCurrentPage(page)}
-                        className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
-                          currentPage === page
-                            ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
-                            : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-                        }`}
-                        aria-label={`Page ${page}`}
-                        aria-current={currentPage === page ? "page" : undefined}
-                      >
-                        {page}
-                      </Button>
-                    ) : (
-                      <span
-                        key={`ellipsis-${index}`}
-                        className="px-1 text-gray-400"
-                      >
-                        {page}
-                      </span>
-                    ),
-                  )}
+                  <Button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
 
-                <Button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                  className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
-                  aria-label="Next page"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="hidden items-center space-x-2 lg:flex">
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Go to page:
-                </span>
-                <Input
-                  type="number"
-                  min={1}
-                  max={totalPages}
-                  value={currentPage}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    if (value >= 1 && value <= totalPages) {
-                      setCurrentPage(value);
-                    }
-                  }}
-                  className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
-                  aria-label="Go to page"
-                />
+                <div className="hidden items-center space-x-2 lg:flex">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Go to page:
+                  </span>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={totalPages}
+                    value={currentPage}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= 1 && value <= totalPages) {
+                        setCurrentPage(value);
+                      }
+                    }}
+                    className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
+                    aria-label="Go to page"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
 

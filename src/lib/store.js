@@ -14,6 +14,9 @@ import attributionReducer from "./slices/attributionSlice";
 import offersReducer from "../lib/slices/offersSlice";
 import adReducer from "../lib/slices/adSlice";
 import blogReducer from "../lib/slices/blogSlice";
+import studentAuthReducer from "../lib/slices/studentAuthSlice";
+import testReducer from "../lib/slices/testSlice";
+import questionsReducer from "../lib/slices/questionSlice";
 
 // Combine all reducers
 const rootReducer = combineReducers({
@@ -31,6 +34,9 @@ const rootReducer = combineReducers({
   offers: offersReducer,
   ad: adReducer,
   blog: blogReducer,
+  studentAuth: studentAuthReducer,
+  test: testReducer,
+  questions: questionsReducer,
 
   [paarshEduApi.reducerPath]: paarshEduApi.reducer, // Include RTK Query API slice
 });

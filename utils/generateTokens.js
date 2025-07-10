@@ -7,11 +7,14 @@ import {
   JWT_SECRET_ADMIN,
   JWT_SECRET_USER,
   JWT_SECRET_AGENT,
+  JWT_SECRET_STUDENT
 } from "../config/config";
 
 
 function generateTokens(_id, role = "user", sessionId = null) {
   let secretKey;
+
+  console.log("role generate token:", role);
 
   switch (role) {
     case "admin":
@@ -19,6 +22,9 @@ function generateTokens(_id, role = "user", sessionId = null) {
       break;
     case "agent":
       secretKey = JWT_SECRET_AGENT;
+      break;
+    case "student":
+      secretKey = JWT_SECRET_STUDENT;
       break;
     default:
       secretKey = JWT_SECRET_USER;
