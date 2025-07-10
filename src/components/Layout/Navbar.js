@@ -317,7 +317,7 @@ const Navbar = () => {
           aria-label="Toggle theme"
         >
           {theme === "dark" ? 
-            <FiSun size={20} className="text-amber-400" /> : 
+            <FiSun size={20} className="text-blue-400" /> : 
             <FiMoon size={20} className="text-blue-600" />
           }
         </motion.button>

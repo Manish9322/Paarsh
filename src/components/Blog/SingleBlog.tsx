@@ -6,6 +6,15 @@ import Link from "next/link";
 import { formatRelativeTime } from "../../../utils/formatRelativeTime";
 
 const SingleBlog = ({ blog }: { blog: Blog }) => {
+  const stripHtmlTags = (html: string) => {
+    return html
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+  const truncatedContent = stripHtmlTags(blog.paragraph).slice(0, 100) + "...";
+
   return (
     <div className="group relative overflow-hidden rounded-sm bg-white shadow-one duration-300 hover:shadow-two dark:bg-dark dark:hover:shadow-gray-dark">
       <Link
@@ -35,7 +44,7 @@ const SingleBlog = ({ blog }: { blog: Blog }) => {
           </Link>
         </h3>
         <p className="mb-6 border-b border-body-color border-opacity-10 pb-6 text-base font-medium text-body-color dark:border-white dark:border-opacity-10">
-          {blog.paragraph.slice(0, 100)}...
+          {truncatedContent}
         </p>
         <div className="flex items-center">
           <div className="mr-5 flex items-center border-r border-body-color border-opacity-10 pr-5 dark:border-white dark:border-opacity-10 xl:mr-3 xl:pr-3 2xl:mr-5 2xl:pr-5">
@@ -66,14 +75,11 @@ const SingleBlog = ({ blog }: { blog: Blog }) => {
               Date
             </h4>
             <p className="text-xs text-body-color">
-              {new Date(blog.publishDate).toLocaleDateString(
-                "en-GB",
-                {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                },
-              )}
+              {new Date(blog.publishDate).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
             </p>
           </div>
         </div>
