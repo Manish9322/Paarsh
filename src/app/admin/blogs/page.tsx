@@ -20,7 +20,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import {
   Menu,
@@ -52,6 +51,8 @@ import {
 import { toast } from "sonner";
 import { Blog } from "@/types/blog";
 import { RxCross2 } from "react-icons/rx";
+import { Editor } from "@tinymce/tinymce-react";
+import DOMPurify from "dompurify";
 
 export default function AdminBlogs() {
   // State for modal and tags
@@ -84,7 +85,6 @@ export default function AdminBlogs() {
     error: blogsError,
   } = useFetchBlogsQuery(undefined);
   const blogs = blogsData?.blogs || [];
-  console.log("blogs Data : ", blogs);
 
   const handleFileChange = (e, field) => {
     const file = e.target.files[0];
@@ -151,13 +151,6 @@ export default function AdminBlogs() {
     setBlogToEdit(null);
     dispatch(resetForm());
   };
-
-  // Pagination calculations
-  // const totalPages = Math.ceil(blogs.length / blogsPerPage);
-  // const displayedBlogs = blogs.slice(
-  //   (currentPage - 1) * blogsPerPage,
-  //   currentPage * blogsPerPage
-  // );
 
   const handleEditClick = (blog: Blog) => {
     setBlogToEdit(blog);
@@ -332,7 +325,7 @@ export default function AdminBlogs() {
 
   const generatePaginationNumbers = () => {
     const pageNumbers: (number | string)[] = [];
-    const maxPagesToShow = 5; //
+    const maxPagesToShow = 5;
 
     if (totalPages <= maxPagesToShow) {
       // If total pages are less than max to show, display all pages
@@ -416,10 +409,10 @@ export default function AdminBlogs() {
                       placeholder="Search blogs..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="h-10 w-full rounded-lg border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-white md:w-64"
+                      className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-white md:w-64"
                     />
                     <Button
-                      className="h-10 w-full bg-green-500 text-white md:w-auto"
+                      className="h-10 w-full rounded bg-white text-blue-600 transition-colors md:w-auto hover:bg-blue-50"
                       onClick={handleOpenModal}
                     >
                       <Plus className="mr-2 h-4 w-4" /> Add New Blog
@@ -701,18 +694,46 @@ export default function AdminBlogs() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="paragraph">Content</Label>
-              <Textarea
-                id="paragraph"
-                placeholder="Enter blog content"
-                className="min-h-[200px]"
-                required
+              <Label htmlFor="content">Content</Label>
+              <Editor
+                apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY}
                 value={blogState.content}
-                onChange={(e) =>
-                  dispatch(
-                    updateField({ field: "content", value: e.target.value }),
-                  )
+                onEditorChange={(content) =>
+                  dispatch(updateField({ field: "content", value: content }))
                 }
+                init={{
+                  height: 300,
+                  menubar: false,
+                  plugins: [
+                    "advlist",
+                    "autolink",
+                    "lists",
+                    "link",
+                    "image",
+                    "charmap",
+                    "anchor",
+                    "searchreplace",
+                    "visualblocks",
+                    "code",
+                    "fullscreen",
+                    "insertdatetime",
+                    "media",
+                    "table",
+                    "paste",
+                    "wordcount",
+                  ],
+                  toolbar:
+                    "undo redo | blocks | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media | removeformat",
+                  content_style:
+                    "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+                  setup: (editor) => {
+                    editor.on("init", () => {
+                      if (blogToEdit && blogState.content) {
+                        editor.setContent(blogState.content);
+                      }
+                    });
+                  },
+                }}
               />
             </div>
 
@@ -967,11 +988,12 @@ export default function AdminBlogs() {
                       Blog Content
                     </h3>
                   </div>
-                  <div className="p-4">
-                    <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                      {blogToView.paragraph}
-                    </p>
-                  </div>
+                  <div
+                    className="p-4 text-base font-medium leading-relaxed text-gray-700 dark:text-gray-300 sm:text-lg sm:leading-relaxed lg:text-base lg:leading-relaxed xl:text-lg xl:leading-relaxed"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(blogToView.paragraph),
+                    }}
+                  />
                 </div>
 
                 {/* Tags */}
