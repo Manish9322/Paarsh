@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { Clock } from "lucide-react";
+import { Clock, AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface TimerProps {
   duration: number | null; // Duration in seconds
@@ -24,17 +25,58 @@ export const Timer: React.FC<TimerProps> = ({ duration, onTimeUp }) => {
     return () => clearInterval(timer);
   }, [timeLeft, onTimeUp]);
 
+  const { formattedTime, timeStatus } = useMemo(() => {
+    if (timeLeft === null) return { formattedTime: "--:--", timeStatus: "normal" };
+    
+    const hours = Math.floor(timeLeft / 3600);
+    const minutes = Math.floor((timeLeft % 3600) / 60);
+    const seconds = timeLeft % 60;
+    
+    let timeStatus: "normal" | "warning" | "critical" = "normal";
+    if (timeLeft <= 300) { // 5 minutes
+      timeStatus = "critical";
+    } else if (timeLeft <= 600) { // 10 minutes
+      timeStatus = "warning";
+    }
+
+    const formattedTime = hours > 0 
+      ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+      : `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    return { formattedTime, timeStatus };
+  }, [timeLeft]);
+
   if (timeLeft === null) return null;
 
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-
   return (
-    <Card className="mb-4 border border-gray-100 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+    <Card className={cn(
+      "mb-4 border border-gray-100 bg-white p-4 shadow-lg transition-colors duration-300 dark:border-gray-700 dark:bg-gray-800",
+      {
+        "border-yellow-300 bg-yellow-50 dark:border-yellow-600 dark:bg-yellow-900/30": timeStatus === "warning",
+        "animate-pulse border-red-500 bg-red-50 dark:border-red-600 dark:bg-red-900/30": timeStatus === "critical"
+      }
+    )}>
       <div className="flex items-center gap-2">
-        <Clock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-        <div className="text-lg font-semibold text-gray-900 dark:text-white">
-          Time Left: {minutes}:{seconds < 10 ? `0${seconds}` : seconds}
+        {timeStatus === "critical" ? (
+          <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+        ) : (
+          <Clock className={cn(
+            "h-6 w-6",
+            {
+              "text-blue-600 dark:text-blue-400": timeStatus === "normal",
+              "text-yellow-600 dark:text-yellow-400": timeStatus === "warning"
+            }
+          )} />
+        )}
+        <div className={cn(
+          "text-lg font-semibold",
+          {
+            "text-gray-900 dark:text-white": timeStatus === "normal",
+            "text-yellow-700 dark:text-yellow-300": timeStatus === "warning",
+            "text-red-700 dark:text-red-300": timeStatus === "critical"
+          }
+        )}>
+          Time Left: {formattedTime}
         </div>
       </div>
     </Card>

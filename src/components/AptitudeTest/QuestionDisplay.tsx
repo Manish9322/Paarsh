@@ -4,8 +4,23 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Flag } from "lucide-react";
 
+interface Question {
+  _id: string;
+  question: {
+    _id: string;
+    question: string;
+    options: Array<{
+      text: string;
+      isCorrect: boolean;
+    }>;
+    category: string;
+    explanation?: string;
+  };
+  selectedAnswer: number;
+}
+
 interface QuestionDisplayProps {
-  question: { _id: string; text: string; options: string[]; selectedAnswer: number } | null;
+  question: Question | null;
   onSelectOption: (index: number) => void;
   onMarkForReview: () => void;
   questionIndex: number;
@@ -36,10 +51,10 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
       {question ? (
         <>
           <p className="mb-6 text-gray-600 dark:text-gray-300">
-            {question.text}
+            {question.question.question}
           </p>
           <div className="space-y-4">
-            {question.options.map((option, index) => (
+            {question.question.options.map((option, index) => (
               <button
                 key={index}
                 onClick={() => onSelectOption(index)}
@@ -49,7 +64,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
                     : "border-gray-200 dark:border-gray-600"
                 } text-gray-900 hover:bg-gray-50 dark:text-white dark:hover:bg-gray-700/50`}
               >
-                {option}
+                {option.text}
               </button>
             ))}
           </div>

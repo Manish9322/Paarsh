@@ -1,4 +1,4 @@
-"use client";
+          "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
@@ -60,6 +60,49 @@ interface ResultData {
   percentage: number;
   totalQuestions: number;
 }
+
+// Add TestSecurityWrapper component at the top level
+const TestSecurityWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        const violations = parseInt(localStorage.getItem("violations") || "0") + 1;
+        localStorage.setItem("violations", violations.toString());
+        
+        if (violations >= 3) {
+          handleSubmitTest();
+        } else {
+          toast.error(`Warning: Tab switching detected! (${violations}/3)`);
+        }
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && 
+          (e.key === 'c' || e.key === 'v' || e.key === 'p')) {
+        e.preventDefault();
+        toast.error("Keyboard shortcuts are disabled during the test");
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("keydown", handleKeyDown);
+    
+    document.documentElement.requestFullscreen().catch(() => {
+      toast.error("Fullscreen mode is required for this test");
+    });
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("keydown", handleKeyDown);
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      }
+    };
+  }, []);
+
+  return <>{children}</>;
+};
 
 const AptitudePage: React.FC = () => {
   const searchParams = useSearchParams();
@@ -133,26 +176,65 @@ const AptitudePage: React.FC = () => {
     }
   }, [timeRemaining, step]);
 
-  // Handle login/register success
-  const handleAuthSuccess = useCallback(
-    async (studentId: string, student_access_token: string) => {
-      setStudentId(studentId);
+  // Add session recovery
+  useEffect(() => {
+    const savedSession = localStorage.getItem("test_session");
+    if (savedSession) {
       try {
-        const response = await createTestSession({ studentId, testId, collegeId }).unwrap();
-        console.log("Response from createTestSession:", response);
-        if (!response?.data?.sessionId) {
-          throw new Error("Session ID not returned from server");
+        const { sessionId, testId: savedTestId, timeRemaining } = JSON.parse(savedSession);
+        if (savedTestId === testId) {
+          setSessionId(sessionId);
+          setTimeRemaining(timeRemaining);
+          setStep("test");
         }
-        setSessionId(response.data.sessionId);
-        setStep("instructions");
-      } catch (err: any) {
-        console.error("Error creating test session:", err);
+      } catch (err) {
+        localStorage.removeItem("test_session");
+      }
+    }
+  }, [testId]);
+
+  // Save session periodically
+  useEffect(() => {
+    if (sessionId && step === "test") {
+      const sessionData = {
+        sessionId,
+        testId,
+        timeRemaining
+      };
+      localStorage.setItem("test_session", JSON.stringify(sessionData));
+    }
+  }, [sessionId, testId, timeRemaining, step]);
+
+  // Update handleAuthSuccess with better error handling
+  const handleAuthSuccess = useCallback(async (studentId: string, student_access_token: string) => {
+    setStudentId(studentId);
+    localStorage.setItem("student_access_token", student_access_token);
+    
+    try {
+      const response = await createTestSession({ 
+        studentId, 
+        testId, 
+        collegeId,
+        token: student_access_token
+      }).unwrap();
+      
+      if (!response?.data?.sessionId) {
+        throw new Error("Session ID not returned from server");
+      }
+      
+      setSessionId(response.data.sessionId);
+      setStep("instructions");
+    } catch (err: any) {
+      if (err?.status === 401) {
+        localStorage.removeItem("student_access_token");
+        setStep("auth");
+        toast.error("Session expired. Please login again.");
+      } else {
         toast.error(err?.data?.error || "Failed to create test session");
         setStep("auth");
       }
-    },
-    [testId, collegeId, createTestSession]
-  );
+    }
+  }, [testId, collegeId, createTestSession]);
 
   // Handle start test
   const handleStartTest = useCallback(async () => {
@@ -163,7 +245,15 @@ const AptitudePage: React.FC = () => {
     try {
       const response = await startTestSession({ sessionId, testId, collegeId }).unwrap();
       console.log("Response from startTestSession:", response);
-      setQuestions(response.data.questions || []);
+      
+      // Initialize questions with default values
+      const initializedQuestions = (response.data.questions || []).map(q => ({
+        ...q,
+        selectedAnswer: -1, // -1 means no answer selected
+        timeSpent: 0
+      }));
+      
+      setQuestions(initializedQuestions);
       setTestInfo((prev) => (prev ? { ...prev, session: response.data.session } : prev));
       setTimeRemaining(response.data.session.duration * 60);
       setStep("test");
@@ -295,50 +385,60 @@ const AptitudePage: React.FC = () => {
 
   if (step === "test" && testInfo && questions.length > 0) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <TestHeader
-          testName={testInfo.testDetails.name}
-          college={testInfo.testDetails.college}
-          onExit={handleExit}
-        />
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-            <div className="lg:col-span-3">
-              <Test
-                questions={questions}
-                sessionId={sessionId!}
-                timeRemaining={timeRemaining}
-                onSubmitTest={setResult}
-                setQuestions={setQuestions}
-              />
-            </div>
-            <div className="lg:col-span-1">
-              <Timer duration={timeRemaining} onTimeUp={handleSubmitTest} />
-              <QuestionNavigation
-                totalQuestions={questions.length}
-                currentQuestionIndex={currentQuestionIndex}
-                setCurrentQuestionIndex={setCurrentQuestionIndex}
-                questionStatus={questionStatus}
-              />
-              <QuestionMeta
-                totalQuestions={questions.length}
-                attempted={attempted}
-                notAttempted={notAttempted}
-                marked={marked}
-              />
-              <div className="mt-8">
-                <NavigationControls
-                  onPrevious={() => setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))}
-                  onNext={() => setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1))}
-                  onSubmit={handleSubmitTest}
-                  isFirst={currentQuestionIndex === 0}
-                  isLast={currentQuestionIndex === questions.length - 1}
+      <TestSecurityWrapper>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <TestHeader
+            testName={testInfo.testDetails.name}
+            college={testInfo.testDetails.college}
+            onExit={handleExit}
+            timeRemaining={timeRemaining}
+          />
+          <div className="container mx-auto px-4 py-12">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+              <div className="lg:col-span-3">
+                <Test
+                  questions={questions}
+                  sessionId={sessionId!}
+                  timeRemaining={timeRemaining}
+                  onSubmitTest={setResult}
+                  setQuestions={setQuestions}
+                  onMarkForReview={(questionId) => {
+                    setMarkedQuestions((prev) => ({
+                      ...prev,
+                      [questionId]: !prev[questionId],
+                    }));
+                  }}
+                  markedQuestions={markedQuestions}
                 />
+              </div>
+              <div className="lg:col-span-1">
+                <Timer duration={timeRemaining} onTimeUp={handleSubmitTest} />
+                <QuestionNavigation
+                  totalQuestions={questions.length}
+                  currentQuestionIndex={currentQuestionIndex}
+                  setCurrentQuestionIndex={setCurrentQuestionIndex}
+                  questionStatus={questionStatus}
+                />
+                <QuestionMeta
+                  totalQuestions={questions.length}
+                  attempted={attempted}
+                  notAttempted={notAttempted}
+                  marked={marked}
+                />
+                <div className="mt-8">
+                  <NavigationControls
+                    onPrevious={() => setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))}
+                    onNext={() => setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1))}
+                    onSubmit={handleSubmitTest}
+                    isFirst={currentQuestionIndex === 0}
+                    isLast={currentQuestionIndex === questions.length - 1}
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </TestSecurityWrapper>
     );
   }
 

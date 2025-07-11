@@ -1,26 +1,75 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "../ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface QuestionNavigationProps {
   totalQuestions: number;
   currentQuestionIndex: number;
   setCurrentQuestionIndex: (index: number) => void;
   questionStatus: { [key: string]: { answered: boolean; marked: boolean } };
+  isLoading?: boolean;
 }
+
+const QuestionNavigationSkeleton = () => (
+  <Card className="mb-4 p-4">
+    <div className="flex flex-wrap gap-2">
+      {Array.from({ length: 25 }, (_, i) => (
+        <Skeleton key={i} className="h-8 w-8 rounded-full" />
+      ))}
+    </div>
+  </Card>
+);
 
 export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
   totalQuestions,
   currentQuestionIndex,
   setCurrentQuestionIndex,
   questionStatus,
+  isLoading = false
 }) => {
   const [questionGroup, setQuestionGroup] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const questionsPerGroup = 25;
   const totalGroups = Math.ceil(totalQuestions / questionsPerGroup);
+
+  const questionButtons = useMemo(() => 
+    Array.from({ length: totalQuestions }, (_, index) => {
+      const questionNumber = index + 1;
+      const status = questionStatus[questionNumber];
+      const isAnswered = status?.answered;
+      const isMarked = status?.marked;
+      const isCurrent = currentQuestionIndex === index;
+
+      let buttonClass = "flex h-8 w-8 items-center justify-center rounded-full p-2 text-sm font-semibold transition-all duration-200 ";
+      
+      if (isCurrent) {
+        buttonClass += "bg-blue-600 text-white ring-2 ring-blue-300 dark:ring-blue-500";
+      } else if (isAnswered && isMarked) {
+        buttonClass += "split-color text-white";
+      } else if (isAnswered) {
+        buttonClass += "bg-green-500 text-white";
+      } else if (isMarked) {
+        buttonClass += "bg-red-500 text-white";
+      } else {
+        buttonClass += "bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500";
+      }
+
+      return (
+        <button
+          key={questionNumber}
+          onClick={() => setCurrentQuestionIndex(index)}
+          className={buttonClass}
+          disabled={isLoading}
+        >
+          {questionNumber}
+        </button>
+      );
+    }),
+    [totalQuestions, questionStatus, currentQuestionIndex, setCurrentQuestionIndex, isLoading]
+  );
 
   useEffect(() => {
     const groupIndex = Math.floor(currentQuestionIndex / questionsPerGroup);
@@ -33,51 +82,25 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
         });
       }
     }
-  }, [currentQuestionIndex, questionGroup]);
+  }, [currentQuestionIndex, questionGroup, questionsPerGroup]);
+
+  if (isLoading) {
+    return <QuestionNavigationSkeleton />;
+  }
 
   return (
     <Card className="mb-4 border border-gray-100 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
       <div>
         <div
           ref={scrollContainerRef}
-          className="flex h-[272px] flex-wrap gap-2 overflow-y-auto"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
+          className="flex h-[272px] flex-wrap gap-2 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 dark:scrollbar-track-gray-700 dark:scrollbar-thumb-gray-500"
         >
           <style jsx>{`
-            div::-webkit-scrollbar {
-              display: none;
-            }
             .split-color {
-              background: linear-gradient(to bottom, #22c55e 50%, #ef4444 50%);
+              background: linear-gradient(to bottom right, #22c55e 50%, #ef4444 50%);
             }
           `}</style>
-          {Array.from({ length: totalQuestions }, (_, index) => {
-            const questionNumber = index + 1;
-            return (
-              <button
-                key={questionNumber}
-                onClick={() => setCurrentQuestionIndex(index)}
-                className={`flex h-8 w-8 items-center justify-center rounded-full p-2 text-sm font-semibold
-                  ${
-                    currentQuestionIndex === index
-                      ? "bg-blue-600 text-white"
-                      : questionStatus[questionNumber]?.answered &&
-                        questionStatus[questionNumber]?.marked
-                      ? "split-color text-white"
-                      : questionStatus[questionNumber]?.answered
-                      ? "bg-green-500 text-white"
-                      : questionStatus[questionNumber]?.marked
-                      ? "bg-red-500 text-white"
-                      : "bg-gray-200 text-gray-900 dark:bg-gray-600 dark:text-white"
-                  }`}
-              >
-                {questionNumber}
-              </button>
-            );
-          })}
+          {questionButtons}
         </div>
       </div>
     </Card>
