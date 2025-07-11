@@ -4,8 +4,10 @@ export const calculateScore = (questions, answers) => {
   const correctedAnswers = questions.map((q) => {
     const question = q.question; // Access the populated question object
     const studentAnswer = answers[question._id]; // Use question._id for answer lookup
-    const correctAnswer = question.correctAnswer; // Directly use correctAnswer from Question model
-    const isCorrect = studentAnswer === correctAnswer;
+    
+    // Find the correct answer index from options array
+    const correctAnswerIndex = question.options.findIndex(opt => opt.isCorrect);
+    const isCorrect = studentAnswer === correctAnswerIndex;
 
     if (isCorrect) {
       score++;
@@ -15,7 +17,8 @@ export const calculateScore = (questions, answers) => {
       ...q,
       selectedAnswer: studentAnswer !== undefined ? studentAnswer : -1,
       isCorrect,
-      correctAnswer,
+      correctAnswer: correctAnswerIndex,
+      explanation: question.explanation // Include explanation in response
     };
   });
 
@@ -25,5 +28,6 @@ export const calculateScore = (questions, answers) => {
     score,
     percentage,
     correctedAnswers,
+    totalQuestions: questions.length
   };
 };
