@@ -1247,15 +1247,37 @@ export const paarshEduApi = createApi({
       providesTags: ["Results"],
     }),
 
+    generateTestLink: builder.mutation({
+      query: (collegeId) => ({
+        url: `/admin/aptitude-test/colleges/${collegeId}/test-link`,
+        method: "POST",
+      }),
+    }),
+
     // Question Endpoints 
 
      createQuestion: builder.mutation({
       query: (questionData) => ({
-        url: '/questions',
+        url: '/aptitude-test/questions',
         method: 'POST',
         body: questionData,
       }),
       invalidatesTags: ['Questions'],
+    }),
+
+    addQuestions: builder.mutation({
+      query: (body) => ({
+        url: "/aptitude-test-questions",
+        method: "POST",
+        body,
+
+      }),
+      providesTags: ["Questions"],
+    }),
+
+    fetchQuestions: builder.query({
+      query: () => "/aptitude-test-questions",
+      providesTags: ["Questions"],
     }),
 
     updateQuestion: builder.mutation({
@@ -1327,11 +1349,24 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Test", "Results"],
     }),
 
-    getTestSessions: builder.query({
-      query: ({ page = 1, limit = 10, search = '' }) => ({
-        url: `?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
-        method: 'GET',
+  getTestSessions: builder.query({
+      query: ({ collegeId }) => ({
+        url: collegeId ? `/admin/aptitude-test/sessions?collegeId=${collegeId}` : "/admin/aptitude-test/sessions",
+        method: "GET",
       }),
+      transformResponse: (response) => response.testSessions,
+      providesTags: ["TestSession"],
+      onQueryStarted: async (_, { queryFulfilled }) => {
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          console.error("Test Sessions query error:", error);
+        }
+      },
+    }),
+
+    getTestSession: builder.query({
+      query: (sessionId) => `/admin/aptitude-test/session/${sessionId}`,
       providesTags: ['TestSession'],
     }),
 
@@ -1531,6 +1566,7 @@ export const {
   useUpdateCollegeMutation,
   useDeleteCollegeMutation,
   useGetCollegeResultsQuery,
+  useGenerateTestLinkMutation,
   useRegisterStudentMutation,
   useLoginStudentMutation,
   useSubmitTestMutation,
@@ -1538,6 +1574,8 @@ export const {
 
   useCreateQuestionMutation,
   useUpdateQuestionMutation,
+  useFetchQuestionsQuery,
+  useAddQuestionsMutation,
   useDeleteQuestionMutation,
 
   useGetTestSessionsQuery,

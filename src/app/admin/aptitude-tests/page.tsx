@@ -5,8 +5,6 @@ import { FaRegCopy } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Menu, Upload } from "lucide-react";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -39,6 +37,8 @@ import {
   useLazyGetTestsQuery,
   useCreateTestMutation,
   useDeleteTestMutation,
+  useFetchQuestionsQuery,
+  useAddQuestionsMutation,
 } from "@/services/api";
 
 interface College {
@@ -990,11 +990,4 @@ const CreateAptitudeTest = () => {
 };
 
 export default CreateAptitudeTest;
-function useFetchQuestionsQuery(undefined: undefined): { data: any; isLoading: any; error: any; } {
-  throw new Error("Function not implemented.");
-}
-
-function useAddQuestionsMutation(): [any, { isLoading: any; }] {
-  throw new Error("Function not implemented.");
-}
 

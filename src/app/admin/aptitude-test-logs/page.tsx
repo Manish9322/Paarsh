@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,267 +21,112 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import {
-  Menu,
-  Search,
-  Plus,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  Edit2,
-} from "lucide-react";
+import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  useGetCollegesQuery,
-  useCreateCollegeMutation,
-  useUpdateCollegeMutation,
-  useDeleteCollegeMutation,
-} from "@/services/api";
+import { useFetchCollegesQuery, useGetTestSessionsQuery } from "@/services/api";
 
 interface College {
   _id: string;
   name: string;
-  email: string;
-  testLink: string;
-  testDuration: number;
-  isActive: boolean;
-  createdAt: string;
-  testSettings: {
-    questionsPerTest: number;
-    passingScore: number;
-    allowRetake: boolean;
-  };
+}
+
+interface TestSession {
+  _id: string;
+  student: { _id: string; name: string };
+  college: { _id: string; name: string };
+  testId: string;
+  startTime: string;
+  endTime?: string;
+  duration: number;
+  score: number;
+  percentage: number;
+  status: "pending" | "active" | "completed";
 }
 
 const AptitudePage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [collegeToDelete, setCollegeToDelete] = useState<string | null>(null);
-  const [selectedCollege, setSelectedCollege] = useState<College | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [collegesPerPage, setCollegesPerPage] = useState<number | "all">(10);
-  const [newCollegeName, setNewCollegeName] = useState("");
-  const [newCollegeEmail, setNewCollegeEmail] = useState("");
-  const [newTestLink, setNewTestLink] = useState("");
-  const [newTestDuration, setNewTestDuration] = useState<number | "">(120);
-  const [newQuestionsPerTest, setNewQuestionsPerTest] = useState<number | "">(
-    100,
-  );
-  const [newPassingScore, setNewPassingScore] = useState<number | "">(60);
-  const [newAllowRetake, setNewAllowRetake] = useState(false);
-  const [editCollegeName, setEditCollegeName] = useState("");
-  const [editCollegeEmail, setEditCollegeEmail] = useState("");
-  const [editTestLink, setEditTestLink] = useState("");
-  const [editTestDuration, setEditTestDuration] = useState<number | "">("");
-  const [editQuestionsPerTest, setEditQuestionsPerTest] = useState<number | "">(
-    "",
-  );
-  const [editPassingScore, setEditPassingScore] = useState<number | "">("");
-  const [editAllowRetake, setEditAllowRetake] = useState(false);
-  const [editIsActive, setEditIsActive] = useState(false);
+  const [selectedCollegeFilter, setSelectedCollegeFilter] = useState<string | "all">("all");
+  const [testSessionsPage, setTestSessionsPage] = useState(1);
+  const [testSessionsPerPage, setTestSessionsPerPage] = useState<number | "all">(10);
 
-  // Fetch colleges using useGetCollegesQuery
-  const { data: colleges, isLoading, error } = useGetCollegesQuery(undefined);
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  // Mutations for college operations
-  const [createCollege] = useCreateCollegeMutation();
-  const [updateCollege] = useUpdateCollegeMutation();
-  const [deleteCollege] = useDeleteCollegeMutation();
+  // Fetch colleges for filter dropdown and test sessions
+  const { data: collegesData, isLoading: isCollegesLoading, error: collegesError } = useFetchCollegesQuery(undefined);
+  const { data: testSessions, isLoading: isTestSessionsLoading, error: testSessionsError } = useGetTestSessionsQuery({
+    collegeId: selectedCollegeFilter === "all" ? undefined : selectedCollegeFilter,
+  });
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  const colleges = collegesData?.colleges || [];
 
-  const handleCreateCollege = async () => {
-    if (
-      !newCollegeName ||
-      !newCollegeEmail ||
-      !newTestLink ||
-      newTestDuration === "" ||
-      newQuestionsPerTest === "" ||
-      newPassingScore === ""
-    ) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
+  // Debug colleges and test sessions data
+  useEffect(() => {
+    console.log("Colleges Data:", collegesData);
+    console.log("Colleges:", colleges);
+    console.log("Test Sessions Data:", testSessions);
+    console.log("Test Sessions Error:", testSessionsError);
+  }, [collegesData, colleges, testSessions, testSessionsError]);
 
-    try {
-      const newCollege: College = {
-        _id: `college_${Date.now()}`, // Temporary ID, replaced by API
-        name: newCollegeName,
-        email: newCollegeEmail,
-        testLink: newTestLink,
-        testDuration: Number(newTestDuration),
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        testSettings: {
-          questionsPerTest: Number(newQuestionsPerTest),
-          passingScore: Number(newPassingScore),
-          allowRetake: newAllowRetake,
-        },
-      };
-
-      await createCollege(newCollege).unwrap();
-      toast.success("College created successfully");
-      setCreateDialogOpen(false);
-      setNewCollegeName("");
-      setNewCollegeEmail("");
-      setNewTestLink("");
-      setNewTestDuration(120);
-      setNewQuestionsPerTest(100);
-      setNewPassingScore(60);
-      setNewAllowRetake(false);
-    } catch (err) {
-      toast.error("Failed to create college. Please try again.");
-    }
-  };
-
-  const handleEditCollege = async () => {
-    if (
-      !selectedCollege ||
-      !editCollegeName ||
-      !editCollegeEmail ||
-      !editTestLink ||
-      editTestDuration === "" ||
-      editQuestionsPerTest === "" ||
-      editPassingScore === ""
-    ) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    try {
-      const updatedCollege: College = {
-        ...selectedCollege,
-        name: editCollegeName,
-        email: editCollegeEmail,
-        testLink: editTestLink,
-        testDuration: Number(editTestDuration),
-        isActive: editIsActive,
-        testSettings: {
-          questionsPerTest: Number(editQuestionsPerTest),
-          passingScore: Number(editPassingScore),
-          allowRetake: editAllowRetake,
-        },
-      };
-
-      await updateCollege(updatedCollege).unwrap();
-      toast.success("College updated successfully");
-      setEditDialogOpen(false);
-      setSelectedCollege(null);
-      setEditCollegeName("");
-      setEditCollegeEmail("");
-      setEditTestLink("");
-      setEditTestDuration("");
-      setEditQuestionsPerTest("");
-      setEditPassingScore("");
-      setEditAllowRetake(false);
-      setEditIsActive(false);
-    } catch (err) {
-      toast.error("Failed to update college. Please try again.");
-    }
-  };
-
-  const handleDeleteCollege = async (id: string) => {
-    try {
-      await deleteCollege(id).unwrap();
-      setCollegeToDelete(null);
-      setDeleteDialogOpen(false);
-      toast.success("College deleted successfully");
-    } catch (err) {
-      toast.error("Failed to delete college. Please try again.");
-    }
-  };
-
-  const handleViewCollege = (college: College) => {
-    setSelectedCollege(college);
-    setViewDialogOpen(true);
-  };
-
-  const handleOpenEditDialog = (college: College) => {
-    setSelectedCollege(college);
-    setEditCollegeName(college.name);
-    setEditCollegeEmail(college.email);
-    setEditTestLink(college.testLink);
-    setEditTestDuration(college.testDuration);
-    setEditQuestionsPerTest(college.testSettings.questionsPerTest);
-    setEditPassingScore(college.testSettings.passingScore);
-    setEditAllowRetake(college.testSettings.allowRetake);
-    setEditIsActive(college.isActive);
-    setEditDialogOpen(true);
-  };
-
-  const filteredColleges = colleges?.filter(
-    (college: College) =>
-      college.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      college.email.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredTestSessions = testSessions?.filter(
+    (session: TestSession) =>
+      session.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      session.testId.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const startIndex =
-    collegesPerPage === "all" ? 0 : (currentPage - 1) * collegesPerPage;
-  const totalPages =
-    collegesPerPage === "all"
-      ? 1
-      : Math.ceil(filteredColleges.length / collegesPerPage);
-  const displayedColleges =
-    collegesPerPage === "all"
-      ? filteredColleges
-      : filteredColleges.slice(startIndex, startIndex + collegesPerPage);
+  const testSessionsStartIndex = testSessionsPerPage === "all" ? 0 : (testSessionsPage - 1) * testSessionsPerPage;
+  const testSessionsTotalPages = testSessionsPerPage === "all" ? 1 : Math.ceil(filteredTestSessions.length / testSessionsPerPage);
+  const displayedTestSessions = testSessionsPerPage === "all" ? filteredTestSessions : filteredTestSessions.slice(testSessionsStartIndex, testSessionsStartIndex + testSessionsPerPage);
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
-  const generatePaginationNumbers = () => {
+  const generatePaginationNumbers = (total: number, current: number) => {
     const pageNumbers: (number | string)[] = [];
     const maxPagesToShow = 5;
 
-    if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
+    if (total <= maxPagesToShow) {
+      for (let i = 1; i <= total; i++) {
         pageNumbers.push(i);
       }
     } else {
       pageNumbers.push(1);
-      let startPage = Math.max(2, currentPage - 1);
-      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      let startPage = Math.max(2, current - 1);
+      let endPage = Math.min(total - 1, current + 1);
 
-      if (currentPage <= 3) {
-        endPage = Math.min(totalPages - 1, maxPagesToShow - 1);
+      if (current <= 3) {
+        endPage = Math.min(total - 1, maxPagesToShow - 1);
       }
-      if (currentPage >= totalPages - 2) {
-        startPage = Math.max(2, totalPages - maxPagesToShow + 2);
+      if (current >= total - 2) {
+        startPage = Math.max(2, total - maxPagesToShow + 2);
       }
 
       if (startPage > 2) pageNumbers.push("...");
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
-      if (endPage < totalPages - 1) pageNumbers.push("...");
-      if (totalPages > 1) pageNumbers.push(totalPages);
+      if (endPage < total - 1) pageNumbers.push("...");
+      if (total > 1) pageNumbers.push(total);
     }
     return pageNumbers;
   };
 
-  if (error) {
-    toast.error("Failed to load colleges. Please try again.");
+  // Notify errors or empty states
+  if (collegesError) {
+    toast.error(`Failed to load colleges for filter: ${collegesError.message || "Unknown error"}`);
+  } else if (!isCollegesLoading && colleges.length === 0) {
+    toast.warning("No colleges available to filter test sessions.");
+  }
+  if (testSessionsError) {
+    toast.error(`Failed to load test sessions: ${testSessionsError.message || "Unknown error"}`);
   }
 
   return (
@@ -294,12 +140,14 @@ const AptitudePage = () => {
         >
           <Menu size={24} />
         </button>
-        <h1 className="text-lg font-bold text-gray-800">Colleges</h1>
+        <h1 className="text-lg font-bold text-gray-800">Test Sessions</h1>
         <div className="w-10"></div>
       </div>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between px-4 md:justify-end">
@@ -322,59 +170,67 @@ const AptitudePage = () => {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pt-16 md:ml-64">
         <div className="container mx-auto px-4 py-6">
+          {/* Test Sessions Card */}
           <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-800 dark:text-white">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
+            <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-                <CardTitle className="text-xl font-bold text-white sm:text-2xl">
-                  Colleges Management
-                </CardTitle>
+                <CardTitle className="text-xl font-bold text-white sm:text-2xl">Test Sessions</CardTitle>
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
                   <Input
                     type="text"
-                    placeholder="Search colleges..."
+                    placeholder="Search students or test IDs..."
                     className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-black md:w-64"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <Button
-                    onClick={() => setCreateDialogOpen(true)}
-                    className="h-10 w-full rounded bg-white text-blue-600 transition-colors hover:bg-blue-50 md:w-auto"
+                  <Select
+                    value={selectedCollegeFilter}
+                    onValueChange={(value) => {
+                      console.log("Selected College ID:", value);
+                      setSelectedCollegeFilter(value);
+                      setTestSessionsPage(1);
+                    }}
+                    disabled={isCollegesLoading}
                   >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add New College
-                  </Button>
+                    <SelectTrigger className="h-10 w-full rounded border border-gray-300 bg-white/90 text-black dark:text-black md:w-64">
+                      <SelectValue placeholder={isCollegesLoading ? "Loading colleges..." : colleges.length === 0 ? "No colleges available" : "Select a college"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Colleges</SelectItem>
+                      {colleges.length > 0 ? (
+                        colleges.map((college: College) => (
+                          <SelectItem key={college._id} value={college._id}>
+                            {college.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="none" disabled>
+                          No colleges available
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardHeader>
-
             <CardContent className="p-0">
-              {/* Table */}
               <div className="m-4 overflow-x-auto">
                 <Table className="w-full text-black dark:text-white">
                   <TableHeader>
                     <TableRow className="border-b border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:hover:bg-gray-800">
-                      <TableHead className="hidden py-3 text-center sm:table-cell">
-                        #
-                      </TableHead>
-                      <TableHead className="py-3">College Name</TableHead>
-                      <TableHead className="hidden py-3 md:table-cell">
-                        Email
-                      </TableHead>
-                      <TableHead className="hidden py-3 lg:table-cell">
-                        Test Duration
-                      </TableHead>
-                      <TableHead className="hidden py-3 xl:table-cell">
-                        Status
-                      </TableHead>
-                      <TableHead className="hidden py-3 xl:table-cell">
-                        Created At
-                      </TableHead>
-                      <TableHead className="py-3 text-center">Actions</TableHead>
+                      <TableHead className="hidden py-3 text-center sm:table-cell">#</TableHead>
+                      <TableHead className="py-3">Student Name</TableHead>
+                      <TableHead className="py-3">Test ID</TableHead>
+                      <TableHead className="hidden py-3 md:table-cell">College</TableHead>
+                      <TableHead className="hidden py-3 lg:table-cell">Score</TableHead>
+                      <TableHead className="hidden py-3 xl:table-cell">Percentage</TableHead>
+                      <TableHead className="hidden py-3 xl:table-cell">Status</TableHead>
+                      <TableHead className="hidden py-3 xl:table-cell">Start Time</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {isLoading ? (
-                      Array.from({ length: collegesPerPage === "all" ? 5 : collegesPerPage }).map((_, index) => (
+                    {isTestSessionsLoading ? (
+                      Array.from({ length: testSessionsPerPage === "all" ? 5 : testSessionsPerPage }).map((_, index) => (
                         <TableRow key={index}>
                           <TableCell className="hidden sm:table-cell">
                             <Skeleton className="h-6 w-8 mx-auto" />
@@ -382,6 +238,9 @@ const AptitudePage = () => {
                           <TableCell>
                             <Skeleton className="h-6 w-full" />
                           </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-full" />
+                          </TableCell>
                           <TableCell className="hidden md:table-cell">
                             <Skeleton className="h-6 w-full" />
                           </TableCell>
@@ -394,107 +253,39 @@ const AptitudePage = () => {
                           <TableCell className="hidden xl:table-cell">
                             <Skeleton className="h-6 w-24 mx-auto" />
                           </TableCell>
-                          <TableCell>
-                            <Skeleton className="h-6 w-24 mx-auto" />
-                          </TableCell>
                         </TableRow>
                       ))
-                    ) : displayedColleges.length === 0 ? (
+                    ) : displayedTestSessions.length === 0 ? (
                       <TableRow>
-                        <TableCell
-                          colSpan={7}
-                          className="py-6 text-center text-gray-500 dark:text-gray-400"
-                        >
-                          No colleges found.
+                        <TableCell colSpan={7} className="py-6 text-center text-gray-500 dark:text-gray-400">
+                          No test sessions found.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      displayedColleges.map((college: College, index: number) => (
+                      displayedTestSessions.map((session: TestSession, index: number) => (
                         <TableRow
-                          key={college._id}
+                          key={session._id}
                           className="border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                         >
-                          <TableCell className="hidden text-center font-medium sm:table-cell">
-                            {startIndex + index + 1}
-                          </TableCell>
+                          <TableCell className="hidden text-center font-medium sm:table-cell">{testSessionsStartIndex + index + 1}</TableCell>
                           <TableCell>
                             <div className="md:hidden">
-                              <p className="font-medium">{college.name}</p>
-                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                {college.email}
-                              </p>
-                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                Duration: {college.testDuration} mins
-                              </p>
-                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                Status: {college.isActive ? "Active" : "Inactive"}
-                              </p>
-                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                Created: {formatDate(college.createdAt)}
-                              </p>
+                              <p className="font-medium">{session.student.name}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Test: {session.testId}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">College: {session.college.name}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Score: {session.score}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Percentage: {session.percentage}%</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Status: {session.status}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Started: {formatDate(session.startTime)}</p>
                             </div>
-                            <span className="hidden font-medium md:inline">
-                              {college.name}
-                            </span>
+                            <span className="hidden font-medium md:inline">{session.student.name}</span>
                           </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            {college.email}
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            {college.testDuration} mins
-                          </TableCell>
-                          <TableCell className="hidden xl:table-cell">
-                            {college.isActive ? "Active" : "Inactive"}
-                          </TableCell>
-                          <TableCell className="hidden xl:table-cell">
-                            {formatDate(college.createdAt)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-all duration-200 hover:bg-blue-100 hover:text-blue-700 hover:shadow-md dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
-                                onClick={() => handleViewCollege(college)}
-                                aria-label="View college"
-                              >
-                                <Eye
-                                  size={16}
-                                  className="transition-transform group-hover:scale-110"
-                                />
-                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
-                                  View college
-                                </span>
-                              </button>
-                              <button
-                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-yellow-50 text-yellow-600 transition-all duration-200 hover:bg-yellow-100 hover:text-yellow-700 hover:shadow-md dark:bg-yellow-900/20 dark:text-yellow-400 dark:hover:bg-yellow-900/30 dark:hover:text-yellow-300"
-                                onClick={() => handleOpenEditDialog(college)}
-                                aria-label="Edit college"
-                              >
-                                <Edit2
-                                  size={16}
-                                  className="transition-transform group-hover:scale-110"
-                                />
-                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
-                                  Edit college
-                                </span>
-                              </button>
-                              <button
-                                className="group relative flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 hover:text-red-700 hover:shadow-md dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
-                                onClick={() => {
-                                  setCollegeToDelete(college._id);
-                                  setDeleteDialogOpen(true);
-                                }}
-                                aria-label="Delete college"
-                              >
-                                <Trash2
-                                  size={16}
-                                  className="transition-transform group-hover:scale-110"
-                                />
-                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
-                                  Delete college
-                                </span>
-                              </button>
-                            </div>
-                          </TableCell>
+                          <TableCell>{session.testId}</TableCell>
+                          <TableCell className="hidden md:table-cell">{session.college.name}</TableCell>
+                          <TableCell className="hidden lg:table-cell">{session.score}</TableCell>
+                          <TableCell className="hidden xl:table-cell">{session.percentage}%</TableCell>
+                          <TableCell className="hidden xl:table-cell">{session.status}</TableCell>
+                          <TableCell className="hidden xl:table-cell">{formatDate(session.startTime)}</TableCell>
                         </TableRow>
                       ))
                     )}
@@ -504,428 +295,23 @@ const AptitudePage = () => {
             </CardContent>
           </Card>
 
-          {/* Create College Dialog */}
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className="max-w-2xl dark:bg-gray-800 dark:text-white">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                  Create New College
-                </DialogTitle>
-                <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
-                  Enter the details for the new college.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    College Name
-                  </label>
-                  <Input
-                    type="text"
-                    value={newCollegeName}
-                    onChange={(e) => setNewCollegeName(e.target.value)}
-                    placeholder="Enter college name"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Email
-                  </label>
-                  <Input
-                    type="email"
-                    value={newCollegeEmail}
-                    onChange={(e) => setNewCollegeEmail(e.target.value)}
-                    placeholder="Enter college email"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Test Link
-                  </label>
-                  <Input
-                    type="text"
-                    value={newTestLink}
-                    onChange={(e) => setNewTestLink(e.target.value)}
-                    placeholder="Enter test link"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Test Duration (minutes)
-                  </label>
-                  <Input
-                    type="number"
-                    value={newTestDuration}
-                    onChange={(e) => setNewTestDuration(Number(e.target.value))}
-                    placeholder="Enter test duration"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Questions Per Test
-                  </label>
-                  <Input
-                    type="number"
-                    value={newQuestionsPerTest}
-                    onChange={(e) => setNewQuestionsPerTest(Number(e.target.value))}
-                    placeholder="Enter number of questions"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Passing Score (%)
-                  </label>
-                  <Input
-                    type="number"
-                    value={newPassingScore}
-                    onChange={(e) => setNewPassingScore(Number(e.target.value))}
-                    placeholder="Enter passing score"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="newAllowRetake"
-                    checked={newAllowRetake}
-                    onChange={(e) => setNewAllowRetake(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-700"
-                  />
-                  <label
-                    htmlFor="newAllowRetake"
-                    className="text-sm font-medium text-gray-700 dark:text-gray-200"
-                  >
-                    Allow Retake
-                  </label>
-                </div>
-              </div>
-              <DialogFooter className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setCreateDialogOpen(false);
-                    setNewCollegeName("");
-                    setNewCollegeEmail("");
-                    setNewTestLink("");
-                    setNewTestDuration(120);
-                    setNewQuestionsPerTest(100);
-                    setNewPassingScore(60);
-                    setNewAllowRetake(false);
-                  }}
-                  className="w-full sm:w-auto"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreateCollege}
-                  className="w-full sm:w-auto"
-                  disabled={isLoading || !!error}
-                >
-                  Create College
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* View College Dialog */}
-          <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-            <DialogContent className="max-w-2xl dark:bg-gray-800 dark:text-white">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                  View College
-                </DialogTitle>
-                <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
-                  Details of the selected college.
-                </DialogDescription>
-              </DialogHeader>
-              {selectedCollege && (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      College Name
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                      {selectedCollege.name}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Email
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                      {selectedCollege.email}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Test Link
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                      {selectedCollege.testLink}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Test Duration
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                      {selectedCollege.testDuration} mins
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Questions Per Test
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                      {selectedCollege.testSettings.questionsPerTest}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Passing Score
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                      {selectedCollege.testSettings.passingScore}%
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Allow Retake
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                      {selectedCollege.testSettings.allowRetake ? "Yes" : "No"}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                      Status
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                      {selectedCollege.isActive ? "Active" : "Inactive"}
-                    </p>
-                  </div>
-                </div>
-              )}
-              <DialogFooter className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setViewDialogOpen(false)}
-                  className="w-full sm:w-auto"
-                >
-                  Close
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* Edit College Dialog */}
-          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-            <DialogContent className="max-w-2xl dark:bg-gray-800 dark:text-white">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                  Edit College
-                </DialogTitle>
-                <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
-                  Update the details for the college.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    College Name
-                  </label>
-                  <Input
-                    type="text"
-                    value={editCollegeName}
-                    onChange={(e) => setEditCollegeName(e.target.value)}
-                    placeholder="Enter college name"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Email
-                  </label>
-                  <Input
-                    type="email"
-                    value={editCollegeEmail}
-                    onChange={(e) => setEditCollegeEmail(e.target.value)}
-                    placeholder="Enter college email"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Test Link
-                  </label>
-                  <Input
-                    type="text"
-                    value={editTestLink}
-                    onChange={(e) => setEditTestLink(e.target.value)}
-                    placeholder="Enter test link"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Test Duration (minutes)
-                  </label>
-                  <Input
-                    type="number"
-                    value={editTestDuration}
-                    onChange={(e) => setEditTestDuration(Number(e.target.value))}
-                    placeholder="Enter test duration"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Questions Per Test
-                  </label>
-                  <Input
-                    type="number"
-                    value={editQuestionsPerTest}
-                    onChange={(e) => setEditQuestionsPerTest(Number(e.target.value))}
-                    placeholder="Enter number of questions"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Passing Score (%)
-                  </label>
-                  <Input
-                    type="number"
-                    value={editPassingScore}
-                    onChange={(e) => setEditPassingScore(Number(e.target.value))}
-                    placeholder="Enter passing score"
-                    className="mt-1 h-10 w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="editAllowRetake"
-                    checked={editAllowRetake}
-                    onChange={(e) => setEditAllowRetake(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-700"
-                  />
-                  <label
-                    htmlFor="editAllowRetake"
-                    className="text-sm font-medium text-gray-700 dark:text-gray-200"
-                  >
-                    Allow Retake
-                  </label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="editIsActive"
-                    checked={editIsActive}
-                    onChange={(e) => setEditIsActive(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-700"
-                  />
-                  <label
-                    htmlFor="editIsActive"
-                    className="text-sm font-medium text-gray-700 dark:text-gray-200"
-                  >
-                    Active
-                  </label>
-                </div>
-              </div>
-              <DialogFooter className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setEditDialogOpen(false);
-                    setSelectedCollege(null);
-                    setEditCollegeName("");
-                    setEditCollegeEmail("");
-                    setEditTestLink("");
-                    setEditTestDuration("");
-                    setEditQuestionsPerTest("");
-                    setEditPassingScore("");
-                    setEditAllowRetake(false);
-                    setEditIsActive(false);
-                  }}
-                  className="w-full sm:w-auto"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleEditCollege}
-                  className="w-full sm:w-auto"
-                  disabled={isLoading || !!error}
-                >
-                  Save Changes
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* Delete Confirmation Dialog */}
-          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <DialogContent className="max-w-md dark:bg-gray-800 dark:text-white">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                  Confirm Deletion
-                </DialogTitle>
-                <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
-                  Are you sure you want to delete this college? This action cannot be undone.
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <Button
-                  variant="outline"
-                  onClick={() => setDeleteDialogOpen(false)}
-                  className="w-full sm:w-auto"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => collegeToDelete && handleDeleteCollege(collegeToDelete)}
-                  className="w-full sm:w-auto"
-                >
-                  Delete College
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          {/* Pagination */}
+          {/* Pagination for Test Sessions */}
           <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 Showing{" "}
+                <span className="font-medium text-gray-700 dark:text-gray-300">{testSessionsPerPage === "all" ? 1 : testSessionsStartIndex + 1}</span> to{" "}
                 <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {collegesPerPage === "all" ? 1 : startIndex + 1}
+                  {testSessionsPerPage === "all" ? filteredTestSessions.length : Math.min(testSessionsStartIndex + testSessionsPerPage, filteredTestSessions.length)}
                 </span>{" "}
-                to{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {collegesPerPage === "all"
-                    ? filteredColleges.length
-                    : Math.min(startIndex + collegesPerPage, filteredColleges.length)}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {filteredColleges.length}
-                </span>{" "}
-                colleges
+                of <span className="font-medium text-gray-700 dark:text-gray-300">{filteredTestSessions.length}</span> test sessions
                 <div className="flex items-center space-x-2 pt-2">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Show:
-                  </span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Show:</span>
                   <Select
-                    value={collegesPerPage.toString()}
+                    value={testSessionsPerPage.toString()}
                     onValueChange={(value) => {
-                      setCollegesPerPage(value === "all" ? "all" : parseInt(value));
-                      setCurrentPage(1);
+                      setTestSessionsPerPage(value === "all" ? "all" : parseInt(value));
+                      setTestSessionsPage(1);
                     }}
                   >
                     <SelectTrigger className="h-8 w-24 rounded-md dark:border-gray-700 dark:bg-gray-800 dark:text-white">
@@ -940,64 +326,56 @@ const AptitudePage = () => {
                   </Select>
                 </div>
               </div>
-
               <div className="flex items-center space-x-1">
                 <Button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
+                  onClick={() => setTestSessionsPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={testSessionsPage === 1}
                   className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-
                 <div className="hidden sm:flex sm:items-center sm:space-x-1">
-                  {generatePaginationNumbers().map((page, index) =>
+                  {generatePaginationNumbers(testSessionsTotalPages, testSessionsPage).map((page, index) =>
                     typeof page === "number" ? (
                       <Button
-                        key={`page-${page}`}
-                        onClick={() => setCurrentPage(page)}
+                        key={`test-session-page-${page}`}
+                        onClick={() => setTestSessionsPage(page)}
                         className={`h-8 w-8 rounded-md p-0 text-sm font-medium ${
-                          currentPage === page
+                          testSessionsPage === page
                             ? "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                             : "bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
                         }`}
                         aria-label={`Page ${page}`}
-                        aria-current={currentPage === page ? "page" : undefined}
+                        aria-current={testSessionsPage === page ? "page" : undefined}
                       >
                         {page}
                       </Button>
                     ) : (
-                      <span key={`ellipsis-${index}`} className="px-1 text-gray-400">
-                        {page}
-                      </span>
-                    ),
+                      <span key={`test-session-ellipsis-${index}`} className="px-1 text-gray-400">{page}</span>
+                    )
                   )}
                 </div>
-
                 <Button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
+                  onClick={() => setTestSessionsPage((prev) => Math.min(prev + 1, testSessionsTotalPages))}
+                  disabled={testSessionsPage === testSessionsTotalPages}
                   className="h-8 w-8 rounded-md bg-blue-50 p-0 text-blue-600 transition-colors hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:disabled:bg-gray-800 dark:disabled:text-gray-600"
                   aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-
               <div className="hidden items-center space-x-2 lg:flex">
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Go to page:
-                </span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Go to page:</span>
                 <Input
                   type="number"
                   min={1}
-                  max={totalPages}
-                  value={currentPage}
+                  max={testSessionsTotalPages}
+                  value={testSessionsPage}
                   onChange={(e) => {
                     const value = parseInt(e.target.value);
-                    if (value >= 1 && value <= totalPages) {
-                      setCurrentPage(value);
+                    if (value >= 1 && value <= testSessionsTotalPages) {
+                      setTestSessionsPage(value);
                     }
                   }}
                   className="h-8 w-16 rounded-md border-gray-300 text-center text-sm dark:border-gray-700 dark:bg-gray-800"
@@ -1014,7 +392,6 @@ const AptitudePage = () => {
         body {
           overflow-x: hidden;
         }
-
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
           height: 6px;
@@ -1026,7 +403,6 @@ const AptitudePage = () => {
         .custom-scrollbar::-webkit-scrollbar-track {
           background-color: #f9fafb;
         }
-
         @media (prefers-color-scheme: dark) {
           .custom-scrollbar::-webkit-scrollbar-thumb {
             background-color: #4b5563;

@@ -47,6 +47,7 @@ import {
   useCreateCollegeMutation,
   useUpdateCollegeMutation,
   useDeleteCollegeMutation,
+  useGenerateTestLinkMutation,
 } from "../../../services/api";
 
 interface College {
