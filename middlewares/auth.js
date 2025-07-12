@@ -12,7 +12,7 @@ import AgentModel from "../models/Agent.model";
 import StudentModel from "../models/AptitudeTest/Student.model";
 import _db from "../utils/db";
 
-_db();
+await _db();
 
 const ROLE_SECRET_MAP = {
   user: JWT_SECRET_USER,
@@ -45,7 +45,7 @@ export function authMiddleware(handler, allowedRoles = ["user"]) {
         }
       }
 
-      console.log("foundRole:", foundRole);
+      console.log("foundRole:", foundRole); 
       if (!token) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Token missing"  },

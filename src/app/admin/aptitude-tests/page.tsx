@@ -52,6 +52,7 @@ interface College {
 interface Test {
   testId: string;
   college: string;
+  batchName: string;
   testDuration: number;
   testSettings: {
     questionsPerTest: number;
@@ -106,6 +107,7 @@ const CreateAptitudeTest = () => {
   const [testsPerPage, setTestsPerPage] = useState<number | "all">(10);
   const [testForm, setTestForm] = useState({
     collegeId: "",
+    batchName: "",
     testDuration: "",
     questionsPerTest: "",
     passingScore: "",
@@ -163,7 +165,8 @@ const CreateAptitudeTest = () => {
   const filteredTests = allTests.filter(
     (test: TestWithCollegeName) =>
       test.testId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      test.collegeName.toLowerCase().includes(searchTerm.toLowerCase())
+      test.collegeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      test.batchName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Paginate tests
@@ -177,14 +180,15 @@ const CreateAptitudeTest = () => {
   const allQuestions: ParsedQuestion[] = data?.data || [];
 
   const handleCreateTest = async () => {
-    const { collegeId, testDuration, questionsPerTest, passingScore, allowRetake } = testForm;
-    if (!collegeId || !testDuration || !questionsPerTest || !passingScore) {
+    const { collegeId, batchName, testDuration, questionsPerTest, passingScore, allowRetake } = testForm;
+    if (!collegeId || !batchName || !testDuration || !questionsPerTest || !passingScore) {
       toast.error("Please fill in all required fields");
       return;
     }
     try {
       const response = await createTest({
         collegeId,
+        batchName,
         testDuration: parseInt(testDuration),
         testSettings: {
           questionsPerTest: parseInt(questionsPerTest),
@@ -193,7 +197,7 @@ const CreateAptitudeTest = () => {
         },
       }).unwrap();
       setCreateTestDialogOpen(false);
-      setTestForm({ collegeId: "", testDuration: "", questionsPerTest: "", passingScore: "", allowRetake: false });
+      setTestForm({ collegeId: "", batchName: "", testDuration: "", questionsPerTest: "", passingScore: "", allowRetake: false });
       toast.success(`Test created successfully: ${response.data.testLink}`);
       // Refresh tests
       const tests = await triggerGetTests(collegeId).unwrap();
@@ -521,12 +525,12 @@ const CreateAptitudeTest = () => {
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">
-                  Aptitude Questions
+                  Aptitude Test 
                 </CardTitle>
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
                   <Input
                     type="text"
-                    placeholder="Search tests or colleges..."
+                    placeholder="Search tests, colleges, or batch names..."
                     className="h-10 w-full rounded border border-gray-200 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:border-gray-600 dark:bg-gray-700/50 dark:text-white"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -551,6 +555,7 @@ const CreateAptitudeTest = () => {
                       </TableHead>
                       <TableHead className="py-3">College Name</TableHead>
                       <TableHead className="py-3">Test ID</TableHead>
+                      <TableHead className="py-3">Batch Name</TableHead>
                       <TableHead className="py-3 text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -568,6 +573,9 @@ const CreateAptitudeTest = () => {
                             <Skeleton className="h-6 w-48" />
                           </TableCell>
                           <TableCell>
+                            <Skeleton className="h-6 w-48" />
+                          </TableCell>
+                          <TableCell>
                             <Skeleton className="h-6 w-24" />
                           </TableCell>
                         </TableRow>
@@ -575,7 +583,7 @@ const CreateAptitudeTest = () => {
                     ) : displayedTests.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={4}
+                          colSpan={5}
                           className="py-6 text-center text-gray-500 dark:text-gray-400"
                         >
                           No tests found.
@@ -596,12 +604,16 @@ const CreateAptitudeTest = () => {
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                 Test: {test.testId}
                               </p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Batch: {test.batchName}
+                              </p>
                             </div>
                             <span className="hidden font-medium md:inline">
                               {test.collegeName}
                             </span>
                           </TableCell>
                           <TableCell>{test.testId}</TableCell>
+                          <TableCell>{test.batchName}</TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-2">
                               <Button
@@ -663,7 +675,7 @@ const CreateAptitudeTest = () => {
           {/* Create Test Dialog */}
           <Dialog open={createTestDialogOpen} onOpenChange={(open) => {
             setCreateTestDialogOpen(open);
-            if (!open) setTestForm({ collegeId: "", testDuration: "", questionsPerTest: "", passingScore: "", allowRetake: false });
+            if (!open) setTestForm({ collegeId: "", batchName: "", testDuration: "", questionsPerTest: "", passingScore: "", allowRetake: false });
           }}>
             <DialogContent className="max-w-md border border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white">
               <DialogHeader>
@@ -683,7 +695,7 @@ const CreateAptitudeTest = () => {
                     value={testForm.collegeId}
                     onValueChange={(value) => setTestForm({ ...testForm, collegeId: value })}
                   >
-                    <SelectTrigger className="w-full rounded border border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700/50">
+                    <SelectTrigger className="w-full rounded border border-gray-200 bg-gray-50 dark:text-white dark:border-gray-600 dark:bg-gray-700/50">
                       <SelectValue placeholder="Select a college" />
                     </SelectTrigger>
                     <SelectContent>
@@ -697,6 +709,19 @@ const CreateAptitudeTest = () => {
                 </div>
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                    Batch Name
+                  </label>
+                  <Input
+                    type="text"
+                    value={testForm.batchName}
+                    onChange={(e) => setTestForm({ ...testForm, batchName: e.target.value })}
+                    placeholder="Enter batch name"
+                    className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
                     Test Duration (minutes)
                   </label>
                   <Input
@@ -704,7 +729,7 @@ const CreateAptitudeTest = () => {
                     value={testForm.testDuration}
                     onChange={(e) => setTestForm({ ...testForm, testDuration: e.target.value })}
                     placeholder="Enter duration in minutes"
-                    className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                    className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
                     required
                   />
                 </div>
@@ -717,7 +742,7 @@ const CreateAptitudeTest = () => {
                     value={testForm.questionsPerTest}
                     onChange={(e) => setTestForm({ ...testForm, questionsPerTest: e.target.value })}
                     placeholder="Enter number of questions"
-                    className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                    className="w-full rounded border border-gray-200 bg-gray-50 dark:text-white px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
                     required
                   />
                 </div>
@@ -730,7 +755,7 @@ const CreateAptitudeTest = () => {
                     value={testForm.passingScore}
                     onChange={(e) => setTestForm({ ...testForm, passingScore: e.target.value })}
                     placeholder="Enter passing score"
-                    className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                    className="w-full rounded border border-gray-200 bg-gray-50 dark:text-white px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
                     required
                   />
                 </div>
@@ -990,4 +1015,3 @@ const CreateAptitudeTest = () => {
 };
 
 export default CreateAptitudeTest;
-
