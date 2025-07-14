@@ -4,7 +4,7 @@ import { createContext, useEffect, useState, useMemo } from 'react';
 import { io } from 'socket.io-client';
 import { useFetchRoleQuery, useFetchMeQuery } from '../services/api';
 import { usePathname } from 'next/navigation';
-import jwtDecode from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import { toast } from 'sonner';
 
 export const SocketContext = createContext();

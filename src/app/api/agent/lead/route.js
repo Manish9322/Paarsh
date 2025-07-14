@@ -5,7 +5,7 @@ import AgentModel from "models/Agent.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 import _db from "../../../../../utils/db";
 
-_db();
+await _db();
 
 export const POST = authMiddleware(async (request) => {
   try {

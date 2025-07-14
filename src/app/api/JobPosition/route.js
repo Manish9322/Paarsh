@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import JobPositionModel from "models/JobApplication/JobPosition.model";
 import _db from "utils/db";
 
-_db();
+await _db();
 
 export async function POST(req) {
   try {

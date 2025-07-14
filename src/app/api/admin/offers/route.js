@@ -4,7 +4,7 @@ import _db from "../../../../../utils/db";
 import OfferModel from "../../../../../models/Offers/Offer.model";
 import notificationHelper from "../../../../../utils/notificationHelper";
 
-_db();
+await _db();
 
 // Add Offer
 export const POST = authMiddleware(

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import _db from "../../../../../utils/db";
 import CourseModel from "../../../../../models/Courses/Course.model";
 
-_db();
+await _db();
 
 // Add Multiple Courses
 export const POST = async (request) => {

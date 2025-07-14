@@ -5,7 +5,7 @@ import AgentModel from "models/Agent.model";
 import _db from "../../../../../utils/db";
 import CourseModel from "models/Courses/Course.model";
 
-_db();
+await _db();
 
 export const GET = authMiddleware(async (request) => {
   try {

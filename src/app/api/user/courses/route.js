@@ -6,7 +6,7 @@ import _db from "../../../../../utils/db";
 import CourseModel from "../../../../../models/Courses/Course.model";
 import mongoose from "mongoose";
 
-_db();
+await _db();
 
 // Helper function to convert buffer to ObjectId
 function bufferToObjectId(buffer) {

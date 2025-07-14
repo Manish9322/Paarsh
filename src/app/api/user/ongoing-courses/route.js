@@ -4,7 +4,7 @@ import { authMiddleware } from "../../../../../middlewares/auth";
 import CourseModel from "models/Courses/Course.model";
 import UserProgressModel from "models/Courses/UserProgress.model";
 
-_db();
+await _db();
 
 export const GET = authMiddleware(async (request) => {
   try {

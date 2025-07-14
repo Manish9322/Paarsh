@@ -5,7 +5,7 @@ import TargetModel from "../../../../../models/AgentTarget.model";
 import SaleModel from "../../../../../models/AgentSale.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 
-_db();
+await _db();
 
 export const POST = authMiddleware(async (request) => {
   try {

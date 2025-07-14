@@ -3,7 +3,7 @@ import Blog from "../../../../models/Blog.model";
 import _db from "../../../../utils/db";
 //import { authMiddleware } from "../../../../middlewares/auth";
 // Initialize database connection
-_db();
+await _db();
 
 export async function POST(request) {
   try {

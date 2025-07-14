@@ -4,7 +4,7 @@ import MeetingLink from "../../../../../models/MeetingLink.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 
 
-_db();
+await _db();
 
 // GET single meeting link
 export const GET = authMiddleware(async (req, { params }) => {

@@ -12,7 +12,7 @@ import mongoose from "mongoose";
 import _db from "../../../../utils/db";
 import notificationHelper from "../../../../utils/notificationHelper";
 
-_db();
+await _db();
 
 export const POST = async (request) => {  
   try {

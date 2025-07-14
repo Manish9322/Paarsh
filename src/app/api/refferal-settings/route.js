@@ -3,7 +3,7 @@ import ReferralSettings from "models/RefferalSetting.model";
 import _db from "../../../../utils/db";
 import { authMiddleware } from "../../../../middlewares/auth";
 
-_db();
+await _db();
 
 // GET Referral Settings
 export const GET = async () => {

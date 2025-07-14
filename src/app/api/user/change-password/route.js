@@ -5,7 +5,7 @@ import validator from "validator";
 import _db from "../../../../../utils/db";
 import { authMiddleware } from "../../../../../middlewares/auth";
 
-_db();
+await _db();
 
 export const PUT = authMiddleware(async (request) => {
   try {

@@ -4,7 +4,7 @@ import UserPracticeAttemptModel from "../../../../../models/UserPracticeAttempt.
 import PracticeTestModel from "../../../../../models/PracticeTest.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 
-_db();
+await _db();
 
 export const POST = authMiddleware(
   async (request) => {

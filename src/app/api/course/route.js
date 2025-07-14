@@ -6,7 +6,8 @@
   import { uploadBase64ToVPS } from "../../../../utils/uploadfile";
   import notificationHelper from "../../../../utils/notificationHelper";
   import { initWorkerIfNeeded } from "../../../lib/server/workerInit";
-  _db();
+
+await _db();
 
     initWorkerIfNeeded();
 

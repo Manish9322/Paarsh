@@ -4,7 +4,7 @@ import { authMiddleware } from "../../../../middlewares/auth";
 import CourseVideoModel from "../../../../models/Courses/CouresVideo.model";
 import UserProgressModel from "../../../../models/Courses/UserProgress.model";
 
-_db();
+await _db();
 
 export const POST = authMiddleware(async (request) => {
   try {

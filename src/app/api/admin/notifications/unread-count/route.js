@@ -3,7 +3,7 @@ import { authMiddleware } from "../../../../../../middlewares/auth";
 import _db from "../../../../../../utils/db";
 import NotificationModel from "../../../../../../models/Notification/Notification.model";
 
-_db();
+await _db();
 
 export const GET = authMiddleware(async (req) => {
   try {

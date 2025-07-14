@@ -4,7 +4,7 @@ import _db from "../../../../../utils/db";
 import UserModel from "models/User.model";
 import WithdrawalRequestModel from "models/Withdrawal.model";
 
-_db();
+await _db();
 
 export const GET = authMiddleware(
   async (req) => {

@@ -3,7 +3,7 @@ import _db from "../../../../../utils/db";
 import bcrypt from "bcryptjs";
 import AgentModel from "../../../../../models/Agent.model";
 
-_db();
+await _db();
 
 export const POST = async (request) => {
   try {

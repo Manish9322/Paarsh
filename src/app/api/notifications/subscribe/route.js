@@ -3,7 +3,7 @@ import { authMiddleware } from "../../../../../middlewares/auth";
 import _db from "../../../../../utils/db";
 import PushSubscription from "../../../../../models/Notification/PushScubscription.model";
 
-_db();
+await _db();
 
 export const POST = authMiddleware(async (req) => {
   try {

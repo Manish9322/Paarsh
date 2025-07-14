@@ -3,7 +3,8 @@ import _db from "../../../../utils/db";
 import MeetingLink from "../../../../models/MeetingLink.model";
 import { authMiddleware } from "../../../../middlewares/auth";
 
-_db();        
+await _db();
+       
 // GET all meeting links
 export const GET = authMiddleware(async (req) => {
   try {

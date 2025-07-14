@@ -3,7 +3,7 @@ import _db from "../../../../../utils/db";
 import Subcategory from "../../../../../models/Categories/SubCategory.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 
-_db();
+await _db();
 
 // Create Subcategory
 export const POST = authMiddleware(async (request) => {

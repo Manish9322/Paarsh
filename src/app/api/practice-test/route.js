@@ -5,7 +5,7 @@ import CourseModel from "../../../../models/Courses/Course.model";
 import { authMiddleware } from "../../../../middlewares/auth";
 import mongoose from "mongoose"; // Import mongoose for ObjectId validation
 
-_db();
+await _db();
 
 // Add Practice Test
 export const POST = authMiddleware(async (request) => {

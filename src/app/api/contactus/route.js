@@ -3,7 +3,7 @@ import _db from "../../../../utils/db";
 import ContactUs from "../../../../models/ContactUs.model";
 import { authMiddleware } from "../../../../middlewares/auth";
 
-_db();
+await _db();
 
 // Create Contact
 

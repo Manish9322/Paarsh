@@ -3,7 +3,7 @@ import _db from "../../../../../utils/db";
 import { authMiddleware } from "../../../../../middlewares/auth";
 import UserModel from "models/User.model";
 
-_db();
+await _db();
 
 export const GET = authMiddleware(async (req, { params }) => {
   try {

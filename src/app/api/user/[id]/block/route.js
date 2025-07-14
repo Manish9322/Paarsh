@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import UserModel from "models/User.model"; 
 import _db from "../../../../../../utils/db"; 
 
-_db(); 
+await _db();
 
 export async function PATCH(request, { params }) {
   try {

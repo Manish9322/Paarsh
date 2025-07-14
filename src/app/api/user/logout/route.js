@@ -3,7 +3,7 @@ import { authMiddleware } from "../../../../../middlewares/auth"; // Middleware 
 import UserModel from "models/User.model";
 import _db from "../../../../../utils/db";
 
-_db();
+await _db();
 
 export const POST = authMiddleware(async (req) => {
   try {

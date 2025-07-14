@@ -6,7 +6,7 @@ import validator from "validator";
 import generateTokens from "../../../../../utils/generateTokens";
 import notificationHelper from '../../../../../utils/notificationHelper';
 
-_db();
+await _db();
 
 // Function to generate a unique referral code
 const generateReferralCode = async (name) => {

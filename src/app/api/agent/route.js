@@ -3,7 +3,7 @@ import _db from "../../../../utils/db";
 import AgentModel from "../../../../models/Agent.model";
 import { authMiddleware } from "../../../../middlewares/auth";
 
-_db();
+await _db();
 
 // Get All Agents
 export const GET = authMiddleware(async (req) => {
