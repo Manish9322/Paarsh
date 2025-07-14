@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { calculateScore } from "@/utils/AptitudeTest/calculateTestScore";
-import TestSession from "@/models/AptitudeTest/TestSession.model";
-import Question from "@/models/Question.model";
+import { calculateScore } from "../../../../../../../utils/AptitudeTest/calculateTestScore";
+import TestSession from "../../../../../../../models/AptitudeTest/TestSession.model";
+import Question from "../../../../../../../models/Question.model";
 
 export async function POST(request, { params }) {
   try {

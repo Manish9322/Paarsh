@@ -9,6 +9,7 @@ interface ConfirmationModalProps {
   onClose: () => void;
   onConfirm: () => void;
   type: "exit" | "submit";
+  isLoading?: boolean;
 }
 
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, onConfirm, type }) => (
