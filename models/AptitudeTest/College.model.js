@@ -13,6 +13,9 @@ const collegeSchema = new mongoose.Schema({
     unique: true,
     lowercase: true
   },
+  testLink:{
+    type: String,
+  },
   testIds:[{
     type: String,
     required: true,

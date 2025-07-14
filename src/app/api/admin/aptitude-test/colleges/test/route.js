@@ -4,6 +4,7 @@ import TestModel from "../../../../../../../models/AptitudeTest/Test.model";
 import _db from "../../../../../../../utils/db";
 import { authMiddleware } from "../../../../../../../middlewares/auth";
 import { generateTestLink } from "../../../../../../../utils/AptitudeTest/generateTestLink";
+import { BASE_URL } from "config/config";
 
 await _db();
 
@@ -12,10 +13,11 @@ export const POST = authMiddleware(
     try {
     
     
-      const { collegeId, testDuration, testSettings } = await request.json();
+      const { collegeId, batchName, testDuration, testSettings } = await request.json();
 
       if (
         !testDuration ||
+        !batchName ||
         !testSettings.questionsPerTest ||
         !testSettings.passingScore
       ) {
@@ -40,6 +42,7 @@ export const POST = authMiddleware(
       const testId = generateTestLink();
       const test = new TestModel({
         testId,
+        batchName,
         college: collegeId,
         testDuration,
         testSettings,
@@ -47,6 +50,7 @@ export const POST = authMiddleware(
       await test.save();
 
       college.testIds.push(testId);
+      college.testLink = `${BASE_URL}/aptitude-test?testId=${testId}&collegeId=${collegeId}`;
       await college.save();
 
       return NextResponse.json({
@@ -79,7 +83,7 @@ export const GET = authMiddleware(
         message: "Tests fetched successfully",
         data: tests.map((test) => ({
           ...test,
-          testLink: `/test?testId=${test.testId}&collegeId=${collegeId}`,
+          testLink: `${BASE_URL}/aptitude-test?testId=${test.testId}&collegeId=${collegeId}`,
         })),
       });
     } catch (error) {

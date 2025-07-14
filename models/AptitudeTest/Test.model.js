@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const testSchema = new mongoose.Schema({
   testId: { type: String, required: true, unique: true },
   college: { type: mongoose.Schema.Types.ObjectId, ref: "College", required: true },
+  batchName: { type: String, required: true, trim: true },
   testDuration: { type: Number, required: true },
   testSettings: {
     questionsPerTest: { type: Number, required: true },
