@@ -101,7 +101,7 @@ export const Test: React.FC<TestProps> = ({
     const markedCount = Object.values(markedQuestions).filter(Boolean).length;
     
     if (unansweredCount > 0 || markedCount > 0) {
-    const message: string[] = [];
+      const message: string[] = [];
       if (unansweredCount > 0) message.push(`${unansweredCount} questions unanswered`);
       if (markedCount > 0) message.push(`${markedCount} questions marked for review`);
       

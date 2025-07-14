@@ -49,6 +49,7 @@ interface TestSession {
   percentage: number;
   status: "pending" | "active" | "completed";
   passStatus: "pass" | "fail";
+  isPassed: boolean;
 }
 
 const AptitudePage = () => {
@@ -301,7 +302,7 @@ const AptitudePage = () => {
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">College: {session.college.name}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Score: {session.score}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Percentage: {session.percentage}%</p>
-                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Pass/Fail: {session.passStatus}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Pass/Fail: {session.isPassed ? "Pass" : "Fail"}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Started: {formatDate(session.startTime)}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Ended: {formatDate(session.endTime)}</p>
                             </div>
@@ -312,9 +313,9 @@ const AptitudePage = () => {
                           <TableCell className="hidden lg:table-cell">{session.score}</TableCell>
                           <TableCell className="hidden xl:table-cell">{session.percentage}%</TableCell>
                           <TableCell className="hidden xl:table-cell">
-                            {/* <span className={session.passStatus === "pass" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
-                              {session.passStatus.charAt(0).toUpperCase() + session.passStatus.slice(1)}
-                            </span> */}
+                            <span className={session.isPassed ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
+                              {session.isPassed ? "Pass" : "Fail"}
+                            </span>
                           </TableCell>
                           <TableCell className="hidden xl:table-cell">{formatDate(session.startTime)}</TableCell>
                           <TableCell className="hidden xl:table-cell">{formatDate(session.endTime)}</TableCell>
@@ -383,8 +384,8 @@ const AptitudePage = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">Pass/Fail</label>
-                    <p className={`mt-1 text-sm ${selectedSession.passStatus === "pass" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                      {/* {selectedSession.passStatus.charAt(0).toUpperCase() + selectedSession.passStatus.slice(1)} */}
+                    <p className={`mt-1 text-sm ${selectedSession.isPassed ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                      {selectedSession.isPassed ? "Pass" : "Fail"}
                     </p>
                   </div>
                   <div>

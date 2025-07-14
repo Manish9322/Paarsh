@@ -1,7 +1,8 @@
-const { NextResponse } = require("next/server");
+import { NextResponse } from "next/server";
 import _db from "../../../../../utils/db";
-const { authMiddleware } = require("../../../../../middlewares/auth");
-const axios = require("axios");
+import { authMiddleware } from "../../../../../middlewares/auth";
+import axios from "axios";
+import jwt from "jsonwebtoken";
 
 await _db();
 
