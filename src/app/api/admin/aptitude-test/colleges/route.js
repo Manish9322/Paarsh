@@ -1,9 +1,9 @@
 // app/api/admin/colleges/route.js
 import { NextResponse } from 'next/server';
-import College from '../../../../../../models/AptitudeTest/College.model';
+import CollegeModel from '../../../../../../models/AptitudeTest/College.model';
 import _db from '../../../../../../utils/db';
-import { BASE_URL } from '../../../../../../config/config';
-import { authMiddleware } from 'middlewares/auth';
+import { authMiddleware } from '../../../../../../middlewares/auth';
+import TestSessionModel from '../../../../../../models/AptitudeTest/TestSession.model';
 
 await _db();
 
@@ -14,7 +14,7 @@ export const POST = authMiddleware(async function (request) {
     if (!name || !email) {
       return NextResponse.json(
         { success: false, message: "Name and email are required" },
-        { status: 400 }
+        { status: 400 } 
       );
     }
 
@@ -50,7 +50,7 @@ export const POST = authMiddleware(async function (request) {
 export const GET = authMiddleware(async function(request) {
   try {
    
-    const colleges = await College.find()
+    const colleges = await CollegeModel.find()
       .sort({ createdAt: -1 });
     
     return NextResponse.json({ success: true, colleges });
@@ -72,7 +72,7 @@ export const PUT = authMiddleware(async function (request, { params }) {
     
     const { name, email } = await request.json();
 
-    const college = await College.findByIdAndUpdate(
+    const college = await CollegeModel.findByIdAndUpdate(
       collegeId,
       {
         name,
@@ -105,7 +105,7 @@ export const DELETE = authMiddleware(async function(request, { params }) {
     const { searchParams } = new URL(request.url);
     const collegeId = searchParams.get("collegeId");
 
-    const college = await College.findByIdAndDelete(collegeId);
+    const college = await CollegeModel.findByIdAndDelete(collegeId);
     if (!college) {
       return NextResponse.json(
         { success: false, message: "College not found" },
@@ -114,7 +114,7 @@ export const DELETE = authMiddleware(async function(request, { params }) {
     }
 
     // Delete associated TestSessions
-    await TestSession.deleteMany({ college: college._id });
+    await TestSessionModel.deleteMany({ college: college._id });
 
     return NextResponse.json({
       success: true,
