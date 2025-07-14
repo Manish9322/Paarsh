@@ -364,7 +364,8 @@ const AptitudePage: React.FC = () => {
       <RegisterForm
         onRegister={(studentId, token) => {
           setShowSuccessModal(true);
-          handleAuthSuccess(studentId, token);
+          // handleAuthSuccess(studentId, token);
+          setStep("login");
         }}
         onBack={() => setStep("auth")}
         testId={testId}
