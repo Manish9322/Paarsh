@@ -9,6 +9,7 @@ export const GET = authMiddleware(async function(request) {
   try {
     const { searchParams } = new URL(request.url);
     const collegeId = searchParams.get("collegeId");
+    console.log("Fetching batches for collegeId:", collegeId);
 
     if (!collegeId) {
       return NextResponse.json(
@@ -19,7 +20,16 @@ export const GET = authMiddleware(async function(request) {
 
     // Get unique batch names for the college
     const batches = await Test.distinct('batchName', { college: collegeId });
+    console.log("Found batches:", batches);
     
+    if (!batches || batches.length === 0) {
+      console.log("No batches found for college:", collegeId);
+      return NextResponse.json({ 
+        success: true, 
+        batches: [] 
+      });
+    }
+
     return NextResponse.json({ 
       success: true, 
       batches: batches.sort() // Sort alphabetically

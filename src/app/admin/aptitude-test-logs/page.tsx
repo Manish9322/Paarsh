@@ -52,6 +52,20 @@ interface TestSession {
   isPassed: boolean;
 }
 
+interface Test {
+  testId: string;
+  college: string;
+  batchName: string;
+  testDuration: number;
+  testSettings: {
+    questionsPerTest: number;
+    passingScore: number;
+    allowRetake: boolean;
+  };
+  createdAt: string;
+  testLink: string;
+}
+
 const AptitudePage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,6 +83,7 @@ const AptitudePage = () => {
     date: "",
     batch: "all"
   });
+  const [allTests, setAllTests] = useState<Test[]>([]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -91,12 +106,27 @@ const AptitudePage = () => {
   // Add new effect to fetch batches when college changes
   useEffect(() => {
     const fetchBatches = async () => {
+      console.log("fetchBatches called with collegeId:", selectedCollegeFilter);
       if (selectedCollegeFilter && selectedCollegeFilter !== "all") {
         try {
-          const response = await fetch(`/api/admin/aptitude-test/colleges/batches?collegeId=${selectedCollegeFilter}`);
+          console.log("Fetching batches for college:", selectedCollegeFilter);
+          const token = localStorage.getItem("token");
+          if (!token) {
+            throw new Error("Authentication token not found");
+          }
+          const response = await fetch(`/api/admin/aptitude-test/colleges/batches?collegeId=${selectedCollegeFilter}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
           const data = await response.json();
+          console.log("Batches API response:", data);
           if (data.success) {
-            setBatches(data.batches);
+            setBatches(data.batches || []);
           } else {
             console.error("Failed to fetch batches:", data.message);
             setBatches([]);
@@ -104,8 +134,10 @@ const AptitudePage = () => {
         } catch (error) {
           console.error("Error fetching batches:", error);
           setBatches([]);
+          toast.error("Failed to fetch batches");
         }
       } else {
+        console.log("Resetting batches - no college selected");
         setBatches([]);
         // Reset batch filter when college is set to "all"
         setActiveFilters(prev => ({
@@ -116,6 +148,44 @@ const AptitudePage = () => {
     };
 
     fetchBatches();
+  }, [selectedCollegeFilter]);
+
+  // Fetch tests when college changes
+  useEffect(() => {
+    const fetchTests = async () => {
+      if (selectedCollegeFilter && selectedCollegeFilter !== "all") {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            throw new Error("Authentication token not found");
+          }
+          const response = await fetch(`/api/admin/aptitude-test/colleges/test?collegeId=${selectedCollegeFilter}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          if (data.success) {
+            setAllTests(data.data || []);
+          } else {
+            console.error("Failed to fetch tests:", data.message);
+            setAllTests([]);
+          }
+        } catch (error) {
+          console.error("Error fetching tests:", error);
+          setAllTests([]);
+          toast.error("Failed to fetch tests");
+        }
+      } else {
+        setAllTests([]);
+      }
+    };
+
+    fetchTests();
   }, [selectedCollegeFilter]);
 
   const filteredTestSessions = testSessions?.filter((session: TestSession) => {
@@ -151,11 +221,12 @@ const AptitudePage = () => {
 
     // Add batch filter
     if (activeFilters.batch !== "all") {
-      // Get the test details from the session to check batch
       const testId = session.testId;
-      // Extract batch name from testId (assuming it's part of the test data)
-      // You might need to adjust this based on how batch information is stored
-      if (!testId.includes(activeFilters.batch)) return false;
+      // Get test details to check batch name
+      const test = allTests.find(t => t.testId === testId);
+      if (!test || test.batchName !== activeFilters.batch) {
+        return false;
+      }
     }
 
     return true;
@@ -333,6 +404,7 @@ const AptitudePage = () => {
                     <Select
                       value={selectedCollegeFilter}
                       onValueChange={(value) => {
+                        console.log("College selected:", value);
                         setSelectedCollegeFilter(value);
                         handleFilterChange("collegeName", value === "all" ? "" : colleges.find(c => c._id === value)?.name || "");
                       }}
@@ -398,10 +470,16 @@ const AptitudePage = () => {
                     <Select
                       value={activeFilters.batch}
                       onValueChange={(value) => handleFilterChange("batch", value)}
-                      disabled={selectedCollegeFilter === "all" || batches.length === 0}
+                      disabled={selectedCollegeFilter === "all"}
                     >
                       <SelectTrigger className="h-10">
-                        <SelectValue placeholder={selectedCollegeFilter === "all" ? "Select a college first" : "Select batch"} />
+                        <SelectValue placeholder={
+                          selectedCollegeFilter === "all" 
+                            ? "Select a college first" 
+                            : batches.length === 0 
+                              ? "No batches found" 
+                              : "Select batch"
+                        } />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Batches</SelectItem>
@@ -412,6 +490,9 @@ const AptitudePage = () => {
                         ))}
                       </SelectContent>
                     </Select>
+                    {selectedCollegeFilter !== "all" && batches.length === 0 && (
+                      <p className="text-sm text-gray-500 mt-1">No batches found for this college</p>
+                    )}
                   </div>
                 </div>
               </div>

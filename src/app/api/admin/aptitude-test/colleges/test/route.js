@@ -5,6 +5,7 @@ import _db from "../../../../../../../utils/db";
 import { authMiddleware } from "../../../../../../../middlewares/auth";
 import { generateTestLink } from "../../../../../../../utils/AptitudeTest/generateTestLink";
 import { BASE_URL } from "config/config";
+import TestSessionModel from "../../../../../../../models/AptitudeTest/TestSession.model";
 
 await _db();
 
@@ -95,4 +96,51 @@ export const GET = authMiddleware(
     }
   },
   ["admin"],
+);
+
+export const DELETE = authMiddleware(
+  async function (request) {
+    try {
+      const { searchParams } = new URL(request.url);
+      const testId = searchParams.get("testId");
+      const collegeId = searchParams.get("collegeId");
+
+      if (!testId || !collegeId) {
+        return NextResponse.json(
+          { success: false, message: "Test ID and college ID are required" },
+          { status: 400 }
+        );
+      }
+
+      // Find and delete the test
+      const test = await TestModel.findOneAndDelete({ testId, college: collegeId });
+      if (!test) {
+        return NextResponse.json(
+          { success: false, message: "Test not found" },
+          { status: 404 }
+        );
+      }
+
+      // Remove test ID from college
+      await CollegeModel.findByIdAndUpdate(
+        collegeId,
+        { $pull: { testIds: testId } }
+      );
+
+      // Delete associated test sessions
+      await TestSessionModel.deleteMany({ testId, college: collegeId });
+
+      return NextResponse.json({
+        success: true,
+        message: "Test and associated sessions deleted successfully"
+      });
+    } catch (error) {
+      console.error("Delete test error:", error);
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 500 }
+      );
+    }
+  },
+  ["admin"]
 );

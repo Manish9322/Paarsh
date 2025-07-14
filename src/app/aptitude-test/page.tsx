@@ -467,6 +467,7 @@ const AptitudePage: React.FC = () => {
           name: testInfo.testDetails.name,
           college: testInfo.testDetails.college
         }}
+        onRedirect={() => setStep("auth")}
       />
     );
   }
