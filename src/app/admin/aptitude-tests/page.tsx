@@ -203,7 +203,7 @@ const CreateAptitudeTest = () => {
       const tests = await triggerGetTests(collegeId).unwrap();
       const college = colleges.find((c: College) => c._id === collegeId);
       setAllTests((prev) => [
-        ...prev,
+        ...prev.filter((test) => test.college !== collegeId), // Remove old tests for this college
         ...tests.map((test: Test) => ({
           ...test,
           studentCount: 0,
