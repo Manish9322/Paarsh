@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -21,9 +20,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Menu, ChevronLeft, ChevronRight } from "lucide-react";
+import { Menu, ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useFetchCollegesQuery, useGetTestSessionsQuery } from "@/services/api";
 
 interface College {
@@ -42,6 +48,7 @@ interface TestSession {
   score: number;
   percentage: number;
   status: "pending" | "active" | "completed";
+  passStatus: "pass" | "fail";
 }
 
 const AptitudePage = () => {
@@ -50,6 +57,8 @@ const AptitudePage = () => {
   const [selectedCollegeFilter, setSelectedCollegeFilter] = useState<string | "all">("all");
   const [testSessionsPage, setTestSessionsPage] = useState(1);
   const [testSessionsPerPage, setTestSessionsPerPage] = useState<number | "all">(10);
+  const [selectedSession, setSelectedSession] = useState<TestSession | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -79,7 +88,8 @@ const AptitudePage = () => {
   const testSessionsTotalPages = testSessionsPerPage === "all" ? 1 : Math.ceil(filteredTestSessions.length / testSessionsPerPage);
   const displayedTestSessions = testSessionsPerPage === "all" ? filteredTestSessions : filteredTestSessions.slice(testSessionsStartIndex, testSessionsStartIndex + testSessionsPerPage);
 
-  const formatDate = (date: string) => {
+  const formatDate = (date?: string) => {
+    if (!date) return "N/A";
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -128,6 +138,11 @@ const AptitudePage = () => {
   if (testSessionsError) {
     toast.error(`Failed to load test sessions: ${testSessionsError.message || "Unknown error"}`);
   }
+
+  const handleViewSession = (session: TestSession) => {
+    setSelectedSession(session);
+    setViewDialogOpen(true);
+  };
 
   return (
     <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
@@ -224,8 +239,10 @@ const AptitudePage = () => {
                       <TableHead className="hidden py-3 md:table-cell">College</TableHead>
                       <TableHead className="hidden py-3 lg:table-cell">Score</TableHead>
                       <TableHead className="hidden py-3 xl:table-cell">Percentage</TableHead>
-                      <TableHead className="hidden py-3 xl:table-cell">Status</TableHead>
+                      <TableHead className="hidden py-3 xl:table-cell">Pass/Fail</TableHead>
                       <TableHead className="hidden py-3 xl:table-cell">Start Time</TableHead>
+                      <TableHead className="hidden py-3 xl:table-cell">End Time</TableHead>
+                      <TableHead className="py-3 text-center">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -253,11 +270,20 @@ const AptitudePage = () => {
                           <TableCell className="hidden xl:table-cell">
                             <Skeleton className="h-6 w-24 mx-auto" />
                           </TableCell>
+                          <TableCell className="hidden xl:table-cell">
+                            <Skeleton className="h-6 w-24 mx-auto" />
+                          </TableCell>
+                          <TableCell className="hidden xl:table-cell">
+                            <Skeleton className="h-6 w-24 mx-auto" />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton className="h-6 w-24 mx-auto" />
+                          </TableCell>
                         </TableRow>
                       ))
                     ) : displayedTestSessions.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="py-6 text-center text-gray-500 dark:text-gray-400">
+                        <TableCell colSpan={10} className="py-6 text-center text-gray-500 dark:text-gray-400">
                           No test sessions found.
                         </TableCell>
                       </TableRow>
@@ -275,8 +301,9 @@ const AptitudePage = () => {
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">College: {session.college.name}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Score: {session.score}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Percentage: {session.percentage}%</p>
-                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Status: {session.status}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Pass/Fail: {session.passStatus}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Started: {formatDate(session.startTime)}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Ended: {formatDate(session.endTime)}</p>
                             </div>
                             <span className="hidden font-medium md:inline">{session.student.name}</span>
                           </TableCell>
@@ -284,8 +311,31 @@ const AptitudePage = () => {
                           <TableCell className="hidden md:table-cell">{session.college.name}</TableCell>
                           <TableCell className="hidden lg:table-cell">{session.score}</TableCell>
                           <TableCell className="hidden xl:table-cell">{session.percentage}%</TableCell>
-                          <TableCell className="hidden xl:table-cell">{session.status}</TableCell>
+                          <TableCell className="hidden xl:table-cell">
+                            {/* <span className={session.passStatus === "pass" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
+                              {session.passStatus.charAt(0).toUpperCase() + session.passStatus.slice(1)}
+                            </span> */}
+                          </TableCell>
                           <TableCell className="hidden xl:table-cell">{formatDate(session.startTime)}</TableCell>
+                          <TableCell className="hidden xl:table-cell">{formatDate(session.endTime)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                variant="ghost"
+                                onClick={() => handleViewSession(session)}
+                                className="group relative h-8 w-8 p-0"
+                                aria-label="View session details"
+                              >
+                                <Eye
+                                  size={16}
+                                  className="text-blue-600 transition-transform group-hover:scale-110 dark:text-blue-400"
+                                />
+                                <span className="absolute -bottom-8 left-1/2 z-10 min-w-max -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 dark:bg-gray-700">
+                                  View details
+                                </span>
+                              </Button>
+                            </div>
+                          </TableCell>
                         </TableRow>
                       ))
                     )}
@@ -294,6 +344,69 @@ const AptitudePage = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* View Session Details Dialog */}
+          <Dialog open={viewDialogOpen} onOpenChange={(open) => {
+            setViewDialogOpen(open);
+            if (!open) setSelectedSession(null);
+          }}>
+            <DialogContent className="max-w-md border border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Test Session Details
+                </DialogTitle>
+                <DialogDescription className="text-sm text-gray-600 dark:text-gray-300">
+                  Details of the selected test session.
+                </DialogDescription>
+              </DialogHeader>
+              {selectedSession && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Student Name</label>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.student.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Test ID</label>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.testId}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">College</label>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.college.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Score</label>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.score}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Percentage</label>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.percentage}%</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Pass/Fail</label>
+                    <p className={`mt-1 text-sm ${selectedSession.passStatus === "pass" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                      {/* {selectedSession.passStatus.charAt(0).toUpperCase() + selectedSession.passStatus.slice(1)} */}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Start Time</label>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{formatDate(selectedSession.startTime)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">End Time</label>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{formatDate(selectedSession.endTime)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Status</label>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.status}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Duration</label>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.duration} minutes</p>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
 
           {/* Pagination for Test Sessions */}
           <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
@@ -417,3 +530,4 @@ const AptitudePage = () => {
 };
 
 export default AptitudePage;
+
