@@ -27,8 +27,14 @@ import {
 // Define interfaces for TypeScript
 interface Question {
   _id: string;
-  text: string;
-  options: string[];
+  question: string;
+  options: Array<{
+    text: string;
+    isCorrect: boolean;
+  }>;
+  correctAnswer: string;
+  category: string;
+  explanation?: string;
   selectedAnswer: number;
   timeSpent: number;
 }
@@ -62,7 +68,7 @@ interface ResultData {
 }
 
 // Add TestSecurityWrapper component at the top level
-const TestSecurityWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const TestSecurityWrapper: React.FC<{ children: React.ReactNode; onSubmit: () => void }> = ({ children, onSubmit }) => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -70,13 +76,13 @@ const TestSecurityWrapper: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem("violations", violations.toString());
         
         if (violations >= 3) {
-          handleSubmitTest();
+          onSubmit();
         } else {
           toast.error(`Warning: Tab switching detected! (${violations}/3)`);
         }
       }
     };
-
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && 
           (e.key === 'c' || e.key === 'v' || e.key === 'p')) {
@@ -85,21 +91,26 @@ const TestSecurityWrapper: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
+    // Handle fullscreen only once when component mounts
+    const setupFullscreen = async () => {
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch (err) {
+        toast.error("Fullscreen mode is required for this test");
+      }
+    };
+    setupFullscreen();
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
     document.addEventListener("keydown", handleKeyDown);
     
-    document.documentElement.requestFullscreen().catch(() => {
-      toast.error("Fullscreen mode is required for this test");
-    });
-
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("keydown", handleKeyDown);
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      }
     };
-  }, []);
+  }, [onSubmit]);
 
   return <>{children}</>;
 };
@@ -304,10 +315,10 @@ const AptitudePage: React.FC = () => {
 
   // Calculate question status
   const questionStatus = questions.reduce(
-    (acc, q) => {
-      acc[q._id] = {
+    (acc, q, index) => {
+      acc[index + 1] = {
         answered: q.selectedAnswer !== -1,
-        marked: !!markedQuestions[q._id],
+        marked: markedQuestions[q._id] || false,
       };
       return acc;
     },
@@ -385,7 +396,7 @@ const AptitudePage: React.FC = () => {
 
   if (step === "test" && testInfo && questions.length > 0) {
     return (
-      <TestSecurityWrapper>
+      <TestSecurityWrapper onSubmit={handleSubmitTest}>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <TestHeader
             testName={testInfo.testDetails.name}
@@ -395,12 +406,15 @@ const AptitudePage: React.FC = () => {
           />
           <div className="container mx-auto px-4 py-12">
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-              <div className="lg:col-span-3">
+              <div className="lg:col-span-3 order-1">
                 <Test
                   questions={questions}
                   sessionId={sessionId!}
                   timeRemaining={timeRemaining}
-                  onSubmitTest={setResult}
+                  onSubmitTest={(response) => {
+                    setResult(response);
+                    setStep("result");
+                  }}
                   setQuestions={setQuestions}
                   onMarkForReview={(questionId) => {
                     setMarkedQuestions((prev) => ({
@@ -409,31 +423,25 @@ const AptitudePage: React.FC = () => {
                     }));
                   }}
                   markedQuestions={markedQuestions}
+                  currentQuestionIndex={currentQuestionIndex}
+                  setCurrentQuestionIndex={setCurrentQuestionIndex}
                 />
               </div>
-              <div className="lg:col-span-1">
+              <div className="lg:col-span-1 order-2 space-y-6">
                 <Timer duration={timeRemaining} onTimeUp={handleSubmitTest} />
                 <QuestionNavigation
                   totalQuestions={questions.length}
                   currentQuestionIndex={currentQuestionIndex}
                   setCurrentQuestionIndex={setCurrentQuestionIndex}
                   questionStatus={questionStatus}
+                  isLoading={false}
                 />
-                <QuestionMeta
+                <QuestionMeta 
                   totalQuestions={questions.length}
                   attempted={attempted}
                   notAttempted={notAttempted}
                   marked={marked}
                 />
-                <div className="mt-8">
-                  <NavigationControls
-                    onPrevious={() => setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))}
-                    onNext={() => setCurrentQuestionIndex((prev) => Math.min(prev + 1, questions.length - 1))}
-                    onSubmit={handleSubmitTest}
-                    isFirst={currentQuestionIndex === 0}
-                    isLast={currentQuestionIndex === questions.length - 1}
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -452,8 +460,15 @@ const AptitudePage: React.FC = () => {
     );
   }
 
-  if (step === "result" && result && testInfo?.testDetails) {
-    return <Result result={result} testDetails={testInfo.testDetails} />;
+  if (step === "result" && testInfo?.testDetails) {
+    return (
+      <Result 
+        testDetails={{
+          name: testInfo.testDetails.name,
+          college: testInfo.testDetails.college
+        }}
+      />
+    );
   }
 
   return (

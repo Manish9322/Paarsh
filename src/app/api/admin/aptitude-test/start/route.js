@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import TestSessionModel from "../../../../../../models/AptitudeTest/TestSession.model";
 import CollegeModel from "../../../../../../models/AptitudeTest/College.model";
 import TestModel from "../../../../../../models/AptitudeTest/Test.model";
+import QuestionModel from "../../../../../../models/Question.model";
 import _db from "../../../../../../utils/db";
 import { authMiddleware } from "../../../../../../middlewares/auth";
 
@@ -35,7 +36,12 @@ export const POST = authMiddleware(async function (request) {
       );
     }
 
-    const session = await TestSessionModel.findById(sessionId).populate("questions.question");
+    const session = await TestSessionModel.findById(sessionId).populate({
+      path: "questions.question",
+      model: QuestionModel,
+      select: "question options category explanation"
+    });
+    
     if (!session || session.status !== "pending") {
       return NextResponse.json(
         { success: false, error: "Invalid or already started test session" },
@@ -48,8 +54,8 @@ export const POST = authMiddleware(async function (request) {
     await session.save();
 
     const questions = session.questions.map((q) => ({
-      _id: q.question._id,
-      text: q.question.text,
+      _id: q.question._id.toString(),
+      question: q.question.question,
       options: q.question.options,
       selectedAnswer: q.selectedAnswer,
       timeSpent: q.timeSpent,

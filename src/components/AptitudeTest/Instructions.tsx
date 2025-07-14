@@ -55,14 +55,14 @@ const InstructionsSkeleton = () => (
 export const Instructions: React.FC<InstructionsProps> = ({ testDetails, onStartTest, isLoading }) => {
   if (isLoading) {
     return (
-      <section className="dark:via-gray-850 bg-gradient-to-b from-white via-gray-50 to-white py-24 dark:from-gray-800 dark:to-gray-800">
+      <section className="dark:via-gray-850 bg-gradient-to-b from-white via-gray-50 to-white py-12 dark:from-gray-800 dark:to-gray-800">
         <InstructionsSkeleton />
       </section>
     );
   }
 
   return (
-    <section className="dark:via-gray-850 bg-gradient-to-b from-white via-gray-50 to-white py-24 dark:from-gray-800 dark:to-gray-800">
+    <section className="dark:via-gray-850 bg-gradient-to-b from-white via-gray-50 to-white py-11 dark:from-gray-800 dark:to-gray-800">
       <div className="container mx-auto max-w-4xl px-4">
         <div className="text-center">
           <span className="mb-4 inline-block rounded-full bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-600 dark:bg-blue-900/30 dark:text-blue-300">

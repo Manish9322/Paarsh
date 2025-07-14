@@ -47,14 +47,12 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
       
       if (isCurrent) {
         buttonClass += "bg-blue-600 text-white ring-2 ring-blue-300 dark:ring-blue-500";
-      } else if (isAnswered && isMarked) {
-        buttonClass += "split-color text-white";
-      } else if (isAnswered) {
-        buttonClass += "bg-green-500 text-white";
       } else if (isMarked) {
-        buttonClass += "bg-red-500 text-white";
+        buttonClass += "bg-orange-500 text-white hover:bg-orange-600";
+      } else if (isAnswered) {
+        buttonClass += "bg-emerald-500 text-white hover:bg-emerald-600";
       } else {
-        buttonClass += "bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500";
+        buttonClass += "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600";
       }
 
       return (
@@ -89,17 +87,12 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
   }
 
   return (
-    <Card className="mb-4 border border-gray-100 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-      <div>
+    <Card className="mb-4 border border-gray-100 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+      <div className="flex justify-start">
         <div
           ref={scrollContainerRef}
-          className="flex h-[272px] flex-wrap gap-2 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 dark:scrollbar-track-gray-700 dark:scrollbar-thumb-gray-500"
+          className="grid max-h-[272px] w-fit grid-cols-5 place-items-center gap-1.5 overflow-y-auto p-1 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 dark:scrollbar-track-gray-700 dark:scrollbar-thumb-gray-500"
         >
-          <style jsx>{`
-            .split-color {
-              background: linear-gradient(to bottom right, #22c55e 50%, #ef4444 50%);
-            }
-          `}</style>
           {questionButtons}
         </div>
       </div>

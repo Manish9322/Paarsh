@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import CollegeModel from "../../../../../models/AptitudeTest/College.model";
 import TestModel from "../../../../../models/AptitudeTest/Test.model";
 import TestSessionModel from "../../../../../models/AptitudeTest/TestSession.model";
-import QuestionModel from "../../../../../models/AptitudeTest/Question.model";
+import QuestionModel from "../../../../../models/Question.model";
 import _db from "../../../../../utils/db";
 import { authMiddleware } from "../../../../../middlewares/auth";
 
@@ -22,42 +22,27 @@ export const GET = authMiddleware(async function (request) {
       );
     }
 
-    const college = await CollegeModel.findOne({ _id: collegeId, testIds: testId });
-    if (!college) {
-      return NextResponse.json(
-        { success: false, error: "Invalid test link or college" },
-        { status: 400 }
-      );
-    }
+    // Get the test session and populate the questions
+    const session = await TestSessionModel.findById(sessionId).populate({
+      path: "questions.question",
+      model: QuestionModel,
+      select: "question options category explanation"
+    });
 
-    const test = await TestModel.findOne({ testId, college: collegeId });
-    if (!test) {
+    if (!session) {
       return NextResponse.json(
-        { success: false, error: "Invalid test" },
-        { status: 400 }
-      );
-    }
-
-    const session = await TestSessionModel.findById(sessionId)
-      .populate("questions.question")
-      .populate("student", "name email")
-      .populate("college", "name")
-      .lean()
-      .exec();
-    if (!session || session.status !== "active") {
-      return NextResponse.json(
-        { success: false, error: "Invalid or inactive test session" },
-        { status: 400 }
+        { success: false, error: "Test session not found" },
+        { status: 404 }
       );
     }
 
     const testDetails = {
-      name: `Aptitude Test - ${college.name}`,
-      college: college.name,
-      duration: test.testDuration,
-      totalQuestions: test.testSettings.questionsPerTest,
-      passingScore: test.testSettings.passingScore,
-      allowRetake: test.testSettings.allowRetake,
+      name: "Aptitude Test",
+      college: "Test College",
+      duration: session.duration,
+      totalQuestions: session.questions.length,
+      passingScore: 60,
+      allowRetake: false,
       instructions: [
         "Read each question carefully.",
         "Navigate using the provided controls.",
@@ -68,16 +53,16 @@ export const GET = authMiddleware(async function (request) {
         "No external resources allowed.",
         "Stable internet connection required.",
         "Complete within the allotted time.",
-        "Single submission per question.",
       ],
     };
 
-    const questions = session.questions.map(q => ({
-      _id: q.question._id,
-      text: q.question.text,
+    // Format questions for the frontend
+    const formattedQuestions = session.questions.map(q => ({
+      _id: q.question._id.toString(),
+      question: q.question.question,
       options: q.question.options,
       selectedAnswer: q.selectedAnswer,
-      timeSpent: q.timeSpent,
+      timeSpent: q.timeSpent
     }));
 
     return NextResponse.json({
@@ -91,7 +76,7 @@ export const GET = authMiddleware(async function (request) {
           status: session.status,
         },
         testDetails,
-        questions,
+        questions: formattedQuestions,
       },
     });
   } catch (error) {
@@ -101,4 +86,4 @@ export const GET = authMiddleware(async function (request) {
       { status: 500 }
     );
   }
-} , ["student"]);
+}, ["student"]);

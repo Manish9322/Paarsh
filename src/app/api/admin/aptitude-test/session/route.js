@@ -4,7 +4,7 @@ import TestSessionModel from "../../../../../../models/AptitudeTest/TestSession.
 import StudentModel from "../../../../../../models/AptitudeTest/Student.model";
 import CollegeModel from "../../../../../../models/AptitudeTest/College.model";
 import TestModel from "../../../../../../models/AptitudeTest/Test.model";
-import QuestionModel from "../../../../../../models/AptitudeTest/Question.model";
+import QuestionModel from "../../../../../../models/Question.model";
 import _db from "../../../../../../utils/db";
 import { authMiddleware } from "../../../../../../middlewares/auth";
 
@@ -40,7 +40,7 @@ export const POST = authMiddleware(async function (request) {
     const student = await StudentModel.findById(studentId);
     if (!student || student.college.toString() !== collegeId) {
       return NextResponse.json(
-        { success: false, emperror: "Student not registered for this college" },
+        { success: false, error: "Student not registered for this college" },
         { status: 403 }
       );
     }
@@ -63,8 +63,16 @@ export const POST = authMiddleware(async function (request) {
     }
 
     const questions = await QuestionModel.aggregate([
-      { $sample: { size: test.testSettings.questionsPerTest } },
+      { $match: { isActive: true } },
+      { $sample: { size: test.testSettings.questionsPerTest } }
     ]);
+
+    if (!questions || questions.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "No active questions available" },
+        { status: 400 }
+      );
+    }
 
     const session = new TestSessionModel({
       student: studentId,

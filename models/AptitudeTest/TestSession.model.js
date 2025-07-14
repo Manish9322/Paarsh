@@ -44,7 +44,7 @@ const testSessionSchema = new mongoose.Schema({
     {
       question: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Question",
+        ref: "aptitudeQuestions",
         required: true,
       },
       selectedAnswer: { type: Number, default: -1 },
@@ -58,6 +58,14 @@ const testSessionSchema = new mongoose.Schema({
     name: { type: String },
     version: { type: String },
     platform: { type: String },
+  },
+  isPassed: {
+    type: Boolean,
+    default: false,
+  },
+  passingPercentage: {
+    type: Number,
+    default: 40, // Default passing percentage is 40%
   },
 });
 
