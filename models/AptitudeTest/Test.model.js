@@ -13,7 +13,7 @@ const testSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-testSchema.index({ testId: 1 }, { unique: true });
+
 testSchema.index({ college: 1 });
 
 export default mongoose.models.Test || mongoose.model("Test", testSchema);

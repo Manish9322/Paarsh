@@ -9,7 +9,7 @@ import ReferralSettingsModel from "../../../../../models/RefferalSetting.model";
 import { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } from "../../../../../config/config";
 import _db from "../../../../../utils/db";
 
-_db();
+await _db();
 
 export const POST = authMiddleware(async (request) => {
   try {

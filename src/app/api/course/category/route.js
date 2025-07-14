@@ -3,7 +3,7 @@ import _db from "../../../../../utils/db";
 import Category from "../../../../../models/Categories/Category.model";
 import { authMiddleware } from "../../../../../middlewares/auth";
 
-_db();
+await _db();
 
 // Create Category
 

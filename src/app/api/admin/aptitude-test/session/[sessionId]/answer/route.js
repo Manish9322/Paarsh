@@ -3,7 +3,7 @@ import TestSessionModel from "../../../../../../../../models/AptitudeTest/TestSe
 import _db from "../../../../../../../../utils/db";
 import { authMiddleware } from "../../../../../../../../middlewares/auth";
 
-_db();
+await _db();
 
 export const PATCH = authMiddleware(
   async function (request, { params }) {

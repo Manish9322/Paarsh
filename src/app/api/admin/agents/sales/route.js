@@ -5,7 +5,7 @@ import TargetModel from "models/AgentTarget.model";
 import AgentModel from "models/Agent.model";
 import _db from "../../../../../../utils/db";
 
-_db();
+await _db();
 
 export const GET = authMiddleware(async (request) => {
   try {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Blog from "../../../../../models/Blog.model";
 import _db from "../../../../../utils/db";
 
-_db();
+await _db();
 
 export async function GET(req, { params }) {
   try {

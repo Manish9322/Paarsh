@@ -6,7 +6,7 @@ import UserModel from "../../../../../models/User.model";
 import generateTokens from "../../../../../utils/generateTokens";
 import _db from "../../../../../utils/db";
 
-_db();
+await _db();
 
 export async function POST(request) {
   try {

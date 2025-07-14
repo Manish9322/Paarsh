@@ -3,7 +3,7 @@ import JobApplicationModel from "../../../../../Paarsh/models/JobApplication/Job
 import _db from "../../../../../Paarsh/utils/db";
 import notificationHelper from "../../../../utils/notificationHelper";
 
-_db();
+await _db();
 
 export async function POST(req) {
   try {

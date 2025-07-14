@@ -9,7 +9,7 @@ import emailSender from "../../../../../utils/mailSender";
 import crypto from "crypto";
 
 
-_db();
+ await _db();
 
 // Function to generate a unique referral code
 const generateUniqueAgentCode = async (firstName, lastName) => {

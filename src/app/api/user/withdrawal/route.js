@@ -6,7 +6,7 @@ import UserModel from "models/User.model";
 import WithdrawalRequestModel from "models/Withdrawal.model";
  import notificationHelper from "../../../../../utils/notificationHelper";
 
-_db();
+await _db();
 
 function createResponse(success, message, data = null, status = 200) {
   return NextResponse.json(

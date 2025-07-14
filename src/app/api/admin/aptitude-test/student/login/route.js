@@ -7,7 +7,7 @@ import _db from "../../../../../../../utils/db";
 import CollegeModel from "../../../../../../../models/AptitudeTest/College.model";
 import TestModel from "../../../../../../../models/AptitudeTest/Test.model";
 
-_db();
+await _db();
 
 export async function POST(request) {
   try {

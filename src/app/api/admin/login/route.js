@@ -6,7 +6,7 @@ import AgentModel from "../../../../../models/Agent.model";
 import validator from "validator";
 import _db from "../../../../../utils/db";
 
-_db();
+await _db();
 
 export async function POST(request) {
   try {

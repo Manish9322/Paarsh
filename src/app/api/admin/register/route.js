@@ -5,7 +5,7 @@ import _db from "../../../../../utils/db";
 import validator from "validator";
 
 
-_db();
+await _db();
 
 export async function POST(req) {
   try {

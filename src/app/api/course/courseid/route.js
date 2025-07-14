@@ -3,7 +3,7 @@ import _db from "../../../../../utils/db";
 import CourseModel from "../../../../../models/Courses/Course.model";
 import OfferModel from "../../../../../models/Offers/Offer.model";
 
-_db();
+await _db();
 
 export const GET = async (req) => {
   try {

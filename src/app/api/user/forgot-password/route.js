@@ -7,7 +7,7 @@ import _db from "../../../../../utils/db";
 import { resetPassword } from "../../../../../utils/MailTemplates/forgotPasswordMailTemplate";
 import emailSender from "../../../../../utils/mailSender";
 
-_db();
+await _db();
 
 export async function PUT(request) {
   try {

@@ -1,27 +1,24 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
 import Question from "../../../../models/Question.model.js";
+import _db from "../../../../utils/db.js";
+
+await _db();
 
 export async function GET() {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
     const questions = await Question.find({});
-    return NextResponse.json(questions);  
+    return NextResponse.json(questions);
   } catch (error) {
     console.error("Error fetching questions:", error);
     return NextResponse.json(
       { message: "Error fetching questions" },
       { status: 500 },
     );
-  } finally {
-    await mongoose.disconnect();
   }
 }
 
 export async function POST(req) {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
-
     const { questions } = await req.json();
     if (!questions || !Array.isArray(questions)) {
       return NextResponse.json(

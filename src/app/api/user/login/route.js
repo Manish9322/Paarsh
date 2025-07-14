@@ -7,7 +7,7 @@ import validator from "validator";
 import generateTokens from "../../../../../utils/generateTokens";
 
 
-_db();
+await _db();
 
 export async function POST(request) {
   try {

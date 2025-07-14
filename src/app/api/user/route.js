@@ -4,7 +4,8 @@ import { authMiddleware } from "../../../../middlewares/auth";
 import UserModel from "../../../../models/User.model";
 import bcrypt from "bcryptjs";
 import { initWorkerIfNeeded } from "../../../lib/server/workerInit";
-_db(); // Ensure database connection is established
+
+await _db();
 
    initWorkerIfNeeded();
 

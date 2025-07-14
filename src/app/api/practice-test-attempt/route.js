@@ -4,7 +4,7 @@ import UserPracticeAttemptModel from "../../../../models/UserPracticeAttempt.mod
 import PracticeTestModel from "models/PracticeTest.model";
 import { authMiddleware } from "../../../../middlewares/auth";
 
-_db();
+await _db();
 
 export const GET = authMiddleware(
   async (request) => {

@@ -3,7 +3,7 @@ import _db from "../../../../../../utils/db";
 import OfferModel from "../../../../../../models/Offers/Offer.model";
 import { authMiddleware } from "../../../../../../middlewares/auth";
 
-_db();
+await _db();
 
 // Get Active Offers for Course and/or User
 export const POST = async (request) => {
