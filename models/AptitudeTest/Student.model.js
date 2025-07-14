@@ -25,6 +25,10 @@ const studentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  university: {
+    type: String,
+    required: true
+  },
   college: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'College',

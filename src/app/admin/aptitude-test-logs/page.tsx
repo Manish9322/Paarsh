@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Menu, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Menu, ChevronLeft, ChevronRight, Eye, X } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -60,6 +60,15 @@ const AptitudePage = () => {
   const [testSessionsPerPage, setTestSessionsPerPage] = useState<number | "all">(10);
   const [selectedSession, setSelectedSession] = useState<TestSession | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [batches, setBatches] = useState<string[]>([]);
+  const [activeFilters, setActiveFilters] = useState({
+    studentName: "",
+    collegeName: "",
+    testId: "",
+    passStatus: "all",
+    date: "",
+    batch: "all"
+  });
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -79,11 +88,78 @@ const AptitudePage = () => {
     console.log("Test Sessions Error:", testSessionsError);
   }, [collegesData, colleges, testSessions, testSessionsError]);
 
-  const filteredTestSessions = testSessions?.filter(
-    (session: TestSession) =>
-      session.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      session.testId.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  // Add new effect to fetch batches when college changes
+  useEffect(() => {
+    const fetchBatches = async () => {
+      if (selectedCollegeFilter && selectedCollegeFilter !== "all") {
+        try {
+          const response = await fetch(`/api/admin/aptitude-test/colleges/batches?collegeId=${selectedCollegeFilter}`);
+          const data = await response.json();
+          if (data.success) {
+            setBatches(data.batches);
+          } else {
+            console.error("Failed to fetch batches:", data.message);
+            setBatches([]);
+          }
+        } catch (error) {
+          console.error("Error fetching batches:", error);
+          setBatches([]);
+        }
+      } else {
+        setBatches([]);
+        // Reset batch filter when college is set to "all"
+        setActiveFilters(prev => ({
+          ...prev,
+          batch: "all"
+        }));
+      }
+    };
+
+    fetchBatches();
+  }, [selectedCollegeFilter]);
+
+  const filteredTestSessions = testSessions?.filter((session: TestSession) => {
+    // Base search term filter
+    const matchesSearch = session.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      session.testId.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    // Apply active filters
+    if (activeFilters.studentName && !session.student.name.toLowerCase().includes(activeFilters.studentName.toLowerCase())) {
+      return false;
+    }
+
+    if (activeFilters.collegeName && !session.college.name.toLowerCase().includes(activeFilters.collegeName.toLowerCase())) {
+      return false;
+    }
+
+    if (activeFilters.testId && !session.testId.toLowerCase().includes(activeFilters.testId.toLowerCase())) {
+      return false;
+    }
+
+    if (activeFilters.passStatus !== "all") {
+      const isPassedFilter = activeFilters.passStatus === "pass";
+      if (session.isPassed !== isPassedFilter) return false;
+    }
+
+    if (activeFilters.date) {
+      const filterDate = new Date(activeFilters.date);
+      const sessionDate = new Date(session.startTime);
+      if (filterDate.toDateString() !== sessionDate.toDateString()) return false;
+    }
+
+    // Add batch filter
+    if (activeFilters.batch !== "all") {
+      // Get the test details from the session to check batch
+      const testId = session.testId;
+      // Extract batch name from testId (assuming it's part of the test data)
+      // You might need to adjust this based on how batch information is stored
+      if (!testId.includes(activeFilters.batch)) return false;
+    }
+
+    return true;
+  }) || [];
 
   const testSessionsStartIndex = testSessionsPerPage === "all" ? 0 : (testSessionsPage - 1) * testSessionsPerPage;
   const testSessionsTotalPages = testSessionsPerPage === "all" ? 1 : Math.ceil(filteredTestSessions.length / testSessionsPerPage);
@@ -145,6 +221,26 @@ const AptitudePage = () => {
     setViewDialogOpen(true);
   };
 
+  const handleFilterChange = (key: string, value: string) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+    setTestSessionsPage(1); // Reset to first page when filters change
+  };
+
+  const clearFilters = () => {
+    setActiveFilters({
+      studentName: "",
+      collegeName: "",
+      testId: "",
+      passStatus: "all",
+      date: "",
+      batch: "all"
+    });
+    setTestSessionsPage(1);
+  };
+
   return (
     <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Mobile Header */}
@@ -188,7 +284,7 @@ const AptitudePage = () => {
         <div className="container mx-auto px-4 py-6">
           {/* Test Sessions Card */}
           <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-800 dark:text-white">
-            <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-800 p-4 pb-4 pt-6 sm:p-6">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">Test Sessions</CardTitle>
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
@@ -199,37 +295,127 @@ const AptitudePage = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
-                  <Select
-                    value={selectedCollegeFilter}
-                    onValueChange={(value) => {
-                      console.log("Selected College ID:", value);
-                      setSelectedCollegeFilter(value);
-                      setTestSessionsPage(1);
-                    }}
-                    disabled={isCollegesLoading}
-                  >
-                    <SelectTrigger className="h-10 w-full rounded border border-gray-300 bg-white/90 text-black dark:text-black md:w-64">
-                      <SelectValue placeholder={isCollegesLoading ? "Loading colleges..." : colleges.length === 0 ? "No colleges available" : "Select a college"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Colleges</SelectItem>
-                      {colleges.length > 0 ? (
-                        colleges.map((college: College) => (
-                          <SelectItem key={college._id} value={college._id}>
-                            {college.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="none" disabled>
-                          No colleges available
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="p-0">
+              {/* Filter Component */}
+              <div className="mb-6 m-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-700 dark:text-white">Filters</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 dark:text-white"
+                  >
+                    <X className="mr-2 h-4 w-4" />
+                    Clear Filters
+                  </Button>
+                </div>
+                
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                  {/* Student Name Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-white">Student Name</label>
+                    <Input
+                      type="text"
+                      value={activeFilters.studentName}
+                      onChange={(e) => handleFilterChange("studentName", e.target.value)}
+                      placeholder="Filter by student name"
+                      className="h-10"
+                    />
+                  </div>
+
+                  {/* College Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-white">College</label>
+                    <Select
+                      value={selectedCollegeFilter}
+                      onValueChange={(value) => {
+                        setSelectedCollegeFilter(value);
+                        handleFilterChange("collegeName", value === "all" ? "" : colleges.find(c => c._id === value)?.name || "");
+                      }}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select college" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Colleges</SelectItem>
+                        {colleges.map((college) => (
+                          <SelectItem key={college._id} value={college._id}>
+                            {college.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Test ID Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-white">Test ID</label>
+                    <Input
+                      type="text"
+                      value={activeFilters.testId}
+                      onChange={(e) => handleFilterChange("testId", e.target.value)}
+                      placeholder="Filter by test ID"
+                      className="h-10"
+                    />
+                  </div>
+
+                  {/* Pass/Fail Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-white">Pass/Fail Status</label>
+                    <Select
+                      value={activeFilters.passStatus}
+                      onValueChange={(value) => handleFilterChange("passStatus", value)}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="pass">Pass</SelectItem>
+                        <SelectItem value="fail">Fail</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Date Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-white">Date</label>
+                    <Input
+                      type="date"
+                      value={activeFilters.date}
+                      onChange={(e) => handleFilterChange("date", e.target.value)}
+                      className="h-10"
+                    />
+                  </div>
+
+                  {/* Add Batch Filter after College Filter */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-white">Batch</label>
+                    <Select
+                      value={activeFilters.batch}
+                      onValueChange={(value) => handleFilterChange("batch", value)}
+                      disabled={selectedCollegeFilter === "all" || batches.length === 0}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder={selectedCollegeFilter === "all" ? "Select a college first" : "Select batch"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Batches</SelectItem>
+                        {batches.map((batch) => (
+                          <SelectItem key={batch} value={batch}>
+                            {batch}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
               <div className="m-4 overflow-x-auto">
                 <Table className="w-full text-black dark:text-white">
                   <TableHeader>

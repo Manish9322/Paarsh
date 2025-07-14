@@ -20,7 +20,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onBack, 
     email: "",
     phone: "",
     degree: "",
-    college: "",
+    university: "",
     gender: "",
     password: "",
     confirmPassword: "",
@@ -35,8 +35,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onBack, 
       toast.error("Invalid test link");
       return;
     }
-    const { name, email, phone, degree, college, gender, password, confirmPassword } = formData;
-    if (!name || !email || !phone || !degree || !college || !gender || !password || !confirmPassword) {
+    const { name, email, phone, degree, university, gender, password, confirmPassword } = formData;
+    if (!name || !email || !phone || !degree || !university || !gender || !password || !confirmPassword) {
       toast.error("Please fill in all fields.");
       return;
     }
@@ -54,7 +54,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onBack, 
         email,
         phone,
         degree,
-        college,
+        university,
         gender,
         testId,
         collegeId,
@@ -144,13 +144,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onBack, 
                     <div>
                       <div className="mb-4">
                         <label className="mb-2 block text-left text-base font-medium text-dark text-primary dark:text-white">
-                          College
+                          University
                         </label>
                         <input
                           type="text"
-                          value={formData.college}
-                          onChange={(e) => setFormData({ ...formData, college: e.target.value })}
-                          placeholder="e.g., Tech University"
+                          value={formData.university}
+                          onChange={(e) => setFormData({ ...formData, university: e.target.value })}
+                          placeholder="e.g., Mumbai University"
                           className="w-full rounded border border-gray-300 bg-gray-100 px-4 py-2.5 text-base focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-800"
                           required
                         />

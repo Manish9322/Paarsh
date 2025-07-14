@@ -11,9 +11,9 @@ await _db();
 
 export async function POST(request) {
   try {
-    const { name, email, phone, degree, testId, collegeId, password } = await request.json();
+    const { name, email, phone, degree, university, testId, collegeId, password } = await request.json();
 
-    if (!name || !email || !phone || !degree || !testId || !collegeId || !password) {
+    if (!name || !email || !phone || !degree || !university || !testId || !collegeId || !password) {
       return NextResponse.json(
         { success: false, error: "All fields are required" },
         { status: 400 }
@@ -71,6 +71,7 @@ export async function POST(request) {
       email: email.toLowerCase(),
       phone,
       degree,
+      university,
       college: collegeId,
       password: hashedPassword,
     });
