@@ -50,6 +50,7 @@ interface TestSession {
   status: "pending" | "active" | "completed";
   passStatus: "pass" | "fail";
   isPassed: boolean;
+  batchName?: string; // Add batchName field
 }
 
 interface Test {
@@ -74,6 +75,7 @@ const AptitudePage = () => {
   const [testSessionsPerPage, setTestSessionsPerPage] = useState<number | "all">(10);
   const [selectedSession, setSelectedSession] = useState<TestSession | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [batches, setBatches] = useState<string[]>([]);
 
   const [activeFilters, setActiveFilters] = useState({
     studentName: "",
@@ -109,7 +111,33 @@ const AptitudePage = () => {
     skip: shouldSkip,
   });
 
-  const batches = batchesData?.batches || [];
+  useEffect(() => {
+    if (testSessions && selectedCollegeFilter !== "all") {
+      // Extract unique batch names from test sessions for the selected college
+      const collegeTestSessions = testSessions.filter(
+        session => session.college?._id === selectedCollegeFilter
+      );
+      
+      const uniqueBatches = Array.from(
+        new Set(
+          collegeTestSessions
+            .map(session => session.batchName)
+            .filter((name): name is string => Boolean(name))
+        )
+      ).sort() as string[];
+
+      setBatches(uniqueBatches);
+
+      // If no batches found for the college, reset batch filter to show all
+      if (uniqueBatches.length === 0) {
+        handleFilterChange("batch", "all");
+      }
+    } else {
+      setBatches([]);
+      handleFilterChange("batch", "all");
+    }
+  }, [testSessions, selectedCollegeFilter]);
+
   const colleges = collegesData?.colleges || [];
 
   // Debug colleges and test sessions data
@@ -127,6 +155,11 @@ const AptitudePage = () => {
       session.testId.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!matchesSearch) return false;
+
+    // College filter
+    if (selectedCollegeFilter !== "all" && session.college?._id !== selectedCollegeFilter) {
+      return false;
+    }
 
     // Apply active filters
     if (activeFilters.studentName && !(session.student?.name?.toLowerCase()?.includes(activeFilters.studentName.toLowerCase()) || false)) {
@@ -152,11 +185,9 @@ const AptitudePage = () => {
       if (filterDate.toDateString() !== sessionDate.toDateString()) return false;
     }
 
-    // Add batch filter
-    if (activeFilters.batch !== "all") {
-      const testId = session.testId;
-      const test = allTests.find(t => t.testId === testId);
-      if (!test || test.batchName !== activeFilters.batch) {
+    // Batch filter - only apply if batches exist for the college
+    if (activeFilters.batch !== "all" && batches.length > 0) {
+      if (!session.batchName || session.batchName !== activeFilters.batch) {
         return false;
       }
     }
@@ -316,8 +347,9 @@ const AptitudePage = () => {
                     <Select
                       value={selectedCollegeFilter}
                       onValueChange={(value) => {
-                        console.log("College selected:", value);
                         setSelectedCollegeFilter(value);
+                        // Reset batch filter when college changes
+                        handleFilterChange("batch", "all");
                         handleFilterChange("collegeName", value === "all" ? "" : colleges.find(c => c._id === value)?.name || "");
                       }}
                     >
@@ -385,7 +417,7 @@ const AptitudePage = () => {
                           selectedCollegeFilter === "all" 
                             ? "Select a college first" 
                             : batches.length === 0 
-                              ? "No batches found" 
+                              ? "No batches available" 
                               : "Select batch"
                         } />
                       </SelectTrigger>
@@ -399,7 +431,7 @@ const AptitudePage = () => {
                       </SelectContent>
                     </Select>
                     {selectedCollegeFilter !== "all" && batches.length === 0 && (
-                      <p className="text-sm text-gray-500 mt-1">No batches found for this college</p>
+                      <p className="text-sm text-gray-500 mt-1">Showing all test sessions for this college</p>
                     )}
                   </div>
                 </div>
