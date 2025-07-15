@@ -81,6 +81,8 @@ export const POST = authMiddleware(async function (request) {
       student: studentId,
       college: collegeId,
       testId,
+      batchName,
+      test: test._id,
       duration: test.testDuration,
       status: "pending",
       questions: questions.map((q) => ({
