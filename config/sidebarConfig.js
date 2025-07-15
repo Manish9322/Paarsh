@@ -28,10 +28,9 @@ const sidebarConfig = [
     name: "Aptitude Tests",
     icon: <FaPencilRuler />,
     children: [
-      { name: "Colleges", path: "/admin/colleges" },
-      { name: "Create New Test", path: "/admin/aptitude-tests" },
+      { name: "College Management", path: "/admin/colleges" },
+      { name: "Aptitude Test Management", path: "/admin/aptitude-tests" },
       { name: "Aptitude Test Logs", path: "/admin/aptitude-test-logs" },
-      { name: "Student Test Results", path: "/admin/student-test-results" },
     ],
   },
  { name: "Blogs", path: "/admin/blogs", icon: <FaBook /> },

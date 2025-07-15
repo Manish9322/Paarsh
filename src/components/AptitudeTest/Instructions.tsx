@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock, Brain, AlertTriangle, CheckCircle2, XCircle, MousePointer2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Define the TestDetails interface to type the testDetails prop
@@ -25,13 +25,13 @@ interface InstructionsProps {
 }
 
 const InstructionsSkeleton = () => (
-  <div className="container mx-auto max-w-4xl px-4">
+  <div className="container mx-auto max-w-5xl px-4">
     <div className="text-center">
-      <Skeleton className="mx-auto mb-4 h-8 w-32" />
-      <Skeleton className="mx-auto mb-6 h-12 w-3/4" />
-      <Skeleton className="mx-auto mb-8 h-6 w-1/2" />
-      <div className="grid gap-8 md:grid-cols-2">
-        <Card className="p-8">
+      <Skeleton className="mx-auto mb-3 h-8 w-32" />
+      <Skeleton className="mx-auto mb-4 h-12 w-3/4" />
+      <Skeleton className="mx-auto mb-6 h-6 w-1/2" />
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="p-6">
           <Skeleton className="mb-4 h-8 w-40" />
           <div className="space-y-2">
             {[1, 2, 3, 4].map((i) => (
@@ -39,7 +39,7 @@ const InstructionsSkeleton = () => (
             ))}
           </div>
         </Card>
-        <Card className="p-8">
+        <Card className="p-6">
           <Skeleton className="mb-4 h-8 w-40" />
           <div className="space-y-2">
             {[1, 2, 3, 4].map((i) => (
@@ -55,69 +55,120 @@ const InstructionsSkeleton = () => (
 export const Instructions: React.FC<InstructionsProps> = ({ testDetails, onStartTest, isLoading }) => {
   if (isLoading) {
     return (
-      <section className="dark:via-gray-850 bg-gradient-to-b from-white via-gray-50 to-white py-12 dark:from-gray-800 dark:to-gray-800">
+      <section className="flex h-screen items-center justify-center bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-850 dark:to-gray-800">
         <InstructionsSkeleton />
       </section>
     );
   }
 
+  const defaultInstructions = [
+    "Read each question carefully before answering",
+    "Use pen and paper for calculations if needed",
+    "Answer all questions - no negative marking",
+    "Keep track of time for each section",
+    "No modifications after submission"
+  ];
+
+  const defaultRules = [
+    "No tab switching - auto-submits test",
+    "No external help or materials allowed",
+    "Webcam must stay active",
+    "3 warnings before timeout",
+    "Multiple logins blocked"
+  ];
+
+  const instructions = testDetails.instructions.length > 0 ? testDetails.instructions : defaultInstructions;
+  const rules = testDetails.rules.length > 0 ? testDetails.rules : defaultRules;
+
   return (
-    <section className="dark:via-gray-850 bg-gradient-to-b from-white via-gray-50 to-white py-11 dark:from-gray-800 dark:to-gray-800">
-      <div className="container mx-auto max-w-4xl px-4">
-        <div className="text-center">
-          <span className="mb-4 inline-block rounded-full bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-600 dark:bg-blue-900/30 dark:text-blue-300">
-            Aptitude Test
-          </span>
-          <h1 className="mb-6 text-4xl font-bold text-gray-900 dark:text-white lg:text-5xl">
-            {testDetails.name}
-          </h1>
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-            Conducted by {testDetails.college}
-          </p>
-          <div className="grid gap-8 md:grid-cols-2">
-            <Card className="relative overflow-hidden rounded border border-gray-100 bg-white p-8 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-              <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-                Instructions
-              </h2>
-              <ul className="list-inside list-disc text-gray-600 dark:text-gray-300">
-                {testDetails.instructions.map((instruction, index) => (
-                  <li key={index} className="mb-2">
-                    {instruction}
-                  </li>
-                ))}
-              </ul>
+    <section className="flex h-screen items-center justify-center overflow-hidden bg-gradient-to-b from-white via-gray-50 to-white dark:from-gray-800 dark:via-gray-850 dark:to-gray-800">
+      <div className="container mx-auto max-w-5xl px-4">
+        <div className="space-y-6">
+          <div className="text-center">
+            <span className="mb-2 inline-block rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-600 dark:bg-blue-900/30 dark:text-blue-300">
+              Test Instructions
+            </span>
+            <h1 className="mb-3 text-4xl font-bold text-gray-900 dark:text-white">
+              {testDetails.name}
+            </h1>
+            <p className="mx-auto mb-6 max-w-2xl text-sm text-gray-600 dark:text-gray-300">
+              Conducted by <span className="font-semibold">{testDetails.college}</span>
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="relative overflow-hidden bg-white p-6 shadow-lg dark:bg-gray-800">
+              <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-blue-500/10" />
+              <div className="relative">
+                <h2 className="mb-4 flex items-center text-xl font-bold text-gray-900 dark:text-white">
+                  <Brain className="mr-2 h-5 w-5 text-blue-500" />
+                  Test Overview
+                </h2>
+                <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    <span><strong>{testDetails.duration}m</strong> Duration</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                    <CheckCircle2 className="h-4 w-4 text-blue-500" />
+                    <span><strong>{testDetails.totalQuestions}</strong> Questions</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                    <MousePointer2 className="h-4 w-4 text-blue-500" />
+                    <span>MCQ Format</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                    <XCircle className="h-4 w-4 text-blue-500" />
+                    <span>{testDetails.allowRetake ? "Retake OK" : "No Retake"}</span>
+                  </div>
+                </div>
+
+                <h3 className="mb-2 text-base font-semibold text-gray-900 dark:text-white">
+                  Instructions
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                  {instructions.map((instruction, index) => (
+                    <li key={index} className="flex items-start space-x-2">
+                      <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                      <span>{instruction}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </Card>
-            <Card className="relative overflow-hidden rounded border border-gray-100 bg-white p-8 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-              <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-                Test Details
-              </h2>
-              <p className="mb-2 text-gray-600 dark:text-gray-300">
-                <strong>Duration:</strong> {testDetails.duration} minutes
-              </p>
-              <p className="mb-2 text-gray-600 dark:text-gray-300">
-                <strong>Total Questions:</strong> {testDetails.totalQuestions}
-              </p>
-              <h3 className="mb-2 mt-4 text-lg font-semibold text-gray-900 dark:text-white">
-                Rules
-              </h3>
-              <ul className="list-inside list-disc text-gray-600 dark:text-gray-300">
-                {testDetails.rules.map((rule, index) => (
-                  <li key={index} className="mb-2">
-                    {rule}
-                  </li>
-                ))}
-              </ul>
+
+            <Card className="relative overflow-hidden bg-white p-6 shadow-lg dark:bg-gray-800">
+              <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-red-500/10" />
+              <div className="relative">
+                <h2 className="mb-4 flex items-center text-xl font-bold text-gray-900 dark:text-white">
+                  <AlertTriangle className="mr-2 h-5 w-5 text-red-500" />
+                  Important Rules
+                </h2>
+                <ul className="mb-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                  {rules.map((rule, index) => (
+                    <li key={index} className="flex items-start space-x-2">
+                      <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
+                      <span>{rule}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="rounded bg-red-50 p-3 text-xs font-medium text-red-800 dark:bg-red-900/20 dark:text-red-300">
+                  <strong>Note:</strong> Rule violations may result in immediate disqualification
+                </div>
+              </div>
             </Card>
           </div>
-          <div className="mt-8">
+
+          <div className="text-center">
             <Button
               onClick={onStartTest}
               disabled={isLoading}
-              className="group relative inline-flex items-center gap-2 rounded bg-blue-600 px-8 py-4 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              className="group inline-flex items-center gap-2 rounded bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-lg dark:bg-blue-500 dark:hover:bg-blue-600"
             >
-              <span className="flex items-center gap-2">
-                Start Test
-                <ArrowRight className="h-4 w-4" />
+              <span className="flex items-center gap-1">
+                Begin Test
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Button>
           </div>

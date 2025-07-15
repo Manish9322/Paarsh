@@ -281,24 +281,73 @@ const AptitudePage: React.FC = () => {
       toast.error("Session ID is missing");
       return;
     }
+
+    if (!questions || questions.length === 0) {
+      toast.error("No questions available to submit");
+      return;
+    }
+
     try {
       // Collect answers from questions state
       const answers = questions.map((q) => ({
         questionId: q._id,
-        selectedAnswer: q.selectedAnswer,
+        selectedAnswer: q.selectedAnswer ?? -1, // Ensure we have a valid value
+        timeSpent: q.timeSpent ?? 0
       }));
+
       console.log("Submitting answers:", answers); // Debug log
-      const response = await submitTest({ sessionId, answers }).unwrap();
+      
+      const submissionData = {
+        sessionId,
+        answers,
+        submissionType: 'auto', // Default to auto
+        endTime: new Date().toISOString(),
+        status: 'completed'
+      };
+
+      const response = await submitTest(submissionData).unwrap();
       console.log("Submit test response:", response);
+      
+      if (!response) {
+        throw new Error("No response received from server");
+      }
+
+      // Clear any stored session data
+      localStorage.removeItem("test_session");
+      localStorage.removeItem("violations");
+
       setResult(response);
       setStep("result");
       setTimeRemaining(null);
       toast.success("Test submitted successfully");
     } catch (err: any) {
       console.error("Submit test error:", err);
-      toast.error(err?.data?.error || "Failed to submit test");
+      
+      // Handle specific error types
+      if (err.status === 401 || err.status === 403) {
+        toast.error("Session expired. Please login again.");
+        setStep("auth");
+        setSessionId(null);
+        return;
+      }
+      
+      if (err.status === 409) {
+        toast.error("Test has already been submitted");
+        setStep("result");
+        return;
+      }
+
+      // Handle network errors
+      if (!err.status) {
+        toast.error("Network error. Please check your connection.");
+        return;
+      }
+
+      // Handle other errors
+      const errorMessage = err?.data?.error || err?.message || "Failed to submit test";
+      toast.error(errorMessage);
     }
-  }, [sessionId, questions, submitTest]);
+  }, [sessionId, questions, submitTest, setStep]);
 
   // Handle exit
   const handleExit = useCallback(() => {
