@@ -11,6 +11,19 @@ interface ResultProps {
 
 export const Result: React.FC<ResultProps> = ({ testDetails, onRedirect }) => {
   useEffect(() => {
+    // Exit fullscreen mode when Result component mounts
+    const exitFullscreen = async () => {
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        }
+      } catch (error) {
+        console.error('Error exiting fullscreen:', error);
+      }
+    };
+    
+    exitFullscreen();
+
     // Set up auto-redirect after 1 minute
     const timeoutId = setTimeout(() => {
       onRedirect();

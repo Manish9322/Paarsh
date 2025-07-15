@@ -1,4 +1,4 @@
-// components/TestSecurityWrapper.js
+// Rename to TestSecurityWrapper.tsx
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
@@ -6,18 +6,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addViolation, setFullscreen } from '../../src/lib/slices/testSlice';
 import { useReportViolationMutation } from '../../src/services/api';
 import { toast } from 'sonner';
-
-/**
- * @typedef {Object} TestSecurityWrapperProps
- * @property {React.ReactNode} children - Child components
- * @property {() => Promise<void>} onSubmit - Callback when test needs to be submitted
- */
+import PropTypes from 'prop-types';
 
 /**
  * Security wrapper component for the test environment
- * @param {TestSecurityWrapperProps} props
+ * @param {Object} props
+ * @param {import('react').ReactNode} props.children - Child components
+ * @param {() => Promise<void>} props.onSubmit - Callback when test needs to be submitted
+ * @param {boolean} [props.isResultStep=false] - Whether the current step is the result step
  */
-const TestSecurityWrapper = ({ children, onSubmit }) => {
+const TestSecurityWrapper = ({ children, onSubmit, isResultStep = false }) => {
   const dispatch = useDispatch();
   const { currentTest, violations, tabSwitchCount } = useSelector(state => state.test);
   const [reportViolation] = useReportViolationMutation();
@@ -34,8 +32,8 @@ const TestSecurityWrapper = ({ children, onSubmit }) => {
    * @param {string} type - Type of violation
    */
   const handleViolation = async (type) => {
-    // Don't count violations if already submitting
-    if (isSubmitting) return;
+    // Don't count violations if already submitting or on result step
+    if (isSubmitting || isResultStep) return;
 
     const now = Date.now();
     // Prevent multiple violations in quick succession
@@ -107,7 +105,7 @@ const TestSecurityWrapper = ({ children, onSubmit }) => {
 
   // Function to request fullscreen
   const requestFullscreen = async () => {
-    if (!isSubmitting) {
+    if (!isSubmitting && !isResultStep) {
       const element = document.documentElement;
       try {
         if (element.requestFullscreen) {
@@ -164,7 +162,7 @@ const TestSecurityWrapper = ({ children, onSubmit }) => {
 
     // Fullscreen change handler with debounce
     const handleFullscreenChange = () => {
-      if (isSubmitting) return; // Don't handle fullscreen changes if submitting
+      if (isSubmitting || isResultStep) return; // Don't handle fullscreen changes if submitting or on result step
 
       clearTimeout(fullscreenChangeTimeout);
       
@@ -177,7 +175,7 @@ const TestSecurityWrapper = ({ children, onSubmit }) => {
         
         // Try to re-enter fullscreen after a short delay
         fullscreenChangeTimeout = setTimeout(() => {
-          if (!isSubmitting && !checkFullscreenState()) {
+          if (!isSubmitting && !isResultStep && !checkFullscreenState()) {
             requestFullscreen();
           }
         }, 1000);
@@ -187,7 +185,7 @@ const TestSecurityWrapper = ({ children, onSubmit }) => {
     };
 
     // Initial fullscreen request
-    if (currentTest && !isSubmitting) {
+    if (currentTest && !isSubmitting && !isResultStep) {
       requestFullscreen();
     }
 
@@ -209,9 +207,9 @@ const TestSecurityWrapper = ({ children, onSubmit }) => {
       document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
       document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
     };
-  }, [currentTest, dispatch, reportViolation, handleViolation, isSubmitting]);
+  }, [currentTest, dispatch, reportViolation, handleViolation, isSubmitting, isResultStep]);
 
-  if (!isVisible) {
+  if (!isVisible && !isResultStep) {
     return (
       <div className="fixed inset-0 bg-red-600 flex items-center justify-center z-50">
         <div className="text-white text-center">
@@ -225,6 +223,12 @@ const TestSecurityWrapper = ({ children, onSubmit }) => {
   }
 
   return children;
+};
+
+TestSecurityWrapper.propTypes = {
+  children: PropTypes.node.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  isResultStep: PropTypes.bool
 };
 
 export default TestSecurityWrapper;
