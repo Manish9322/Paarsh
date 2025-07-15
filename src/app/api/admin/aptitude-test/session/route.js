@@ -49,6 +49,7 @@ export const POST = authMiddleware(async function (request) {
       student: studentId,
       college: collegeId,
       testId,
+      passingPercentage: test.testSettings.passingPercentage,
       status: { $in: ["pending", "active"] },
     });
     if (existingSession && !test.testSettings.allowRetake) {

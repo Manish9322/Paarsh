@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { authMiddleware } from "../../../../../../middlewares/auth"; // Adjust path as needed
 import TestSession from "../../../../../../models/AptitudeTest/TestSession.model"; // Adjust path to your TestSession model
+import Student from "../../../../../../models/AptitudeTest/Student.model";
+import College from "../../../../../../models/AptitudeTest/College.model";
 import _db from "../../../../../../utils/db";
 
 await _db();
@@ -12,8 +14,7 @@ export const GET = authMiddleware(
       console.log("Fetching test sessions...");
       const { searchParams } = new URL(request.url);
       const collegeId = searchParams.get("collegeId");
-      console.log("College ID:", collegeId);
-
+    
       // Validate collegeId if provided
       if (collegeId && !mongoose.Types.ObjectId.isValid(collegeId)) {
         console.error("Invalid collegeId:", collegeId);
@@ -27,8 +28,7 @@ export const GET = authMiddleware(
       const query = collegeId
         ? { college: new mongoose.Types.ObjectId(collegeId) }
         : {};
-      console.log("Query:", query);
-
+     
       // Fetch test sessions with populated student and college fields
       const testSessions = await TestSession.find(query)
         .populate("student", "name") // Populate student name
