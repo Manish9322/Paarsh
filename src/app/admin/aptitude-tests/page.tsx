@@ -128,17 +128,23 @@ const CreateAptitudeTest = () => {
     const fetchAllTests = async () => {
       setIsLoadingTests(true);
       try {
-        const testsPromises = colleges.map(async (college: College) => {
-          const tests = await triggerGetTests(college._id).unwrap();
-          return tests.map((test: Test) => ({
-            ...test,
-            studentCount: 0,
-            collegeName: college.name,
-          }));
-        });
-        const testsArrays = await Promise.all(testsPromises);
-        const flattenedTests = testsArrays.flat();
-        setAllTests(flattenedTests);
+        // Create a map of college ID to college name for quick lookup
+        const collegeMap = colleges.reduce((map, college) => {
+          map[college._id] = college.name;
+          return map;
+        }, {});
+
+        // Get all tests with a single API call
+        const response = await triggerGetTests({}).unwrap();
+        
+        // Map the tests and add college names
+        const testsWithCollegeNames = response.map((test: Test) => ({
+          ...test,
+          studentCount: 0,
+          collegeName: collegeMap[test.college] || 'Unknown College'
+        }));
+
+        setAllTests(testsWithCollegeNames);
       } catch (err: any) {
         toast.error(err?.data?.message || "Failed to load tests");
       } finally {
@@ -161,6 +167,8 @@ const CreateAptitudeTest = () => {
     }
   }, [collegesError, testsError]);
 
+
+  console.log(allTests);
   // Filter tests based on search term
   const filteredTests = allTests.filter(
     (test: TestWithCollegeName) =>
@@ -199,17 +207,20 @@ const CreateAptitudeTest = () => {
       setCreateTestDialogOpen(false);
       setTestForm({ collegeId: "", batchName: "", testDuration: "", questionsPerTest: "", passingScore: "", allowRetake: false });
       toast.success(`Test created successfully: ${response.data.testLink}`);
+      
       // Refresh tests
-      const tests = await triggerGetTests(collegeId).unwrap();
-      const college = colleges.find((c: College) => c._id === collegeId);
-      setAllTests((prev) => [
-        ...prev.filter((test) => test.college !== collegeId), // Remove old tests for this college
-        ...tests.map((test: Test) => ({
-          ...test,
-          studentCount: 0,
-          collegeName: college?.name || "",
-        })),
-      ]);
+      const tests = await triggerGetTests({}).unwrap();
+      const collegeMap = colleges.reduce((map, college) => {
+        map[college._id] = college.name;
+        return map;
+      }, {});
+
+      // Update all tests with the new test
+      setAllTests(tests.map((test: Test) => ({
+        ...test,
+        studentCount: 0,
+        collegeName: collegeMap[test.college] || 'Unknown College'
+      })));
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to create test");
     }
