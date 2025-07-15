@@ -70,20 +70,16 @@ interface ResultData {
 // Add TestSecurityWrapper component at the top level
 const TestSecurityWrapper: React.FC<{ children: React.ReactNode; onSubmit: () => void }> = ({ children, onSubmit }) => {
   useEffect(() => {
-    const handleViolation = () => {
-      const violations = parseInt(localStorage.getItem("violations") || "0") + 1;
-      localStorage.setItem("violations", violations.toString());
-      
-      if (violations >= 10) {
-        onSubmit();
-      } else {
-        toast.error(`Warning: Security violation detected! (${violations}/10)`);
-      }
-    };
-
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        handleViolation();
+        const violations = parseInt(localStorage.getItem("violations") || "0") + 1;
+        localStorage.setItem("violations", violations.toString());
+        
+        if (violations >= 10) {
+          onSubmit();
+        } else {
+          toast.error(`Warning: Tab switching detected! (${violations}/10)`);
+        }
       }
     };
     
@@ -95,17 +91,6 @@ const TestSecurityWrapper: React.FC<{ children: React.ReactNode; onSubmit: () =>
       }
     };
 
-    const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) {
-        handleViolation();
-        toast.error("Exiting fullscreen is not allowed during the test");
-        // Try to re-enter fullscreen
-        document.documentElement.requestFullscreen().catch(() => {
-          toast.error("Failed to re-enter fullscreen mode");
-        });
-      }
-    };
-
     // Handle fullscreen only once when component mounts
     const setupFullscreen = async () => {
       try {
@@ -114,19 +99,16 @@ const TestSecurityWrapper: React.FC<{ children: React.ReactNode; onSubmit: () =>
         }
       } catch (err) {
         toast.error("Fullscreen mode is required for this test");
-        handleViolation();
       }
     };
     setupFullscreen();
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
     
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, [onSubmit]);
 
@@ -336,11 +318,6 @@ const AptitudePage: React.FC = () => {
       localStorage.removeItem("test_session");
       localStorage.removeItem("violations");
 
-      // Exit fullscreen mode after test submission
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      }
-
       setResult(response);
       setStep("result");
       setTimeRemaining(null);
@@ -472,50 +449,52 @@ const AptitudePage: React.FC = () => {
   if (step === "test" && testInfo && questions.length > 0) {
     return (
       <TestSecurityWrapper onSubmit={handleSubmitTest}>
-        <div className="container mx-auto px-4 py-12">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <TestHeader
             testName={testInfo.testDetails.name}
             college={testInfo.testDetails.college}
             onExit={handleExit}
             timeRemaining={timeRemaining}
           />
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
-            <div className="lg:col-span-3 order-1">
-              <Test
-                questions={questions}
-                sessionId={sessionId!}
-                timeRemaining={timeRemaining}
-                onSubmitTest={(response) => {
-                  setResult(response);
-                  setStep("result");
-                }}
-                setQuestions={setQuestions}
-                onMarkForReview={(questionId) => {
-                  setMarkedQuestions((prev) => ({
-                    ...prev,
-                    [questionId]: !prev[questionId],
-                  }));
-                }}
-                markedQuestions={markedQuestions}
-                currentQuestionIndex={currentQuestionIndex}
-                setCurrentQuestionIndex={setCurrentQuestionIndex}
-              />
-            </div>
-            <div className="lg:col-span-1 order-2 space-y-6">
-              <Timer duration={timeRemaining} onTimeUp={handleSubmitTest} />
-              <QuestionNavigation
-                totalQuestions={questions.length}
-                currentQuestionIndex={currentQuestionIndex}
-                setCurrentQuestionIndex={setCurrentQuestionIndex}
-                questionStatus={questionStatus}
-                isLoading={false}
-              />
-              <QuestionMeta 
-                totalQuestions={questions.length}
-                attempted={attempted}
-                notAttempted={notAttempted}
-                marked={marked}
-              />
+          <div className="container mx-auto px-4 py-12">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+              <div className="lg:col-span-3 order-1">
+                <Test
+                  questions={questions}
+                  sessionId={sessionId!}
+                  timeRemaining={timeRemaining}
+                  onSubmitTest={(response) => {
+                    setResult(response);
+                    setStep("result");
+                  }}
+                  setQuestions={setQuestions}
+                  onMarkForReview={(questionId) => {
+                    setMarkedQuestions((prev) => ({
+                      ...prev,
+                      [questionId]: !prev[questionId],
+                    }));
+                  }}
+                  markedQuestions={markedQuestions}
+                  currentQuestionIndex={currentQuestionIndex}
+                  setCurrentQuestionIndex={setCurrentQuestionIndex}
+                />
+              </div>
+              <div className="lg:col-span-1 order-2 space-y-6">
+                <Timer duration={timeRemaining} onTimeUp={handleSubmitTest} />
+                <QuestionNavigation
+                  totalQuestions={questions.length}
+                  currentQuestionIndex={currentQuestionIndex}
+                  setCurrentQuestionIndex={setCurrentQuestionIndex}
+                  questionStatus={questionStatus}
+                  isLoading={false}
+                />
+                <QuestionMeta 
+                  totalQuestions={questions.length}
+                  attempted={attempted}
+                  notAttempted={notAttempted}
+                  marked={marked}
+                />
+              </div>
             </div>
           </div>
         </div>
