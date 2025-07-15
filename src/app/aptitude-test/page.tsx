@@ -119,6 +119,7 @@ const AptitudePage: React.FC = () => {
   const searchParams = useSearchParams();
   const testId = searchParams?.get("testId") ?? null;
   const collegeId = searchParams?.get("collegeId") ?? null;
+  const batchName = searchParams?.get("batchName") ?? null;
   const [step, setStep] = useState<"auth" | "login" | "register" | "instructions" | "test" | "result">("auth");
   const [studentId, setStudentId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -226,6 +227,7 @@ const AptitudePage: React.FC = () => {
         studentId, 
         testId, 
         collegeId,
+        batchName,
         token: student_access_token
       }).unwrap();
       
@@ -413,7 +415,8 @@ const AptitudePage: React.FC = () => {
       <RegisterForm
         onRegister={(studentId, token) => {
           setShowSuccessModal(true);
-          handleAuthSuccess(studentId, token);
+          // handleAuthSuccess(studentId, token);
+          setStep("login");
         }}
         onBack={() => setStep("auth")}
         testId={testId}

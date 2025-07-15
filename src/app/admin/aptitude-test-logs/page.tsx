@@ -30,7 +30,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useFetchCollegesQuery, useGetTestSessionsQuery } from "@/services/api";
+import { useFetchCollegebatchesQuery, useFetchCollegesQuery, useGetTestByCollegeIdQuery, useGetTestSessionsQuery } from "@/services/api";
 
 interface College {
   _id: string;
@@ -39,8 +39,8 @@ interface College {
 
 interface TestSession {
   _id: string;
-  student: { _id: string; name: string };
-  college: { _id: string; name: string };
+  student: { _id: string; name: string } | null; // Allow null
+  college: { _id: string; name: string } | null; // Allow null
   testId: string;
   startTime: string;
   endTime?: string;
@@ -74,7 +74,7 @@ const AptitudePage = () => {
   const [testSessionsPerPage, setTestSessionsPerPage] = useState<number | "all">(10);
   const [selectedSession, setSelectedSession] = useState<TestSession | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [batches, setBatches] = useState<string[]>([]);
+
   const [activeFilters, setActiveFilters] = useState({
     studentName: "",
     collegeName: "",
@@ -83,16 +83,33 @@ const AptitudePage = () => {
     date: "",
     batch: "all"
   });
-  const [allTests, setAllTests] = useState<Test[]>([]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  // Fetch colleges for filter dropdown and test sessions
+  const shouldSkip = selectedCollegeFilter === "all" || !selectedCollegeFilter;
+
+
   const { data: collegesData, isLoading: isCollegesLoading, error: collegesError } = useFetchCollegesQuery(undefined);
   const { data: testSessions, isLoading: isTestSessionsLoading, error: testSessionsError } = useGetTestSessionsQuery({
     collegeId: selectedCollegeFilter === "all" ? undefined : selectedCollegeFilter,
   });
 
+  const { data: testsData, isLoading: isTestsLoading, error: testsError } = useGetTestByCollegeIdQuery({
+    collegeId: selectedCollegeFilter,
+  },
+  {
+    skip: shouldSkip,
+  });
+  
+  const allTests = testsData?.data || [];
+  const {data: batchesData, isLoading} = useFetchCollegebatchesQuery( {
+    collegeId: selectedCollegeFilter,
+  },
+  {
+    skip: shouldSkip,
+  });
+
+  const batches = batchesData?.batches || [];
   const colleges = collegesData?.colleges || [];
 
   // Debug colleges and test sessions data
@@ -103,104 +120,20 @@ const AptitudePage = () => {
     console.log("Test Sessions Error:", testSessionsError);
   }, [collegesData, colleges, testSessions, testSessionsError]);
 
-  // Add new effect to fetch batches when college changes
-  useEffect(() => {
-    const fetchBatches = async () => {
-      console.log("fetchBatches called with collegeId:", selectedCollegeFilter);
-      if (selectedCollegeFilter && selectedCollegeFilter !== "all") {
-        try {
-          console.log("Fetching batches for college:", selectedCollegeFilter);
-          const token = localStorage.getItem("token");
-          if (!token) {
-            throw new Error("Authentication token not found");
-          }
-          const response = await fetch(`/api/admin/aptitude-test/colleges/batches?collegeId=${selectedCollegeFilter}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          console.log("Batches API response:", data);
-          if (data.success) {
-            setBatches(data.batches || []);
-          } else {
-            console.error("Failed to fetch batches:", data.message);
-            setBatches([]);
-          }
-        } catch (error) {
-          console.error("Error fetching batches:", error);
-          setBatches([]);
-          toast.error("Failed to fetch batches");
-        }
-      } else {
-        console.log("Resetting batches - no college selected");
-        setBatches([]);
-        // Reset batch filter when college is set to "all"
-        setActiveFilters(prev => ({
-          ...prev,
-          batch: "all"
-        }));
-      }
-    };
-
-    fetchBatches();
-  }, [selectedCollegeFilter]);
-
-  // Fetch tests when college changes
-  useEffect(() => {
-    const fetchTests = async () => {
-      if (selectedCollegeFilter && selectedCollegeFilter !== "all") {
-        try {
-          const token = localStorage.getItem("token");
-          if (!token) {
-            throw new Error("Authentication token not found");
-          }
-          const response = await fetch(`/api/admin/aptitude-test/colleges/test?collegeId=${selectedCollegeFilter}`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const data = await response.json();
-          if (data.success) {
-            setAllTests(data.data || []);
-          } else {
-            console.error("Failed to fetch tests:", data.message);
-            setAllTests([]);
-          }
-        } catch (error) {
-          console.error("Error fetching tests:", error);
-          setAllTests([]);
-          toast.error("Failed to fetch tests");
-        }
-      } else {
-        setAllTests([]);
-      }
-    };
-
-    fetchTests();
-  }, [selectedCollegeFilter]);
-
   const filteredTestSessions = testSessions?.filter((session: TestSession) => {
     // Base search term filter
-    const matchesSearch = session.student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      (session.student?.name?.toLowerCase()?.includes(searchTerm.toLowerCase()) || false) ||
       session.testId.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!matchesSearch) return false;
 
     // Apply active filters
-    if (activeFilters.studentName && !session.student.name.toLowerCase().includes(activeFilters.studentName.toLowerCase())) {
+    if (activeFilters.studentName && !(session.student?.name?.toLowerCase()?.includes(activeFilters.studentName.toLowerCase()) || false)) {
       return false;
     }
 
-    if (activeFilters.collegeName && !session.college.name.toLowerCase().includes(activeFilters.collegeName.toLowerCase())) {
+    if (activeFilters.collegeName && !(session.college?.name?.toLowerCase()?.includes(activeFilters.collegeName.toLowerCase()) || false)) {
       return false;
     }
 
@@ -222,7 +155,6 @@ const AptitudePage = () => {
     // Add batch filter
     if (activeFilters.batch !== "all") {
       const testId = session.testId;
-      // Get test details to check batch name
       const test = allTests.find(t => t.testId === testId);
       if (!test || test.batchName !== activeFilters.batch) {
         return false;
@@ -277,7 +209,6 @@ const AptitudePage = () => {
     return pageNumbers;
   };
 
-  // Notify errors or empty states
   if (collegesError) {
     toast.error(`Failed to load colleges for filter: ${collegesError.message || "Unknown error"}`);
   } else if (!isCollegesLoading && colleges.length === 0) {
@@ -297,7 +228,7 @@ const AptitudePage = () => {
       ...prev,
       [key]: value
     }));
-    setTestSessionsPage(1); // Reset to first page when filters change
+    setTestSessionsPage(1);
   };
 
   const clearFilters = () => {
@@ -314,24 +245,8 @@ const AptitudePage = () => {
 
   return (
     <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
-      {/* Mobile Header */}
-      <div className="fixed left-0 right-0 top-0 z-50 flex h-16 items-center justify-between bg-white px-4 shadow-sm md:hidden">
-        <button
-          onClick={toggleSidebar}
-          className="rounded-full p-2 text-gray-600 hover:bg-gray-100"
-          aria-label="Toggle sidebar"
-        >
-          <Menu size={24} />
-        </button>
-        <h1 className="text-lg font-bold text-gray-800">Test Sessions</h1>
-        <div className="w-10"></div>
-      </div>
-
-      <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
+      {/* Mobile Header and Sidebar (unchanged) */}
+      <aside className={`fixed inset-y-0 left-0 z-40 w-64 transform bg-white shadow-lg transition-transform duration-300 ease-in-out dark:bg-gray-800 dark:text-white md:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-full flex-col">
           <div className="flex h-16 items-center justify-between px-4 md:justify-end">
             <h1 className="text-xl font-bold md:hidden">Dashboard</h1>
@@ -350,10 +265,8 @@ const AptitudePage = () => {
         ></div>
       )}
 
-      {/* Main Content */}
       <main className="flex-1 overflow-y-auto pt-16 md:ml-64">
         <div className="container mx-auto px-4 py-6">
-          {/* Test Sessions Card */}
           <Card className="mb-6 overflow-hidden border-none bg-white shadow-md dark:bg-gray-800 dark:text-white">
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
@@ -362,7 +275,8 @@ const AptitudePage = () => {
                   <Input
                     type="text"
                     placeholder="Search students or test IDs..."
-                    className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-500 dark:text-black md:w-64"
+                    className="h-10 w-full rounded border border-gray-300 bg-white/90 p-2 text-black placeholder:text-gray-400 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500"
+
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -370,7 +284,7 @@ const AptitudePage = () => {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              {/* Filter Component */}
+              {/* Filter Component (unchanged) */}
               <div className="mb-6 m-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-700 dark:text-white">Filters</h3>
@@ -384,7 +298,6 @@ const AptitudePage = () => {
                     Clear Filters
                   </Button>
                 </div>
-                
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {/* Student Name Filter */}
                   <div className="space-y-2">
@@ -397,7 +310,6 @@ const AptitudePage = () => {
                       className="h-10"
                     />
                   </div>
-
                   {/* College Filter */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-white">College</label>
@@ -422,7 +334,6 @@ const AptitudePage = () => {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* Test ID Filter */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-white">Test ID</label>
@@ -434,7 +345,6 @@ const AptitudePage = () => {
                       className="h-10"
                     />
                   </div>
-
                   {/* Pass/Fail Filter */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-white">Pass/Fail Status</label>
@@ -452,7 +362,6 @@ const AptitudePage = () => {
                       </SelectContent>
                     </Select>
                   </div>
-
                   {/* Date Filter */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-white">Date</label>
@@ -463,8 +372,7 @@ const AptitudePage = () => {
                       className="h-10"
                     />
                   </div>
-
-                  {/* Add Batch Filter after College Filter */}
+                  {/* Batch Filter */}
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-white">Batch</label>
                     <Select
@@ -564,19 +472,19 @@ const AptitudePage = () => {
                           <TableCell className="hidden text-center font-medium sm:table-cell">{testSessionsStartIndex + index + 1}</TableCell>
                           <TableCell>
                             <div className="md:hidden">
-                              <p className="font-medium">{session.student.name}</p>
+                              <p className="font-medium">{session.student?.name || "Unknown"}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Test: {session.testId}</p>
-                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">College: {session.college.name}</p>
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">College: {session.college?.name || "N/A"}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Score: {session.score}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Percentage: {session.percentage}%</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Pass/Fail: {session.isPassed ? "Pass" : "Fail"}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Started: {formatDate(session.startTime)}</p>
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Ended: {formatDate(session.endTime)}</p>
                             </div>
-                            <span className="hidden font-medium md:inline">{session.student.name}</span>
+                            <span className="hidden font-medium md:inline">{session.student?.name || "Unknown"}</span>
                           </TableCell>
                           <TableCell>{session.testId}</TableCell>
-                          <TableCell className="hidden md:table-cell">{session.college.name}</TableCell>
+                          <TableCell className="hidden md:table-cell">{session.college?.name || "N/A"}</TableCell>
                           <TableCell className="hidden lg:table-cell">{session.score}</TableCell>
                           <TableCell className="hidden xl:table-cell">{session.percentage}%</TableCell>
                           <TableCell className="hidden xl:table-cell">
@@ -613,7 +521,6 @@ const AptitudePage = () => {
             </CardContent>
           </Card>
 
-          {/* View Session Details Dialog */}
           <Dialog open={viewDialogOpen} onOpenChange={(open) => {
             setViewDialogOpen(open);
             if (!open) setSelectedSession(null);
@@ -631,7 +538,7 @@ const AptitudePage = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">Student Name</label>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.student.name}</p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.student?.name || "Unknown"}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">Test ID</label>
@@ -639,7 +546,7 @@ const AptitudePage = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">College</label>
-                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.college.name}</p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{selectedSession.college?.name || "N/A"}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 dark:text-white">Score</label>
@@ -656,7 +563,7 @@ const AptitudePage = () => {
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 dark:text-white">Start Time</label>
+                    <label className="block text-sm .font-medium text-gray-900 dark:text-white">Start Time</label>
                     <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">{formatDate(selectedSession.startTime)}</p>
                   </div>
                   <div>
@@ -676,7 +583,7 @@ const AptitudePage = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Pagination for Test Sessions */}
+          {/* Pagination (unchanged) */}
           <div className="mt-6 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800 dark:text-white">
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
               <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -768,7 +675,6 @@ const AptitudePage = () => {
         </div>
       </main>
 
-      {/* Custom Scrollbar Styling */}
       <style jsx global>{`
         body {
           overflow-x: hidden;
@@ -798,4 +704,3 @@ const AptitudePage = () => {
 };
 
 export default AptitudePage;
-

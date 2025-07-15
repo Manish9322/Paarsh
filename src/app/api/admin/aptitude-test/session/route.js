@@ -12,11 +12,11 @@ await _db();
 
 export const POST = authMiddleware(async function (request) {
   try {
-    const { studentId, testId, collegeId } = await request.json();
+    const { studentId, testId, collegeId, batchName } = await request.json();
 
-    if (!studentId || !testId || !collegeId) {
+    if (!studentId || !testId || !collegeId , !batchName) {
       return NextResponse.json(
-        { success: false, error: "Student ID, test ID, and college ID are required" },
+        { success: false, error: "Student ID, test ID, and college ID , batch name are required" },
         { status: 400 }
       );
     }
@@ -49,6 +49,9 @@ export const POST = authMiddleware(async function (request) {
       student: studentId,
       college: collegeId,
       testId,
+      batchName,
+      test: test._id,
+      passingPercentage: test.testSettings.passingPercentage,
       status: { $in: ["pending", "active"] },
     });
     if (existingSession && !test.testSettings.allowRetake) {

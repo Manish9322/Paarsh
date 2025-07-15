@@ -125,6 +125,10 @@ export const paarshEduApi = createApi({
     "Results",
     "Role",
     "Questions",
+    "Batch",
+    "Tests",
+    "TestSession",
+
   ],
   endpoints: (builder) => ({
     // Video Progress Endpoints
@@ -1242,6 +1246,11 @@ export const paarshEduApi = createApi({
       providesTags: ["College"],
     }),
 
+    fetchCollegebatches: builder.query({
+      query: ({collegeId}) => `/admin/aptitude-test/colleges/batches?collegeId=${collegeId}`,
+      providesTags: ["Batch"],
+    }),
+
     getCollegeResults: builder.query({
       query: (collegeId) => `/admin/aptitude-test/colleges/${collegeId}/results`,
       providesTags: ["Results"],
@@ -1399,7 +1408,13 @@ export const paarshEduApi = createApi({
     }),
 
     getTests: builder.query({
-      query: (collegeId) => `/admin/aptitude-test/colleges/test?collegeId=${collegeId}`,
+      query: () => `/admin/aptitude-test/colleges/test`,
+      transformResponse: (response) => response.data,
+      providesTags:['Tests'],
+    }),
+
+    getTestByCollegeId: builder.query({
+      query: ({collegeId}) => `/admin/aptitude-test/colleges/college/test?collegeId=${collegeId}`,
       transformResponse: (response) => response.data,
       providesTags: (result, error, collegeId) => [{ type: 'Tests', id: collegeId }],
     }),
@@ -1563,6 +1578,7 @@ export const {
 
   useCreateCollegeMutation,
   useFetchCollegesQuery,
+  useFetchCollegebatchesQuery,
   useUpdateCollegeMutation,
   useDeleteCollegeMutation,
   useGetCollegeResultsQuery,
@@ -1588,5 +1604,6 @@ export const {
   useCreateTestMutation,
   useLazyGetTestsQuery,
   useGetTestsQuery,
+  useGetTestByCollegeIdQuery,
   useDeleteTestMutation,
 } = paarshEduApi;
