@@ -86,7 +86,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onShowLogin, onShowRegister,
 
             <div className="mt-6 rounded bg-white/10 p-6">
               <p className="italic text-white/90">
-                "Take your time, stay focused, and show us your best performance."
+                Take your time, stay focused, and show us your best performance.
               </p>
             </div>
           </div>
