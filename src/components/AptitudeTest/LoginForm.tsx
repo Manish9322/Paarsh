@@ -140,14 +140,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onBack, testId, c
                   <UserCheck className="h-6 w-6 shrink-0" />
                   <div>
                     <h4 className="mb-2 font-semibold">Single Attempt</h4>
-                    <p className="text-white/80">You can only take the test once. Ensure you're ready before starting.</p>
+                    <p className="text-white/80">You can only take the test once. Ensure youre ready before starting.</p>
                   </div>
                 </div>
               </div>
 
               <div className="mt-6 rounded bg-white/10 p-6">
                 <p className="italic text-white/90">
-                  "Login to begin your assessment. Good luck with your test!"
+                  Login to begin your assessment. Good luck with your test!
                 </p>
               </div>
             </div>

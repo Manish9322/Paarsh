@@ -1408,9 +1408,9 @@ export const paarshEduApi = createApi({
     }),
 
     getTests: builder.query({
-      query: () => `/admin/aptitude-test/colleges/test`,
+      query: ({collegeId}) => `/admin/aptitude-test/colleges/test?collegeId=${collegeId}`,
       transformResponse: (response) => response.data,
-      providesTags:['Tests'],
+      providesTags:(result, error, collegeId) => [{ type: 'Tests', id: collegeId }],
     }),
 
     getTestByCollegeId: builder.query({

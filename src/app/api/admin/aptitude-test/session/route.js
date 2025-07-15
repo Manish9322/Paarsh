@@ -49,20 +49,31 @@ export const POST = authMiddleware(async function (request) {
       student: studentId,
       college: collegeId,
       testId,
-      batchName,
-      test: test._id,
-      passingPercentage: test.testSettings.passingPercentage,
-      status: { $in: ["pending", "active"] },
     });
-    if (existingSession && !test.testSettings.allowRetake) {
-      return NextResponse.json(
-        {
-          success: true,
-          message: "Existing test session found",
-          data: { sessionId: existingSession._id },
-        },
-        { status: 200 }
-      );
+    
+  if (existingSession) {
+      // If session is completed, don't allow retake
+      if (existingSession.status === "completed") {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "You have already completed this test. Retakes are not allowed.",
+          },
+          { status: 403 }
+        );
+      }
+      
+      // If session is pending or active, return existing session
+      if (existingSession.status === "pending" || existingSession.status === "active") {
+        return NextResponse.json(
+          {
+            success: true,
+            message: "Existing test session found",
+            data: { sessionId: existingSession._id },
+          },
+          { status: 200 }
+        );
+      }
     }
 
     const questions = await QuestionModel.aggregate([
@@ -85,6 +96,7 @@ export const POST = authMiddleware(async function (request) {
       test: test._id,
       duration: test.testDuration,
       status: "pending",
+      passingPercentage: test.testSettings.passingPercentage,
       questions: questions.map((q) => ({
         question: q._id,
         selectedAnswer: -1,

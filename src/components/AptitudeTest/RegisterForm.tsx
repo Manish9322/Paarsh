@@ -311,7 +311,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister, onBack, 
 
               <div className="mt-6 rounded bg-white/10 p-6">
                 <p className="italic text-white/90">
-                  "Register now to access your aptitude test. Make sure to have a stable internet connection before starting."
+                  Register now to access your aptitude test. Make sure to have a stable internet connection before starting.
                 </p>
               </div>
             </div>
