@@ -78,13 +78,13 @@ export const GET = authMiddleware(
     try {
       const { searchParams } = new URL(request.url);
       const collegeId = searchParams.get("collegeId");
-      const tests = await TestModel.find({ college: collegeId }).lean().exec();
+      const tests = await TestModel.find().lean().exec();
       return NextResponse.json({
         success: true,
         message: "Tests fetched successfully",
         data: tests.map((test) => ({
           ...test,
-          testLink: `${BASE_URL}/aptitude-test?testId=${test.testId}&collegeId=${collegeId}&batchName=${test.batchName}`,
+          testLink: `${BASE_URL}/aptitude-test?testId=${test.testId}&collegeId=${test.college}&batchName=${test.batchName}`,
         })),
       });
     } catch (error) {
