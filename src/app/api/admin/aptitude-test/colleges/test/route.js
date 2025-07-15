@@ -51,7 +51,7 @@ export const POST = authMiddleware(
       await test.save();
 
       college.testIds.push(testId);
-      college.testLink = `${BASE_URL}/aptitude-test?testId=${testId}&collegeId=${collegeId}`;
+      college.testLink = `${BASE_URL}/aptitude-test?testId=${testId}&collegeId=${collegeId}&batchName=${batchName}`;
       await college.save();
 
       return NextResponse.json({
@@ -59,7 +59,7 @@ export const POST = authMiddleware(
         message: "Test created successfully",
         data: {
           testId,
-          testLink: `/aptitude-test?testId=${testId}&collegeId=${collegeId}`,
+          testLink: `/aptitude-test?testId=${testId}&collegeId=${collegeId}&batchName=${batchName}`,
         },
       });
     } catch (error) {
@@ -84,7 +84,7 @@ export const GET = authMiddleware(
         message: "Tests fetched successfully",
         data: tests.map((test) => ({
           ...test,
-          testLink: `${BASE_URL}/aptitude-test?testId=${test.testId}&collegeId=${collegeId}`,
+          testLink: `${BASE_URL}/aptitude-test?testId=${test.testId}&collegeId=${collegeId}&batchName=${test.batchName}`,
         })),
       });
     } catch (error) {

@@ -15,6 +15,15 @@ const testSessionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  test: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Test",
+    required: true,
+  },
+  batchName: {
+    type: String,
+    required: true,
+  },
   startTime: {
     type: Date,
     default: Date.now,
