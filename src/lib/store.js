@@ -17,6 +17,7 @@ import blogReducer from "../lib/slices/blogSlice";
 import studentAuthReducer from "../lib/slices/studentAuthSlice";
 import testReducer from "../lib/slices/testSlice";
 import questionsReducer from "../lib/slices/questionSlice";
+import studentsReducer from "../lib/slices/studentsSlice";
 
 // Combine all reducers
 const rootReducer = combineReducers({
@@ -37,6 +38,7 @@ const rootReducer = combineReducers({
   studentAuth: studentAuthReducer,
   test: testReducer,
   questions: questionsReducer,
+  students: studentsReducer,
 
   [paarshEduApi.reducerPath]: paarshEduApi.reducer, // Include RTK Query API slice
 });

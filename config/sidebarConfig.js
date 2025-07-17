@@ -29,8 +29,10 @@ const sidebarConfig = [
     icon: <FaPencilRuler />,
     children: [
       { name: "College Management", path: "/admin/colleges" },
+      { name: "Students", path: "/admin/students" },
       { name: "Aptitude Test Management", path: "/admin/aptitude-tests" },
       { name: "Aptitude Test Logs", path: "/admin/aptitude-test-logs" },
+      { name: "Bulk Upload Questions", path: "/admin/aptitude-questions/bulk-upload" },
     ],
   },
  { name: "Blogs", path: "/admin/blogs", icon: <FaBook /> },

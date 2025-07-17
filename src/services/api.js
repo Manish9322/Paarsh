@@ -1291,7 +1291,7 @@ export const paarshEduApi = createApi({
 
     updateQuestion: builder.mutation({
       query: ({ id, ...questionData }) => ({
-        url: `/questions/${id}`,
+        url: `/admin/aptitude-questions/${id}`,
         method: 'PUT',
         body: questionData,
       }),
@@ -1300,10 +1300,10 @@ export const paarshEduApi = createApi({
     
     deleteQuestion: builder.mutation({
       query: (id) => ({
-        url: `/questions/${id}`,
+        url: `/admin/aptitude-questions/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['Questions'],
+      invalidatesTags: ['Questions']
     }),
 
     // Student endpoints
@@ -1428,6 +1428,29 @@ export const paarshEduApi = createApi({
         { type: 'Tests', id: collegeId },
         'Colleges',
       ],
+    }),
+
+    // Student APIs
+    fetchStudents: builder.query({
+      query: () => "/admin/students",
+      providesTags: ["Student"],
+    }),
+
+    deleteStudent: builder.mutation({
+      query: (id) => ({
+        url: "/admin/students",
+        method: "DELETE",
+        body: { id },
+      }),
+      invalidatesTags: ["Student"],
+    }),
+
+    bulkUploadQuestions: builder.mutation({
+      query: (data) => ({
+        url: "/admin/aptitude-questions/bulk-upload",
+        method: "POST",
+        body: data,
+      }),
     }),
 
   }),
@@ -1606,4 +1629,8 @@ export const {
   useGetTestsQuery,
   useGetTestByCollegeIdQuery,
   useDeleteTestMutation,
+
+  useFetchStudentsQuery,
+  useDeleteStudentMutation,
+  useBulkUploadQuestionsMutation,
 } = paarshEduApi;
