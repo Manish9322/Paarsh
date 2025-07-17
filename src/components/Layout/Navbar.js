@@ -272,7 +272,7 @@ const Navbar = () => {
         >
           <div className="w-60 max-w-full px-4 xl:mr-12">
             <Link
-              href="/"
+              href="/admin"
               className="header-logo block w-full transition-transform duration-300 hover:scale-110"
             >
               <Image

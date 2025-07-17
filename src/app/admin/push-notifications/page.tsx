@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Plus, Trash2, RefreshCw } from "lucide-react";
+import { Bell, Plus, Trash2, RefreshCw, Mail, Smartphone } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,7 @@ import {
   useGetNotificationLogsQuery,
   useDeleteNotificationLogMutation,
   useResendNotificationMutation,
+  useSendEmailNotificationMutation,
 } from "@/services/api";
 import { format } from "date-fns";
 
@@ -29,8 +30,12 @@ const NotificationsPage = () => {
     title: "",
     message: "",
     recipientType: "all" as "all" | "users" | "agents",
+    notificationType: "push" as "push" | "email",
+    emailSubject: "",
   });
+  
   const [sendNotification, { isLoading: isSending }] = useSendNotificationMutation();
+  const [sendEmailNotification, { isLoading: isSendingEmail }] = useSendEmailNotificationMutation();
   const { data: logs, isLoading: isLoadingLogs } = useGetNotificationLogsQuery(undefined);
   const [deleteNotificationLog] = useDeleteNotificationLogMutation();
   const [resendNotification] = useResendNotificationMutation();
@@ -40,17 +45,34 @@ const NotificationsPage = () => {
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await sendNotification({
-        title: formData.title,
-        message: formData.message,
-        recipientType: formData.recipientType,
-      }).unwrap();
+      const { notificationType, emailSubject, ...baseData } = formData;
+      
+      if (notificationType === "push") {
+        await sendNotification(baseData).unwrap();
+      }
+      
+      if (notificationType === "email") {
+        await sendEmailNotification({
+          ...baseData,
+          subject: emailSubject || formData.title,
+        }).unwrap();
+      }
+
+      const notificationTypeText = 
+        notificationType === "email" ? "Email notification" : "Push notification";
 
       toast.success("Notification queued", {
-        description: "The custom push notification has been successfully queued for sending.",
+        description: `The custom ${notificationTypeText.toLowerCase()} has been successfully queued for sending.`,
         duration: 3000,
       });
-      setFormData({ title: "", message: "", recipientType: "all" });
+      
+      setFormData({ 
+        title: "", 
+        message: "", 
+        recipientType: "all",
+        notificationType: "push",
+        emailSubject: "",
+      });
       setSendModalOpen(false);
     } catch (error) {
       console.error("Error sending notification:", error);
@@ -60,8 +82,6 @@ const NotificationsPage = () => {
       });
     }
   };
-
-
 
   const handleDeleteLog = async (jobId: string) => {
     try {
@@ -95,7 +115,6 @@ const NotificationsPage = () => {
     }
   };
 
-  // Group logs by date
   type NotificationLog = {
     jobId: string;
     title: string;
@@ -103,6 +122,7 @@ const NotificationsPage = () => {
     recipientType: string;
     status: string;
     sentAt: string;
+    type?: string;
   };
 
   const groupedLogs = (logs?.logs as NotificationLog[] | undefined)?.reduce((acc, log) => {
@@ -111,6 +131,40 @@ const NotificationsPage = () => {
     acc[date].push(log);
     return acc;
   }, {} as Record<string, NotificationLog[]>);
+
+  const getNotificationTypeIcon = (type: string) => {
+    switch (type) {
+      case "email":
+        return <Mail size={16} className="text-blue-600" />;
+      case "push":
+        return <Smartphone size={16} className="text-green-600" />;
+      default:
+        return <Bell size={16} className="text-gray-600" />;
+    }
+  };
+
+  const isLoading = isSending || isSendingEmail;
+
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <div className="space-y-4">
+      {[...Array(3)].map((_, index) => (
+        <div key={index} className="animate-pulse rounded-md border border-gray-200 p-4 dark:border-gray-700">
+          <div className="flex justify-between">
+            <div className="flex-1 space-y-3">
+              <div className="h-4 w-1/3 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div className="h-3 w-2/3 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+            <div className="flex space-x-2">
+              <div className="h-8 w-20 rounded bg-gray-200 dark:bg-gray-700"></div>
+              <div className="h-8 w-20 rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen">
@@ -122,7 +176,7 @@ const NotificationsPage = () => {
         >
           <Bell size={24} />
         </button>
-        <h1 className="text-lg font-bold text-gray-800">Send Push Notifications</h1>
+        <h1 className="text-lg font-bold text-gray-800">Send Notifications</h1>
         <div className="w-10"></div>
       </div>
 
@@ -155,7 +209,7 @@ const NotificationsPage = () => {
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">
-                  Send Custom Push Notification
+                  Send Custom Notifications
                 </CardTitle>
                 <Button
                   onClick={() => setSendModalOpen(true)}
@@ -170,12 +224,15 @@ const NotificationsPage = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-center rounded-md bg-white p-6 shadow-md dark:bg-gray-800">
                 <div className="text-center">
-                  <Bell className="mx-auto h-12 w-12 text-blue-600 dark:text-blue-700" />
+                  <div className="flex justify-center space-x-2 mb-4">
+                    <Bell className="h-12 w-12 text-blue-600 dark:text-blue-700" />
+                    <Mail className="h-12 w-12 text-green-600 dark:text-green-700" />
+                  </div>
                   <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">
-                    Create a Custom Push Notification
+                    Create Custom Notifications
                   </h3>
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    Send a broadcast notification to all users, all agents, or both.
+                    Send push notifications or email notifications to users and agents.
                   </p>
                   <Button
                     onClick={() => setSendModalOpen(true)}
@@ -197,9 +254,17 @@ const NotificationsPage = () => {
             </CardHeader>
             <CardContent className="p-4">
               {isLoadingLogs ? (
-                <p>Loading logs...</p>
+                <SkeletonLoader />
               ) : !groupedLogs || Object.keys(groupedLogs).length === 0 ? (
-                <p>No notification logs found.</p>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Bell className="h-12 w-12 text-gray-400 mb-4" />
+                  <p className="text-lg font-medium text-gray-500 dark:text-gray-400">
+                    No notification logs available
+                  </p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">
+                    Create a new notification to get started.
+                  </p>
+                </div>
               ) : (
                 Object.entries(groupedLogs).map(([date, logs]) => (
                   <div key={date} className="mb-6">
@@ -213,15 +278,18 @@ const NotificationsPage = () => {
                           className="rounded-md border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-800"
                         >
                           <div className="flex justify-between">
-                            <div>
-                              <h4 className="text-md font-medium text-gray-900 dark:text-white">
-                                {log.title}
-                              </h4>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                {getNotificationTypeIcon(log.type || "push")}
+                                <h4 className="text-md font-medium text-gray-900 dark:text-white">
+                                  {log.title}
+                                </h4>
+                              </div>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
                                 {log.message}
                               </p>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Recipient: {log.recipientType} | Status: {log.status} | Sent:{" "}
+                                Type: {log.type || "push"} | Recipient: {log.recipientType} | Status: {log.status} | Sent:{" "}
                                 {format(new Date(log.sentAt), "HH:mm")}
                               </p>
                             </div>
@@ -259,10 +327,52 @@ const NotificationsPage = () => {
             <DialogContent className="max-w-md rounded-md bg-white p-6 shadow-lg dark:bg-gray-800 dark:text-white">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold text-gray-800 dark:text-white">
-                  Create Custom Push Notification
+                  Create Custom Notification
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSendNotification} className="grid gap-4">
+                {/* Notification Type Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Notification Type
+                  </label>
+                  <select
+                    value={formData.notificationType}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        notificationType: e.target.value as "push" | "email",
+                      })
+                    }
+                    className="w-full rounded-lg border border-gray-300 bg-white p-3 text-sm font-medium text-gray-900 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500"
+                  >
+                    <option value="push">Push Notification Only</option>
+                    <option value="email">Email Notification Only</option>
+                  </select>
+                </div>
+
+                {/* Recipient Type Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Recipients
+                  </label>
+                  <select
+                    value={formData.recipientType}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        recipientType: e.target.value as "all" | "users" | "agents",
+                      })
+                    }
+                    className="w-full rounded-lg border border-gray-300 bg-white p-3 text-sm font-medium text-gray-900 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500"
+                  >
+                    <option value="all">All (Users & Agents)</option>
+                    <option value="users">All Users</option>
+                    <option value="agents">All Agents</option>
+                  </select>
+                </div>
+
+                {/* Title Field */}
                 <Input
                   type="text"
                   placeholder="Notification Title"
@@ -271,6 +381,19 @@ const NotificationsPage = () => {
                   className="w-full dark:bg-gray-800 dark:text-white"
                   required
                 />
+
+                {/* Email Subject Field (only show if email is selected) */}
+                {formData.notificationType === "email" && (
+                  <Input
+                    type="text"
+                    placeholder="Email Subject (optional - will use title if empty)"
+                    value={formData.emailSubject}
+                    onChange={(e) => setFormData({ ...formData, emailSubject: e.target.value })}
+                    className="w-full dark:bg-gray-800 dark:text-white"
+                  />
+                )}
+
+                {/* Message Field */}
                 <Textarea
                   placeholder="Notification Message"
                   value={formData.message}
@@ -279,26 +402,13 @@ const NotificationsPage = () => {
                   rows={4}
                   required
                 />
-                <select
-                  value={formData.recipientType}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      recipientType: e.target.value as "all" | "users" | "agents",
-                    })
-                  }
-                  className="w-full rounded-md border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                >
-                  <option value="all">All (Users & Agents)</option>
-                  <option value="users">All Users</option>
-                  <option value="agents">All Agents</option>
-                </select>
+
                 <Button
                   type="submit"
-                  disabled={isSending}
+                  disabled={isLoading}
                   className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                 >
-                  {isSending ? "Queuing..." : "Send Notification"}
+                  {isLoading ? "Sending..." : "Send Notification"}
                 </Button>
               </form>
             </DialogContent>

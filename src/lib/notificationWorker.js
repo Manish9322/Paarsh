@@ -4,6 +4,8 @@ import { connection } from './queue.js';
 import _db from '../../utils/db.js';
 import Notification from '../../models/Notification/Notification.model.js';
 import PushSubscription from '../../models/Notification/PushScubscription.model.js';
+import pushNotificationEmail from '../../utils/MailTemplates/customPushTemplate.js';
+import emailSender from '../../utils/mailSender.js';
 import { sendPushNotification } from './webpush.js';
 import UserModel from 'models/User.model.js';
 import { getSocket } from '../lib/socket.js';
@@ -13,71 +15,129 @@ import AgentModel from 'models/Agent.model.js';
 bootstrapSocketForWorker(); // 🔥 Full Socket.IO initialized now in worker
 
 let notificationWorker = null;
-let isWorkerRunning = false;
+let emailWorker = null;
+let isNotificationWorkerRunning = false;
+let isEmailWorkerRunning = false;
+
 
 await _db(); // Ensure database connection is established
 
 // Auto-initialize function
 export async function autoInitializeWorker() {
   // Only initialize on server-side and if not already running
-  if (typeof window !== 'undefined' || isWorkerRunning) {
+  if (typeof window !== 'undefined') {
     return null;
   }
 
   try {
     console.log('🚀 Auto-initializing notification worker...');
     
-    notificationWorker = new Worker('notification-queue', async (job) => {
-      console.log(`🔄 Processing job: ${job.id}`);
+  // Initialize notification worker
+    if (!isNotificationWorkerRunning) {
+      notificationWorker = new Worker('notification-queue', async (job) => {
+        console.log(`🔄 Processing notification job: ${job.id}`);
+        
+        const { type, data } = job.data;
       
-      const { type, data } = job.data;
-    
-      await _db();
-      
-      try {
-        switch (type) {
-          case 'send_single_notification':
-            await processSingleNotification(data);
-            break;
-          case 'send_broadcast_notification':
-            await processBroadcastNotification(data);
-            break;
-          default:
-            throw new Error(`Unknown notification type: ${type}`);
+        await _db();
+        
+        try {
+          switch (type) {
+            case 'send_single_notification':
+              await processSingleNotification(data);
+              break;
+            case 'send_broadcast_notification':
+              await processBroadcastNotification(data);
+              break;
+            default:
+              throw new Error(`Unknown notification type: ${type}`);
+          }
+        } catch (error) {
+          console.error('❌ Notification worker processing error:', error);
+          throw error;
         }
-      } catch (error) {
-        console.error('❌ Worker processing error:', error);
-        throw error;
-      }
-    }, { 
-      connection,
-      concurrency: 3,
-      removeOnComplete: 50,
-      removeOnFail: 25
-    });
+      }, { 
+        connection,
+        concurrency: 3,
+        removeOnComplete: 50,
+        removeOnFail: 25
+      });
 
-    // Event listeners
-    notificationWorker.on('completed', (job) => {
-      console.log(`✅ Auto-worker completed job: ${job.id}`);
-    });
+      // Notification worker event listeners
+      notificationWorker.on('completed', (job) => {
+        console.log(`✅ Notification worker completed job: ${job.id}`);
+      });
 
-    notificationWorker.on('failed', (job, err) => {
-      console.error(`❌ Auto-worker failed job ${job.id}:`, err.message);
-    });
+      notificationWorker.on('failed', (job, err) => {
+        console.error(`❌ Notification worker failed job ${job.id}:`, err.message);
+      });
 
-    notificationWorker.on('error', (err) => {
-      console.error('🚨 Auto-worker error:', err);
-    });
+      notificationWorker.on('error', (err) => {
+        console.error('🚨 Notification worker error:', err);
+      });
 
-    notificationWorker.on('ready', () => {
-      console.log('🎉 Auto-notification worker is ready and listening!');
-    });
+      notificationWorker.on('ready', () => {
+        console.log('🎉 Notification worker is ready and listening!');
+      });
 
-    isWorkerRunning = true;
-    return notificationWorker;
+      isNotificationWorkerRunning = true;
+    }
+
+    // Initialize email worker
+    if (!isEmailWorkerRunning) {
+      emailWorker = new Worker('email-queue', async (job) => {
+        console.log(`📧 Processing email job: ${job.id}`);
+        
+        const { type, data } = job.data;
+      
+        await _db();
+        
+        try {
+          switch (type) {
+            case 'send_single_email':
+              await processSingleEmail(data);
+              break;
+            case 'send_broadcast_email':
+              await processBroadcastEmail(data);
+              break;
+            default:
+              throw new Error(`Unknown email type: ${type}`);
+          }
+        } catch (error) {
+          console.error('❌ Email worker processing error:', error);
+          throw error;
+        }
+      }, { 
+        connection,
+        concurrency: 5, // Higher concurrency for emails
+        removeOnComplete: 50,
+        removeOnFail: 25
+      });
+
+      // Email worker event listeners
+      emailWorker.on('completed', (job) => {
+        console.log(`✅ Email worker completed job: ${job.id}`);
+      });
+
+      emailWorker.on('failed', (job, err) => {
+        console.error(`❌ Email worker failed job ${job.id}:`, err.message);
+      });
+
+      emailWorker.on('error', (err) => {
+        console.error('🚨 Email worker error:', err);
+      });
+
+      emailWorker.on('ready', () => {
+        console.log('🎉 Email worker is ready and listening!');
+      });
+
+      isEmailWorkerRunning = true;
+    }
+
+    return { notificationWorker, emailWorker };
     
   } catch (error) {
-    console.error('💥 Failed to auto-initialize worker:', error);
+    console.error('💥 Failed to auto-initialize workers:', error);
     return null;
   }
 }
@@ -85,22 +145,47 @@ export async function autoInitializeWorker() {
 // Get worker status
 export function getAutoWorkerStatus() {
   return {
-    isRunning: isWorkerRunning,
-    hasWorker: !!notificationWorker
+    notification: {
+      isRunning: isNotificationWorkerRunning,
+      hasWorker: !!notificationWorker
+    },
+    email: {
+      isRunning: isEmailWorkerRunning,
+      hasWorker: !!emailWorker
+    }
   };
 }
 
-// Graceful shutdown (called when app shuts down)
+
+// Graceful shutdown
 export async function gracefulShutdown() {
-  if (notificationWorker && isWorkerRunning) {
-    console.log('🛑 Gracefully shutting down auto-worker...');
-    try {
-      await notificationWorker.close();
-      isWorkerRunning = false;
-      console.log('✅ Auto-worker shutdown complete');
-    } catch (error) {
-      console.error('❌ Error during auto-worker shutdown:', error);
-    }
+  console.log('🛑 Gracefully shutting down workers...');
+  
+  const shutdownPromises = [];
+  
+  if (notificationWorker && isNotificationWorkerRunning) {
+    shutdownPromises.push(
+      notificationWorker.close().then(() => {
+        console.log('✅ Notification worker shutdown complete');
+        isNotificationWorkerRunning = false;
+      })
+    );
+  }
+  
+  if (emailWorker && isEmailWorkerRunning) {
+    shutdownPromises.push(
+      emailWorker.close().then(() => {
+        console.log('✅ Email worker shutdown complete');
+        isEmailWorkerRunning = false;
+      })
+    );
+  }
+  
+  try {
+    await Promise.all(shutdownPromises);
+    console.log('✅ All workers shutdown complete');
+  } catch (error) {
+    console.error('❌ Error during workers shutdown:', error);
   }
 }
 
@@ -222,6 +307,139 @@ async function processBroadcastNotification(data) {
   console.log(`🔔 Processed push notifications for broadcast in batches`);
 }
 
+async function processSingleEmail(data) {
+  const { userId, subject, message, type, metadata } = data;
+  
+  console.log(`📧 [${new Date().toISOString()}] Processing single email for user: ${userId}`);
+  
+  try {
+    // Get user details
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      throw new Error(`User not found: ${userId}`);
+    }
+    
+    if (!user.email) {
+      throw new Error(`User has no email: ${userId}`);
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(user.email)) {
+      throw new Error(`Invalid email format for user ${userId}: ${user.email}`);
+    }
+
+    // Prepare email data
+    const emailData = {
+      email: user.email.trim(),
+      subject: subject || 'Notification',
+      message: pushNotificationEmail(message, user.name || 'User'),
+    };
+
+    console.log(`📧 [${new Date().toISOString()}] Sending email to ${user.email} with subject: "${emailData.subject}"`);
+
+    // Send email
+    const emailResult = await emailSender(emailData);
+    
+    if (emailResult.success) {
+      console.log(`✅ [${new Date().toISOString()}] Email sent successfully to user: ${userId} (${user.email})`);
+      return emailResult;
+    } else {
+      console.error(`❌ [${new Date().toISOString()}] Email failed for user ${userId}:`, emailResult.error);
+      throw new Error(`Email failed for user ${userId}: ${emailResult.error}`);
+    }
+
+  } catch (error) {
+    console.error(`❌ [${new Date().toISOString()}] processSingleEmail error:`, error.message);
+    throw error;
+  }
+}
+
+// Updated processBroadcastEmail function
+// Updated processBroadcastEmail function with proper error handling
+async function processBroadcastEmail(data) {
+  const { message, type, subject, metadata, excludeUserId, recipientType } = data;
+
+  console.log(`📧 Processing broadcast email...`);
+  
+  try {
+    // Get all active users
+    const users = await getAllActiveUsers(excludeUserId, recipientType);
+    console.log(`🔍 Found ${users.length} active recipients for notifications (recipientType: ${recipientType})`);
+    
+    if (users.length === 0) {
+      console.log(`ℹ️ No active users found for email broadcast`);
+      return;
+    }
+
+    // Filter users with valid emails
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const usersWithEmails = users.filter(user => {
+      if (!user.email) {
+        console.log(`⚠️ User ${user._id} has no email`);
+        return false;
+      }
+      if (!emailRegex.test(user.email)) {
+        console.log(`⚠️ User ${user._id} has invalid email: ${user.email}`);
+        return false;
+      }
+      return true;
+    });
+    
+    console.log(`📧 Found ${usersWithEmails.length} users with valid emails`);
+
+    if (usersWithEmails.length === 0) {
+      console.log(`ℹ️ No users with valid emails found for broadcast`);
+      return;
+    }
+
+    // Create email promises for each user
+    const emailPromises = usersWithEmails.map(user => {
+      const emailData = {
+        email: user.email.trim(),
+        subject: subject || 'Notification',
+        message: pushNotificationEmail(message, user.name || 'User'),
+      };
+
+      console.log(`Sending email to: ${user.email}`);
+      return emailSender(emailData);
+    });
+
+    // Execute all email promises
+    const results = await Promise.allSettled(emailPromises);
+    
+    // FIXED: Properly handle undefined values and check for success property
+    const successCount = results.filter(r => {
+      return r.status === 'fulfilled' && r.value && r.value.success === true;
+    }).length;
+    
+    const failCount = results.filter(r => {
+      return r.status === 'rejected' || !r.value || r.value.success !== true;
+    }).length;
+
+    console.log(`📊 Email batch results: ${successCount} success, ${failCount} failed`);
+
+    // Log detailed results for debugging
+    results.forEach((result, index) => {
+      const email = usersWithEmails[index].email;
+      if (result.status === 'fulfilled') {
+        if (result.value && result.value.success) {
+          console.log(`✅ Email sent successfully to: ${email}`);
+        } else {
+          console.error(`❌ Email failed for ${email}:`, result.value?.error || 'Unknown error');
+        }
+      } else {
+        console.error(`❌ Email promise rejected for ${email}:`, result.reason);
+      }
+    });
+
+  } catch (error) {
+    console.error(`❌ processBroadcastEmail error:`, error.message);
+    throw error;
+  }
+}
+
+
 async function processPushNotificationBatch(notifications) {
   const userIds = notifications.map(n => n.userId);
   const subscriptions = await PushSubscription.find({
@@ -250,6 +468,7 @@ async function processPushNotificationBatch(notifications) {
   
   console.log(`📊 Push batch results: ${successCount} success, ${failCount} failed`);
 }
+
 
 function getNotificationTitle(type) {
   const titles = {

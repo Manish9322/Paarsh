@@ -19,6 +19,15 @@ const CustomPushNotificationSchema = new mongoose.Schema({
     enum: ["all", "users", "agents"],
     required: true,
   },
+    type: {
+    type: String,
+    enum: ["push", "email"],
+    default: "push",
+  },
+  subject: {
+    type: String, // For email notifications
+    default: null,
+  },
   status: {
     type: String,
     enum: ["queued", "sent", "failed"],
