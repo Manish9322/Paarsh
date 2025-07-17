@@ -664,6 +664,50 @@ export default function BulkUploadQuestions() {
         </div>
       </main>
 
+      {/* File Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Preview File Content</DialogTitle>
+            <DialogDescription>
+              Review the content before uploading. Make sure all questions are formatted correctly.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {fileType === "json" ? (
+              <pre className="rounded-lg bg-gray-50 p-4 font-mono text-sm dark:bg-gray-900">
+                {JSON.stringify(parsedQuestions, null, 2)}
+              </pre>
+            ) : (
+              <div className="rounded-lg bg-gray-50 p-4 font-mono text-sm dark:bg-gray-900">
+                {Array.isArray(parsedQuestions) ? parsedQuestions.map((line: string, index: number) => (
+                  <div key={index}>{line}</div>
+                )) : typeof parsedQuestions === 'object' ? JSON.stringify(parsedQuestions, null, 2) : String(parsedQuestions)}
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleUpload}
+              disabled={isUploading}
+              className="bg-blue-600 text-white hover:bg-blue-700"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                'Upload Questions'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Preview Modal */}
       <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
         <DialogContent className="max-w-3xl">
