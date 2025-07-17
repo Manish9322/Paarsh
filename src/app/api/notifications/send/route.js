@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { notificationQueue } from "../../../../lib/queue.js";
+import { emailQueue } from "../../../../lib/queue.js";
 import { v4 as uuidv4 } from "uuid";
 import { authMiddleware } from "../../../../../middlewares/auth.js";
 import NotificationLog from "../../../../../models/Notification/CustomPushNotification.model.js";
@@ -130,17 +131,24 @@ export const PUT = authMiddleware(async function (request) {
       );
     }
 
-    const newJobId = `custom-push-${uuidv4()}`;
-    await notificationQueue.add(
-      "send_broadcast_notification",
+    const newJobId = log.type === "email" ? `custom-email-${uuidv4()}` : `custom-push-${uuidv4()}`;
+    const queue = log.type === "email" ? emailQueue : notificationQueue;
+    const jobType = log.type === "email" ? "send_broadcast_email" : "send_broadcast_notification";
+
+    await queue.add(
+      jobType,
       {
-        type: "send_broadcast_notification",
+        type: jobType,
         data: {
           message: log.message,
-          type: "custom_push",
-          link: "/notifications",
-          metadata: { title: log.title },
+          type: log.type === "email" ? "custom_email" : "custom_push",
+          link: log.type === "email" ? null : "/notifications",
+          metadata: { 
+            title: log.title,
+            subject: log.subject || log.title
+          },
           recipientType: log.recipientType,
+          subject: log.subject || log.title,
         },
       },
       {
@@ -156,12 +164,14 @@ export const PUT = authMiddleware(async function (request) {
       title: log.title,
       message: log.message,
       recipientType: log.recipientType,
+      type: log.type,
+      subject: log.subject,
       status: "queued",
       createdBy: request.user._id,
     });
 
     return NextResponse.json(
-      { success: true, jobId: newJobId, message: "Notification re-queued successfully" },
+      { success: true, jobId: newJobId, message: `${log.type} notification re-queued successfully` },
       { status: 200 }
     );
   } catch (error) {

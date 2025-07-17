@@ -33,7 +33,7 @@ export const NOTIFICATION_MESSAGES = {
     admin: (userName, subject) => `❓ New enquiry from ${userName}: ${subject}`
   },
   [NOTIFICATION_TYPES.WITHDRAWAL_REQUEST]: {
-    admin: (userName, amount) => `💰 Withdrawal request from ${userName}: $${amount}`
+    admin: (userName, amount) => `💰 Withdrawal request from ${userName}: ${amount}RS`
   }
 };
 

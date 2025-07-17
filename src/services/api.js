@@ -983,6 +983,15 @@ export const paarshEduApi = createApi({
       invalidatesTags: ["Notifications"],
     }),
 
+    sendEmailNotification: builder.mutation({
+      query: (data) => ({
+        url: "/notifications/send-email",
+        method: "POST",
+        body: { ...data },
+      }),
+      invalidatesTags: ["Notifications"],
+    }),
+
     deleteNotification: builder.mutation({
       query: (id) => ({
         url: `/notifications?id=${id}`,
@@ -1565,6 +1574,7 @@ export const {
 
   useFetchNotificationsQuery,
   useSendNotificationMutation,
+  useSendEmailNotificationMutation,
   useDeleteNotificationMutation,
   useMarkNotificationAsReadMutation,
   useFetchUnreadNotificationCountQuery,
