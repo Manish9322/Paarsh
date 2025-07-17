@@ -400,8 +400,8 @@ export default function BulkUploadQuestions() {
                         <p className="font-mono text-sm">
                           question,option1,option2,option3,option4,correctAnswer,category,explanation
                           <br />
-                          "What is 2 + 2?","3","4","5","6","4","aptitude","Basic
-                          addition"
+                          &quot;What is 2 + 2?&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;4&quot;,&quot;aptitude&quot;,&quot;Basic
+                          addition&quot;
                         </p>
                       </div>
                       <div>
