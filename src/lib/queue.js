@@ -1,21 +1,11 @@
 import { Queue } from 'bullmq';
 import redisClient from './redis.js';
 
-// Create a BullMQ-compatible connection object
-const connection = {
-  connect: () => redisClient.connect(),
-  disconnect: () => redisClient.disconnect(),
-  duplicate: () => redisClient.duplicate(), // Required by BullMQ
-  get options() {
-    return redisClient.options;
-  }
-};
-
 // Notification Queue
 export const notificationQueue = new Queue('notification-queue', {
-  connection,
+  connection: redisClient,
   defaultJobOptions: {
-    removeOnComplete: 100,
+    removeOnComplete: 100,  
     removeOnFail: 50,
     attempts: 3,
     backoff: {
@@ -27,7 +17,7 @@ export const notificationQueue = new Queue('notification-queue', {
 
 // Email Queue (new)
 export const emailQueue = new Queue('email-queue', {
-  connection,
+  connection: redisClient,
   defaultJobOptions: {
     removeOnComplete: 100,
     removeOnFail: 50,
@@ -49,4 +39,4 @@ emailQueue.on('error', (error) => {
 });
 
 
-export { connection };
+// export { connection };

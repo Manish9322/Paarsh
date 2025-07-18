@@ -6,9 +6,9 @@ let redisClient = global.redisClient;
 
 if (!redisClient) {
   redisClient = new Redis(REDIS_URL, {
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: null,
     retryDelayOnFailover: 100,
-    enableOfflineQueue: false,
+    enableOfflineQueue: true,
     lazyConnect: false, // <- keep it false to ensure immediate reuse
   });
 

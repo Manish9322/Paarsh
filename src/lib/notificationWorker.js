@@ -35,6 +35,7 @@ export async function autoInitializeWorker() {
     
   // Initialize notification worker
     if (!isNotificationWorkerRunning) {
+
       notificationWorker = new Worker('notification-queue', async (job) => {
         console.log(`🔄 Processing notification job: ${job.id}`);
         
@@ -58,7 +59,7 @@ export async function autoInitializeWorker() {
           throw error;
         }
       }, { 
-        connection,
+        connection: redisClient,
         concurrency: 3,
         removeOnComplete: 50,
         removeOnFail: 25
@@ -86,6 +87,7 @@ export async function autoInitializeWorker() {
 
     // Initialize email worker
     if (!isEmailWorkerRunning) {
+
       emailWorker = new Worker('email-queue', async (job) => {
         console.log(`📧 Processing email job: ${job.id}`);
         
@@ -109,7 +111,7 @@ export async function autoInitializeWorker() {
           throw error;
         }
       }, { 
-        connection,
+        connection: redisClient,
         concurrency: 5, // Higher concurrency for emails
         removeOnComplete: 50,
         removeOnFail: 25
