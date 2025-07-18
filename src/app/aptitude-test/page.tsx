@@ -268,6 +268,8 @@ const AptitudePage: React.FC = () => {
       setQuestions(initializedQuestions);
       setTestInfo((prev) => (prev ? { ...prev, session: response.data.session } : prev));
       setTimeRemaining(response.data.session.duration * 60);
+      setMarkedQuestions({}); // Reset marked questions when starting new test
+      setCurrentQuestionIndex(0); // Reset to first question
       setStep("test");
       toast.success("Test started successfully");
     } catch (err: any) {
@@ -358,6 +360,7 @@ const AptitudePage: React.FC = () => {
     setTimeRemaining(null);
     setResult(null);
     setMarkedQuestions({});
+    setShowSuccessModal(false); // Add this line to reset success modal state
   }, []);
 
   // Calculate question status
@@ -384,13 +387,6 @@ const AptitudePage: React.FC = () => {
           onShowRegister={() => setStep("register")}
           testName={testInfo?.testDetails?.name ?? ""}
         />
-        <SuccessModal
-          isOpen={showSuccessModal}
-          onClose={() => {
-            setShowSuccessModal(false);
-            setStep("login");
-          }}
-        />
       </>
     );
   }
@@ -411,8 +407,8 @@ const AptitudePage: React.FC = () => {
       <RegisterForm
         onRegister={(studentId, token) => {
           setShowSuccessModal(true);
-          // handleAuthSuccess(studentId, token);
           setStep("login");
+          // Don't set step to login here, it will be set when modal is closed
         }}
         onBack={() => setStep("auth")}
         testId={testId}
@@ -519,6 +515,7 @@ const AptitudePage: React.FC = () => {
       />
     );
   }
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
