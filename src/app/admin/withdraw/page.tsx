@@ -70,7 +70,6 @@ const WithdrawalRequestsPage: React.FC = () => {
   const { data: withdrawals, isLoading: isWithdrawalsLoading } = useFetchWithdrawalRequestQuery(undefined);
   const { data: usersData } = useFetchUsersQuery(undefined);
 
-  console.log("Withdrawal Request", withdrawals);
 
   const withdrawalRequests = withdrawals?.data || [];
 

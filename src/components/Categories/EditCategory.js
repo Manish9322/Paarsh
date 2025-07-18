@@ -19,9 +19,7 @@ const EditCategoryModal = ({ editOpen, setEditOpen, selectedCategory }) => {
   const dispatch = useDispatch();
   const category = useSelector((state) => state.category);
   const [_UPDATECATEGORY, { isLoading }] = useUpdateCategoriesMutation();
-  
-  console.log("category",category);
-console.log("selectedCategory", selectedCategory)
+
   useEffect(() => {
     if (selectedCategory) {
       Object.keys(selectedCategory).forEach((key) => {

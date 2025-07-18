@@ -132,7 +132,6 @@ const JobPositionsPage = () => {
     isLoading,
     error,
   } = useFetchJobPositionsQuery(undefined);
-  console.log("Positions Data:", positionsData);
   const [createJobPosition] = useCreateJobPositionMutation();
   const [updateJobPosition] = useUpdateJobPositionMutation();
   const [deleteJobPosition] = useDeleteJobPositionMutation();

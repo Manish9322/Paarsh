@@ -11,7 +11,6 @@ await _db();
 export const GET = authMiddleware(
   async function (request) {
     try {
-      console.log("Fetching test sessions...");
       const { searchParams } = new URL(request.url);
       const collegeId = searchParams.get("collegeId");
     
@@ -34,7 +33,6 @@ export const GET = authMiddleware(
         .populate("student", "name") // Populate student name
         .populate("college", "name") // Populate college name
         .sort({ startTime: -1 }); // Sort by startTime, newest first
-      console.log("Test Sessions fetched:", testSessions);
 
       return NextResponse.json({ success: true, testSessions });
     } catch (error) {

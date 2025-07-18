@@ -75,7 +75,6 @@ const Courses = () => {
   const visibleCategories = showAll ? categories : categories.slice(0, 4);
 
   
-  console.log("Courses Data", coursesData);
 
   const getRandomCourses = (courses, count = 3) => {
     if (!courses || courses.length === 0) return [];
@@ -84,7 +83,6 @@ const Courses = () => {
   };
 
   const randomCourses = useMemo(() => getRandomCourses(coursesData?.data, 3), [coursesData]);
-  console.log("Random Courses: ", randomCourses);
 
   const getRandomCategories = (categories, count) => {
     if (!Array.isArray(categories) || categories.length === 0) return [];
@@ -167,9 +165,6 @@ const Courses = () => {
   const toggleDisplayStyle = () => {
     setIsGrid(!isGrid);
   };
-
-  console.log("Filtered courses: ", filteredCourses);
-  console.log("category : ", categories)
 
   return (
     <SkeletonThemeProvider>

@@ -98,10 +98,9 @@ const UserPage: React.FC = () => {
   const [userToBlock, setUserToBlock] = useState<Users | null>(null); // Added to track user for block/unblock
 
   const { data: coursesData } = useFetchCourcesQuery(undefined); // Corrected typo
-  console.log("CourseData on User Management: ", coursesData);
+
 
   const { data: userData, isLoading, error } = useFetchUsersQuery(undefined);
-  console.log("UserData on User Management: ", userData);
   const [_DELETEUSER, { isLoading: isDeleteLoading }] = useDeleteUserMutation();
   const [toggleUserBlock, { isLoading: isBlockLoading }] =
     useToggleUserBlockMutation(); // Added mutation hook
@@ -111,7 +110,6 @@ const UserPage: React.FC = () => {
     usersPerPage === "all" ? 0 : (currentPage - 1) * Number(usersPerPage);
 
   const { data: transactionsData } = useFetchTransactionsQuery(undefined);
-  console.log("All Transactions Data:", transactionsData);
 
   const handleSort = (field: keyof Users) => {
     setSortField(field);

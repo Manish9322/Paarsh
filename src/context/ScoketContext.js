@@ -146,7 +146,6 @@ export const SocketProvider = ({ children }) => {
     });
 
     socket.on('new_notification', (notification) => {
-      console.log('🔔 Notification received:', notification);
       setRealtimeNotification(notification);
     });
 

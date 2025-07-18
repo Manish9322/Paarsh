@@ -167,8 +167,6 @@ const CreateAptitudeTest = () => {
     }
   }, [collegesError, testsError]);
 
-
-  console.log(allTests);
   // Filter tests based on search term
   const filteredTests = allTests.filter(
     (test: TestWithCollegeName) =>

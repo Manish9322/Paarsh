@@ -90,12 +90,6 @@ const PracticeTestLogsPage = () => {
     }) as { data?: PracticeAttemptsResponse; isLoading: boolean; isFetching: boolean; error?: unknown; refetch: () => void };
     const attempts: PracticeAttempt[] = attemptsData?.data || [];
 
-    console.log("User Name : ", users.map((user) => user.name));
-    console.log("User name based on userId : ", attempts.map((attempt) => {
-        const user = users.find((u) => u._id === attempt.userId);
-        return user?.name || "Unknown User";
-    }));
-
     // Aggregate by userId and practiceTestId to avoid duplicates in table
     const aggregatedAttempts: PracticeAttempt[] = Object.values(
         attempts.reduce((acc: Record<string, PracticeAttempt>, attempt: PracticeAttempt) => {

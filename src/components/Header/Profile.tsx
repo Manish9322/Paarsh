@@ -57,8 +57,6 @@ export default function Profile() {
     // Split the name and filter out any empty strings
     const nameParts = user.name.trim().split(" ").filter(part => part);
 
-    console.log("nameParts:", nameParts);
-
     if (nameParts.length === 0) return "?";
 
     const firstInitial = nameParts[0]?.[0] || "";

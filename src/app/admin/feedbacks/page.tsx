@@ -58,9 +58,6 @@ const FeedbackManagement = () => {
 
     // Fetch current user details
     const { data: userData, isLoading: isLoadingUser, error: userError } = useFetchUserQuery(undefined);
-    console.log("User Data on user dashboard : ", userData);
-    console.log("user id : ", userData?.data?._id);
-
     const { data: feedbacksData, isLoading, error, refetch } = useFetchFeedbacksQuery(undefined);
     const [submitFeedback, { isLoading: isSubmitting }] = useSubmitFeedbackMutation();
     const [deleteFeedback, { isLoading: isDeleting }] = useDeleteFeedbackMutation();

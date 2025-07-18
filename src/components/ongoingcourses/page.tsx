@@ -96,7 +96,6 @@ function OngoingCourse() {
     error: progressError,
     refetch: refetchProgress,
   } = useFetchCourseProgressQuery(undefined);
-  console.log("Course Progress Data on Ongoing Course Page: ", progressData);
 
   // Fetch user courses
   const {

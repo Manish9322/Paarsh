@@ -56,7 +56,6 @@ export async function POST(request) {
     });
 
     await ad.save();
-    console.log("Ad created successfully : ", ad);
 
     return NextResponse.json({
       success: true,

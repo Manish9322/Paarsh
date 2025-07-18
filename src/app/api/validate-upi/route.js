@@ -60,7 +60,6 @@ export async function POST(req) {
     });
 
     const fundAccountData = await fundAccountResponse.json();
-    console.log('Fund Account Data:', fundAccountData);
 
     // Check if the fund account was created successfully
     if (fundAccountResponse.ok) {

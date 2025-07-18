@@ -32,8 +32,6 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   const [createCourse, { isLoading }] = useAddCourseVideoMutation();
   const [uploadResource] = useUploadResourceMutation();
 
-  console.log("courseData coming from slice ", courseData);
-
   const {
     data: fetchResponse,
     isLoading: isLoadingCourseVideos,
@@ -48,8 +46,6 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
   );
 
   const courseVideos = fetchResponse?.data;
-
-  console.log("Fetched course videos data:", fetchResponse);
 
   const [videoUploads, setVideoUploads] = useState({});
   const [videoPreview, setVideoPreview] = useState(null);
@@ -84,7 +80,6 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
         courseVideos.topics &&
         Array.isArray(courseVideos.topics)
       ) {
-        console.log("Found topics to load:", courseVideos.topics.length);
 
         const topics = courseVideos.topics
           .filter((topic) => topic && typeof topic === "object")
@@ -106,7 +101,6 @@ const AddCourseModal = ({ isOpen, onClose, onAddCourse }) => {
           }));
 
         dispatch(setCourseField({ field: "topics", value: topics }));
-        console.log("Initialized topics:", topics);
       } else {
         console.log("No course data found, adding default topic");
         dispatch(addTopic());

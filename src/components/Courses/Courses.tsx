@@ -25,14 +25,9 @@ const CoursesPage = () => {
   // Fetch categories without passing courseId (which might be causing issues)
   const { data: categoryData, isLoading: categoryLoading, error: categoryError } = useFetchCategoriesQuery(undefined);
 
-  // Add explicit debugging for category data
-  console.log("Category Data Response:", categoryData);
-  console.log("Category Loading:", categoryLoading);
-  console.log("Category Error:", categoryError);
 
   // Ensure categories is always an array
   const categories = Array.isArray(categoryData?.data) ? categoryData?.data : [];
-  console.log("Processed Categories:", categories);
 
   // Set selected category only after categories are loaded
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -40,16 +35,12 @@ const CoursesPage = () => {
   useEffect(() => {
     if (categories.length > 0 && !selectedCategory) {
       setSelectedCategory(categories[0].name);
-      console.log("Setting initial category:", categories[0].name);
     }
   }, [categories, selectedCategory]);
 
   const { data: coursesData, error } = useFetchCourcesQuery(undefined);
   const isLoading = !coursesData;
 
-  // Add debugging logs
-  console.log("Selected Category:", selectedCategory);
-  console.log("Courses Data:", coursesData?.data);
 
   // More flexible filtering logic to handle different field names
   const displayedCourses = (coursesData?.data || []).filter((course: any) => {
@@ -61,7 +52,6 @@ const CoursesPage = () => {
     );
   }).slice(0, 3);
 
-  console.log("Filtered Courses:", displayedCourses);
 
   // If no courses are displayed after filtering, show all courses
   const coursesToDisplay = displayedCourses.length > 0

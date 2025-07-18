@@ -48,12 +48,10 @@ const PracticeTest = () => {
   const [addUserPracticeAttempt] = useAddUserPracticeAttemptMutation();
 
   useEffect(() => {
-    console.log("Test data:", test);
     if (test?.duration) {
       const match = test.duration.match(/(\d+)\s*minutes?/i);
       if (match) {
         const seconds = parseInt(match[1]) * 60;
-        console.log("Setting timeRemaining to:", seconds);
         setTimeRemaining(seconds);
       } else {
         console.error("Invalid duration format:", test.duration);
@@ -65,10 +63,8 @@ const PracticeTest = () => {
     if (view === "test" && timeRemaining > 0) {
       const timer = setInterval(() => {
         setTimeRemaining((prev) => {
-          console.log("Time remaining:", prev);
           if (prev <= 1) {
             clearInterval(timer);
-            console.log("Timer expired, calling handleSubmit");
             handleSubmit();
             return 0;
           }
@@ -97,7 +93,6 @@ const PracticeTest = () => {
       return;
     }
     if (currentQuestionIndex < test.questions.length - 1) {
-      console.log("Current Index:", currentQuestionIndex, "Total Questions:", test.questions.length);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
@@ -109,7 +104,6 @@ const PracticeTest = () => {
   };
 
   const handleSubmit = async () => {
-    console.log("Submitting test with answers:", answers);
     if (!test) {
       console.error("Test data is undefined in handleSubmit");
       toast.error("Cannot submit test: Invalid test data", { position: "bottom-right", });
@@ -253,7 +247,6 @@ const PracticeTest = () => {
   };
 
   if (isLoading) {
-    console.log("Loading test data...");
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-blue-900/20">
         <div className="container mx-auto p-4 space-y-6">
@@ -281,7 +274,6 @@ const PracticeTest = () => {
   }
 
   if (error || !test || !test.questions || test.questions.length === 0) {
-    console.log("Error:", error, "Test:", test);
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50 to-rose-50 dark:from-gray-900 dark:via-red-900/20 dark:to-rose-900/20">
         <div className="container mx-auto p-4 flex flex-col items-center justify-center py-20">
@@ -616,7 +608,6 @@ const PracticeTest = () => {
                       ) : (
                         <Button
                           onClick={() => {
-                            console.log("Submit Test button clicked");
                             handleSubmit();
                           }}
                           className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white px-8 py-6 rounded-md shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"

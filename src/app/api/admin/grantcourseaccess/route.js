@@ -207,15 +207,6 @@ export const POST = authMiddleware(async (request) => {
       }
 
       await session.commitTransaction();
-      console.log("Manual course access granted:", {
-        transactionId,
-        orderId: transaction.orderId,
-        userId: transaction.userId,
-        courseId: transaction.courseId,
-        paymentId: payment.id,
-        expiryDate: expiryDate,
-        adminNote,
-      });
     } catch (error) {
       await session.abortTransaction();
       console.error("Database transaction error:", error);

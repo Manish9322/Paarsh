@@ -270,7 +270,6 @@ const CoursePage: React.FC = () => {
   };
 
   const handleFilterChange = (newFilters: { searchTerm: string; level: string; category: string; minPrice: string; maxPrice: string }) => {
-    console.log("New filters:", newFilters);
     setSearchTerm(newFilters.searchTerm);
     setActiveFilters({
       level: newFilters.level,

@@ -11,9 +11,6 @@ export const POST = authMiddleware(async (request) => {
     const { categoryName, subcategoryName, description, keywords } =
       await request.json();
 
-      console.log("cateedgoryNAme ", categoryName);
-      console.log("subcategoryName",subcategoryName);
-
     if (!categoryName || !subcategoryName || !description || !keywords) {
       return NextResponse.json(
         { success: false, error: "All required fields must be provided" },

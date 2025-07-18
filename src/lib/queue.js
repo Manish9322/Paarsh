@@ -1,12 +1,15 @@
-import { Queue, Worker } from 'bullmq';
-import { REDIS_URL } from 'config/config';
-import Redis from 'ioredis';
+import { Queue } from 'bullmq';
+import redisClient from './redis.js';
 
-console.log('Connecting to Redis at:', REDIS_URL);
-
-const connection = new Redis(REDIS_URL , {
-  maxRetriesPerRequest: null,
-});
+// Create a BullMQ-compatible connection object
+const connection = {
+  connect: () => redisClient.connect(),
+  disconnect: () => redisClient.disconnect(),
+  duplicate: () => redisClient.duplicate(), // Required by BullMQ
+  get options() {
+    return redisClient.options;
+  }
+};
 
 // Notification Queue
 export const notificationQueue = new Queue('notification-queue', {

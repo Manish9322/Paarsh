@@ -203,7 +203,6 @@ export const PUT = authMiddleware(async (request) => {
 export const DELETE = authMiddleware(async (request) => {
   try {
     const body = await request.json();
-    console.log("Received DELETE body:", body);
     const { id } = body;
 
     if (!id || typeof id !== "string") {

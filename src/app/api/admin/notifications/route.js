@@ -9,7 +9,6 @@ export const GET = authMiddleware(async (req) => {
   try {
     const { user } = req;
 
-    console.log("Fetching notifications for user:", user._id);
 
     const { searchParams } = new URL(req.url);
 

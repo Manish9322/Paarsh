@@ -157,15 +157,11 @@ export default function CourseLecturePage() {
     },
   );
 
-  console.log("Course ID:", courseId);
-  console.log("Course Video Data:", courseVideoData);
-  console.log("Course Name : ", courseVideoData?.data?.courseName);
   const { data: progressData } = useGetVideoProgressQuery(courseId, {
     skip: !courseId,
     pollingInterval: 0, // Disable polling to avoid frequent refetches
   });
 
-  console.log("Progress Data:", progressData);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [currentVideo, setCurrentVideo] = useState<VideoItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -207,7 +203,6 @@ export default function CourseLecturePage() {
   const { data: feedbacksData } = useFetchFeedbacksQuery(undefined);
   const [submitFeedback, { isLoading: isSubmittingFeedback }] = useSubmitFeedbackMutation();
 
-  console.log("currentVideo:", currentVideo);
 
   // Sync topics and videos with courseVideoData
   useEffect(() => {
@@ -341,7 +336,6 @@ export default function CourseLecturePage() {
     );
   }, [currentVideo?.transcript, transcriptSearch]);
 
-  console.log("Filtered Topics:", filteredTopics);
 
   const handlePreviousVideo = () => {
     if (!hasPrevious || currentTopicIndex < 0 || currentVideoIndex < 0) return;
@@ -352,10 +346,6 @@ export default function CourseLecturePage() {
       const prevTopic = topics[currentTopicIndex - 1];
       prevVideo = prevTopic.videos[prevTopic.videos.length - 1];
     }
-    console.log("handlePreviousVideo:", prevVideo.id, {
-      completed: prevVideo.completed,
-      url: getVideoUrl(prevVideo),
-    });
     setCurrentVideo(prevVideo);
     setVideoProgress(prevVideo.progress || 0);
     setIsPlaying(false);
@@ -374,10 +364,6 @@ export default function CourseLecturePage() {
     } else {
       nextVideo = topics[currentTopicIndex + 1].videos[0];
     }
-    console.log("handleNextVideo:", nextVideo.id, {
-      completed: nextVideo.completed,
-      url: getVideoUrl(nextVideo),
-    });
     setCurrentVideo(nextVideo);
     setVideoProgress(nextVideo.progress || 0);
     setIsPlaying(false);
@@ -398,10 +384,6 @@ export default function CourseLecturePage() {
   };
 
   const handleVideoClick = (video: VideoItem) => {
-    console.log("handleVideoClick:", video.id, {
-      completed: video.completed,
-      url: getVideoUrl(video),
-    });
     setCurrentVideo(video);
     setExpandedVideoId(video.id === expandedVideoId ? null : video.id);
     setVideoProgress(video.progress || 0);
@@ -415,13 +397,6 @@ export default function CourseLecturePage() {
 
   const handlePlayPause = async () => {
     if (!videoRef || !currentVideo) return;
-
-    console.log("handlePlayPause:", currentVideo.id, {
-      isPlaying,
-      completed: currentVideo.completed,
-      currentTime: videoRef.currentTime,
-      src: videoRef.src,
-    });
 
     if (isPlaying) {
       videoRef.pause();
@@ -451,7 +426,6 @@ export default function CourseLecturePage() {
       videoRef.load();
       await waitForLoad("metadata");
       videoRef.currentTime = 0;
-      console.log("Video reset complete, currentTime:", videoRef.currentTime);
     };
 
     const playVideo = async (): Promise<void> => {

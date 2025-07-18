@@ -45,15 +45,12 @@ export function authMiddleware(handler, allowedRoles = ["user"]) {
         }
       }
 
-      console.log("foundRole:", foundRole); 
       if (!token) {
         return NextResponse.json(
           { success: false, error: "Unauthorized: Token missing"  },
           { status: 401 },
         );
       }
-
-      console.log("token:", token);
 
       // Try to verify token with the role that provided it first, then try others
       let decoded, role;

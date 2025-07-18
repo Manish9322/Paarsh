@@ -79,15 +79,12 @@ function TotalCourses() {
     refetch: refetchCourses,
   } = useFetchUserCourseQuery({});
 
-  console.log("user course data : ", data);
   const courses: PurchasedCourse[] = data?.purchasedCourses || [];
 
   const handleStartCourse = (courseId: string) => {
     router.push(`/course-lecture/${courseId}`);
   };
 
-  console.log("purchased courses : ", courses);
-  console.log("total videos in the lecture : ", courses[0]?.videos.length);
 
   const getTotalVideoCount = (purchasedCourse: PurchasedCourse) => {
     return purchasedCourse.videos.reduce((total: number, topic: any) => {
@@ -147,7 +144,6 @@ function TotalCourses() {
     return `${duration} months`;
   };
 
-  console.log("Total Courses : ", courses);
 
     // Navigate to course lecture page
   const navigateToCourseDetails = (courseId: string) => {

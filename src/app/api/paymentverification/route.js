@@ -156,7 +156,6 @@ export const POST = async (request) => {
           await activeTarget.save();
         }
 
-        console.log(`Sale recorded for agent ${agent.agentCode}: Amount ${transaction.amount}`);
       } catch (saleError) {
         console.error("Error recording agent sale:", saleError);
         // Don't fail the entire payment process if sale recording fails

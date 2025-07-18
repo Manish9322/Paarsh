@@ -257,7 +257,6 @@ const AptitudePage: React.FC = () => {
     }
     try {
       const response = await startTestSession({ sessionId, testId, collegeId }).unwrap();
-      console.log("Response from startTestSession:", response);
       
       // Initialize questions with default values
       const initializedQuestions = (response.data.questions || []).map(q => ({
@@ -296,8 +295,6 @@ const AptitudePage: React.FC = () => {
         selectedAnswer: q.selectedAnswer ?? -1, // Ensure we have a valid value
         timeSpent: q.timeSpent ?? 0
       }));
-
-      console.log("Submitting answers:", answers); // Debug log
       
       const submissionData = {
         sessionId,
@@ -308,7 +305,6 @@ const AptitudePage: React.FC = () => {
       };
 
       const response = await submitTest(submissionData).unwrap();
-      console.log("Submit test response:", response);
       
       if (!response) {
         throw new Error("No response received from server");

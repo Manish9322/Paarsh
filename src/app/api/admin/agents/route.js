@@ -151,8 +151,7 @@ export const PUT = authMiddleware(async (request) => {
   try {
     const { formData } = await request.json();
     const id = formData?._id; // ✅ Extract ID from formData
-    console.log("formatDatais ", formData.id);
-    console.log("formData", formData);
+
 
     if (!id) {
       return NextResponse.json(

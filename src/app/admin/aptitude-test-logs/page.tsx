@@ -140,13 +140,6 @@ const AptitudePage = () => {
 
   const colleges = collegesData?.colleges || [];
 
-  // Debug colleges and test sessions data
-  useEffect(() => {
-    console.log("Colleges Data:", collegesData);
-    console.log("Colleges:", colleges);
-    console.log("Test Sessions Data:", testSessions);
-    console.log("Test Sessions Error:", testSessionsError);
-  }, [collegesData, colleges, testSessions, testSessionsError]);
 
   const filteredTestSessions = testSessions?.filter((session: TestSession) => {
     // Base search term filter

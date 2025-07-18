@@ -113,9 +113,6 @@ await _db();
         createdBy: user._id,
       });
 
-      console.log("Notification job result:", result);
-
-
       return NextResponse.json({
         success: true,
         message: "Course created successfully",

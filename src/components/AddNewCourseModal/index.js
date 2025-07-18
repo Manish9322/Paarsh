@@ -90,12 +90,9 @@ export function AddNewCourse() {
   const { data: categoriesData } = useFetchCategoriesQuery();
   const { data: subCategoriesData } = useFetchSubCategoriesQuery();
 
-  console.log("subCategoriesData", subCategoriesData?.data);
-
   const categories = categoriesData?.data || [];
   const subCategories = subCategoriesData?.data || [];
 
-  console.log("categoies", categories);
 
   const {
     register,
@@ -141,8 +138,6 @@ export function AddNewCourse() {
       };
     }
   };
-
-  console.log("Course : ", course);
 
   const onSubmit = async (e) => {
     // Get the editor content from the Redux state
@@ -217,8 +212,6 @@ export function AddNewCourse() {
       removeAction: removeTag,
     },
   ];
-
-  console.log("course subcategories : ", course.subcategoryName);
 
   // Common languages list
   const commonLanguages = [

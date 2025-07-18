@@ -62,8 +62,6 @@ const TransactionsPage = () => {
   const [_GRANTMANUALACCESS, { isLoading: isGrantLoading }] =
     useGrantManualCourseAccessMutation();
 
-  console.log("Transactions data on transaction page : ", transactionsData);
-  console.log("Users data on transaction page : ", usersData);
 
   const transactions = transactionsData?.data || [];
 

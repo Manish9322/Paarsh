@@ -113,16 +113,11 @@ export default function AdminBlogs() {
   const addTagToForm = (tag: string) => {
     if (tag.trim() && !blogTags.includes(tag.trim())) {
       setBlogTags((prev) => [...prev, tag.trim()]);
-      console.log("Tags after adding:", [...blogTags, tag.trim()]);
     }
   };
 
   const removeTagFromForm = (tagToRemove: string) => {
     setBlogTags((prev) => prev.filter((tag) => tag !== tagToRemove));
-    console.log(
-      "Tags after removing:",
-      blogTags.filter((tag) => tag !== tagToRemove),
-    );
   };
 
   const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

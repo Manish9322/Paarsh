@@ -1,6 +1,7 @@
 // lib/autoWorker.js
 import { Worker } from 'bullmq';
 import { connection } from './queue.js';
+import redisClient from './redis.js';
 import _db from '../../utils/db.js';
 import Notification from '../../models/Notification/Notification.model.js';
 import PushSubscription from '../../models/Notification/PushScubscription.model.js';
@@ -180,6 +181,15 @@ export async function gracefulShutdown() {
       })
     );
   }
+
+    // Disconnect Redis safely
+  shutdownPromises.push(
+    redisClient.quit().then(() => {
+      console.log('✅ Redis connection closed');
+    }).catch((err) => {
+      console.error('❌ Redis shutdown error:', err.message);
+    })
+  );
   
   try {
     await Promise.all(shutdownPromises);

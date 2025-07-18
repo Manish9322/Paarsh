@@ -21,8 +21,6 @@ const Header = () => {
     (state) => selectRootState(state).userAuth.isAuthenticated,
   );
 
-
-  console.log("isAuthenticated", isAuthenticated);
   // Navbar toggle
   const [navbarOpen, setNavbarOpen] = useState(false);
 

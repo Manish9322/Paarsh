@@ -168,7 +168,6 @@ const LeadTracking = () => {
         notes,
       }).unwrap();
 
-      console.log(response);
       toast.success("Lead recorded successfully");
 
       setCustomerName("");
@@ -196,7 +195,6 @@ const LeadTracking = () => {
         notes,
       }).unwrap();
 
-      console.log(response);
       toast.success("Lead updated successfully");
 
       setCustomerName("");

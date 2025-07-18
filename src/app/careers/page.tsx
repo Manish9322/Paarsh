@@ -195,19 +195,14 @@ export default function Careers() {
   const [_CreateJob] = useCreateJobApplicationMutation();
 
   const { data: jobPositionData, isLoading, error } = useFetchJobPositionsQuery(undefined);
-  console.log("Job Position Data: ", jobPositionData);
 
   const { data: userData } = useFetchUserQuery(undefined);
-  console.log("user's data on careers page : ", userData);
 
 
-  console.log("Form Data  : ", formData);
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await _CreateJob(formData).unwrap();
-      console.log(formData);
-      console.log(response);
 
       // Show success dialog and reset form
       setSuccessDialogOpen(true);
@@ -259,7 +254,7 @@ export default function Careers() {
             ...prevData,
             resume: base64String,
           }));
-          console.log("Base64 string:", base64String); // Optional for debugging
+        
         };
         reader.readAsDataURL(file);
       } else {

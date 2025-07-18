@@ -33,7 +33,6 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
 
   const agentRefCode = params.get("ref"); // Get the referral code from URL
    
-  console.log("Agent Referral Code:", agentRefCode); // Log the referral code for debugging
   useEffect(() => {
     if (course?.price) {
       // If there's an active offer, apply it immediately
@@ -104,10 +103,7 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
         ...(activeOffer && new Date() <= new Date(activeOffer.validUntil) ? { offerId: activeOffer._id } : {})
       });
      
-      console.log("Order Response:", orderResponse); // Log the order response for debugging
       const orderData = orderResponse.data; // ✅ Extract actual data
-
-      console.log("Order Data:", orderData); // Log the order data for debugging
 
       if (orderData && orderData.success) {
         const options = {

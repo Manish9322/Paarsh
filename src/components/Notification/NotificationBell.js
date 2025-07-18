@@ -9,11 +9,6 @@ const NotificationBell = ({ onToggleDropdown, unreadCount }) => {
   const socketContext = useContext(SocketContext);
   const { socket, realtimeNotification } = socketContext || {};
 
-  useEffect(() => {
-    console.log('NotificationBell - SocketContext:', socketContext);
-    console.log('NotificationBell - Socket:', socket);
-    console.log('NotificationBell - UnreadCount:', unreadCount);
-  }, [socketContext, socket, unreadCount]);
 
   // Handle real-time notifications from SocketContext
   useEffect(() => {

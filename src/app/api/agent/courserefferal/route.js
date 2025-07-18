@@ -17,7 +17,6 @@ export const GET = authMiddleware(async (request) => {
       );
     }
     
-    console.log("User in referral link generation:", user);
     const agent = await AgentModel.findOne(user._id)
 
     if (!agent || !agent.agentCode) {

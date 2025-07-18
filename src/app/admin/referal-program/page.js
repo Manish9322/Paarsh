@@ -61,7 +61,6 @@ const ReferralSettingsPage = () => {
     error: referralsError,
   } = useFetchUserRefferalAdminQuery(undefined);
 
-  console.log("Referral Data :::", referralsData);
 
   const referralSettings = settingsData?.data || {
     discountPercentage: 20,

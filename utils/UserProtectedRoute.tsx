@@ -12,9 +12,6 @@ export default function UserProtectedRoute({ children }) {
   const pathname = usePathname();
   const dispatch = useDispatch();
   const { isAuthenticated , accessToken, tokenRefreshing } = useSelector((state: any) => state.userAuth);
-  console.log("isAuthenticated:from UserProtectedRoute", isAuthenticated);
-  console.log("accessToken:from UserProtectedRoute", accessToken);
-  console.log("tokenRefreshing:from UserProtectedRoute", tokenRefreshing);
 
   const [isValidating, setIsValidating] = useState(true);
 

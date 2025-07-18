@@ -58,7 +58,6 @@ export async function POST(request) {
       enquiryId: enquiry._id,
     });
 
-    console.log("Enquiry created successfully:", enquiry);
 
     return NextResponse.json({
       success: true,

@@ -14,7 +14,6 @@ export const POST = authMiddleware(async (request) => {
 
     const agentId = user._id
 
-    console.log("agentId",agentId)
 
     const {
       customerName,

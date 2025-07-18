@@ -41,10 +41,6 @@ function QuestionBank() {
   } = useFetchPracticeTestsQuery({});
   const practiceTests: PracticeTest[] = practiceTestsData?.data || [];
 
-  // Debug logs
-  console.log("User Data:", userData);
-  console.log("Purchased Courses:", purchasedCourses);
-  console.log("Practice Test Data:", practiceTests);
 
   // Filter practice tests based on purchased courses
   const filteredPracticeTests = practiceTests.filter((test) => {
@@ -54,26 +50,12 @@ function QuestionBank() {
     const normalizedPurchasedCourses = purchasedCourses.map((course) =>
       typeof course === "string" ? String(course).trim() : String(course._id).trim()
     );
-    console.log("Linked Course IDs:", linkedCourseIds);
-    console.log("Normalized Purchased Courses:", normalizedPurchasedCourses);
     const hasMatch = linkedCourseIds.some((courseId) => {
       const isMatch = normalizedPurchasedCourses.includes(courseId);
-      console.log(
-        `Comparing Course ID: ${courseId} with Purchased Courses:`,
-        normalizedPurchasedCourses,
-        `Match: ${isMatch}`
-      );
       return isMatch;
     });
-    console.log(
-      `Test: ${test.testName}, Linked Courses:`,
-      linkedCourseIds,
-      `Match: ${hasMatch}`
-    );
     return hasMatch;
   });
-
-  console.log("Filtered Practice Tests:", filteredPracticeTests);
 
   // Ensure no duplicates (safeguard)
   const uniquePracticeTests = Array.from(
@@ -92,8 +74,6 @@ function QuestionBank() {
       (selectedCategory === "All" || test.skill === selectedCategory) &&
       test.testName.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  console.log("Displayed Tests:", displayedTests);
 
   // Animation variants
   const container = {

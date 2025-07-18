@@ -40,7 +40,6 @@ const NotificationsPage = () => {
   const [deleteNotificationLog] = useDeleteNotificationLogMutation();
   const [resendNotification] = useResendNotificationMutation();
 
-  console.log("Notification Logs:", logs);
   
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();

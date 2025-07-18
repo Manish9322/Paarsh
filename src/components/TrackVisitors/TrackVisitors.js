@@ -15,7 +15,6 @@ const TrackVisitor = () => {
 
   useEffect(() => {
     if (pathname.startsWith("/admin")) {
-      console.log("Skipping tracking for admin page:", pathname);
       return;
     }
 

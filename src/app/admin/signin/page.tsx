@@ -21,7 +21,6 @@ const SigninPage = () => {
     e.preventDefault();
    try {
   const response = await _ADMINLOGIN({ email, password }).unwrap();
-  console.log("response", response);
 
   if (response?.success) {
     dispatch(

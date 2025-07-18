@@ -28,9 +28,7 @@ export async function uploadFileToVPS(buffer, fileName, mimeType) {
         
         // Save the file
         fs.writeFileSync(filePath, buffer);
-        
-        console.log(`File saved: ${filePath}`);
-        
+                
         // Return the public URL of the uploaded file
         return `${BASE_URL}${fullFileName}`;
     } catch (error) {
@@ -67,9 +65,7 @@ export async function uploadBase64ToVPS(base64String, fileName) {
         // Convert Base64 to buffer and save the file
         const buffer = Buffer.from(base64Data, "base64");
         fs.writeFileSync(filePath, buffer);
-        
-        console.log(`File saved: ${filePath}`);
-        
+                
         // Return the public URL of the uploaded file
         return `${BASE_URL}${fullFileName}`;
     } catch (error) {

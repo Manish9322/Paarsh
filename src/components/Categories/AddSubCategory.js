@@ -34,7 +34,6 @@ const AddSubCategoryModal = () => {
   const [_ADDSUBCATEGORY, { isLoading }] = useAddSubCategoryMutation();
   const { data: categoriesData, isLoading: isCategoriesLoading } =
     useFetchCategoriesQuery();
-  console.log(categoriesData);
 
   // Handle input change using Redux actions
   const handleChange = (e) => {

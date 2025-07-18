@@ -74,7 +74,6 @@ const ContactRequestsPage: React.FC = () => {
 
 
   const { data: contacts, isLoading: isContactsLoading } = useFetchContactsQuery(undefined);
-  console.log("Contacts logged inside ContactRequestsPage : ", contacts);
   const mockContactRequests = contacts?.data || [];
 
   const [_DELETECONTACT, { isLoading: isDeleting }] = useDeleteContactMutation();

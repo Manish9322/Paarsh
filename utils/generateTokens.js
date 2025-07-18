@@ -14,8 +14,6 @@ import {
 function generateTokens(_id, role = "user", sessionId = null) {
   let secretKey;
 
-  console.log("role generate token:", role);
-
   switch (role) {
     case "admin":
       secretKey = JWT_SECRET_ADMIN;

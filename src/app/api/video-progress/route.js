@@ -92,8 +92,6 @@ export const POST = authMiddleware(async (request) => {
       0
     );
 
-    console.log("Total videos:", totalVideos);
-
     const totalProgress = userProgress.progress.reduce(
       (sum, vid) => sum + vid.progress,
       0

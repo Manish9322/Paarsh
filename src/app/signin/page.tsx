@@ -49,11 +49,9 @@ const SigninPage = () => {
           forceLogin: false,
         }).unwrap();
 
-        console.log("Login response:", response);
 
         if (response?.success) {
           const { accessToken, refreshToken, user, sessionId } = response?.data;
-          console.log("Setting auth data:", { accessToken, refreshToken, user, sessionId });
 
           // Show success toast
           toast.success("Login Successful", {

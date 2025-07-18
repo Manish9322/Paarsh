@@ -16,9 +16,6 @@ export const GET = authMiddleware(async (req) => {
   try {
     const { user } = req;
 
-    console.log("user for the me:", user);
-    console.log("user.role:", user.role);
-
     if (!user || !user._id || !user.role) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },

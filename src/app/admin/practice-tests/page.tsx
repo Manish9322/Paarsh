@@ -107,9 +107,6 @@ const PracticeTestPage: React.FC = () => {
   const { data: categoriesData, isLoading: isCategoriesLoading } = useFetchCategoriesQuery(undefined);
   const categories: Category[] = categoriesData?.data || [];
 
-  console.log("Categories on Question bank page :", categories);
-  console.log(" Keywords in all categories:", categories.map(category => category.keywords).flat());
-
   // Step 1: Extract all keywords dynamically
   const keywordOptions = Array.from(
     new Set(
@@ -122,7 +119,6 @@ const PracticeTestPage: React.FC = () => {
         .filter(Boolean)
     )
   );
-  console.log("Extracted Keywords:", keywordOptions);
 
   // Filter tests based on search term
   const filteredTests = practiceTests.filter((test) =>
@@ -185,7 +181,6 @@ const PracticeTestPage: React.FC = () => {
 
   // Handle delete test
   const confirmDeleteTest = (testId: string) => {
-    console.log("Test ID to delete:", testId, typeof testId);
     setTestToDelete(testId);
     setDeleteConfirmOpen(true);
   };
@@ -196,7 +191,6 @@ const PracticeTestPage: React.FC = () => {
       toast.error("No test ID provided for deletion");
       return;
     }
-    console.log("Sending DELETE request with ID:", testToDelete, typeof testToDelete);
     try {
       await deletePracticeTest(testToDelete).unwrap();
       toast.success("Practice test deleted successfully");

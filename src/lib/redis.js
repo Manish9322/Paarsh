@@ -1,21 +1,26 @@
-import { REDIS_URL } from '../../config/config';
+// lib/redisClient.js
 import Redis from 'ioredis';
+import { REDIS_URL } from '../../config/config.js';
 
-console.log('Connecting to Redis at:', REDIS_URL);
+let redisClient = global.redisClient;
 
-const redis = new Redis(REDIS_URL, {
-  maxRetriesPerRequest: 3,
-  retryDelayOnFailover: 100,
-  enableOfflineQueue: false,
-  lazyConnect: true,
-});
+if (!redisClient) {
+  redisClient = new Redis(REDIS_URL, {
+    maxRetriesPerRequest: 3,
+    retryDelayOnFailover: 100,
+    enableOfflineQueue: false,
+    lazyConnect: false, // <- keep it false to ensure immediate reuse
+  });
 
-redis.on('error', (err) => {
-  console.error('Redis connection error:', err);
-});
+  redisClient.on('error', (err) => {
+    console.error('Redis connection error:', err);
+  });
 
-redis.on('connect', () => {
-  console.log('Redis connected successfully');
-});
+  redisClient.on('connect', () => {
+    console.log('✅ Redis connected successfully');
+  });
 
-export default redis;
+  global.redisClient = redisClient;
+}
+
+export default redisClient;

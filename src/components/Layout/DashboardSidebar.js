@@ -41,7 +41,6 @@ const DashboardSidebar = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
   const { data: userData, isLoading, error } = useFetchUserQuery(undefined);
   const user = userData?.data;
-  console.log("User: ", user);
  
   const [_LOGOUT] = useLogoutMutation();
 

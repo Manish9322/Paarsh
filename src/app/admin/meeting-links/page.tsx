@@ -128,8 +128,6 @@ const MeetingLinksPage: React.FC = () => {
     sortOrder: sortOrder
   });
 
-  console.log("meetingLinksData", meetingLinksData);
-
   const [addMeetingLink, { isLoading: isAddingMeeting }] = useAddMeetingLinkMutation();
   const [updateMeetingLink, { isLoading: isUpdatingMeeting }] = useUpdateMeetingLinkMutation();
   const [deleteMeetingLink, { isLoading: isDeletingMeeting }] = useDeleteMeetingLinkMutation();
