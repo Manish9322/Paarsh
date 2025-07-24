@@ -1,7 +1,7 @@
 // /api/auth/refresh/route.js
 import { NextResponse } from "next/server";
 import { verify } from "jsonwebtoken";
-import { JWT_SECRET_USER } from "../../../../../config/config";
+import { JWT_REFRESH_SECRET } from "../../../../../config/config";
 import UserModel from "../../../../../models/User.model";
 import generateTokens from "../../../../../utils/generateTokens";
 import _db from "../../../../../utils/db";
@@ -21,7 +21,7 @@ export async function POST(request) {
 
     try {
       // Verify refresh token
-      const decoded = verify(refreshToken, JWT_SECRET_USER);
+      const decoded = verify(refreshToken, JWT_REFRESH_SECRET);
       
       // if (decoded.type !== "refresh") {
       //   return NextResponse.json(
@@ -50,7 +50,6 @@ export async function POST(request) {
       // Generate new tokens with existing session ID
       const { accessToken, refreshToken: newRefreshToken } = generateTokens(
         user._id, 
-        false, 
         "user", 
         user.currentSessionId
       );

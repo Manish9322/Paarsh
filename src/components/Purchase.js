@@ -41,7 +41,7 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
         setFinalPrice(discountedPrice);
         setDiscountApplied(true);
       } else {
-        setFinalPrice(Number(course.price));
+        setFinalPrice(Math.round(Number(course.price)));
       }
       coursePrice = Number(course.price);
     }
@@ -97,7 +97,7 @@ const PurchaseModal = ({ isOpen, onClose, course, activeOffer }) => {
       const orderResponse = await createOrder({
         userId: user._id,
         courseId: course._id,
-        amount: finalPrice * 100, // Convert to smallest currency unit
+        amount: Math.round(finalPrice * 100), // Convert to smallest currency unitfinalPrice * 100, // Convert to smallest currency unit
         agentRefCode: agentRefCode, // Pass the referral code to the backend
         // Only pass the offerId if the offer is valid
         ...(activeOffer && new Date() <= new Date(activeOffer.validUntil) ? { offerId: activeOffer._id } : {})

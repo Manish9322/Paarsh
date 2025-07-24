@@ -270,7 +270,7 @@ const Navbar = () => {
           transition={{ duration: 0.5 }}
           className="flex items-center"
         >
-          <div className="w-60 max-w-full px-4 xl:mr-12">
+          <div className="w-60 max-w-full px-10 ml-1 xl:mr-12">
             <Link
               href="/admin"
               className="header-logo block w-full transition-transform duration-300 hover:scale-110"
@@ -307,7 +307,7 @@ const Navbar = () => {
       </div>
 
       {/* Right side actions */}
-      <div className="flex items-center space-x-1 md:space-x-3">
+      <div className="flex items-center space-x-5 md:space-x-3">
         {/* Theme Toggle */}
         <motion.button
           whileHover={{ scale: 1.1 }}
