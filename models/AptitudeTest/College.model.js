@@ -19,7 +19,6 @@ const collegeSchema = new mongoose.Schema({
   testIds:[{
     type: String,
     required: true,
-    unique: true
   }],
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,

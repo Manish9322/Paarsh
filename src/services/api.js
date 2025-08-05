@@ -1234,17 +1234,17 @@ export const paarshEduApi = createApi({
     }),
 
     updateCollege: builder.mutation({
-      query: ({id , data}) => ({
-        url: `/admin/aptitude-test/colleges?collegeId=${id}`,
+      query: ({collegeId , data}) => ({
+        url: `/admin/aptitude-test/colleges?collegeId=${collegeId}`,
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["College"],
+      invalidatesTags: ["College"], 
     }),
   
     deleteCollege: builder.mutation({
-      query: (id) => ({
-        url: `/admin/aptitude-test/colleges?collegeId=${id}`,
+      query: ({collegeId}) => ({
+        url: `/admin/aptitude-test/colleges?collegeId=${collegeId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["College"],
