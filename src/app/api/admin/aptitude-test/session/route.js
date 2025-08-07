@@ -96,7 +96,7 @@ export const POST = authMiddleware(async function (request) {
       test: test._id,
       duration: test.testDuration,
       status: "pending",
-      passingPercentage: test.testSettings.passingPercentage,
+      passingPercentage: test.testSettings.passingScore,
       questions: questions.map((q) => ({
         question: q._id,
         selectedAnswer: -1,

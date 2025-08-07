@@ -74,7 +74,7 @@ const testSessionSchema = new mongoose.Schema({
   },
   passingPercentage: {
     type: Number,
-    default: 40, // Default passing percentage is 40%
+    default: 70, // Default passing percentage is 40%
   },
 });
 
