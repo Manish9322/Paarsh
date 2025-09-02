@@ -11,8 +11,10 @@ const testSchema = new mongoose.Schema({
     allowRetake: { type: Boolean, default: false },
   },
   createdAt: { type: Date, default: Date.now },
+  hasExpiry: { type: Boolean, required: true, default: false },
+  startTime: { type: Date, required: false },
+  endTime: { type: Date, required: false }
 });
-
 
 testSchema.index({ college: 1 });
 

@@ -62,6 +62,7 @@ interface Test {
   createdAt: string;
   testLink: string;
   studentCount: number;
+  expiresAt?: string; // Optional expiresAt field
 }
 
 interface TestWithCollegeName extends Test {
@@ -112,6 +113,9 @@ const CreateAptitudeTest = () => {
     questionsPerTest: "",
     passingScore: "",
     allowRetake: false,
+    hasExpiry: false,
+    startDateTime: "",
+    endDateTime: "",
   });
   const [allTests, setAllTests] = useState<TestWithCollegeName[]>([]);
   const [isLoadingTests, setIsLoadingTests] = useState(false);
@@ -128,20 +132,16 @@ const CreateAptitudeTest = () => {
     const fetchAllTests = async () => {
       setIsLoadingTests(true);
       try {
-        // Create a map of college ID to college name for quick lookup
         const collegeMap = colleges.reduce((map, college) => {
           map[college._id] = college.name;
           return map;
         }, {});
 
-        // Get all tests with a single API call
         const response = await triggerGetTests({}).unwrap();
-        
-        // Map the tests and add college names
         const testsWithCollegeNames = response.map((test: Test) => ({
           ...test,
           studentCount: 0,
-          collegeName: collegeMap[test.college] || 'Unknown College'
+          collegeName: collegeMap[test.college] || "Unknown College",
         }));
 
         setAllTests(testsWithCollegeNames);
@@ -186,11 +186,42 @@ const CreateAptitudeTest = () => {
   const allQuestions: ParsedQuestion[] = data?.data || [];
 
   const handleCreateTest = async () => {
-    const { collegeId, batchName, testDuration, questionsPerTest, passingScore, allowRetake } = testForm;
+    const { collegeId, batchName, testDuration, questionsPerTest, passingScore, allowRetake, hasExpiry, startDateTime, endDateTime } = testForm;
+    
     if (!collegeId || !batchName || !testDuration || !questionsPerTest || !passingScore) {
       toast.error("Please fill in all required fields");
       return;
     }
+
+    let startTime = null;
+    let endTime = null;
+
+    if (hasExpiry) {
+      if (!startDateTime || !endDateTime) {
+        toast.error("Please set both start and end time for the test");
+        return;
+      }
+
+      startTime = new Date(startDateTime);
+      endTime = new Date(endDateTime);
+      const currentTime = new Date();
+
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        toast.error("Invalid date/time format");
+        return;
+      }
+
+      if (startTime < currentTime) {
+        toast.error("Start time cannot be in the past");
+        return;
+      }
+
+      if (endTime <= startTime) {
+        toast.error("End time must be after start time");
+        return;
+      }
+    }
+
     try {
       const response = await createTest({
         collegeId,
@@ -201,24 +232,34 @@ const CreateAptitudeTest = () => {
           passingScore: parseInt(passingScore),
           allowRetake,
         },
+        startDateTime: startTime.toISOString(),
+        endDateTime: endTime.toISOString(),
       }).unwrap();
       setCreateTestDialogOpen(false);
-      setTestForm({ collegeId: "", batchName: "", testDuration: "", questionsPerTest: "", passingScore: "", allowRetake: false });
+      setTestForm({
+        collegeId: "",
+        batchName: "",
+        testDuration: "",
+        questionsPerTest: "",
+        passingScore: "",
+        allowRetake: false,
+        expiryOption: "sameDay",
+      });
       toast.success(`Test created successfully: ${response.data.testLink}`);
-      
+
       // Refresh tests
       const tests = await triggerGetTests({}).unwrap();
       const collegeMap = colleges.reduce((map, college) => {
         map[college._id] = college.name;
         return map;
       }, {});
-
-      // Update all tests with the new test
-      setAllTests(tests.map((test: Test) => ({
-        ...test,
-        studentCount: 0,
-        collegeName: collegeMap[test.college] || 'Unknown College'
-      })));
+      setAllTests(
+        tests.map((test: Test) => ({
+          ...test,
+          studentCount: 0,
+          collegeName: collegeMap[test.college] || "Unknown College",
+        }))
+      );
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to create test");
     }
@@ -231,7 +272,6 @@ const CreateAptitudeTest = () => {
       setDeleteTestDialogOpen(false);
       setTestToDelete(null);
       toast.success("Test deleted successfully");
-      // Remove deleted test from state
       setAllTests((prev) => prev.filter((test) => test.testId !== testToDelete.testId));
     } catch (err: any) {
       toast.error(err?.data?.message || "Failed to delete test");
@@ -534,7 +574,7 @@ const CreateAptitudeTest = () => {
             <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 pb-4 pt-6 sm:p-6">
               <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
                 <CardTitle className="text-xl font-bold text-white sm:text-2xl">
-                  Aptitude Test 
+                  Aptitude Test
                 </CardTitle>
                 <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row md:items-center">
                   <Input
@@ -682,10 +722,23 @@ const CreateAptitudeTest = () => {
           </Card>
 
           {/* Create Test Dialog */}
-          <Dialog open={createTestDialogOpen} onOpenChange={(open) => {
-            setCreateTestDialogOpen(open);
-            if (!open) setTestForm({ collegeId: "", batchName: "", testDuration: "", questionsPerTest: "", passingScore: "", allowRetake: false });
-          }}>
+          <Dialog
+            open={createTestDialogOpen}
+            onOpenChange={(open) => {
+              setCreateTestDialogOpen(open);
+              if (!open)
+                setTestForm({
+                  collegeId: "",
+                  batchName: "",
+                  testDuration: "",
+                  questionsPerTest: "",
+                  passingScore: "",
+                  allowRetake: false,
+                  startDateTime: "",
+                  endDateTime: "",
+                });
+            }}
+          >
             <DialogContent className="max-w-md border border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -768,6 +821,56 @@ const CreateAptitudeTest = () => {
                     required
                   />
                 </div>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="hasExpiry"
+                      checked={testForm.hasExpiry}
+                      onChange={(e) => {
+                        setTestForm({ 
+                          ...testForm, 
+                          hasExpiry: e.target.checked,
+                          startDateTime: e.target.checked ? testForm.startDateTime : "",
+                          endDateTime: e.target.checked ? testForm.endDateTime : ""
+                        });
+                      }}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="hasExpiry" className="text-sm font-medium text-gray-900 dark:text-white">
+                      Set Test Time Window
+                    </label>
+                  </div>
+
+                  {testForm.hasExpiry && (
+                    <>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                          Start Date & Time
+                        </label>
+                        <Input
+                          type="datetime-local"
+                          value={testForm.startDateTime}
+                          onChange={(e) => setTestForm({ ...testForm, startDateTime: e.target.value })}
+                          className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+                          End Date & Time
+                        </label>
+                        <Input
+                          type="datetime-local"
+                          value={testForm.endDateTime}
+                          onChange={(e) => setTestForm({ ...testForm, endDateTime: e.target.value })}
+                          className="w-full rounded border border-gray-200 bg-gray-50 px-4 py-2.5 text-base dark:text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700/50"
+                          required
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -800,10 +903,13 @@ const CreateAptitudeTest = () => {
           </Dialog>
 
           {/* Delete Test Confirmation Dialog */}
-          <Dialog open={deleteTestDialogOpen} onOpenChange={(open) => {
-            setDeleteTestDialogOpen(open);
-            if (!open) setTestToDelete(null);
-          }}>
+          <Dialog
+            open={deleteTestDialogOpen}
+            onOpenChange={(open) => {
+              setDeleteTestDialogOpen(open);
+              if (!open) setTestToDelete(null);
+            }}
+          >
             <DialogContent className="max-w-md border border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
