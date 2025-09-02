@@ -742,7 +742,7 @@ const CreateAptitudeTest = () => {
                 });
             }}
           >
-            <DialogContent className="max-w-md border border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+            <DialogContent className="max-h-[90vh] overflow-y-auto max-w-md border border-gray-100 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white sm:p-6 w-[95%] sm:w-full">
               <DialogHeader>
                 <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">
                   Create New Test
@@ -886,20 +886,20 @@ const CreateAptitudeTest = () => {
                   </label>
                 </div>
               </div>
-              <DialogFooter className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <DialogFooter className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button
                   variant="outline"
                   onClick={() => setCreateTestDialogOpen(false)}
-                  className="w-full rounded border-blue-500 px-6 py-3 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/30 sm:w-auto"
+                  className="w-full rounded border-blue-500 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/30 sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleCreateTest}
                   disabled={isCreatingTest}
-                  className="w-full rounded bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 sm:w-auto"
+                  className="w-full rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 sm:w-auto"
                 >
-                  Create Test
+                  {isCreatingTest ? "Creating..." : "Create Test"}
                 </Button>
               </DialogFooter>
             </DialogContent>
