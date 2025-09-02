@@ -523,6 +523,7 @@ const AptitudePage: React.FC = () => {
       <RegisterForm
         onRegister={(studentId, token) => {
           setShowSuccessModal(true);
+          setStep("login");
         }}
         onBack={() => setStep("auth")}
         testId={testId}
@@ -537,8 +538,7 @@ const AptitudePage: React.FC = () => {
         onClose={() => {
           setShowSuccessModal(false);
           setStep("login");
-        }}
-      />
+        } } isOpen={false}      />
     );
   }
 

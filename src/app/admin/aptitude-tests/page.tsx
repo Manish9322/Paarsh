@@ -193,8 +193,8 @@ const CreateAptitudeTest = () => {
       return;
     }
 
-    let startTime = null;
-    let endTime = null;
+    let startTime: Date | null = null;
+    let endTime: Date | null = null;
 
     if (hasExpiry) {
       if (!startDateTime || !endDateTime) {
@@ -232,8 +232,8 @@ const CreateAptitudeTest = () => {
           passingScore: parseInt(passingScore),
           allowRetake,
         },
-        startDateTime: startTime.toISOString(),
-        endDateTime: endTime.toISOString(),
+        ...(startTime instanceof Date ? { startDateTime: startTime.toISOString() } : {}),
+        ...(endTime instanceof Date ? { endDateTime: endTime.toISOString() } : {}),
       }).unwrap();
       setCreateTestDialogOpen(false);
       setTestForm({
@@ -243,7 +243,9 @@ const CreateAptitudeTest = () => {
         questionsPerTest: "",
         passingScore: "",
         allowRetake: false,
-        expiryOption: "sameDay",
+        hasExpiry: false,
+        startDateTime: "",
+        endDateTime: "",
       });
       toast.success(`Test created successfully: ${response.data.testLink}`);
 
@@ -734,6 +736,7 @@ const CreateAptitudeTest = () => {
                   questionsPerTest: "",
                   passingScore: "",
                   allowRetake: false,
+                  hasExpiry: false,
                   startDateTime: "",
                   endDateTime: "",
                 });
