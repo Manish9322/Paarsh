@@ -149,7 +149,11 @@ const AptitudePage: React.FC = () => {
 
   // Validate testId and collegeId
   useEffect(() => {
-    if (!testId || !collegeId || !batchName) {
+    if (!testId || !collegeId || !batchName) {      // Clear tokens if test link is invalid
+      localStorage.removeItem("student_access_token");
+      localStorage.removeItem("student_refresh_token");
+      localStorage.removeItem("test_session");
+      localStorage.removeItem("violations");
       setMessage("Invalid test link. Please contact your administrator.");
       setStep("expired");
     }
@@ -208,6 +212,11 @@ const AptitudePage: React.FC = () => {
     }
     if (testInfoError) {
       console.error("Test instruction error:", testInfoError);
+      // Clear tokens on test info error
+      localStorage.removeItem("student_access_token");
+      localStorage.removeItem("student_refresh_token");
+      localStorage.removeItem("test_session");
+      localStorage.removeItem("violations");
       setMessage((testInfoError as any)?.data?.error || "Failed to load test instructions. Please try again.");
       setStep("expired");
       setSessionId(null);
@@ -219,6 +228,11 @@ const AptitudePage: React.FC = () => {
     if (isCreatingSession || testInfoLoading) {
       const timeout = setTimeout(() => {
         if (isCreatingSession || testInfoLoading) {
+          // Clear tokens on timeout
+          localStorage.removeItem("student_access_token");
+          localStorage.removeItem("student_refresh_token");
+          localStorage.removeItem("test_session");
+          localStorage.removeItem("violations");
           setMessage("Session creation or test information is taking too long. Please try again.");
           setStep("expired");
           setSessionId(null);
@@ -269,6 +283,19 @@ const AptitudePage: React.FC = () => {
     }
   }, [sessionId, testId, timeRemaining, step]);
 
+  // Handle problematic state where test step is reached without proper data
+  useEffect(() => {
+    if (step === "test" && (!testInfo || questions.length === 0) && !testInfoLoading && !isCreatingSession) {
+      // Clear tokens and redirect to auth if we're stuck in test state without data
+      localStorage.removeItem("student_access_token");
+      localStorage.removeItem("student_refresh_token");
+      localStorage.removeItem("test_session");
+      localStorage.removeItem("violations");
+      setStep("auth");
+      setMessage("Session error. Please login again.");
+    }
+  }, [step, testInfo, questions, testInfoLoading, isCreatingSession]);
+
   // Handle auth success with specific handling for test expiration
   const handleAuthSuccess = useCallback(
     async (studentId: string, student_access_token: string) => {
@@ -299,6 +326,7 @@ const AptitudePage: React.FC = () => {
         setIsProcessingLogin(false);
         if (err?.status === 401) {
           localStorage.removeItem("student_access_token");
+          localStorage.removeItem("student_refresh_token");
           setStep("auth");
           setMessage("Session expired. Please login again.");
         } else if (err?.data?.error === "This test link has expired") {
@@ -437,8 +465,11 @@ const AptitudePage: React.FC = () => {
         throw new Error("No response received from server");
       }
 
+      // Clear all localStorage data after successful submission
       localStorage.removeItem("test_session");
       localStorage.removeItem("violations");
+      localStorage.removeItem("student_access_token");
+      localStorage.removeItem("student_refresh_token");
 
       setResult(response);
       setStep("result");
@@ -448,6 +479,11 @@ const AptitudePage: React.FC = () => {
       console.error("Submit test error:", err);
 
       if (err.status === 401 || err.status === 403) {
+        // Clear tokens on authentication errors
+        localStorage.removeItem("student_access_token");
+        localStorage.removeItem("student_refresh_token");
+        localStorage.removeItem("test_session");
+        localStorage.removeItem("violations");
         setMessage("Session expired. Please login again.");
         setStep("auth");
         setSessionId(null);
@@ -473,6 +509,12 @@ const AptitudePage: React.FC = () => {
 
   // Handle exit
   const handleExit = useCallback(() => {
+    // Clear all localStorage data
+    localStorage.removeItem("test_session");
+    localStorage.removeItem("violations");
+    localStorage.removeItem("student_access_token");
+    localStorage.removeItem("student_refresh_token");
+    
     setStep("auth");
     setStudentId(null);
     setSessionId(null);
@@ -713,7 +755,14 @@ const AptitudePage: React.FC = () => {
           name: testInfo.testDetails.name,
           college: testInfo.testDetails.college
         }}
-        onRedirect={() => setStep("auth")}
+        onRedirect={() => {
+          // Clear all tokens when redirecting from result page
+          localStorage.removeItem("student_access_token");
+          localStorage.removeItem("student_refresh_token");
+          localStorage.removeItem("test_session");
+          localStorage.removeItem("violations");
+          setStep("auth");
+        }}
       />
     );
   }
@@ -789,13 +838,13 @@ const AptitudePage: React.FC = () => {
   }
 
   if (step === "expired") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100 dark:from-gray-900 dark:to-orange-900 flex items-center justify-center px-4">
+    return (  
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-red-100 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center px-4">
         <div className="w-full max-w-md">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center space-y-6">
             {/* Icon */}
             <div className="flex justify-center">
-              <div className="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
+              <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -813,12 +862,12 @@ const AptitudePage: React.FC = () => {
             </div>
 
             {/* Message */}
-            <div className="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-4 border-l-4 border-orange-500">
+            <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4 border-l-4 border-blue-500">
               <div className="text-left">
-                <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-2">
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
                   ℹ️ Current Status
                 </h3>
-                <p className="text-orange-800 dark:text-orange-200 text-sm leading-relaxed">
+                <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
                   {message || "This test session is currently not available. Please contact your instructor for assistance."}
                 </p>
               </div>
@@ -831,15 +880,15 @@ const AptitudePage: React.FC = () => {
               </h4>
               <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                 <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
                   <span>Contact your instructor</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
                   <span>Verify the test link</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
                   <span>Try refreshing the page</span>
                 </div>
               </div>
@@ -848,7 +897,7 @@ const AptitudePage: React.FC = () => {
             {/* Button */}
             <Button
               onClick={handleExit}
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-medium transition-colors"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors"
             >
               Return to Login
             </Button>
