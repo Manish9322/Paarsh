@@ -12,8 +12,8 @@ const testSchema = new mongoose.Schema({
   },
   createdAt: { type: Date, default: Date.now },
   hasExpiry: { type: Boolean, required: true, default: false },
-  startTime: { type: Date, required: false },
-  endTime: { type: Date, required: false }
+  startTime: { type: Date },
+  endTime: { type: Date }
 });
 
 testSchema.index({ college: 1 });

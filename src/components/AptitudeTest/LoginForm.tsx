@@ -105,9 +105,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onBack, testId, c
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full space-x-2 rounded bg-blue-600 py-6 text-white transition-all hover:bg-blue-700 hover:shadow-lg dark:bg-blue-500 dark:hover:bg-blue-600"
+                  className="w-full space-x-2 rounded bg-blue-600 py-6 text-white transition-all hover:bg-blue-700 hover:shadow-lg dark:bg-blue-500 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <span>Log In</span>
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                      <span>Logging In...</span>
+                    </>
+                  ) : (
+                    <span>Log In</span>
+                  )}
                 </Button>
               </div>
             </form>

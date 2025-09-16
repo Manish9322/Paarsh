@@ -123,7 +123,7 @@ const AptitudePage: React.FC = () => {
   const testId = searchParams?.get("testId") ?? null;
   const collegeId = searchParams?.get("collegeId") ?? null;
   const batchName = searchParams?.get("batchName") ?? null;
-  const [step, setStep] = useState<"auth" | "login" | "register" | "instructions" | "test" | "result" | "expired">(
+  const [step, setStep] = useState<"auth" | "login" | "register" | "instructions" | "test" | "result" | "expired" | "loading" | "not-started">(
     "auth"
   );
   const [studentId, setStudentId] = useState<string | null>(null);
@@ -136,6 +136,7 @@ const AptitudePage: React.FC = () => {
   const [markedQuestions, setMarkedQuestions] = useState<{ [key: string]: boolean }>({});
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [isProcessingLogin, setIsProcessingLogin] = useState<boolean>(false);
 
   const [createTestSession, { isLoading: isCreatingSession, error: sessionError }] =
     useCreateTestSessionMutation();
@@ -174,7 +175,7 @@ const AptitudePage: React.FC = () => {
             timeZoneName: 'short'
           });
           setMessage(`This test is scheduled to begin on ${formattedStartTime}. Please return at the scheduled time.`);
-          setStep("expired");
+          setStep("not-started");
           return;
         }
 
@@ -272,6 +273,8 @@ const AptitudePage: React.FC = () => {
   const handleAuthSuccess = useCallback(
     async (studentId: string, student_access_token: string) => {
       setStudentId(studentId);
+      setIsProcessingLogin(true);
+      setStep("loading"); // Show loading state immediately
       localStorage.setItem("student_access_token", student_access_token);
 
       try {
@@ -289,9 +292,11 @@ const AptitudePage: React.FC = () => {
 
         setSessionId(response.data.sessionId);
         setMessage(null); // Clear any previous message
+        setIsProcessingLogin(false);
         setStep("instructions");
       } catch (err: any) {
         console.error("Session creation error:", err);
+        setIsProcessingLogin(false);
         if (err?.status === 401) {
           localStorage.removeItem("student_access_token");
           setStep("auth");
@@ -334,7 +339,7 @@ const AptitudePage: React.FC = () => {
           timeZoneName: 'short'
         });
         setMessage(`This test is scheduled to begin on ${formattedStartTime}. Please return at the scheduled time.`);
-        setStep("expired");
+        setStep("not-started");
         return;
       }
 
@@ -479,6 +484,7 @@ const AptitudePage: React.FC = () => {
     setMarkedQuestions({});
     setShowSuccessModal(false);
     setMessage(null);
+    setIsProcessingLogin(false);
   }, []);
 
   // Calculate question status
@@ -522,8 +528,13 @@ const AptitudePage: React.FC = () => {
     return (
       <RegisterForm
         onRegister={(studentId, token) => {
+          // Automatically process the registration and create session
           setShowSuccessModal(true);
-          setStep("login");
+          // Use a timeout to allow the success modal to be shown briefly, then process login
+          setTimeout(() => {
+            setShowSuccessModal(false);
+            handleAuthSuccess(studentId, token);
+          }, 2000);
         }}
         onBack={() => setStep("auth")}
         testId={testId}
@@ -534,11 +545,77 @@ const AptitudePage: React.FC = () => {
 
   if (showSuccessModal) {
     return (
-      <SuccessModal
-        onClose={() => {
-          setShowSuccessModal(false);
-          setStep("login");
-        } } isOpen={false}      />
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-green-900 flex items-center justify-center px-4">
+        <div className="w-full max-w-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center space-y-6">
+            {/* Success Icon */}
+            <div className="flex justify-center">
+              <div className="w-18 h-18 bg-green-500 rounded-full flex items-center justify-center shadow-md animate-pulse">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="space-y-3">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Registration Successful!
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Setting up your test session...
+              </p>
+            </div>
+
+            {/* Loading */}
+            <div className="bg-green-50 dark:bg-green-900/30 rounded-xl p-4">
+              <div className="flex items-center justify-center space-x-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-2 border-green-300 border-t-green-600"></div>
+                <span className="text-green-800 dark:text-green-200 text-sm font-medium">
+                  Please wait...
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "loading") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center px-4">
+        <div className="text-center space-y-6">
+          {/* Loading Spinner */}
+          <div className="flex justify-center">
+            <div className="relative">
+              <div className="animate-spin rounded-full h-12 w-12 border-3 border-blue-200 border-t-blue-600"></div>
+              <div className="absolute inset-0 rounded-full border-3 border-blue-100 opacity-25"></div>
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Setting Up Your Test
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Please wait while we prepare everything...
+            </p>
+          </div>
+
+          {/* Progress Indicator */}
+          <div className="flex justify-center space-x-1">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"
+                style={{ animationDelay: `${i * 0.3}s` }}
+              ></div>
+            ))}
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -641,20 +718,137 @@ const AptitudePage: React.FC = () => {
     );
   }
 
-  if (step === "expired") {
+  if (step === "not-started") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
-        <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">
-            Test Expired
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 text-center mb-6">
-            {message || "This test link is no longer available. Please contact your administrator."}
-          </p>
-          <div className="flex justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-900 flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center space-y-6">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Test Scheduled
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Your test will begin at the scheduled time
+              </p>
+            </div>
+
+            {/* Schedule Info */}
+            <div className="bg-blue-50 dark:bg-blue-900/30 rounded-xl p-4 border-l-4 border-blue-500">
+              <div className="text-left">
+                <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                  📅 Schedule Details
+                </h3>
+                <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
+                  {message}
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Tips */}
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                Quick Preparation Tips
+              </h4>
+              <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <div className="flex items-center space-x-2">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                  <span>Stable internet connection</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                  <span>Quiet environment</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                  <span>Close other applications</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Button */}
             <Button
               onClick={handleExit}
-              className="rounded bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-colors"
+            >
+              Return to Login
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "expired") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100 dark:from-gray-900 dark:to-orange-900 flex items-center justify-center px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center space-y-6">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center shadow-md">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Test Information
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                Please review the information below
+              </p>
+            </div>
+
+            {/* Message */}
+            <div className="bg-orange-50 dark:bg-orange-900/30 rounded-xl p-4 border-l-4 border-orange-500">
+              <div className="text-left">
+                <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-2">
+                  ℹ️ Current Status
+                </h3>
+                <p className="text-orange-800 dark:text-orange-200 text-sm leading-relaxed">
+                  {message || "This test session is currently not available. Please contact your instructor for assistance."}
+                </p>
+              </div>
+            </div>
+
+            {/* Help Options */}
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                Need Help?
+              </h4>
+              <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <div className="flex items-center space-x-2">
+                  <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                  <span>Contact your instructor</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                  <span>Verify the test link</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+                  <span>Try refreshing the page</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Button */}
+            <Button
+              onClick={handleExit}
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-medium transition-colors"
             >
               Return to Login
             </Button>
