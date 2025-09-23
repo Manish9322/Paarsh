@@ -191,17 +191,21 @@ export default function BulkUploadQuestions() {
   ];
 
   const filteredQuestions = questions.filter((question: any) => {
-    const matchesSearch =
-      question.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      question.category.toLowerCase().includes(searchTerm.toLowerCase());
+  const searchLower = searchTerm.toLowerCase();
+  const matchesSearch =
+    question.question.toLowerCase().includes(searchLower) ||
+    question.category.toLowerCase().includes(searchLower) ||
+    question.correctAnswer.toLowerCase().includes(searchLower) ||
+    (question.explanation && question.explanation.toLowerCase().includes(searchLower)) ||
+    question.options.some((option: any) => option.text.toLowerCase().includes(searchLower));
 
-    const matchesCategory =
-      selectedCategory === "all"
-        ? true
-        : question.category === selectedCategory;
+  const matchesCategory =
+    selectedCategory === "all"
+      ? true
+      : question.category === selectedCategory;
 
-    return matchesSearch && matchesCategory;
-  });
+  return matchesSearch && matchesCategory;
+});
 
   const startIndex =
     questionsPerPage === "all"
@@ -400,7 +404,8 @@ export default function BulkUploadQuestions() {
                         <p className="font-mono text-sm">
                           question,option1,option2,option3,option4,correctAnswer,category,explanation
                           <br />
-                          &quot;What is 2 + 2?&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;4&quot;,&quot;aptitude&quot;,&quot;Basic
+                          &quot;What is 2 +
+                          2?&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;4&quot;,&quot;aptitude&quot;,&quot;Basic
                           addition&quot;
                         </p>
                       </div>
@@ -670,7 +675,8 @@ export default function BulkUploadQuestions() {
           <DialogHeader>
             <DialogTitle>Preview File Content</DialogTitle>
             <DialogDescription>
-              Review the content before uploading. Make sure all questions are formatted correctly.
+              Review the content before uploading. Make sure all questions are
+              formatted correctly.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto">
@@ -680,9 +686,13 @@ export default function BulkUploadQuestions() {
               </pre>
             ) : (
               <div className="rounded-lg bg-gray-50 p-4 font-mono text-sm dark:bg-gray-900">
-                {Array.isArray(parsedQuestions) ? parsedQuestions.map((line: string, index: number) => (
-                  <div key={index}>{line}</div>
-                )) : typeof parsedQuestions === 'object' ? JSON.stringify(parsedQuestions, null, 2) : String(parsedQuestions)}
+                {Array.isArray(parsedQuestions)
+                  ? parsedQuestions.map((line: string, index: number) => (
+                      <div key={index}>{line}</div>
+                    ))
+                  : typeof parsedQuestions === "object"
+                    ? JSON.stringify(parsedQuestions, null, 2)
+                    : String(parsedQuestions)}
               </div>
             )}
           </div>
@@ -690,7 +700,7 @@ export default function BulkUploadQuestions() {
             <Button variant="outline" onClick={() => setShowPreview(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleUpload}
               disabled={isUploading}
               className="bg-blue-600 text-white hover:bg-blue-700"
@@ -701,7 +711,7 @@ export default function BulkUploadQuestions() {
                   Uploading...
                 </>
               ) : (
-                'Upload Questions'
+                "Upload Questions"
               )}
             </Button>
           </DialogFooter>
@@ -723,21 +733,23 @@ export default function BulkUploadQuestions() {
               <div>
                 <h3 className="font-semibold">Options:</h3>
                 <div className="mt-2 space-y-2">
-                  {selectedQuestion.options.map((option: any, index: number) => (
-                    <div
-                      key={option._id}
-                      className={`rounded-lg p-2 ${
-                        option.isCorrect
-                          ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
-                          : "bg-gray-50 dark:bg-gray-800"
-                      }`}
-                    >
-                      {index + 1}. {option.text}
-                      {option.isCorrect && (
-                        <span className="ml-2 text-sm">(Correct Answer)</span>
-                      )}
-                    </div>
-                  ))}
+                  {selectedQuestion.options.map(
+                    (option: any, index: number) => (
+                      <div
+                        key={option._id}
+                        className={`rounded-lg p-2 ${
+                          option.isCorrect
+                            ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300"
+                            : "bg-gray-50 dark:bg-gray-800"
+                        }`}
+                      >
+                        {index + 1}. {option.text}
+                        {option.isCorrect && (
+                          <span className="ml-2 text-sm">(Correct Answer)</span>
+                        )}
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
               <div>
@@ -753,7 +765,10 @@ export default function BulkUploadQuestions() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPreviewModalOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setPreviewModalOpen(false)}
+            >
               Close
             </Button>
           </DialogFooter>
@@ -792,9 +807,14 @@ export default function BulkUploadQuestions() {
                           ...option,
                           text: e.target.value,
                         };
+                        // Update correctAnswer if this option is marked as correct
+                        const newCorrectAnswer =
+                          newOptions.find((opt) => opt.isCorrect)?.text ||
+                          selectedQuestion.correctAnswer;
                         setSelectedQuestion({
                           ...selectedQuestion,
                           options: newOptions,
+                          correctAnswer: newCorrectAnswer,
                         });
                       }}
                     />
@@ -806,12 +826,12 @@ export default function BulkUploadQuestions() {
                           (opt: any, i: number) => ({
                             ...opt,
                             isCorrect: i === index,
-                          })
+                          }),
                         );
                         setSelectedQuestion({
                           ...selectedQuestion,
                           options: newOptions,
-                          correctAnswer: option.text,
+                          correctAnswer: newOptions[index].text,
                         });
                       }}
                     />
@@ -842,7 +862,9 @@ export default function BulkUploadQuestions() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Explanation (Optional)</label>
+                <label className="text-sm font-medium">
+                  Explanation (Optional)
+                </label>
                 <Input
                   value={selectedQuestion.explanation}
                   onChange={(e) =>
@@ -861,16 +883,31 @@ export default function BulkUploadQuestions() {
             </Button>
             <Button
               onClick={async () => {
+                // Validate before sending update
+                const correctOption = selectedQuestion.options.find(
+                  (opt: any) => opt.isCorrect,
+                );
+                if (!correctOption) {
+                  toast.error("Please select one correct option");
+                  return;
+                }
+                if (correctOption.text !== selectedQuestion.correctAnswer) {
+                  toast.error(
+                    "Correct answer must match the selected option's text",
+                  );
+                  return;
+                }
                 try {
                   await updateQuestion({
                     id: selectedQuestion._id,
-                    ...selectedQuestion
+                    ...selectedQuestion,
                   }).unwrap();
                   toast.success("Question updated successfully");
                   setEditModalOpen(false);
                   refetch();
                 } catch (error) {
                   toast.error("Failed to update question");
+                  console.error("Update error:", error);
                 }
               }}
             >
@@ -886,11 +923,15 @@ export default function BulkUploadQuestions() {
           <DialogHeader>
             <DialogTitle>Delete Question</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this question? This action cannot be undone.
+              Are you sure you want to delete this question? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button
