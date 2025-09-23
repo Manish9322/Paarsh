@@ -12,7 +12,7 @@ await _db();
 export const POST = authMiddleware(
   async function (request) {
     try {
-      const { collegeId, batchName, testDuration, testSettings, startDateTime, endDateTime } = await request.json();
+      const { collegeId, batchName, testDuration, testSettings, startDateTime, endDateTime, hasExpiry } = await request.json();
 
       if (!testDuration || !batchName || !testSettings.questionsPerTest || !testSettings.passingScore) {
         return NextResponse.json(
@@ -24,37 +24,44 @@ export const POST = authMiddleware(
         );
       }
 
-      if (!startDateTime || !endDateTime) {
+      // Only validate start and end times if hasExpiry is true
+      if (hasExpiry && (!startDateTime || !endDateTime)) {
         return NextResponse.json(
           {
             success: false,
-            message: "Start time and end time are required",
+            message: "Start time and end time are required when test has expiry",
           },
           { status: 400 }
         );
       }
 
-      const startTime = new Date(startDateTime);
-      const endTime = new Date(endDateTime);
+      let startTime = null;
+      let endTime = null;
 
-      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Invalid date/time format",
-          },
-          { status: 400 }
-        );
-      }
+      // Only process and validate dates if hasExpiry is true
+      if (hasExpiry) {
+        startTime = new Date(startDateTime);
+        endTime = new Date(endDateTime);
 
-      if (endTime <= startTime) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "End time must be after start time",
-          },
-          { status: 400 }
-        );
+        if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: "Invalid date/time format",
+            },
+            { status: 400 }
+          );
+        }
+
+        if (endTime <= startTime) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: "End time must be after start time",
+            },
+            { status: 400 }
+          );
+        }
       }
 
       const college = await CollegeModel.findById(collegeId);
@@ -72,9 +79,9 @@ export const POST = authMiddleware(
         college: collegeId,
         testDuration,
         testSettings,
-        hasExpiry: startTime !== null && endTime !== null,
-        startTime: startTime || null,
-        endTime: endTime || null,
+        hasExpiry: hasExpiry || false,
+        startTime: startTime,
+        endTime: endTime,
       });
       await test.save();
 

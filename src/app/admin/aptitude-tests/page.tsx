@@ -232,6 +232,7 @@ const CreateAptitudeTest = () => {
           passingScore: parseInt(passingScore),
           allowRetake,
         },
+        hasExpiry,
         ...(startTime instanceof Date ? { startDateTime: startTime.toISOString() } : {}),
         ...(endTime instanceof Date ? { endDateTime: endTime.toISOString() } : {}),
       }).unwrap();
