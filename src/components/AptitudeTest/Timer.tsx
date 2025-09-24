@@ -50,18 +50,18 @@ export const Timer: React.FC<TimerProps> = ({ duration, onTimeUp }) => {
 
   return (
     <Card className={cn(
-      "mb-4 border border-gray-100 bg-white p-4 shadow-lg transition-colors duration-300 dark:border-gray-700 dark:bg-gray-800",
+      "mb-4 border border-gray-100 bg-white p-3 shadow-lg transition-colors duration-300 dark:border-gray-700 dark:bg-gray-800 sm:p-4",
       {
         "border-yellow-300 bg-yellow-50 dark:border-yellow-600 dark:bg-yellow-900/30": timeStatus === "warning",
         "animate-pulse border-red-500 bg-red-50 dark:border-red-600 dark:bg-red-900/30": timeStatus === "critical"
       }
     )}>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         {timeStatus === "critical" ? (
-          <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+          <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
         ) : (
           <Clock className={cn(
-            "h-6 w-6",
+            "h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6",
             {
               "text-blue-600 dark:text-blue-400": timeStatus === "normal",
               "text-yellow-600 dark:text-yellow-400": timeStatus === "warning"
@@ -69,14 +69,14 @@ export const Timer: React.FC<TimerProps> = ({ duration, onTimeUp }) => {
           )} />
         )}
         <div className={cn(
-          "text-lg font-semibold",
+          "text-sm font-semibold sm:text-base lg:text-lg",
           {
             "text-gray-900 dark:text-white": timeStatus === "normal",
             "text-yellow-700 dark:text-yellow-300": timeStatus === "warning",
             "text-red-700 dark:text-red-300": timeStatus === "critical"
           }
         )}>
-          Time Left: {formattedTime}
+          <span className="hidden sm:inline">Time Left: </span>{formattedTime}
         </div>
       </div>
     </Card>

@@ -14,10 +14,10 @@ interface QuestionNavigationProps {
 }
 
 const QuestionNavigationSkeleton = () => (
-  <Card className="mb-4 p-4">
-    <div className="flex flex-wrap gap-2">
+  <Card className="mb-4 p-2 sm:p-4">
+    <div className="flex flex-wrap justify-center gap-1 sm:gap-2">
       {Array.from({ length: 25 }, (_, i) => (
-        <Skeleton key={i} className="h-8 w-8 rounded-full" />
+        <Skeleton key={i} className="h-6 w-6 rounded-full sm:h-8 sm:w-8" />
       ))}
     </div>
   </Card>
@@ -43,10 +43,10 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
       const isMarked = status?.marked;
       const isCurrent = currentQuestionIndex === index;
 
-      let buttonClass = "flex h-8 w-8 items-center justify-center rounded-full p-2 text-sm font-semibold transition-all duration-200 ";
+      let buttonClass = "flex h-6 w-6 items-center justify-center rounded-full p-1 text-xs font-semibold transition-all duration-200 sm:h-8 sm:w-8 sm:p-2 sm:text-sm ";
       
       if (isCurrent) {
-        buttonClass += "bg-blue-600 text-white ring-2 ring-blue-300 dark:ring-blue-500";
+        buttonClass += "bg-blue-600 text-white ring-1 ring-blue-300 dark:ring-blue-500 sm:ring-2";
       } else if (isMarked) {
         buttonClass += "bg-orange-500 text-white hover:bg-orange-600";
       } else if (isAnswered) {
@@ -87,11 +87,11 @@ export const QuestionNavigation: React.FC<QuestionNavigationProps> = ({
   }
 
   return (
-    <Card className="mb-4 border border-gray-100 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-      <div className="flex justify-start">
+    <Card className="mb-4 border border-gray-100 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-800 sm:p-2">
+      <div className="flex justify-center">
         <div
           ref={scrollContainerRef}
-          className="grid max-h-[272px] w-fit grid-cols-5 place-items-center gap-1.5 overflow-y-auto p-1 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 dark:scrollbar-track-gray-700 dark:scrollbar-thumb-gray-500"
+          className="grid max-h-[200px] w-fit grid-cols-6 place-items-center gap-1 overflow-y-auto p-1 scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 dark:scrollbar-track-gray-700 dark:scrollbar-thumb-gray-500 sm:max-h-[272px] sm:grid-cols-5 sm:gap-1.5"
         >
           {questionButtons}
         </div>

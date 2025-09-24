@@ -9,7 +9,6 @@ import { RegisterForm } from "@/components/AptitudeTest/RegisterForm";
 import { SuccessModal } from "@/components/AptitudeTest/SuccessModal";
 import { Instructions } from "@/components/AptitudeTest/Instructions";
 import { TestHeader } from "@/components/AptitudeTest/TestHeader";
-import { Timer } from "@/components/AptitudeTest/Timer";
 import { QuestionNavigation } from "@/components/AptitudeTest/QuestionNavigation";
 import { QuestionMeta } from "@/components/AptitudeTest/QuestionMeta";
 import { Test } from "@/components/AptitudeTest/Test";
@@ -716,7 +715,6 @@ const AptitudePage: React.FC = () => {
                 />
               </div>
               <div className="lg:col-span-1 order-2 space-y-6">
-                <Timer duration={timeRemaining} onTimeUp={handleSubmitTest} />
                 <QuestionNavigation
                   totalQuestions={questions.length}
                   currentQuestionIndex={currentQuestionIndex}
