@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Menu, ChevronLeft, ChevronRight, Eye, X } from "lucide-react";
+import { Menu, ChevronLeft, ChevronRight, Eye, X, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -267,6 +267,57 @@ const AptitudePage = () => {
     setTestSessionsPage(1);
   };
 
+  const exportToCSV = () => {
+    if (filteredTestSessions.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+
+    const headers = [
+      "Student Name",
+      "Test ID",
+      "College",
+      "Batch",
+      "Score",
+      "Percentage",
+      "Pass/Fail",
+      "Status",
+      "Duration (minutes)",
+      "Start Time",
+      "End Time"
+    ];
+
+    const csvData = filteredTestSessions.map(session => [
+      session.student?.name || "Unknown",
+      session.testId,
+      session.college?.name || "N/A",
+      session.batchName || "N/A",
+      session.score,
+      `${session.percentage}%`,
+      session.isPassed ? "Pass" : "Fail",
+      session.status,
+      session.duration,
+      formatDate(session.startTime),
+      formatDate(session.endTime)
+    ]);
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.map(cell => `"${cell}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `aptitude-test-sessions-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(`Exported ${filteredTestSessions.length} test sessions to CSV`);
+  };
+
   return (
     <div className="flex min-h-screen flex-col overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Mobile Header and Sidebar (unchanged) */}
@@ -304,6 +355,14 @@ const AptitudePage = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
+                  <Button
+                    onClick={exportToCSV}
+                    disabled={filteredTestSessions.length === 0 || isTestSessionsLoading}
+                    className="flex h-10 items-center gap-2 bg-green-600 px-4 text-white hover:bg-green-700 disabled:bg-gray-400 dark:bg-green-700 dark:hover:bg-green-800"
+                  >
+                    <Download size={16} />
+                    Export CSV
+                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -311,16 +370,32 @@ const AptitudePage = () => {
               {/* Filter Component (unchanged) */}
               <div className="mb-6 m-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-700 dark:text-white">Filters</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 dark:text-white"
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    Clear Filters
-                  </Button>
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-lg font-semibold text-gray-700 dark:text-white">Filters</h3>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      Showing {filteredTestSessions.length} of {testSessions?.length || 0} sessions
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={exportToCSV}
+                      disabled={filteredTestSessions.length === 0 || isTestSessionsLoading}
+                      size="sm"
+                      className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 dark:bg-green-700 dark:hover:bg-green-800"
+                    >
+                      <Download className="h-4 w-4" />
+                      Export Filtered Data
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 dark:text-white"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Clear Filters
+                    </Button>
+                  </div>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {/* Student Name Filter */}
