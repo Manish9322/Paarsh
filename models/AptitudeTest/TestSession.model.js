@@ -79,6 +79,7 @@ const testSessionSchema = new mongoose.Schema({
 });
 
 testSessionSchema.index({ student: 1, college: 1, testId: 1 });
+testSessionSchema.index({ startTime: -1 }); // Index to optimize sorting by startTime
 
 export default mongoose.models.TestSession ||
   mongoose.model("TestSession", testSessionSchema);
